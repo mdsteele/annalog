@@ -74,12 +74,12 @@ Ram_DeviceAnim_u8_arr: .res kMaxDevices
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Actor"
 
 ;;; Decrements the animation counter for each device in the room (if that
 ;;; counter is nonzero; otherwise, leaves it at zero).
-.EXPORT Func_TickAllDevices
-.PROC Func_TickAllDevices
+.EXPORT FuncA_Actor_TickAllDevices
+.PROC FuncA_Actor_TickAllDevices
     ldx #kMaxDevices - 1
 _Loop:
     ;; If the animation counter is nonzero, decrement it.
@@ -99,6 +99,10 @@ _Continue:
     bpl _Loop
     rts
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Returns the index of the device whose block the point stored in
 ;;; Zp_PointX_i16 and Zp_PointY_i16 is in, if any.

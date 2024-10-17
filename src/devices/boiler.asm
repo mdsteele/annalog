@@ -60,15 +60,13 @@
 .EXPORT Func_EmitSteamRightFromPipe
 .PROC Func_EmitSteamRightFromPipe
     jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
-    bcs @done
+    bcs Func_DoNotEmitSteam  ; preserves T0+
     jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
     lda #kTileWidthPx * 3 / 2  ; param: offset
     jsr Func_MovePointRightByA  ; preserves X and T0+
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     lda #0  ; param: facing dir
     jmp Func_InitActorProjSteamHorz  ; preserves T0+
-    @done:
-    rts
 .ENDPROC
 
 ;;; Given an 8x8 pixel platform covering the end tile of an upward-facing pipe,
@@ -78,13 +76,18 @@
 .EXPORT Func_EmitSteamUpFromPipe
 .PROC Func_EmitSteamUpFromPipe
     jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
-    bcs @done
+    bcs Func_DoNotEmitSteam  ; preserves T0+
     jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
     lda #kTileHeightPx * 3 / 2  ; param: offset
     jsr Func_MovePointUpByA  ; preserves X and T0+
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     jmp Func_InitActorProjSteamUp  ; preserves T0+
-    @done:
+.ENDPROC
+
+;;; No-op function for when a Func_EmitSteam* function above is unable to
+;;; allocate an actor slot for the steam.
+;;; @preserve T0+
+.PROC Func_DoNotEmitSteam
     rts
 .ENDPROC
 

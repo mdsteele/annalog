@@ -63,12 +63,12 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncA_Room_MachineSemaphoreReset
+.IMPORT FuncA_Room_UnlockDoorDevice
 .IMPORT Func_GetRandomByte
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
-.IMPORT Func_UnlockDoorDevice
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ppu_ChrObjParley
@@ -650,7 +650,7 @@ _SetFlag:
     ldx #eFlag::CityCenterDoorUnlocked  ; param: flag
     jsr Func_SetFlag
     ldx #kLockedDoorDeviceIndex  ; param: device index
-    jsr Func_UnlockDoorDevice
+    jmp FuncA_Room_UnlockDoorDevice
     @done:
     rts
 .ENDPROC

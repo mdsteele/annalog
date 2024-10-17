@@ -84,12 +84,12 @@
 .IMPORT DataA_Text1_MermaidHut4Florist_Zero2_u8_arr
 .IMPORT DataA_Text1_MermaidHut4Florist_Zero3_u8_arr
 .IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Room_UnlockDoorDevice
 .IMPORT Func_CountDeliveredFlowers
 .IMPORT Func_DropFlower
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Noop
 .IMPORT Func_SetFlag
-.IMPORT Func_UnlockDoorDevice
 .IMPORT Ppu_ChrObjVillage
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_CarryingFlower_eFlag
@@ -130,7 +130,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncC_Mermaid_Hut4_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, Func_Noop
+    d_addr Tick_func_ptr, FuncC_Mermaid_Hut4_TickRoom
     d_addr Draw_func_ptr, FuncC_Mermaid_Hut4_DrawRoom
     D_END
 _TerrainData:
@@ -192,6 +192,16 @@ _Devices_sDevice_arr:
     beq @done
     lda #eDevice::Door1Unlocked
     sta Ram_DeviceType_eDevice_arr + kCellarDoorDeviceIndex
+    @done:
+    rts
+.ENDPROC
+
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Mermaid_Hut4_TickRoom
+    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut4OpenedCellar
+    beq @done
+    ldx #kCellarDoorDeviceIndex  ; param: device index
+    jsr FuncA_Room_UnlockDoorDevice
     @done:
     rts
 .ENDPROC
@@ -383,8 +393,6 @@ _Eleven_sDialog:
 _Twelve_sDialog:
     dlg_Func @func
     @func:
-    ldx #kCellarDoorDeviceIndex  ; param: device index
-    jsr Func_UnlockDoorDevice
     ldx #eFlag::MermaidHut4OpenedCellar  ; param: flag
     jsr Func_SetFlag
     flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpBeep

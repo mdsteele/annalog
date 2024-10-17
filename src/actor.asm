@@ -26,6 +26,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "ppu.inc"
 
+.IMPORT FuncA_Actor_TickAllDevices
 .IMPORT FuncA_Actor_TickBadBat
 .IMPORT FuncA_Actor_TickBadBeetleHorz
 .IMPORT FuncA_Actor_TickBadBeetleVert
@@ -701,20 +702,20 @@ _NoHit:
     D_END
 .ENDPROC
 
-;;; Performs per-frame updates for each actor in the room.
-.EXPORT FuncA_Actor_TickAllActors
-.PROC FuncA_Actor_TickAllActors
+;;; Performs per-frame updates for each device and actor in the room.
+.EXPORT FuncA_Actor_TickAllDevicesAndActors
+.PROC FuncA_Actor_TickAllDevicesAndActors
     ldx #kMaxActors - 1
     @loop:
     jsr FuncA_Actor_TickOneActor  ; preserves X
     dex
     bpl @loop
-    rts
+    jmp FuncA_Actor_TickAllDevices
 .ENDPROC
 
-;;; Performs per-frame updates for each smoke actor in the room.
-.EXPORT FuncA_Actor_TickAllSmokeActors
-.PROC FuncA_Actor_TickAllSmokeActors
+;;; Performs per-frame updates for each device and smoke actor in the room.
+.EXPORT FuncA_Actor_TickAllDevicesAndSmokeActors
+.PROC FuncA_Actor_TickAllDevicesAndSmokeActors
     ldx #kMaxActors - 1
     @loop:
     lda Ram_ActorType_eActor_arr, x
@@ -724,7 +725,7 @@ _NoHit:
     @continue:
     dex
     bpl @loop
-    rts
+    jmp FuncA_Actor_TickAllDevices
 .ENDPROC
 
 ;;; Performs per-frame updates for one actor.

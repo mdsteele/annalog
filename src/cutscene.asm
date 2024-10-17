@@ -61,15 +61,14 @@
 .IMPORT DataA_Cutscene_TownHouse4BreakerLava_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
-.IMPORT FuncA_Actor_TickAllActors
-.IMPORT FuncA_Actor_TickAllSmokeActors
+.IMPORT FuncA_Actor_TickAllDevicesAndActors
+.IMPORT FuncA_Actor_TickAllDevicesAndSmokeActors
 .IMPORT FuncA_Avatar_RagdollMove
 .IMPORT FuncA_Room_CallRoomTick
 .IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
 .IMPORT FuncM_ScrollTowardsGoal
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_ShakeRoom
-.IMPORT Func_TickAllDevices
 .IMPORT Main_Dialog_WithinCutscene
 .IMPORT Main_Explore_Continue
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -155,8 +154,7 @@ _GameLoop:
     jsr_prga FuncA_Cutscene_ExecuteAllForks  ; returns C, T1T0, and Y
     bcs _Finish
     jsr FuncM_ScrollTowardsGoal
-    jsr_prga FuncA_Actor_TickCutsceneActors
-    jsr Func_TickAllDevices
+    jsr_prga FuncA_Actor_TickAllDevicesAndCutsceneActors
 _MaybeTickRoom:
     bit Zp_CutsceneFlags_bCutscene
     .assert bCutscene::RoomTick = bProc::Negative, error
@@ -178,13 +176,13 @@ _Finish:
 
 .SEGMENT "PRGA_Actor"
 
-;;; Ticks all actors if bCutscene::TickAllActors is set; otherwise, ticks smoke
-;;; actors only.
-.PROC FuncA_Actor_TickCutsceneActors
+;;; Ticks all devices and actors if bCutscene::TickAllActors is set; otherwise,
+;;; ticks devices and smoke actors only.
+.PROC FuncA_Actor_TickAllDevicesAndCutsceneActors
     lda Zp_CutsceneFlags_bCutscene
     and #bCutscene::TickAllActors
-    jeq FuncA_Actor_TickAllSmokeActors
-    jmp FuncA_Actor_TickAllActors
+    jeq FuncA_Actor_TickAllDevicesAndSmokeActors
+    jmp FuncA_Actor_TickAllDevicesAndActors
 .ENDPROC
 
 ;;;=========================================================================;;;

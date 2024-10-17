@@ -29,9 +29,11 @@
 .INCLUDE "room.inc"
 .INCLUDE "sample.inc"
 
+.IMPORT FuncA_Room_LockDoorDevice
 .IMPORT FuncA_Room_MachineResetHalt
 .IMPORT FuncA_Room_PlaySfxBreakerRising
 .IMPORT FuncA_Room_SpawnUpgradeDevice
+.IMPORT FuncA_Room_UnlockDoorDevice
 .IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
@@ -39,7 +41,6 @@
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_InitActorSmokeParticle
 .IMPORT Func_IsFlagSet
-.IMPORT Func_LockDoorDevice
 .IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
@@ -49,7 +50,6 @@
 .IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_ShakeRoom
-.IMPORT Func_UnlockDoorDevice
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
@@ -114,7 +114,7 @@ Zp_BossPhaseTimer_u8: .res 1
     sta Zp_BossPhaseTimer_u8
     ;; Lock the door for now.
     ldx #kBossDoorDeviceIndex  ; param: device index
-    jsr Func_LockDoorDevice
+    jsr FuncA_Room_LockDoorDevice
     ;; Check if the boss has been defeated yet.
     ldy #sBoss::Boss_eFlag
     lda (Zp_Current_sBoss_ptr), y
@@ -160,7 +160,7 @@ _BreakerAlreadyDone:
     sta Ram_DeviceType_eDevice_arr + kBossBreakerDeviceIndex
     ;; Unlock the door.
     ldx #kBossDoorDeviceIndex  ; param: device index
-    jsr Func_UnlockDoorDevice
+    jsr FuncA_Room_UnlockDoorDevice
     ;; Set and return the initial phase.
     lda #eBossPhase::Done
     sta Zp_Boss_eBossPhase
@@ -364,7 +364,7 @@ _FlipBreaker:
     bne @done
     ;; Unlock the door.
     ldx #kBossDoorDeviceIndex  ; param: device index
-    jsr Func_UnlockDoorDevice
+    jsr FuncA_Room_UnlockDoorDevice
     ;; Proceed to the next phase.
     lda #eBossPhase::Done
     sta Zp_Boss_eBossPhase

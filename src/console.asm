@@ -36,7 +36,7 @@
 .INCLUDE "window.inc"
 
 .IMPORT DataA_Console_DiagramBank_u8_arr
-.IMPORT FuncA_Actor_TickAllSmokeActors
+.IMPORT FuncA_Actor_TickAllDevicesAndSmokeActors
 .IMPORT FuncA_Console_DrawFieldCursor
 .IMPORT FuncA_Console_MoveFieldCursor
 .IMPORT FuncA_Console_WriteDiagramTransferDataForCurrentMachine
@@ -59,7 +59,6 @@
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetMusicVolumeForCurrentRoom
-.IMPORT Func_TickAllDevices
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_ScrollDown
@@ -272,8 +271,7 @@ _Tick:
 ;;; Calls per-frame tick functions that should still happen even when the
 ;;; machine console is open.
 .PROC FuncM_ConsoleTick
-    jsr_prga FuncA_Actor_TickAllSmokeActors
-    jsr Func_TickAllDevices
+    jsr_prga FuncA_Actor_TickAllDevicesAndSmokeActors
     jsr_prga FuncA_Machine_ConsoleTickOrExecuteAll
     jmp_prga FuncA_Room_CallRoomTick
 .ENDPROC

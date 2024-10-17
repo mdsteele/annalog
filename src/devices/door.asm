@@ -50,30 +50,32 @@ kPaletteObjDoorway = 0
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Room"
 
 ;;; Locks a door device, if not locked already.
 ;;; @param X The device index for the (locked or unlocked) door.
 ;;; @preserve T0+
-.EXPORT Func_LockDoorDevice
-.PROC Func_LockDoorDevice
-    lda #eDevice::Door1Locked
-    cmp Ram_DeviceType_eDevice_arr, x
-    beq @done
-    sta Ram_DeviceType_eDevice_arr, x
-    lda #kDoorAnimCountdown
-    sub Ram_DeviceAnim_u8_arr, x
-    sta Ram_DeviceAnim_u8_arr, x
-    @done:
-    rts
+.EXPORT FuncA_Room_LockDoorDevice
+.PROC FuncA_Room_LockDoorDevice
+    lda #eDevice::Door1Locked  ; param: new device type
+    .assert eDevice::Door1Unlocked > 0, error
+    bne FuncA_Room_LockOrUnlockDoorDevice  ; unconditional; preserves T0+
 .ENDPROC
 
 ;;; Unlocks a door device, if not unlocked already.
 ;;; @param X The device index for the (locked or unlocked) door.
 ;;; @preserve T0+
-.EXPORT Func_UnlockDoorDevice
-.PROC Func_UnlockDoorDevice
-    lda #eDevice::Door1Unlocked
+.EXPORT FuncA_Room_UnlockDoorDevice
+.PROC FuncA_Room_UnlockDoorDevice
+    lda #eDevice::Door1Unlocked  ; param: new device type
+    fall FuncA_Room_LockOrUnlockDoorDevice  ; preserves T0+
+.ENDPROC
+
+;;; Locks or unlocks a door device, if not already in the desired state.
+;;; @param A The device type to change to (Door1Locked or Door1Unlocked).
+;;; @param X The device index for the door.
+;;; @preserve T0+
+.PROC FuncA_Room_LockOrUnlockDoorDevice
     cmp Ram_DeviceType_eDevice_arr, x
     beq @done
     sta Ram_DeviceType_eDevice_arr, x

@@ -33,7 +33,7 @@
 .INCLUDE "spawn.inc"
 .INCLUDE "tileset.inc"
 
-.IMPORT FuncA_Actor_TickAllActors
+.IMPORT FuncA_Actor_TickAllDevicesAndActors
 .IMPORT FuncA_Avatar_EnterRoomViaDoor
 .IMPORT FuncA_Avatar_EnterRoomViaPassage
 .IMPORT FuncA_Avatar_ExitRoomViaPassage
@@ -64,7 +64,6 @@
 .IMPORT Func_FindDeviceNearPoint
 .IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Func_SetPointToAvatarCenter
-.IMPORT Func_TickAllDevices
 .IMPORT Func_Window_Disable
 .IMPORT Func_Window_SetUpIrq
 .IMPORT Main_Breaker_UseDevice
@@ -196,8 +195,7 @@ _CheckButtons:
     @continueExploring:
 _Tick:
     jsr FuncM_ScrollTowardsAvatar
-    jsr_prga FuncA_Actor_TickAllActors
-    jsr Func_TickAllDevices
+    jsr_prga FuncA_Actor_TickAllDevicesAndActors
     jsr_prga FuncA_Machine_ExecuteAll
     jsr_prga FuncA_Room_CallRoomTick
     ;; Check if the player avatar is dead:
