@@ -47,15 +47,15 @@ kPaletteObjBullet = 1
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Machine"
 
 ;;; Initializes the specified actor as a bullet projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The eDir value for the bullet direction.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitActorProjBullet
-.PROC Func_InitActorProjBullet
+.EXPORT FuncA_Machine_InitActorProjBullet
+.PROC FuncA_Machine_InitActorProjBullet
     pha  ; eDir value
     ldy #eActor::ProjBullet  ; param: actor type
     jsr Func_InitActorDefault

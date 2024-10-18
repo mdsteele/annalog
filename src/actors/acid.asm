@@ -32,21 +32,17 @@ kPaletteObjAcid = 2
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Actor"
 
 ;;; Initializes the specified actor as an acid projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
 ;;; @preserve X, T0+
-.EXPORT Func_InitActorProjAcid
-.PROC Func_InitActorProjAcid
+.EXPORT FuncA_Actor_InitActorProjAcid
+.PROC FuncA_Actor_InitActorProjAcid
     ldy #eActor::ProjAcid  ; param: actor type
     jmp Func_InitActorDefault  ; preserves X and T0+
 .ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Actor"
 
 ;;; Performs per-frame updates for an acid projectile actor.
 ;;; @param X The actor index.

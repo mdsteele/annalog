@@ -26,6 +26,7 @@
 .INCLUDE "breakball.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_InitActorProjBreakfire
 .IMPORT FuncA_Actor_MovePointTowardVelXDir
 .IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Actor_NegateVelY
@@ -34,7 +35,6 @@
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorDefault
-.IMPORT Func_InitActorProjBreakfire
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePointDownByA
@@ -189,12 +189,12 @@ _Explode:
     bcs @doneFirstBreakfire
     jsr Func_SetActorCenterToPoint  ; preserves X
     lda #0  ; param: direction (0 = right)
-    jsr Func_InitActorProjBreakfire
+    jsr FuncA_Actor_InitActorProjBreakfire
     @doneFirstBreakfire:
     pla  ; breakball actor index
     tax  ; param: actor index
     lda #bObj::FlipH  ; param: direction (FlipH = left)
-    jmp Func_InitActorProjBreakfire  ; preserves X
+    jmp FuncA_Actor_InitActorProjBreakfire  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

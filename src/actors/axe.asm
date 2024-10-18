@@ -69,7 +69,7 @@ kPaletteObjAxe = 0
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Actor"
 
 ;;; Initializes the specified actor as an axe projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
@@ -77,8 +77,8 @@ kPaletteObjAxe = 0
 ;;; @param X The actor index.
 ;;; @param Y The actor type to set (ProjAxeBoomer or ProjAxeSmash).
 ;;; @preserve X, T3+
-.EXPORT Func_InitActorProjAxe
-.PROC Func_InitActorProjAxe
+.EXPORT FuncA_Actor_InitActorProjAxe
+.PROC FuncA_Actor_InitActorProjAxe
     pha  ; angle
     add #$40
     and #$80
@@ -89,10 +89,6 @@ kPaletteObjAxe = 0
     ldy #kProjAxeSpeed  ; param: speed
     jmp Func_SetActorVelocityPolar  ; preserves X and T3+
 .ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Actor"
 
 ;;; Performs per-frame updates for a boomerang axe projectile actor.
 ;;; @param X The actor index.

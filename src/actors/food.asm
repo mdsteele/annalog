@@ -39,15 +39,15 @@ kWaterLine = $00b5
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Cutscene"
 
 ;;; Initializes the specified actor as a food projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The number of frames before the food should expire.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitActorProjFood
-.PROC Func_InitActorProjFood
+.EXPORT FuncA_Cutscene_InitActorProjFood
+.PROC FuncA_Cutscene_InitActorProjFood
     ldy #eActor::ProjFood  ; param: actor type
     jmp Func_InitActorWithState1  ; preserves X
 .ENDPROC

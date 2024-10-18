@@ -28,13 +28,13 @@
 .INCLUDE "shared.inc"
 
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_InitActorProjGrenade
 .IMPORT FuncA_Machine_PlaySfxCannonFire
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2MachineShape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorProjGrenade
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -160,7 +160,7 @@ kTileIdObjCannonBarrelLow  = kTileIdObjCannonFirst + $04
     ldy Zp_MachineIndex_u8
     ora Ram_MachineGoalVert_u8_arr, y  ; param: aim angle (0-3)
     ;; Initialize the grenade.
-    jsr Func_InitActorProjGrenade  ; preserves X
+    jsr FuncA_Machine_InitActorProjGrenade  ; preserves X
     ;; If the console is active, then we must be debugging, so immediately
     ;; replace the grenade with a smoke particle (so as to dry-fire the
     ;; cannon).

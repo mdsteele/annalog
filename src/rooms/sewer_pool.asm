@@ -31,10 +31,10 @@
 
 .IMPORT DataA_Room_Sewer_sTileset
 .IMPORT DataA_Text1_SewerPoolSign_u8_arr
+.IMPORT FuncA_Cutscene_InitActorProjFood
 .IMPORT FuncA_Room_SewagePushAvatar
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
-.IMPORT Func_InitActorProjFood
 .IMPORT Func_Noop
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToAvatarCenter
@@ -163,7 +163,7 @@ _ThrowDuckFood:
     jsr Func_SetPointToAvatarCenter  ; preserves X
     jsr Func_SetActorCenterToPoint  ; preserves X
     lda #$ff  ; param: frames until expire
-    jsr Func_InitActorProjFood  ; preserves X
+    jsr FuncA_Cutscene_InitActorProjFood  ; preserves X
     lda #<-2
     sta Ram_ActorVelY_i16_1_arr, x
     lda #<-2

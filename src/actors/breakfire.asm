@@ -58,15 +58,15 @@ kProjBreakfireMinLifetime = kBlockWidthPx * 12 * $100 / kProjBreakfireSpeed
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Actor"
 
 ;;; Initializes the specified actor as a breakfire projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A Zero if the breakfire should move right, or bObj::FlipH for left.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitActorProjBreakfire
-.PROC Func_InitActorProjBreakfire
+.EXPORT FuncA_Actor_InitActorProjBreakfire
+.PROC FuncA_Actor_InitActorProjBreakfire
     sta T0  ; horz flag
     ldy #eActor::ProjBreakfire  ; param: actor type
     lda #kProjBreakfireMinLifetime  ; param: min time remaining
@@ -86,10 +86,6 @@ _InitVelX:
     sta Ram_ActorVelX_i16_1_arr, x
     rts
 .ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Actor"
 
 ;;; Performs per-frame updates for a breakfire projectile actor.
 ;;; @param X The actor index.

@@ -27,12 +27,12 @@
 .INCLUDE "shared.inc"
 
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_InitActorProjRocket
 .IMPORT FuncA_Machine_PlaySfxLaunch
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2MachineShape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorProjRocket
 .IMPORT Func_MovePointHorz
 .IMPORT Func_MovePointVert
 .IMPORT Func_SetActorCenterToPoint
@@ -90,7 +90,7 @@ _FireRocket:
     jsr Func_MovePointVert  ; preserves X, Y, and T0+
     jsr Func_SetActorCenterToPoint  ; preserves X, Y, and T0+
     tya  ; param: rocket direction
-    jsr Func_InitActorProjRocket  ; preserves X
+    jsr FuncA_Machine_InitActorProjRocket  ; preserves X
     ;; If debugging, replace the rocket with a smoke particle.  Otherwise,
     ;; decrement the ammo count.
     lda Zp_ConsoleMachineIndex_u8

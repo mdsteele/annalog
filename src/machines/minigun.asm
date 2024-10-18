@@ -27,6 +27,7 @@
 .INCLUDE "minigun.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_InitActorProjBullet
 .IMPORT FuncA_Machine_PlaySfxShootBullet
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2Shape
@@ -35,7 +36,6 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorProjBullet
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -154,7 +154,7 @@ _BulletVert:
 _InitBullet:
     jsr Func_SetActorCenterToPoint  ; preserves X, Y, and T0+
     lda T0  ; param: bullet direction
-    jsr Func_InitActorProjBullet  ; preserves X
+    jsr FuncA_Machine_InitActorProjBullet  ; preserves X
     ;; If debugging, replace the bullet with a smoke particle.
     lda Zp_ConsoleMachineIndex_u8
     bmi @noDebug

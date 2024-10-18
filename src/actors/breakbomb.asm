@@ -26,10 +26,10 @@
 .IMPORT FuncA_Actor_ApplyGravity
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_InitActorProjBreakfire
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorDefault
-.IMPORT Func_InitActorProjBreakfire
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
@@ -128,7 +128,7 @@ _ExplodeIfHitsTerrain:
     ;; TODO: play a sound
     jsr Func_GetRandomByte  ; preserves X, returns A
     and #bObj::FlipH  ; param: flags
-    jsr Func_InitActorProjBreakfire  ; preserves X
+    jsr FuncA_Actor_InitActorProjBreakfire  ; preserves X
     @done:
     rts
 .ENDPROC

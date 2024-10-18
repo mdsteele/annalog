@@ -85,19 +85,6 @@ kPaletteObjSteam = 0
     jmp Func_InitActorDefault  ; preserves X and T0+
 .ENDPROC
 
-;;; Initializes the specified actor as a horizontal steam smoke.
-;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The facing direction (either 0 or bObj::FlipH).
-;;; @param X The actor index.
-;;; @preserve X, T0+
-.EXPORT Func_InitActorSmokeSteamHorz := Func_InitActorProjSteamHorz
-
-;;; Initializes the specified actor as an upward steam smoke.
-;;; @prereq The actor's pixel position has already been initialized.
-;;; @param X The actor index.
-;;; @preserve X, T0+
-.EXPORT Func_InitActorSmokeSteamUp := Func_InitActorProjSteamUp
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"

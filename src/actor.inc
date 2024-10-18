@@ -91,6 +91,13 @@ kMaxActors = 16
     NUM_VALUES
 .ENDENUM
 
+;;; eActor values less than this can be staticly initialized by a room's
+;;; sRoomExt::Actors_sActor_arr_ptr array.  eActor values greater than or equal
+;;; to this can only be initialized dynamically, by calling some appropriate
+;;; initialization function, which may well be in a different PRGA bank than
+;;; PRGA_Room.
+kFirstNonStaticActorType = eActor::ProjAcid
+
 ;;; eActor values greater than or equal to this are "smoke" actors; that is,
 ;;; they are decorative animations that don't affect game physics.
 kFirstSmokeActorType = eActor::SmokeBlood

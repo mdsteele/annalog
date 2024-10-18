@@ -35,6 +35,7 @@
 .IMPORT FuncA_Actor_FaceTowardsVelXDir
 .IMPORT FuncA_Actor_GetRoomBlockRow
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_InitActorProjAxe
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
 .IMPORT FuncA_Actor_IsInRoomBounds
@@ -57,7 +58,6 @@
 .IMPORT Func_GetAngleFromPointToActor
 .IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetTerrainColumnPtrForPointX
-.IMPORT Func_InitActorProjAxe
 .IMPORT Func_InitActorWithFlags
 .IMPORT Func_InitActorWithState1
 .IMPORT Func_IsActorWithinHorzDistanceOfPoint
@@ -496,7 +496,7 @@ _InitAxe:
     jsr Func_GetAngleFromPointToActor  ; preserves X and T4+, returns A
     eor #$80  ; param: angle
     ldy #eActor::ProjAxeSmash  ; param: actor type
-    jsr Func_InitActorProjAxe  ; preserves X and T3+
+    jsr FuncA_Actor_InitActorProjAxe  ; preserves X and T3+
     lda T5  ; machine platform index
     sta Ram_ActorState2_byte_arr, x  ; goal platform index for axe
     ldx T4  ; Gronta actor index
@@ -547,7 +547,7 @@ _InitAxe:
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     jsr Func_GetAngleFromPointToAvatar  ; preserves X and T4+, returns A
     ldy #eActor::ProjAxeBoomer  ; param: actor type
-    jsr Func_InitActorProjAxe  ; preserves T3+
+    jsr FuncA_Actor_InitActorProjAxe  ; preserves T3+
     ldx T4  ; Gronta actor index
     lda #kGrontaThrowCatchFrames
     sta Ram_ActorState2_byte_arr, x  ; timer

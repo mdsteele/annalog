@@ -48,7 +48,7 @@ kPaletteObjGrenade = 0
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Machine"
 
 ;;; Initializes the specified actor as a grenade projectile.  The grenade can
 ;;; be aimed in one of four initial angles:
@@ -60,8 +60,8 @@ kPaletteObjGrenade = 0
 ;;; @param A The aim angle (0-3).
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitActorProjGrenade
-.PROC Func_InitActorProjGrenade
+.EXPORT FuncA_Machine_InitActorProjGrenade
+.PROC FuncA_Machine_InitActorProjGrenade
     pha  ; aim angle index
     ldy #eActor::ProjGrenade  ; param: actor type
     jsr Func_InitActorDefault  ; preserves X

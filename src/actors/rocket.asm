@@ -50,15 +50,15 @@ kPaletteObjRocket = 1
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGA_Machine"
 
 ;;; Initializes the specified actor as a rocket projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The eDir value for the rocket direction.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT Func_InitActorProjRocket
-.PROC Func_InitActorProjRocket
+.EXPORT FuncA_Machine_InitActorProjRocket
+.PROC FuncA_Machine_InitActorProjRocket
     pha  ; eDir value
     ldy #eActor::ProjRocket  ; param: actor type
     jsr Func_InitActorDefault

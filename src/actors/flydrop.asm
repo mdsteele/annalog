@@ -25,6 +25,7 @@
 .IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_InitActorProjAcid
 .IMPORT FuncA_Actor_IsAvatarAboveOrBelow
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
@@ -32,7 +33,6 @@
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
-.IMPORT Func_InitActorProjAcid
 .IMPORT Func_InitActorWithFlags
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_PointHitsTerrain
@@ -117,7 +117,7 @@ _DropAcid:
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @noAcid
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
-    jsr Func_InitActorProjAcid  ; preserves X and T0+
+    jsr FuncA_Actor_InitActorProjAcid  ; preserves X and T0+
     ;; Give the acid projectile a random X-velocity from -0.5 to +0.5 pixels
     ;; per frame.
     ldy #0

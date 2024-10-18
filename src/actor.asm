@@ -156,37 +156,10 @@
 .IMPORT FuncA_Room_InitActorBadWasp
 .IMPORT FuncA_Room_InitActorNpcChild
 .IMPORT FuncA_Room_InitActorNpcToddler
-.IMPORT FuncA_Room_InitActorProjBreakball
-.IMPORT FuncA_Room_InitActorProjBreakbomb
-.IMPORT FuncA_Room_InitActorProjEgg
-.IMPORT FuncA_Room_InitActorProjFlamestrike
-.IMPORT FuncA_Room_InitActorProjSpine
-.IMPORT FuncA_Room_InitActorSmokeBlood
-.IMPORT FuncA_Room_InitActorSmokeDirt
-.IMPORT FuncA_Room_InitActorSmokeRaindrop
-.IMPORT FuncA_Room_InitActorSmokeWaterfall
 .IMPORT Func_InitActorBadGronta
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorBadSolifuge
 .IMPORT Func_InitActorNpcOrc
-.IMPORT Func_InitActorProjAcid
-.IMPORT Func_InitActorProjAxe
-.IMPORT Func_InitActorProjBreakfire
-.IMPORT Func_InitActorProjBullet
-.IMPORT Func_InitActorProjEmber
-.IMPORT Func_InitActorProjFireball
-.IMPORT Func_InitActorProjFireblast
-.IMPORT Func_InitActorProjFood
-.IMPORT Func_InitActorProjGrenade
-.IMPORT Func_InitActorProjRocket
-.IMPORT Func_InitActorProjSpike
-.IMPORT Func_InitActorProjSteamHorz
-.IMPORT Func_InitActorProjSteamUp
-.IMPORT Func_InitActorSmokeExplosion
-.IMPORT Func_InitActorSmokeFragment
-.IMPORT Func_InitActorSmokeParticle
-.IMPORT Func_InitActorSmokeSteamHorz
-.IMPORT Func_InitActorSmokeSteamUp
 .IMPORT Func_Noop
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORTZP Zp_PointX_i16
@@ -943,71 +916,43 @@ _Finish:
 .REPEAT 2, table
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE .enum, eActor
-    d_entry table, None,            Func_InitActorDefault
-    d_entry table, BadBat,          Func_InitActorWithState1
-    d_entry table, BadBeetleHorz,   Func_InitActorWithFlags
-    d_entry table, BadBeetleVert,   Func_InitActorWithFlags
-    d_entry table, BadBird,         FuncA_Room_InitActorBadBird
-    d_entry table, BadCrab,         Func_InitActorDefault
-    d_entry table, BadFirefly,      FuncA_Room_InitActorBadFirefly
-    d_entry table, BadFish,         Func_InitActorWithFlags
-    d_entry table, BadFlydrop,      FuncA_Room_InitActorBadFlydrop
-    d_entry table, BadGhostMermaid, Func_InitActorWithState1
-    d_entry table, BadGhostOrc,     Func_InitActorWithState1
-    d_entry table, BadGooGreen,     Func_InitActorWithFlags
-    d_entry table, BadGooRed,       FuncA_Room_InitActorBadGooRed
-    d_entry table, BadGronta,       Func_InitActorBadGronta
-    d_entry table, BadGrub,         Func_InitActorWithFlags
-    d_entry table, BadGrubFire,     Func_InitActorWithFlags
-    d_entry table, BadHotheadHorz,  Func_InitActorWithFlags
-    d_entry table, BadHotheadVert,  Func_InitActorWithFlags
-    d_entry table, BadJelly,        Func_InitActorWithState1
-    d_entry table, BadLavaball,     FuncA_Room_InitActorBadLavaball
-    d_entry table, BadOrc,          Func_InitActorBadOrc
-    d_entry table, BadRhino,        Func_InitActorWithFlags
-    d_entry table, BadRodent,       Func_InitActorDefault
-    d_entry table, BadSlime,        Func_InitActorWithFlags
-    d_entry table, BadSolifuge,     Func_InitActorBadSolifuge
-    d_entry table, BadSpider,       Func_InitActorDefault
-    d_entry table, BadToad,         FuncA_Room_InitActorBadToad
-    d_entry table, BadVinebug,      Func_InitActorDefault
-    d_entry table, BadWasp,         FuncA_Room_InitActorBadWasp
-    d_entry table, NpcAdult,        Func_InitActorWithState1
-    d_entry table, NpcChild,        FuncA_Room_InitActorNpcChild
-    d_entry table, NpcDuck,         Func_InitActorWithFlags
-    d_entry table, NpcOrc,          Func_InitActorNpcOrc
-    d_entry table, NpcOrcSleeping,  Func_InitActorDefault
-    d_entry table, NpcQueen,        Func_InitActorDefault
-    d_entry table, NpcToddler,      FuncA_Room_InitActorNpcToddler
-    d_entry table, ProjAcid,        Func_InitActorProjAcid
-    d_entry table, ProjAxeBoomer,   Func_InitActorProjAxe
-    d_entry table, ProjAxeSmash,    Func_InitActorProjAxe
-    d_entry table, ProjBreakball,   FuncA_Room_InitActorProjBreakball
-    d_entry table, ProjBreakbomb,   FuncA_Room_InitActorProjBreakbomb
-    d_entry table, ProjBreakfire,   Func_InitActorProjBreakfire
-    d_entry table, ProjBullet,      Func_InitActorProjBullet
-    d_entry table, ProjEgg,         FuncA_Room_InitActorProjEgg
-    d_entry table, ProjEmber,       Func_InitActorProjEmber
-    d_entry table, ProjFireball,    Func_InitActorProjFireball
-    d_entry table, ProjFireblast,   Func_InitActorProjFireblast
-    d_entry table, ProjFlamestrike, FuncA_Room_InitActorProjFlamestrike
-    d_entry table, ProjFood,        Func_InitActorProjFood
-    d_entry table, ProjGrenade,     Func_InitActorProjGrenade
-    d_entry table, ProjRocket,      Func_InitActorProjRocket
-    d_entry table, ProjSpike,       Func_InitActorProjSpike
-    d_entry table, ProjSpine,       FuncA_Room_InitActorProjSpine
-    d_entry table, ProjSteamHorz,   Func_InitActorProjSteamHorz
-    d_entry table, ProjSteamUp,     Func_InitActorProjSteamUp
-    d_entry table, SmokeBlood,      FuncA_Room_InitActorSmokeBlood
-    d_entry table, SmokeDirt,       FuncA_Room_InitActorSmokeDirt
-    d_entry table, SmokeExplosion,  Func_InitActorSmokeExplosion
-    d_entry table, SmokeFragment,   Func_InitActorSmokeFragment
-    d_entry table, SmokeParticle,   Func_InitActorSmokeParticle
-    d_entry table, SmokeRaindrop,   FuncA_Room_InitActorSmokeRaindrop
-    d_entry table, SmokeSteamHorz,  Func_InitActorSmokeSteamHorz
-    d_entry table, SmokeSteamUp,    Func_InitActorSmokeSteamUp
-    d_entry table, SmokeWaterfall,  FuncA_Room_InitActorSmokeWaterfall
+    D_TABLE kFirstNonStaticActorType
+    d_entry table, eActor::None,            Func_InitActorDefault
+    d_entry table, eActor::BadBat,          Func_InitActorWithState1
+    d_entry table, eActor::BadBeetleHorz,   Func_InitActorWithFlags
+    d_entry table, eActor::BadBeetleVert,   Func_InitActorWithFlags
+    d_entry table, eActor::BadBird,         FuncA_Room_InitActorBadBird
+    d_entry table, eActor::BadCrab,         Func_InitActorDefault
+    d_entry table, eActor::BadFirefly,      FuncA_Room_InitActorBadFirefly
+    d_entry table, eActor::BadFish,         Func_InitActorWithFlags
+    d_entry table, eActor::BadFlydrop,      FuncA_Room_InitActorBadFlydrop
+    d_entry table, eActor::BadGhostMermaid, Func_InitActorWithState1
+    d_entry table, eActor::BadGhostOrc,     Func_InitActorWithState1
+    d_entry table, eActor::BadGooGreen,     Func_InitActorWithFlags
+    d_entry table, eActor::BadGooRed,       FuncA_Room_InitActorBadGooRed
+    d_entry table, eActor::BadGronta,       Func_InitActorBadGronta
+    d_entry table, eActor::BadGrub,         Func_InitActorWithFlags
+    d_entry table, eActor::BadGrubFire,     Func_InitActorWithFlags
+    d_entry table, eActor::BadHotheadHorz,  Func_InitActorWithFlags
+    d_entry table, eActor::BadHotheadVert,  Func_InitActorWithFlags
+    d_entry table, eActor::BadJelly,        Func_InitActorWithState1
+    d_entry table, eActor::BadLavaball,     FuncA_Room_InitActorBadLavaball
+    d_entry table, eActor::BadOrc,          Func_InitActorBadOrc
+    d_entry table, eActor::BadRhino,        Func_InitActorWithFlags
+    d_entry table, eActor::BadRodent,       Func_InitActorDefault
+    d_entry table, eActor::BadSlime,        Func_InitActorWithFlags
+    d_entry table, eActor::BadSolifuge,     Func_InitActorBadSolifuge
+    d_entry table, eActor::BadSpider,       Func_InitActorDefault
+    d_entry table, eActor::BadToad,         FuncA_Room_InitActorBadToad
+    d_entry table, eActor::BadVinebug,      Func_InitActorDefault
+    d_entry table, eActor::BadWasp,         FuncA_Room_InitActorBadWasp
+    d_entry table, eActor::NpcAdult,        Func_InitActorWithState1
+    d_entry table, eActor::NpcChild,        FuncA_Room_InitActorNpcChild
+    d_entry table, eActor::NpcDuck,         Func_InitActorWithFlags
+    d_entry table, eActor::NpcOrc,          Func_InitActorNpcOrc
+    d_entry table, eActor::NpcOrcSleeping,  Func_InitActorDefault
+    d_entry table, eActor::NpcQueen,        Func_InitActorDefault
+    d_entry table, eActor::NpcToddler,      FuncA_Room_InitActorNpcToddler
     D_END
 .ENDREPEAT
 .ENDPROC
