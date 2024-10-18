@@ -54,7 +54,7 @@
 ;;;=========================================================================;;;
 
 ;;; The OBJ palette number used for breakball projectile actors.
-kPaletteObjBreakball = 1
+kPaletteObjProjBreakball = 1
 
 ;;; How many VBlank frames between breakball animation frames.
 .DEFINE kProjBreakballAnimSlowdown 4
@@ -210,8 +210,8 @@ _Explode:
     lda Zp_FrameCounter_u8
     div #kProjBreakballAnimSlowdown
     and #$01
-    add #kTileIdObjBreakballFirst  ; param: tile ID
-    ldy #kPaletteObjBreakball  ; param: object flags
+    add #kTileIdObjProjBreakballFirst  ; param: tile ID
+    ldy #kPaletteObjProjBreakball  ; param: object flags
     jmp FuncA_Objects_Draw2x2MirroredShape
 .ENDPROC
 

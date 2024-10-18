@@ -28,7 +28,7 @@
 ;;;=========================================================================;;;
 
 ;;; The OBJ palette number used for acid projectile actors.
-kPaletteObjAcid = 2
+kPaletteObjProjAcid = 2
 
 ;;;=========================================================================;;;
 
@@ -58,8 +58,8 @@ kPaletteObjAcid = 2
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorProjAcid
 .PROC FuncA_Objects_DrawActorProjAcid
-    lda #kTileIdObjAcid  ; param: tile ID
-    ldy #kPaletteObjAcid  ; param: palette
+    lda #kTileIdObjProjAcid  ; param: tile ID
+    ldy #kPaletteObjProjAcid  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

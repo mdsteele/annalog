@@ -26,6 +26,6 @@
 kProjBreakballRadius = 3
 
 ;;; The first tile ID for drawing breakball projectile actors.
-kTileIdObjBreakballFirst = $c4
+kTileIdObjProjBreakballFirst = $c4
 
 ;;;=========================================================================;;;

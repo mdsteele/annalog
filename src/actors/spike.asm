@@ -84,8 +84,8 @@ _Expire:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorProjSpike
 .PROC FuncA_Objects_DrawActorProjSpike
-    lda #kTileIdObjSpike  ; param: tile ID
-    ldy #kPaletteObjSpike  ; param: palette
+    lda #kTileIdObjProjSpike  ; param: tile ID
+    ldy #kPaletteObjProjSpike  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

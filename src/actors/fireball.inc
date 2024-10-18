@@ -32,7 +32,7 @@
 ;;;     each frame, in increments of tau/256.
 
 ;;; Tile IDs for drawing fireball/fireblast projectile actors.
-kTileIdObjFireballFirst  = $c0
-kTileIdObjFireblastFirst = $9a
+kTileIdObjProjFireballFirst  = $c0
+kTileIdObjProjFireblastFirst = $9a
 
 ;;;=========================================================================;;;

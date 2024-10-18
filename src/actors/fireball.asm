@@ -49,8 +49,8 @@ kFireballSpeed  = 3
 kFireblastSpeed = 5
 
 ;;; The OBJ palette numbers used for fireball and fireblast actors.
-kPaletteObjFireball  = 1
-kPaletteObjFireblast = 1
+kPaletteObjProjFireball  = 1
+kPaletteObjProjFireblast = 1
 
 ;;;=========================================================================;;;
 
@@ -207,9 +207,9 @@ _HandleCollision:
     lda Zp_FrameCounter_u8
     div #2
     and #$03
-    .assert kTileIdObjFireballFirst .mod 4 = 0, error
-    ora #kTileIdObjFireballFirst  ; param: tile ID
-    ldy #kPaletteObjFireball  ; param: palette
+    .assert kTileIdObjProjFireballFirst .mod 4 = 0, error
+    ora #kTileIdObjProjFireballFirst  ; param: tile ID
+    ldy #kPaletteObjProjFireball  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 
@@ -221,9 +221,9 @@ _HandleCollision:
     lda Zp_FrameCounter_u8
     div #2
     and #$01
-    .assert kTileIdObjFireballFirst .mod 2 = 0, error
-    ora #kTileIdObjFireblastFirst  ; param: tile ID
-    ldy #kPaletteObjFireblast  ; param: palette
+    .assert kTileIdObjProjFireballFirst .mod 2 = 0, error
+    ora #kTileIdObjProjFireblastFirst  ; param: tile ID
+    ldy #kPaletteObjProjFireblast  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

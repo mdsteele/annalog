@@ -44,7 +44,7 @@
 ;;;=========================================================================;;;
 
 ;;; The OBJ palette number used for breakfire projectile actors.
-kPaletteObjBreakfire = 1
+kPaletteObjProjBreakfire = 1
 
 ;;; How many VBlank frames between breakfire animation frames.
 .DEFINE kProjBreakfireAnimSlowdown 2
@@ -145,17 +145,17 @@ _Expire:
 _Short:
     lda #2
     sta T2  ; num tiles
-    lda #kTileIdObjBreakfireFirst + 4
+    lda #kTileIdObjProjBreakfireFirst + 4
     sta T3  ; first tile ID
     bne _Loop  ; unconditional
 _Tall:
     lda #3
     sta T2  ; num tiles
-    lda #kTileIdObjBreakfireFirst + 2
+    lda #kTileIdObjProjBreakfireFirst + 2
     sta T3  ; first tile ID
 _Loop:
     lda T3  ; param: tile ID
-    ldy #kPaletteObjBreakfire  ; param: object flags
+    ldy #kPaletteObjProjBreakfire  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
     dec T3  ; tile ID

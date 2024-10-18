@@ -55,7 +55,7 @@ kBreakBombInitVelY = $ffff & -600
 kBreakbombShakeFrames = 4
 
 ;;; The OBJ palette number used for breakbomb projectile actors.
-kPaletteObjBreakbomb = 1
+kPaletteObjProjBreakbomb = 1
 
 ;;;=========================================================================;;;
 
@@ -145,9 +145,9 @@ _ExplodeIfHitsTerrain:
     lda Zp_FrameCounter_u8
     div #2
     and #$01
-    .assert kTileIdObjBreakbombFirst .mod 2 = 0, error
-    ora #kTileIdObjBreakbombFirst  ; param: tile ID
-    ldy #kPaletteObjBreakbomb  ; param: palette
+    .assert kTileIdObjProjBreakbombFirst .mod 2 = 0, error
+    ora #kTileIdObjProjBreakbombFirst  ; param: tile ID
+    ldy #kPaletteObjProjBreakbomb  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

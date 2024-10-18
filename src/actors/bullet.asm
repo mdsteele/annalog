@@ -39,11 +39,11 @@
 kProjBulletSpeed = 6
 
 ;;; OBJ tile IDs for bullet projectile actors.
-kTileIdObjBulletVert = kTileIdObjBulletFirst + 0
-kTileIdObjBulletHorz = kTileIdObjBulletFirst + 1
+kTileIdObjProjBulletVert = kTileIdObjProjBulletFirst + 0
+kTileIdObjProjBulletHorz = kTileIdObjProjBulletFirst + 1
 
 ;;; The OBJ palette number used for bullet projectile actors:
-kPaletteObjBullet = 1
+kPaletteObjProjBullet = 1
 
 ;;;=========================================================================;;;
 
@@ -118,13 +118,13 @@ _Done:
     lda Ram_ActorVelY_i16_1_arr, x
     beq @horz
     @vert:
-    lda #kTileIdObjBulletVert  ; param: tile ID
-    .assert kTileIdObjBulletVert > 0, error
+    lda #kTileIdObjProjBulletVert  ; param: tile ID
+    .assert kTileIdObjProjBulletVert > 0, error
     bne @draw  ; unconditional
     @horz:
-    lda #kTileIdObjBulletHorz  ; param: tile ID
+    lda #kTileIdObjProjBulletHorz  ; param: tile ID
     @draw:
-    ldy #kPaletteObjBullet  ; param: palette
+    ldy #kPaletteObjProjBullet  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

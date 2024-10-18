@@ -26,6 +26,6 @@
 ;;;   * State3: Unused.
 
 ;;; The first tile ID for drawing breakbomb projectile actors.
-kTileIdObjBreakbombFirst = $80
+kTileIdObjProjBreakbombFirst = $80
 
 ;;;=========================================================================;;;

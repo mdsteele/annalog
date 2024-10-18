@@ -28,6 +28,6 @@
 kGrenadeShakeFrames = 4
 
 ;;; The first tile ID for the grenade actor animation.
-kTileIdObjGrenadeFirst = $ec
+kTileIdObjProjGrenadeFirst = $ec
 
 ;;;=========================================================================;;;

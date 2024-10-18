@@ -44,7 +44,7 @@
 ;;;=========================================================================;;;
 
 ;;; The OBJ palette number used for grenade projectile actors.
-kPaletteObjGrenade = 0
+kPaletteObjProjGrenade = 0
 
 ;;;=========================================================================;;;
 
@@ -162,8 +162,8 @@ _Remove:
     lda Ram_ActorState1_byte_arr, x
     div #4
     and #$03
-    add #kTileIdObjGrenadeFirst
-    ldy #kPaletteObjGrenade  ; param: palette
+    add #kTileIdObjProjGrenadeFirst
+    ldy #kPaletteObjProjGrenade  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

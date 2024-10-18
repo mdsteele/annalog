@@ -35,6 +35,6 @@
 .ENDENUM
 
 ;;; The first tile ID for drawing flamestrike projectile actors.
-kTileIdObjFlamestrikeFirst = $d6
+kTileIdObjProjFlamestrikeFirst = $d6
 
 ;;;=========================================================================;;;

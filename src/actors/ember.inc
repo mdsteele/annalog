@@ -27,6 +27,6 @@
 ;;;   * State3: Unused.
 
 ;;; The OBJ tile ID for ember projectile actors.
-kTileIdObjEmber = $86
+kTileIdObjProjEmber = $86
 
 ;;;=========================================================================;;;

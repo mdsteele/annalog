@@ -173,8 +173,8 @@ _Spike:
     blt @done
     jsr FuncA_Objects_MoveShapeDownByA  ; preserves X
     jsr FuncA_Objects_MoveShapeLeftHalfTile  ; preserves X
-    lda #kTileIdObjSpike
-    ldy #kPaletteObjSpike  ; param: object flags
+    lda #kTileIdObjProjSpike
+    ldy #kPaletteObjProjSpike  ; param: object flags
     jmp FuncA_Objects_Draw1x1Shape  ; preserves X
     @done:
     rts

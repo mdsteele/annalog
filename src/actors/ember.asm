@@ -39,7 +39,7 @@
 kEmberTerminalVelocity = 5
 
 ;;; The OBJ palette number used for ember projectile actors.
-kPaletteObjEmber = 1
+kPaletteObjProjEmber = 1
 
 ;;;=========================================================================;;;
 
@@ -98,8 +98,8 @@ _Remove:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorProjEmber
 .PROC FuncA_Objects_DrawActorProjEmber
-    lda #kTileIdObjEmber  ; param: tile ID
-    ldy #kPaletteObjEmber  ; param: palette
+    lda #kTileIdObjProjEmber  ; param: tile ID
+    ldy #kPaletteObjProjEmber  ; param: palette
     jmp FuncA_Objects_Draw1x1Actor  ; preserves X
 .ENDPROC
 

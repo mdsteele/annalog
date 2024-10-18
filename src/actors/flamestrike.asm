@@ -55,7 +55,7 @@ kFlamestrikePauseFrames = 100
 kFlamestrikeMaxHeightTiles = 6
 
 ;;; The OBJ palette number used for flamestrike projectile actors.
-kPaletteObjFlamestrike = 1
+kPaletteObjProjFlamestrike = 1
 
 ;;;=========================================================================;;;
 
@@ -178,12 +178,12 @@ _Lengthen:
     lda Zp_FrameCounter_u8
     div #2
     and #1
-    .assert kTileIdObjFlamestrikeFirst .mod 2 = 0, error
-    ora #kTileIdObjFlamestrikeFirst
+    .assert kTileIdObjProjFlamestrikeFirst .mod 2 = 0, error
+    ora #kTileIdObjProjFlamestrikeFirst
     sta T2  ; tile ID
     ;; Draw a column of flame objects.
     @loop:
-    ldy #kPaletteObjFlamestrike  ; param: object flags
+    ldy #kPaletteObjProjFlamestrike  ; param: object flags
     lda T2  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+

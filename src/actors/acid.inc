@@ -27,6 +27,6 @@
 ;;;   * State3: Unused.
 
 ;;; The OBJ tile ID for acid projectile actors.
-kTileIdObjAcid = $80
+kTileIdObjProjAcid = $80
 
 ;;;=========================================================================;;;

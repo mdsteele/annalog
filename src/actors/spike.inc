@@ -27,9 +27,9 @@
 ;;;   * State4: Unused.
 
 ;;; The OBJ tile ID for spike projectile actors.
-kTileIdObjSpike = $80
+kTileIdObjProjSpike = $80
 
 ;;; The OBJ palette number used for spike projectile actors.
-kPaletteObjSpike = 0
+kPaletteObjProjSpike = 0
 
 ;;;=========================================================================;;;

@@ -25,6 +25,6 @@
 ;;;   * State3: Unused.
 
 ;;; OBJ tile IDs for bullet projectile actors:
-kTileIdObjBulletFirst = $8e
+kTileIdObjProjBulletFirst = $8e
 
 ;;;=========================================================================;;;
