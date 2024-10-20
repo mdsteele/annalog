@@ -273,7 +273,7 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Core_LockLift3_ReadReg
     lda #kLift3MaxPlatformTop + kTileHeightPx
-    .assert * = FuncC_Core_LockLift_ReadReg, error, "fallthrough"
+    fall FuncC_Core_LockLift_ReadReg
 .ENDPROC
 
 .PROC FuncC_Core_LockLift_ReadReg

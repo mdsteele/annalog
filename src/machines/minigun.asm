@@ -202,7 +202,7 @@ _RightHalf:
     lda #kTileWidthPx * 2  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
     lda #kPaletteObjMinigun  ; param: object flags
-    .assert * = FuncA_Objects_DrawMinigunVertLightHalf, error, "fallthrough"
+    fall FuncA_Objects_DrawMinigunVertLightHalf
 .ENDPROC
 
 ;;; Draws the half with the machine light of a vertical-facing minigun machine.
@@ -293,7 +293,7 @@ _RightHalf:
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves T0+
     ldx T2  ; param: barrel tile ID offset
     lda #kPaletteObjMinigun | bObj::FlipH  ; param: object flags
-    .assert * = FuncA_Objects_DrawMinigunHorzBarrelHalf, error, "fallthrough"
+    fall FuncA_Objects_DrawMinigunHorzBarrelHalf
 .ENDPROC
 
 ;;; Draws the half with the barrel of a side-facing minigun machine.
@@ -332,7 +332,7 @@ _RightHalf:
     lda #kTileWidthPx * 2  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA
     lda #kPaletteObjMinigun  ; param: object flags
-    .assert * = FuncA_Objects_DrawMinigunHorzLightHalf, error, "fallthrough"
+    fall FuncA_Objects_DrawMinigunHorzLightHalf
 .ENDPROC
 
 ;;; Draws the half with the machine light of a side-facing minigun machine.

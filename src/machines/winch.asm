@@ -371,7 +371,7 @@ _Done:
     jsr FuncA_Objects_DrawWinchSpikeball
     jsr FuncA_Objects_MoveShapeUpOneTile
     jsr FuncA_Objects_MoveShapeLeftHalfTile
-    .assert * = FuncA_Objects_DrawWinchChain, error, "fallthrough"
+    fall FuncA_Objects_DrawWinchChain
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a chain that feeds into a winch
@@ -418,7 +418,7 @@ _Done:
     .endrepeat
     ldx T0  ; param: chain length in tiles
     ;; Draw the chain.
-    .assert * = FuncA_Objects_DrawChainWithLength, error, "fallthrough"
+    fall FuncA_Objects_DrawChainWithLength
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a chain of the given length.  When

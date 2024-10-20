@@ -154,7 +154,7 @@ _CalculateMargin:
     sbc #0
     sta Zp_ShapePosY_i16 + 1
     jsr Func_SetMachineIndex
-    .assert * = FuncA_Objects_DrawHudRegisters, error, "fallthrough"
+    fall FuncA_Objects_DrawHudRegisters
 .ENDPROC
 
 ;;; Draws all register name/value pairs for the HUD.  The screen Y-position of

@@ -233,8 +233,8 @@ _CheckDirection:
     ;; Check if the rodent is running horizontally or vertically.
     lda Ram_ActorVelY_i16_1_arr, x
     .assert >kRodentRunSpeed > 0, error
-    beq FuncA_Actor_TickBadRodent_RunningHorz
-    .assert * = FuncA_Actor_TickBadRodent_RunningVert, error, "fallthrough"
+    beq FuncA_Actor_TickBadRodent_RunningHorz  ; preserves X
+    fall FuncA_Actor_TickBadRodent_RunningVert  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for a rodent baddie actor that's in Running

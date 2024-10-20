@@ -103,7 +103,7 @@ _NoisePeriod_u8_arr:
 .PROC Func_PlaySfxExplodeFracture
     lda #bSfxExplode::DivEnv
     sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Param1_byte
-    .assert * = Func_PlaySfxExplodeLong, error, "fallthrough"
+    fall Func_PlaySfxExplodeLong  ; preserve X, Y, and T0+
 .ENDPROC
 
 ;;; Starts playing a explosion sound with a longer duration.
@@ -111,7 +111,7 @@ _NoisePeriod_u8_arr:
 ;;; @preserve X, Y, T0+
 .PROC Func_PlaySfxExplodeLong
     lda #$1f
-    .assert * = Func_PlaySfxExplode, error, "fallthrough"
+    fall Func_PlaySfxExplode  ; preserve X, Y, and T0+
 .ENDPROC
 
 ;;; Starts playing a explosion sound.

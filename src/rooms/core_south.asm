@@ -356,6 +356,7 @@ _WaterBobOffset_i8_arr8:
     .byte 1, 1, 0, <-1, <-1, <-1, 0, 1
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Core_South_DrawRoom
 _Anchors:
     ldx #kAnchor1PlatformIndex
@@ -374,7 +375,7 @@ _LowerCrates:
     jsr FuncC_Core_South_DrawAnchoredCrate
 _UpperCrates:
     ldx #kCrate3PlatformIndex  ; param: platform index
-    .assert * = FuncC_Core_South_DrawAnchoredCrate, error, "fallthrough"
+    fall FuncC_Core_South_DrawAnchoredCrate
 .ENDPROC
 
 ;;; Draws a platform that is a stack of one or more wooden crates with a chain

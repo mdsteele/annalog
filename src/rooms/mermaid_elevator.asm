@@ -268,7 +268,7 @@ _Passages_sPassage_arr:
     sta Zp_RoomState + sElevatorState::LowerJetUpperLever_u8
     ldx #kLowerJetLowerLeverDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
-    .assert * = FuncA_Room_MermaidElevatorJet_Init, error, "fallthrough"
+    fall FuncA_Room_MermaidElevatorJet_Init
 .ENDPROC
 
 .PROC FuncA_Room_MermaidElevatorJet_Init

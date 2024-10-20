@@ -141,7 +141,7 @@ Ram_Next_sCutscene_ptr_1_arr: .res kMaxForks
 .EXPORT Main_Cutscene_Start
 .PROC Main_Cutscene_Start
     jsr_prga FuncA_Cutscene_Init
-    .assert * = Main_Cutscene_Continue, error, "fallthrough"
+    fall Main_Cutscene_Continue
 .ENDPROC
 
 ;;; Mode for continuing a cutscene that's already in progress.
@@ -343,7 +343,7 @@ _InitMainFork:
 ;;; @return Y A parameter for the main to jump to, if any.
 .PROC FuncA_Cutscene_AdvanceForkAndExecute
     jsr FuncA_Cutscene_AdvanceFork
-    .assert * = FuncA_Cutscene_ExecuteOneFork, error, "fallthrough"
+    fall FuncA_Cutscene_ExecuteOneFork  ; returns C, T1T0, and Y
 .ENDPROC
 
 ;;; Executes actions for the current frame on the current cutscene fork.

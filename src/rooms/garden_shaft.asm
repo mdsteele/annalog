@@ -251,7 +251,7 @@ _Passages_sPassage_arr:
     ldx Zp_MachineIndex_u8
     lda #kBridgeMaxAngle
     sta Ram_MachineState1_byte_arr, x  ; bridge angle (0-kBridgeMaxAngle)
-    .assert * = FuncC_Garden_ShaftBridge_Reset, error, "fallthrough"
+    fall FuncC_Garden_ShaftBridge_Reset
 .ENDPROC
 
 .PROC FuncC_Garden_ShaftBridge_Reset

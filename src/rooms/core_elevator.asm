@@ -255,7 +255,7 @@ _Passages_sPassage_arr:
     jsr FuncA_Room_ResetLever
     lda #0
     sta Zp_RoomState + sElevatorState::UpperJetLowerLever_u8
-    .assert * = FuncA_Room_CoreElevatorJet_Init, error, "fallthrough"
+    fall FuncA_Room_CoreElevatorJet_Init
 .ENDPROC
 
 .PROC FuncA_Room_CoreElevatorJet_Init

@@ -137,7 +137,7 @@ _TallRoom:
     lda Zp_PointX_i16 + 1    ; effectively block col * 16 (hi)
     adc Zp_TerrainColumn_u8_arr_ptr + 1  ; block col * 8 (hi)
     sta Zp_TerrainColumn_u8_arr_ptr + 1  ; block col * 24 (hi)
-    .assert * = Func_GetTerrainColumnPtrForByteOffset, error, "fallthrough"
+    fall Func_GetTerrainColumnPtrForByteOffset
 .ENDPROC
 
 ;;; Adds (Zp_Current_sRoom + sRoom::TerrainData_ptr) to

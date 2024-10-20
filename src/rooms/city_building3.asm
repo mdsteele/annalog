@@ -525,7 +525,7 @@ _SetFlagIfCratesDestroyed:
 .PROC FuncA_Room_CityBuilding3Reloader_InitReset
     lda #kReloaderInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kReloaderMachineIndex
-    .assert * = FuncA_Room_CityBuilding3_ResetLevers, error, "fallthrough"
+    fall FuncA_Room_CityBuilding3_ResetLevers
 .ENDPROC
 
 .PROC FuncA_Room_CityBuilding3_ResetLevers

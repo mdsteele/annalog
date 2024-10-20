@@ -750,7 +750,7 @@ _SpineAngle_u8_arr5:
     ldx #kLeftWallPlatformIndex  ; param: platform index
     ldy Zp_RoomState + sState::LeftWallDamage_u8  ; param: damage pattern
     lda #kTileIdObjPlatformCityWalls + 2  ; param: first tile ID
-    .assert * = FuncC_Boss_City_DrawSideWall, error, "fallthrough"
+    fall FuncC_Boss_City_DrawSideWall
 .ENDPROC
 
 ;;; Draws one of the side walls in this room, using the given damage pattern.
@@ -860,7 +860,7 @@ _DrawBackgroundTerrainObjects:
     rts
     @open:
     dec Zp_RoomState + sState::BossShellOpen_u8
-    .assert * = FuncC_Boss_City_AdjustShellPlatformsVert, error, "fallthrough"
+    fall FuncC_Boss_City_AdjustShellPlatformsVert
 .ENDPROC
 
 ;;; Adjusts the boss's two shell platforms to their correct vertical position,

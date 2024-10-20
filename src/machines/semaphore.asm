@@ -198,7 +198,7 @@ _CheckIfDone:
 .EXPORT FuncA_Objects_DrawSemaphoreCommMachine
 .PROC FuncA_Objects_DrawSemaphoreCommMachine
     jsr FuncA_Objects_DrawSemaphoreFlags
-    .assert * = FuncA_Objects_DrawSemaphoreLockMachine, error, "fallthrough"
+    fall FuncA_Objects_DrawSemaphoreLockMachine
 .ENDPROC
 
 ;;; Draws a semaphore machine that's connected to the lock (and thus doesn't
@@ -207,7 +207,7 @@ _CheckIfDone:
 .EXPORT FuncA_Objects_DrawSemaphoreLockMachine
 .PROC FuncA_Objects_DrawSemaphoreLockMachine
     lda #kTileIdObjSemaphoreDistSensor  ; param: corner tile ID
-    .assert * = FuncA_Objects_DrawSemaphoreActuator, error, "fallthrough"
+    fall FuncA_Objects_DrawSemaphoreActuator
 .ENDPROC
 
 ;;; Draws the movable actuator for a semaphore machine.
@@ -246,7 +246,7 @@ _LowerFlag:
     ldx Zp_MachineIndex_u8
     lda Ram_MachineState1_byte_arr, x  ; lower bSemaphoreFlag
     and #bSemaphoreFlag::AngleMask  ; param: flag angle
-    .assert * = FuncA_Objects_DrawSemaphoreFlag, error, "fallthrough"
+    fall FuncA_Objects_DrawSemaphoreFlag
 .ENDPROC
 
 ;;; Draws one flag on a semaphore machine.

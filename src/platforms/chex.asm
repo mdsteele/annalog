@@ -50,7 +50,7 @@ kPaletteObjPlatformChex = 0
 .PROC FuncA_Objects_DrawRocksPlatformHorz
     .assert kTileIdObjPlatformRocksFirst .mod 2 = 0, error
     ldy #kTileIdObjPlatformRocksFirst  ; param: first tile ID (0 mod 2)
-    .assert * = FuncA_Objects_DrawPlatformChexHorz, error, "fallthrough"
+    fall FuncA_Objects_DrawPlatformChexHorz
 .ENDPROC
 
 ;;; Draws a horizontal (Nx1) checkerboarded platform.  The platform is assumed
@@ -111,7 +111,7 @@ kPaletteObjPlatformChex = 0
 .PROC FuncA_Objects_DrawRocksPlatformVert
     .assert kTileIdObjPlatformRocksFirst .mod 2 = 0, error
     ldy #kTileIdObjPlatformRocksFirst  ; param: first tile ID (0 mod 2)
-    .assert * = FuncA_Objects_DrawPlatformChexVert, error, "fallthrough"
+    fall FuncA_Objects_DrawPlatformChexVert
 .ENDPROC
 
 ;;; Draws a vertical (1xN) checkerboarded platform.  The platform is assumed to

@@ -193,7 +193,7 @@ _LeftClaw:
     jsr FuncA_Objects_Draw1x1Shape
     pla  ; pulley platform index
     tax  ; param: pulley platform index
-    .assert * = FuncA_Objects_DrawCraneRopeToPulley, error, "fallthrough"
+    fall FuncA_Objects_DrawCraneRopeToPulley
 .ENDPROC
 
 ;;; Draws a rope that the current crane machine is hanging from up to the

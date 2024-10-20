@@ -286,7 +286,7 @@ _MoveHorz:
 _ReachedGoal:
     lda Zp_RoomState + sState::CarriageReset_eResetSeq
     jeq FuncA_Machine_ReachedGoal
-    .assert * = FuncC_Temple_FoyerCarriage_Reset, error, "fallthrough"
+    fall FuncC_Temple_FoyerCarriage_Reset
 .ENDPROC
 
 .PROC FuncC_Temple_FoyerCarriage_Reset
@@ -310,7 +310,7 @@ _MoveStraightToMiddle:
 _MoveToBottomRight:
     lda #eResetSeq::BottomRight
     sta Zp_RoomState + sState::CarriageReset_eResetSeq
-    .assert * = FuncC_Temple_FoyerCarriage_Init, error, "fallthrough"
+    fall FuncC_Temple_FoyerCarriage_Init
 .ENDPROC
 
 .PROC FuncC_Temple_FoyerCarriage_Init

@@ -583,7 +583,7 @@ _Mirrors:
     ;; If the crate's chain hasn't been broken yet, we're done.
     jsr FuncA_Room_LavaCenter_IsCrateFlagSet  ; preserves X, returns C
     bcs FuncA_Room_LavaCenter_TickFallingCrate  ; preserves X
-    .assert * = FuncA_Room_LavaCenter_TickHangingCrate, error, "fallthrough"
+    fall FuncA_Room_LavaCenter_TickHangingCrate  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for a crate in this room that's still hanging.

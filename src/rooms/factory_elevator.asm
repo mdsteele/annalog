@@ -455,7 +455,7 @@ _StoreElevatorState:
     lda Zp_AvatarPosY_i16 + 1
     beq FuncA_Room_StoreElevatorJetState
     ldx #kLowerJetMachineIndex  ; param: machine index
-    .assert * = FuncA_Room_StoreElevatorJetState, error, "fallthrough"
+    fall FuncA_Room_StoreElevatorJetState
 .ENDPROC
 
 ;;; Stores state data for the specified jet machine in Zp_RoomState, so that it
@@ -563,7 +563,7 @@ _Hud:
     sta Zp_RoomState + sElevatorState::UpperJetUpperLever_u8
     ldx #kUpperJetLowerLeverDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
-    .assert * = FuncA_Room_FactoryElevatorUpperJet_Init, error, "fallthrough"
+    fall FuncA_Room_FactoryElevatorUpperJet_Init
 .ENDPROC
 
 .PROC FuncA_Room_FactoryElevatorUpperJet_Init
@@ -577,7 +577,7 @@ _Hud:
     jsr FuncA_Room_ResetLever
     lda #0
     sta Zp_RoomState + sElevatorState::LowerJetLowerLever_u8
-    .assert * = FuncA_Room_FactoryElevatorLowerJet_Init, error, "fallthrough"
+    fall FuncA_Room_FactoryElevatorLowerJet_Init
 .ENDPROC
 
 .PROC FuncA_Room_FactoryElevatorLowerJet_Init
