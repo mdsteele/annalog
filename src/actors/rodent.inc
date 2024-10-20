@@ -19,6 +19,18 @@
 
 ;;; State bytes for rodent baddies:
 ;;;   * Param: Unused.
+;;;   * Flags: The meaning of these depends on if the rodent is running
+;;;     horizontally (on a floor or ceiling) or vertically (on a wall):
+;;;       * If the rodent is running horizontally, then the bObj::FlipH bit is
+;;;         set if the rodent is facing left, or cleared if it is facing right;
+;;;         and the bObj::FlipV bit is set if the rodent is running
+;;;         upside-down on the ceiling, or cleared if it is running
+;;;         right-side-up on the floor.
+;;;       * If the rodent is running vertically, then the bObj::FlipH bit is
+;;;         set if the rodent is just to the left of the wall, or cleared if it
+;;;         is just to the right of the wall; and the bObj::FlipV bit is set if
+;;;         the rodent is running downwards, or cleared if it is running
+;;;         upwards.
 ;;;   * State1: The current eBadRodent state value.
 ;;;   * State2: A timer that counts up/down each frame, depending on the
 ;;;     current eBadRodent value.

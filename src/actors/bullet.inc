@@ -18,11 +18,13 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for bullet projectiles:
+;;;   * Flags: Unused.
 ;;;   * State1: Counter that starts at zero and increments every frame; if it
 ;;;     wraps back around to zero before the bullet hits anything, then the
 ;;;     bullet is removed.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; OBJ tile IDs for bullet projectile actors:
 kTileIdObjProjBulletFirst = $8e

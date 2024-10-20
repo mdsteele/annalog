@@ -18,10 +18,12 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for smoke particles:
+;;;   * Flags: Unused.
 ;;;   * State1: Counter that starts at zero and increments every frame; once it
 ;;;     reaches kParticleNumFrames, the particle expires.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; How long a smoke particle actor animates before disappearing, in frames.
 kSmokeParticleNumFrames = 12

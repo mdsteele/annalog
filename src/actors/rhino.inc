@@ -18,6 +18,9 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for rhino baddies:
+;;;   * Param: The initial flags to set (0 or bObj::FlipH).
+;;;   * Flags: The bObj::FlipH bit is set if the rhino is facing left, or
+;;;     cleared if it is facing right.
 ;;;   * State1: The current eBadRhino state value.
 ;;;   * State2: A timer that counts up/down each frame, depending on the
 ;;;     current eBadRhino value.

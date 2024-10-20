@@ -31,6 +31,7 @@
 ;;;     unchanged; if false ($00), the child is automatically drawn facing the
 ;;;     player avatar.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;;=========================================================================;;;
 

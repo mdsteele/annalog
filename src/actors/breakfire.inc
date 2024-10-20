@@ -26,6 +26,7 @@
 ;;;     somehow wraps back around to zero without the breakfire bouncing, then
 ;;;     the breakfire will expire.  Resets to zero when the breakfire bounces.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; The first tile ID for drawing breakfire projectile actors.
 kTileIdObjProjBreakfireFirst = $ab

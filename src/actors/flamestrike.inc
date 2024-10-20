@@ -25,6 +25,7 @@
 ;;;   * State2: The current visual height of the flamestrike, in tiles.
 ;;;   * State3: A timer that counts up or down each frame, depending on the
 ;;;     current mode.
+;;;   * State4: Unused.
 
 ;;; Possible values for a flamestrike projectile actor's State1 byte.
 .ENUM eProjFlamestrike

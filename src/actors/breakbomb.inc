@@ -24,6 +24,7 @@
 ;;;     breakbomb expires.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; The first tile ID for drawing breakbomb projectile actors.
 kTileIdObjProjBreakbombFirst = $80

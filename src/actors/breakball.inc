@@ -18,9 +18,11 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for breakball projectiles:
+;;;   * Flags: Unused.
 ;;;   * State1: Unused.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; The hit radius of a breakball projectile actor, in pixels.
 kProjBreakballRadius = 3

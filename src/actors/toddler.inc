@@ -18,9 +18,14 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for toddler NPCs:
+;;;   * Param: The bNpcToddler parameter.
+;;;   * Flags: The bObj::FlipH bit is set if the toddler is facing left, or
+;;;     cleared if they are facing right.  The Pri bit is set if the toddler
+;;;     should appear behind the background.
 ;;;   * State1: How many more frames until the toddler turns around.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; The first tile ID for toddler NPC actors.
 kTileIdObjToddlerFirst = $80

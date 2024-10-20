@@ -25,6 +25,7 @@
 ;;;     is removed.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; The OBJ tile ID for acid projectile actors.
 kTileIdObjProjAcid = $80

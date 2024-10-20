@@ -19,7 +19,6 @@
 
 ;;; State bytes for waterfall smoke:
 ;;;   * Flags: Unused.
-;;;   * Param: The platform index for the water below.
 ;;;   * State1: The platform index for the water below.
 ;;;   * State2: The current height of the waterfall, in pixels.
 ;;;   * State3: Boolean; true ($ff) if this waterfall has been shut off and the

@@ -26,6 +26,7 @@
 ;;;     wraps back around to zero before the spine hits anything, then the
 ;;;     spine is removed.
 ;;;   * State3: Unused.
+;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing spine projectile actors.
 kTileIdObjProjSpineFirst = $b8

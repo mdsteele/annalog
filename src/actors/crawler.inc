@@ -18,6 +18,19 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for beetle and hothead baddies:
+;;;   * Param: The initial flags to set (0 or bObj::FlipH and/or bObj::FlipV).
+;;;   * Flags: The meaning of these depends on if the baddie is crawling
+;;;     horizontally (on a floor or ceiling) or vertically (on a wall):
+;;;       * If the baddie is crawling horizontally, then the bObj::FlipH bit is
+;;;         set if the baddie is facing left, or cleared if it is facing right;
+;;;         and the bObj::FlipV bit is set if the baddie is crawling
+;;;         upside-down on the ceiling, or cleared if it is crawling
+;;;         right-side-up on the floor.
+;;;       * If the baddie is crawling vertically, then the bObj::FlipH bit is
+;;;         set if the baddie is just to the left of the wall, or cleared if it
+;;;         is just to the right of the wall; and the bObj::FlipV bit is set if
+;;;         the baddie is crawling downwards, or cleared if it is crawling
+;;;         upwards.
 ;;;   * State1: Toggles between 1 and 0 each frame; used to make baddie move
 ;;;     by one pixel every other frame.
 ;;;   * State2: Unused for beetles; for hotheads, this is the number of
