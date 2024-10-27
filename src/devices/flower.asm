@@ -24,9 +24,8 @@
 .INCLUDE "flower.inc"
 
 .IMPORT FuncA_Avatar_PlaySfxPickUpFlower
-.IMPORT FuncA_Objects_Draw1x1Shape
-.IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeRightHalfTile
+.IMPORT FuncA_Objects_DrawShapeTiles
+.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Func_IsFlagSet
 .IMPORT Ppu_ChrObjAnnaFlower
@@ -130,6 +129,24 @@ _KeepFlower:
 
 .SEGMENT "PRGA_Objects"
 
+;;; Shape tile data for drawing flower devices (and the dormant state of flower
+;;; baddies).
+.EXPORT DataA_Objects_FlowerShape_sShapeTile_arr
+.PROC DataA_Objects_FlowerShape_sShapeTile_arr
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-4
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjFlowerBottom
+    d_byte Tile_u8, kTileIdObjFlowerBottom
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, <-8
+    d_byte Flags_bObj, kPaletteObjFlowerTop | bObj::Final
+    d_byte Tile_u8, kTileIdObjFlowerTop
+    D_END
+.ENDPROC
+
 ;;; Draws a flower device.
 ;;; @param X The device index.
 ;;; @preserve X
@@ -137,20 +154,13 @@ _KeepFlower:
 .PROC FuncA_Objects_DrawDeviceFlower
     lda Ram_DeviceAnim_u8_arr, x
     and #$02
-    bne _Return
-    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
-    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
-_AllocateUpperObject:
-    ldy #kPaletteObjFlowerTop  ; param: object flags
-    lda #kTileIdObjFlowerTop  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
-_AllocateLowerObject:
-    jsr FuncA_Objects_MoveShapeDownOneTile  ; preserves X
-    ldy #kPaletteObjFlowerBottom  ; param: object flags
-    lda #kTileIdObjFlowerBottom  ; param: tile ID
-    jmp FuncA_Objects_Draw1x1Shape  ; preserves X
-_Return:
+    beq @draw
     rts
+    @draw:
+    jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
+    ldya #DataA_Objects_FlowerShape_sShapeTile_arr
+    jmp FuncA_Objects_DrawShapeTiles  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

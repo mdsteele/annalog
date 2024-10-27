@@ -35,7 +35,7 @@
 .IMPORT FuncA_Room_GetDarknessZoneFade
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_SetAndTransferBgFade
-.IMPORT Ppu_ChrObjShadow
+.IMPORT Ppu_ChrObjShadow1
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_GoalBg_eFade
@@ -68,7 +68,7 @@ kDarknessZonePlatformIndex = 0
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjShadow)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjShadow1)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:

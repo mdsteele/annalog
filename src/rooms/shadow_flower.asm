@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/flower.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/flower.inc"
@@ -39,19 +40,33 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawLaserMachine
 .IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
+.IMPORT FuncA_Room_IsPointInLaserBeam
 .IMPORT FuncA_Room_KillGooWithLaserBeam
 .IMPORT FuncA_Room_MachineLaserReset
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
+.IMPORT FuncA_Room_SpawnExplosionAtPoint
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_MachineLaserReadRegC
 .IMPORT Func_Noop
 .IMPORT Func_SetMachineIndex
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_WriteToUpperAttributeTable
-.IMPORT Ppu_ChrObjShadow
+.IMPORT Ppu_ChrObjShadow2
+.IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 
 ;;;=========================================================================;;;
+
+;;; The actor index for the flower baddie in this room.
+kFlowerActorIndex = 0
+
+;;; The platform index for the zone that the flower baddie's head is in when
+;;; attacking.
+kFlowerHeadPlatformIndex = 1
 
 ;;; The machine index for the ShadowFlowerLaser machine in this room.
 kLaserMachineIndex = 0
@@ -85,7 +100,7 @@ kLaserInitPlatformLeft = \
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjShadow)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjShadow2)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -95,7 +110,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
+    d_addr Enter_func_ptr, FuncA_Room_ShadowFlower_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowFlower_FadeInRoom
     d_addr Tick_func_ptr, FuncA_Room_ShadowFlower_TickRoom
     d_addr Draw_func_ptr, Func_Noop
@@ -134,6 +149,15 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kLaserInitPlatformLeft
     d_word Top_i16,   $0020
     D_END
+    ;; Flower baddie head zone:
+    .assert * - :- = kFlowerHeadPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0030
+    d_word Top_i16,   $00a8
+    D_END
     ;; Acid:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
@@ -145,7 +169,13 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   ;; TODO: fake flower baddie
+:   .assert * - :- = kFlowerActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadFlower
+    d_word PosX_i16, $0028
+    d_word PosY_i16, $00b8
+    d_byte Param_byte, 0
+    D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGooGreen
     d_word PosX_i16, $005a
@@ -214,12 +244,52 @@ _ReadX:
 
 .SEGMENT "PRGA_Room"
 
+.PROC FuncA_Room_ShadowFlower_EnterRoom
+    ;; Determine if the flower should be present in the room.
+    jsr FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
+    ;; IF the flower should be present, then remove the device for now and
+    ;; leave the baddie in its place.
+    lda #eDevice::Placeholder
+    cmp Ram_DeviceType_eDevice_arr + kFlowerDeviceIndex
+    beq @removeFlowerActor
+    @removeFlowerDevice:
+    sta Ram_DeviceType_eDevice_arr + kFlowerDeviceIndex
+    rts
+    ;; Otherwise, the flower should be absent, so the device has already been
+    ;; removed; remove the baddie as well.
+    @removeFlowerActor:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kFlowerActorIndex
+    rts
+.ENDPROC
+
 .PROC FuncA_Room_ShadowFlower_TickRoom
+    ;; Apply laser beam damage to the avatar and goo baddies.
     ldx #kLaserMachineIndex
     jsr Func_SetMachineIndex
     jsr FuncA_Room_HarmAvatarIfWithinLaserBeam
     jsr FuncA_Room_KillGooWithLaserBeam
-    jmp FuncA_Room_RespawnFlowerDeviceIfDropped
+_MaybeRespawnFlower:
+    ;; If the flower baddie is dead, respawn the flower if/when necessary.
+    ;; Otherwise, check if the laser beam is hitting the flower baddie.
+    lda Ram_ActorType_eActor_arr + kFlowerActorIndex
+    cmp #eActor::BadFlower
+    jne FuncA_Room_RespawnFlowerDeviceIfDropped
+_MaybeKillFlowerBaddie:
+    ;; Kill the flower baddie if the laser beam hits its head.
+    lda Ram_ActorState1_byte_arr + kFlowerActorIndex  ; current eBadFlower mode
+    cmp #eBadFlower::Attacking
+    bne @done  ; the flower baddie's head is not in the zone
+    ldy #kFlowerHeadPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    jsr FuncA_Room_IsPointInLaserBeam  ; returns C
+    bcc @done  ; the laser is not hitting the zone
+    jsr FuncA_Room_SpawnExplosionAtPoint
+    ldx #kFlowerActorIndex  ; param: actor index
+    jsr Func_InitActorSmokeExplosion
+    ;; TODO: play a sound for the flower baddie dying
+    @done:
+    rts
 .ENDPROC
 
 .PROC FuncA_Room_ShadowFlowerLaser_InitReset

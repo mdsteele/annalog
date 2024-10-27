@@ -32,6 +32,7 @@ kMaxActors = 16
     BadCrab          ; moves left/right randomly on a floor
     BadFirefly       ; flies up and down, and shoots horizontally
     BadFish          ; swims back and forth in water
+    BadFlower        ; grows and shoots fireballs
     BadFlydrop       ; flies left/right randomly, and drops acid
     BadGhostMermaid  ; part of the shadow boss
     BadGhostOrc      ; part of the shadow boss

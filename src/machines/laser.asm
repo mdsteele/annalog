@@ -200,10 +200,10 @@ _Outside:
     @green:
     ldy Zp_MachineIndex_u8
     eor Ram_MachineState1_byte_arr, y  ; laser color (even=red, odd=green)
-    mod #2
-    .assert eActor::BadGooRed .mod 2 = 0, error
-    .assert eActor::BadGooGreen .mod 2 = 1, error
-    beq @continue  ; goo is same color as laser
+    mod #2  ; now A is 0 for red laser, or 1 for green laser
+    .assert eActor::BadGooRed .mod 2 = 1, error
+    .assert eActor::BadGooGreen .mod 2 = 0, error
+    bne @continue  ; goo is same color as laser
     ;; If the laser isn't hitting this goo baddie, skip it.
     jsr Func_SetPointToActorCenter  ; preserves X
     stx T2  ; actor index

@@ -116,7 +116,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, DataC_Mine_Collapse_DrawRoom
+    d_addr Draw_func_ptr, FuncC_Mine_Collapse_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/mine_collapse.room"
@@ -211,7 +211,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC DataC_Mine_Collapse_DrawRoom
+.PROC FuncC_Mine_Collapse_DrawRoom
     ldx #eFlag::BreakerMine  ; param: breaker flag
     jmp FuncA_Objects_AnimateCircuitIfBreakerActive
 .ENDPROC

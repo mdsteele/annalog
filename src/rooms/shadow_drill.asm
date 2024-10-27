@@ -50,7 +50,7 @@
 .IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_WriteToLowerAttributeTable
-.IMPORT Ppu_ChrObjShadow
+.IMPORT Ppu_ChrObjShadow1
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
@@ -103,7 +103,7 @@ kLaserInitPlatformLeft = \
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjShadow)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjShadow1)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:

@@ -37,6 +37,7 @@
 .INCLUDE "actors/firefly.inc"
 .INCLUDE "actors/fish.inc"
 .INCLUDE "actors/flamestrike.inc"
+.INCLUDE "actors/flower.inc"
 .INCLUDE "actors/flydrop.inc"
 .INCLUDE "actors/goo.inc"
 .INCLUDE "actors/grenade.inc"
@@ -1439,10 +1440,10 @@ _chr_begin:
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_ObjShadow"
+.SEGMENT "CHR_ObjShadow1"
 
-.EXPORT Ppu_ChrObjShadow
-.PROC Ppu_ChrObjShadow
+.EXPORT Ppu_ChrObjShadow1
+.PROC Ppu_ChrObjShadow1
     CHR2_BANK $80
     chr_inc "proj_acid",      kTileIdObjProjAcid
     chr_inc "emitter_light",  kTileIdObjEmitterLight
@@ -1462,6 +1463,24 @@ _chr_begin:
     chr_inc "anna_ghost",     kTileIdObjAnnaGhostFirst
     chr_inc "adult_ghost",    kTileIdObjAdultGhostFirst
     chr_inc "breaker",        kTileIdObjBreakerFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_ObjShadow2"
+
+.EXPORT Ppu_ChrObjShadow2
+.PROC Ppu_ChrObjShadow2
+    CHR2_BANK $80
+    chr_res $10
+    chr_inc "bad_goo",        kTileIdObjBadGooFirst
+    chr_res $24
+    chr_inc "proj_fireball",  kTileIdObjProjFireballFirst
+    chr_res $18
+    chr_inc "laser",          kTileIdObjLaserFirst
+    chr_inc "bad_flower",     kTileIdObjBadFlowerFirst
+    chr_res $06
     END_CHR_BANK
 .ENDPROC
 

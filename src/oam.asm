@@ -783,4 +783,38 @@ _FinishAllocation:
     rts
 .ENDPROC
 
+;;; Draws a list of tiles, starting at the current shape position.
+;;; @param YA Pointer to the sShapeTile array.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawShapeTiles
+.PROC FuncA_Objects_DrawShapeTiles
+    stya T5T4  ; sShapeTile array pointer
+    ldy #0
+    @loop:
+    .assert sShapeTile::DeltaX_i8 = 0, error
+    lda (T5T4), y  ; param: signed offset
+    jsr FuncA_Objects_MoveShapeHorz  ; preserves X, Y, and T0+
+    iny  ; now Y is 1 mod .sizeof(sShapeTile)
+    .assert sShapeTile::DeltaY_i8 = 1, error
+    lda (T5T4), y  ; param: signed offset
+    jsr FuncA_Objects_MoveShapeVert  ; preserves X, Y, and T0+
+    iny  ; now Y is 2 mod .sizeof(sShapeTile)
+    .assert sShapeTile::Flags_bObj = 2, error
+    lda (T5T4), y
+    sta T3  ; object flags
+    iny  ; now Y is 3 mod .sizeof(sShapeTile)
+    .assert sShapeTile::Tile_u8 = 3, error
+    lda (T5T4), y  ; param: tile ID
+    sty T2  ; sShapeTile array byte offset
+    ldy T3  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
+    ldy T2  ; sShapeTile array byte offset
+    .assert .sizeof(sShapeTile) = 4, error
+    iny  ; now Y is 0 mod .sizeof(sShapeTile)
+    lda T3  ; object flags
+    and #bObj::Final
+    beq @loop
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;

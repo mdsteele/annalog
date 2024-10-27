@@ -35,6 +35,7 @@ Hw_OamDma_wo  = $4014
 
 ;;;=========================================================================;;;
 
+;;; One object slot in OAM.  The field order is specified by the hardware.
 .STRUCT sObj
     YPos_u8    .byte
     Tile_u8    .byte
@@ -44,11 +45,26 @@ Hw_OamDma_wo  = $4014
 
 ;;;=========================================================================;;;
 
+;;; An entry in an array passed to FuncA_Objects_DrawShapeTiles.
+.STRUCT sShapeTile
+    ;; Signed delta to move the shape position by before drawing this object.
+    DeltaX_i8  .byte
+    DeltaY_i8  .byte
+    ;; The flags to use for this object.  If bObj::Final is set, then this is
+    ;; the last tile in the array.
+    Flags_bObj .byte
+    ;; The OBJ tile ID to use for this object.
+    Tile_u8    .byte
+.ENDSTRUCT
+
+;;;=========================================================================;;;
+
 .SCOPE bObj
     FlipV       = %10000000  ; flip object vertically
     FlipH       = %01000000  ; flip object horizontally
     FlipHV      = %11000000  ; flip object both horizontally and vertically
     Pri         = %00100000  ; draw object behind background
+    Final       = %00010000  ; used by FuncA_Objects_DrawShapeTiles
     PaletteMask = %00000011  ; bits used for the OBJ palette number
 .ENDSCOPE
 

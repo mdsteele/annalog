@@ -58,8 +58,8 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitActorSmokeRaindrop
+.IMPORT FuncA_Room_SpawnExplosionAtPoint
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePointLeftByA
@@ -156,10 +156,10 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, DataA_Room_MermaidSpring_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_MermaidSpring_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, DataA_Room_MermaidSpring_TickRoom
-    d_addr Draw_func_ptr, DataC_Mermaid_Spring_DrawRoom
+    d_addr Tick_func_ptr, FuncA_Room_MermaidSpring_TickRoom
+    d_addr Draw_func_ptr, FuncC_Mermaid_Spring_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/mermaid_spring.room"
@@ -288,7 +288,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC DataC_Mermaid_Spring_DrawRoom
+.PROC FuncC_Mermaid_Spring_DrawRoom
     ldx #kRocksPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawRocksPlatformHorz
     ldx #kMonitorPlatformIndex  ; param: platform index
@@ -370,7 +370,7 @@ _WaterWidth_u8_arr:
     rts
 .ENDPROC
 
-.PROC DataA_Room_MermaidSpring_EnterRoom
+.PROC FuncA_Room_MermaidSpring_EnterRoom
 _Alex:
     ;; If Alex isn't here yet, or the spring is drained, remove him.
     flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
@@ -419,7 +419,7 @@ _DrainSpring:
     rts
 .ENDPROC
 
-.PROC DataA_Room_MermaidSpring_TickRoom
+.PROC FuncA_Room_MermaidSpring_TickRoom
     ;; If the lever hasn't been flipped yet, do nothing.
     lda Zp_RoomState + sState::Lever_u8
     beq @return
@@ -463,16 +463,10 @@ _AnimateExplodingRocks:
     jsr Func_SetPointToPlatformCenter
     lda #kTileWidthPx
     jsr Func_MovePointLeftByA
-    jsr _SpawnExplosionAtPoint
+    jsr FuncA_Room_SpawnExplosionAtPoint
     lda #kTileWidthPx * 2
     jsr Func_MovePointRightByA
-_SpawnExplosionAtPoint:
-    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
-    bcs @done
-    jsr Func_SetActorCenterToPoint  ; preserves X
-    jmp Func_InitActorSmokeExplosion
-    @done:
-    rts
+    jmp FuncA_Room_SpawnExplosionAtPoint
 _RaindropPosX_u8_arr:
     .byte $74, $84, $8c, $7c
 _RaindropVelY_u8_arr:

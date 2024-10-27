@@ -34,6 +34,7 @@
 .IMPORT FuncA_Actor_TickBadCrab
 .IMPORT FuncA_Actor_TickBadFirefly
 .IMPORT FuncA_Actor_TickBadFish
+.IMPORT FuncA_Actor_TickBadFlower
 .IMPORT FuncA_Actor_TickBadFlydrop
 .IMPORT FuncA_Actor_TickBadGhostMermaid
 .IMPORT FuncA_Actor_TickBadGhostOrc
@@ -92,6 +93,7 @@
 .IMPORT FuncA_Objects_DrawActorBadCrab
 .IMPORT FuncA_Objects_DrawActorBadFirefly
 .IMPORT FuncA_Objects_DrawActorBadFish
+.IMPORT FuncA_Objects_DrawActorBadFlower
 .IMPORT FuncA_Objects_DrawActorBadFlydrop
 .IMPORT FuncA_Objects_DrawActorBadGhostMermaid
 .IMPORT FuncA_Objects_DrawActorBadGhostOrc
@@ -480,6 +482,7 @@ _NoHit:
     d_byte BadCrab,          6
     d_byte BadFirefly,       6
     d_byte BadFish,          6
+    d_byte BadFlower,       14
     d_byte BadFlydrop,       6
     d_byte BadGhostMermaid, 13
     d_byte BadGhostOrc,     kOrcBoundingBoxUp
@@ -548,6 +551,7 @@ _NoHit:
     d_byte BadCrab,          8
     d_byte BadFirefly,       8
     d_byte BadFish,          4
+    d_byte BadFlower,        8
     d_byte BadFlydrop,       6
     d_byte BadGhostMermaid,  7
     d_byte BadGhostOrc,     kOrcBoundingBoxDown
@@ -616,6 +620,7 @@ _NoHit:
     d_byte BadCrab,          7
     d_byte BadFirefly,       6
     d_byte BadFish,          6
+    d_byte BadFlower,       12
     d_byte BadFlydrop,       6
     d_byte BadGhostMermaid,  6
     d_byte BadGhostOrc,     kOrcBoundingBoxSide
@@ -752,6 +757,7 @@ _TypeSpecificTick:
     d_entry table, BadCrab,         FuncA_Actor_TickBadCrab
     d_entry table, BadFirefly,      FuncA_Actor_TickBadFirefly
     d_entry table, BadFish,         FuncA_Actor_TickBadFish
+    d_entry table, BadFlower,       FuncA_Actor_TickBadFlower
     d_entry table, BadFlydrop,      FuncA_Actor_TickBadFlydrop
     d_entry table, BadGhostMermaid, FuncA_Actor_TickBadGhostMermaid
     d_entry table, BadGhostOrc,     FuncA_Actor_TickBadGhostOrc
@@ -925,6 +931,7 @@ _Finish:
     d_entry table, eActor::BadCrab,         Func_InitActorDefault
     d_entry table, eActor::BadFirefly,      FuncA_Room_InitActorBadFirefly
     d_entry table, eActor::BadFish,         Func_InitActorWithFlags
+    d_entry table, eActor::BadFlower,       Func_InitActorDefault
     d_entry table, eActor::BadFlydrop,      FuncA_Room_InitActorBadFlydrop
     d_entry table, eActor::BadGhostMermaid, Func_InitActorWithState1
     d_entry table, eActor::BadGhostOrc,     Func_InitActorWithState1
@@ -994,6 +1001,7 @@ _Finish:
     d_entry table, BadCrab,         FuncA_Objects_DrawActorBadCrab
     d_entry table, BadFirefly,      FuncA_Objects_DrawActorBadFirefly
     d_entry table, BadFish,         FuncA_Objects_DrawActorBadFish
+    d_entry table, BadFlower,       FuncA_Objects_DrawActorBadFlower
     d_entry table, BadFlydrop,      FuncA_Objects_DrawActorBadFlydrop
     d_entry table, BadGhostMermaid, FuncA_Objects_DrawActorBadGhostMermaid
     d_entry table, BadGhostOrc,     FuncA_Objects_DrawActorBadGhostOrc
