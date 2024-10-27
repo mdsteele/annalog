@@ -28,14 +28,12 @@
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
+.IMPORT FuncA_Objects_DrawShapeTiles
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeLeftByA
-.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
-.IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -276,40 +274,39 @@ _Return:
 .EXPORT FuncA_Objects_DrawTrolleyGirder
 .PROC FuncA_Objects_DrawTrolleyGirder
     jsr FuncA_Objects_DrawGirderPlatform
-_RopeTriangle:
-    ;; The rope triangle tiles are shaped like this:
-    ;;
-    ;;     3/\4
-    ;;    2/  \1
-    ;;
-    ;; Tile 1:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #bObj::FlipH | kPaletteObjRope  ; param: object flags
-    lda #kTileIdObjRopeDiag  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-    ;; Tile 2:
-    lda #kTileWidthPx * 3  ; param: offset
-    jsr FuncA_Objects_MoveShapeLeftByA
-    ldy #kPaletteObjRope  ; param: object flags
-    lda #kTileIdObjRopeDiag  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-    ;; Tile 3:
-    jsr FuncA_Objects_MoveShapeRightOneTile
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #kPaletteObjRope  ; param: object flags
-    lda #kTileIdObjRopeDiag  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-    ;; Tile 4:
-    jsr FuncA_Objects_MoveShapeRightOneTile
-    ldy #bObj::FlipH | kPaletteObjRope  ; param: object flags
-    lda #kTileIdObjRopeDiag  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-_HookBlock:
-    jsr FuncA_Objects_MoveShapeLeftHalfTile
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #kPaletteObjRope  ; param: object flags
-    lda #kTileIdObjTrolleyBlock  ; param: tile ID
-    jmp FuncA_Objects_Draw1x1Shape
+    ldya #_RopeTriangle_sShapeTile_arr  ; param: sShapeTile arr ptr
+    jmp FuncA_Objects_DrawShapeTiles
+_RopeTriangle_sShapeTile_arr:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, <-8
+    d_byte Flags_bObj, bObj::FlipH | kPaletteObjRope
+    d_byte Tile_u8, kTileIdObjRopeDiag
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-24
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjRope
+    d_byte Tile_u8, kTileIdObjRopeDiag
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 8
+    d_byte DeltaY_i8, <-8
+    d_byte Flags_bObj, kPaletteObjRope
+    d_byte Tile_u8, kTileIdObjRopeDiag
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 8
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, bObj::FlipH | kPaletteObjRope
+    d_byte Tile_u8, kTileIdObjRopeDiag
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-4
+    d_byte DeltaY_i8, <-8
+    d_byte Flags_bObj, kPaletteObjRope | bObj::Final
+    d_byte Tile_u8, kTileIdObjTrolleyBlock
+    D_END
 .ENDPROC
 
 ;;;=========================================================================;;;

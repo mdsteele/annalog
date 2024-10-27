@@ -28,9 +28,9 @@
 .IMPORT FuncA_Machine_GenericTryMoveZ
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawGirderPlatform
+.IMPORT FuncA_Objects_DrawShapeTiles
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
-.IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
@@ -194,18 +194,21 @@ _MachineLight:
 .EXPORT FuncA_Objects_DrawHoistGirder
 .PROC FuncA_Objects_DrawHoistGirder
     jsr FuncA_Objects_DrawGirderPlatform
-_RopeTriangle:
-    jsr FuncA_Objects_MoveShapeUpOneTile
-    lda #1
-    jsr FuncA_Objects_MoveShapeLeftByA
-    ldy #kPaletteObjHoistRope | bObj::FlipH  ; param: object flags
-    lda #kTileIdObjHoistRopeDiag  ; param: tile ID
-    jsr FuncA_Objects_Draw1x1Shape
-    lda #kTileWidthPx - 1
-    jsr FuncA_Objects_MoveShapeLeftByA
-    ldy #kPaletteObjHoistRope  ; param: object flags
-    lda #kTileIdObjHoistRopeDiag  ; param: tile ID
-    jmp FuncA_Objects_Draw1x1Shape
+    ldya #_RopeTriangle_sShapeTile_arr  ; param: sShapeTile arr ptr
+    jmp FuncA_Objects_DrawShapeTiles
+_RopeTriangle_sShapeTile_arr:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-1
+    d_byte DeltaY_i8, <-8
+    d_byte Flags_bObj, bObj::FlipH | kPaletteObjHoistRope
+    d_byte Tile_u8, kTileIdObjHoistRopeDiag
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-7
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjHoistRope | bObj::Final
+    d_byte Tile_u8, kTileIdObjHoistRopeDiag
+    D_END
 .ENDPROC
 
 ;;; Draws a vertical rope that feeds into a hoist pulley.

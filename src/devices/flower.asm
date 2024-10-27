@@ -159,7 +159,7 @@ _KeepFlower:
     @draw:
     jsr FuncA_Objects_SetShapePosToDeviceTopLeft  ; preserves X
     jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
-    ldya #DataA_Objects_FlowerShape_sShapeTile_arr
+    ldya #DataA_Objects_FlowerShape_sShapeTile_arr  ; param: sShapeTile arr ptr
     jmp FuncA_Objects_DrawShapeTiles  ; preserves X
 .ENDPROC
 
