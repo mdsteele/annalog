@@ -44,6 +44,7 @@
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
@@ -62,7 +63,16 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
+
+;;;=========================================================================;;;
+
+;;; How long between drips of acid, in frames.
+.DEFINE kAcidDripSlowdown 8
+
+;;; The total time for a full acid dripping sequence, in frames.
+kAcidDripFrames = kAcidDripSlowdown * 4
 
 ;;;=========================================================================;;;
 
@@ -119,6 +129,8 @@ kLiftInitPlatformTop = kLiftMaxPlatformTop - kLiftInitGoalY * kBlockHeightPx
 
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
+    ;; How many more frames until the acid console can be activated again.
+    AcidCooldown_u8 .byte
     ;; How many more frames until the fireball console can be activated again.
     FireballCooldown_u8 .byte
     ;; How many more frames until the teleport count resets.
@@ -235,10 +247,10 @@ _Devices_sDevice_arr:
     d_byte Target_byte, eFake::CoreDump
     D_END
     D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::FakeConsole
+    d_byte Type_eDevice, eDevice::ScreenGreen
     d_byte BlockRow_u8, 2
     d_byte BlockCol_u8, 6
-    d_byte Target_byte, eFake::InsufficientData  ; TODO shock vert
+    d_byte Target_byte, eDialog::ShadowOfficeAcid
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::FakeConsole
@@ -330,6 +342,34 @@ _Passages_sPassage_arr:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_ShadowOffice_TickRoom
+_Acid:
+    ;; Check if acid is currently dripping from the ceiling.
+    lda Zp_RoomState + sState::AcidCooldown_u8
+    beq @done  ; acid drip sequence is not active
+    ;; Drip one drop of acid every kAcidDripSlowdown frames.
+    dec Zp_RoomState + sState::AcidCooldown_u8
+    mod #kAcidDripSlowdown
+    bne @done  ; don't drip acid this frame
+    ;; Calculate the starting point for this drop of acid.
+    lda Zp_RoomState + sState::AcidCooldown_u8
+    .assert $10 .mod kAcidDripSlowdown = 0, error
+    mul #$10 / kAcidDripSlowdown
+    and #$f0
+    rsub #$78
+    sta Zp_PointX_i16 + 0
+    lda #$13
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointX_i16 + 1
+    sta Zp_PointY_i16 + 1
+    ;; Spawn an acid projectile at the starting point.
+    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
+    bcs @done
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    ldy #eActor::ProjAcid  ; param: actor type
+    jsr Func_InitActorDefault
+    ;; TODO: play a sound for dripping acid
+    @done:
 _CoolDownFireball:
     lda Zp_RoomState + sState::FireballCooldown_u8
     beq @done
@@ -444,6 +484,19 @@ _Return:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_ShadowOfficeAcid_sDialog
+.PROC DataA_Dialog_ShadowOfficeAcid_sDialog
+    dlg_Call _DripAcid
+    dlg_Done
+_DripAcid:
+    lda Zp_RoomState + sState::AcidCooldown_u8
+    bne @done
+    lda #kAcidDripFrames
+    sta Zp_RoomState + sState::AcidCooldown_u8
+    @done:
+    rts
+.ENDPROC
 
 .EXPORT DataA_Dialog_ShadowOfficeFireball_sDialog
 .PROC DataA_Dialog_ShadowOfficeFireball_sDialog

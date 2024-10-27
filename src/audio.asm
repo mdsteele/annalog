@@ -491,7 +491,6 @@ _ContinueNote:
     beq _IncrementFramesAndReturn
 _ContinueTone:
     jsr Func_AudioCallInstrument  ; preserves X, returns A
-    ;; TODO: Apply master volume.
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Envelope_wo, x
 _IncrementFramesAndReturn:
     inc Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x

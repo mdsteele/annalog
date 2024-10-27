@@ -105,7 +105,7 @@ Zp_BreakerBeingActivated_eFlag: .res 1
 ;;; @prereq Explore mode is initialized.
 .PROC Main_Breaker_TraceCircuit
     jsr Func_FadeOutToBlack
-    ;; TODO: implement this
+    ;; TODO: implement circuit-tracing cutscene
     fall Main_Breaker_LoadCoreRoom
 .ENDPROC
 

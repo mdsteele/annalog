@@ -27,7 +27,9 @@
 .INCLUDE "machine.inc"
 .INCLUDE "machines/carriage.inc"
 .INCLUDE "machines/emitter.inc"
+.INCLUDE "machines/field.inc"
 .INCLUDE "machines/lift.inc"
+.INCLUDE "machines/multiplexer.inc"
 .INCLUDE "machines/semaphore.inc"
 .INCLUDE "machines/shared.inc"
 .INCLUDE "macros.inc"
@@ -52,6 +54,8 @@
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Main_Console_CloseWindow
+.IMPORT Ppu_ChrObjAnnaNormal
+.IMPORT Ppu_ChrObjBoss1
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_ConsoleNeedsPower_u8
@@ -72,6 +76,18 @@ kFakeConsoleMessageRows = kMaxProgramLength / 2
 
 ;;; The width of the fake console message box, in tiles.
 kFakeConsoleMessageCols = 19
+
+;;; The eDiagram value to use for the "CoreDump" fake console.  The only thing
+;;; that matters is that it have a first tile ID of $f0, so that it will use
+;;; the proper row of tiles from the second half of Ppu_ChrObjBoss1.
+.ASSERT kTileIdBgDiagramCarriageFirst = $f0, error
+kDiagramCoreDump = eDiagram::Carriage
+
+;;; The eDiagram value to use for the "Corrupted" fake console.  The only thing
+;;; that matters is that it have a first tile ID of $f0, so that it will use
+;;; the proper row of tiles from the first half of Ppu_ChrObjAnnaNormal.
+.ASSERT kTileIdBgDiagramCarriageFirst = $f0, error
+kDiagramCorrupted = eDiagram::Carriage
 
 ;;;=========================================================================;;;
 
@@ -158,11 +174,11 @@ _InitWindow:
     jmp Func_PlaySfxWindowOpen
 _Chr0cBank_u8_arr:
     D_ARRAY .enum, eFake
-    d_byte CoreDump,         $61  ; TODO
-    d_byte Corrupted,        $61  ; TODO
+    d_byte CoreDump,         <.bank(Ppu_ChrObjBoss1)      + 1  ; second half
+    d_byte Corrupted,        <.bank(Ppu_ChrObjAnnaNormal) + 0  ; first half
     d_byte EndThis,          kChrBankDiagramCarriage
-    d_byte InsufficientData, $50  ; TODO
-    d_byte IsThisEthical,    $60  ; TODO
+    d_byte InsufficientData, kChrBankDiagramMultiplexer
+    d_byte IsThisEthical,    kChrBankDiagramField
     d_byte NoPower,          kChrBankDiagramLift
     d_byte NoResponse,       kChrBankDiagramSemaphoreComm
     D_END
@@ -223,11 +239,11 @@ _DrawStatus:
     jmp FuncA_Console_WriteDiagramTransferDataForDiagram
 _Fake_eDiagram:
     D_ARRAY .enum, eFake
-    d_byte CoreDump,         eDiagram::MinigunDown  ; TODO
-    d_byte Corrupted,        eDiagram::MinigunDown  ; TODO
+    d_byte CoreDump,         kDiagramCoreDump
+    d_byte Corrupted,        kDiagramCorrupted
     d_byte EndThis,          eDiagram::Carriage
-    d_byte InsufficientData, eDiagram::MinigunDown  ; TODO
-    d_byte IsThisEthical,    eDiagram::MinigunDown  ; TODO
+    d_byte InsufficientData, eDiagram::Multiplexer
+    d_byte IsThisEthical,    eDiagram::Field
     d_byte NoPower,          eDiagram::Lift
     d_byte NoResponse,       eDiagram::SemaphoreComm
     D_END

@@ -313,7 +313,7 @@ _MaybeKillFlowerBaddie:
     ldy #0                         ; param: laser bottom (hi)
     jmp FuncA_Machine_LaserTryAct
 _LaserBottom_i16_0_arr:
-:   .byte $50, $c0, $90, $70, $c5, $70, $c5, $80, $c0, $30
+:   .byte $50, $c0, $90, $70, $c0, $70, $80, $80, $c0, $30
     .assert * - :- = kLaserMaxGoalX + 1, error
 .ENDPROC
 
