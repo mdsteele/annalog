@@ -24,6 +24,7 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/console.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
@@ -55,6 +56,7 @@
 .IMPORT DataA_Text1_CoreBossScreen_Intro_u8_arr
 .IMPORT DataA_Text1_CoreBossScreen_Reactivate_u8_arr
 .IMPORT DataA_Text1_CoreBossScreen_SelfDestruct_u8_arr
+.IMPORT FuncA_Cutscene_PlaySfxBreakerRising
 .IMPORT FuncA_Machine_BlasterTick
 .IMPORT FuncA_Machine_BlasterTryAct
 .IMPORT FuncA_Machine_BlasterWriteRegM
@@ -77,6 +79,7 @@
 .IMPORT FuncA_Objects_DrawBlasterMirror
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_DrawLaserMachine
+.IMPORT FuncA_Objects_DrawTerminalPlatform
 .IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -110,6 +113,7 @@
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
+.IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_ResetWinchMachineState
@@ -119,6 +123,7 @@
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_SetScrollGoalFromPoint
+.IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjBoss3
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -131,6 +136,7 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -186,6 +192,9 @@ kCutsceneZonePlatformIndex = 7
 ;;; The platform index for the wall that blocks the passage during the boss
 ;;; fight.
 kPassageBarrierPlatformIndex = 8
+;;; The platform index for drawing the final terminal that rises out of the
+;;; core.
+kFinalTerminalPlatformIndex = 9
 
 ;;; The initial value for the blaster's M (mirror) register.
 kBlasterInitGoalM = 5
@@ -464,6 +473,14 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $20
     d_word Left_i16,  $0018
     d_word Top_i16,   $0140
+    D_END
+    .assert * - :- = kFinalTerminalPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $10
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0110
+    d_word Top_i16,   $0070
     D_END
     ;; Top corners of reactor:
     D_STRUCT sPlatform
@@ -1846,6 +1863,13 @@ _Col1:
 .SEGMENT "PRGA_Objects"
 
 .PROC FuncA_Objects_CoreBoss_DrawRoom
+_FinalTerminal:
+    lda Zp_RoomState + sState::Current_eGrontaPhase
+    cmp #eGrontaPhase::Defeated
+    bne @done
+    ldx #kFinalTerminalPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawTerminalPlatform
+    @done:
 _PassageBarrier:
     lda Ram_PlatformType_ePlatform_arr + kPassageBarrierPlatformIndex
     cmp #kFirstSolidPlatformType
@@ -2021,8 +2045,11 @@ _ChangeGrontaFromNpcToBad:
     act_SetScrollFlags 0
     act_CallFunc _LookAtTopOfCore
     act_WaitFrames 60
-    act_CallFunc _MakeFinalTerminalAppear
-    act_WaitFrames 60
+    act_CallFunc FuncA_Cutscene_PlaySfxBreakerRising
+    act_RepeatFunc 64, _RaiseFinalTerminal
+    act_WaitFrames 30
+    act_CallFunc _TurnOnFinalTerminal
+    act_WaitFrames 90
     act_ContinueExploring
 _MakeGrontaDefeated:
     lda #eGrontaPhase::Defeated
@@ -2052,10 +2079,23 @@ _LookAtTopOfCore:
     stax Zp_ScrollGoalX_u16
     sta Zp_ScrollGoalY_u8
     rts
-_MakeFinalTerminalAppear:
-    ;; TODO: animate the terminal rising from the core
+_RaiseFinalTerminal:
+    txa  ; repeat counter
+    mod #4
+    bne @done
+    ldx #kFinalTerminalPlatformIndex  ; param: platform index
+    lda #<-1  ; param: move by
+    jsr Func_MovePlatformVert
+    lda #6  ; param: num frames
+    jmp Func_ShakeRoom
+    @done:
+    rts
+_TurnOnFinalTerminal:
     lda #eDevice::ScreenRed
     sta Ram_DeviceType_eDevice_arr + kFinalTerminalDeviceIndex
+    lda #kConsoleAnimCountdown
+    sta Ram_DeviceAnim_u8_arr + kFinalTerminalDeviceIndex
+    ;; TODO: play a sound for the terminal turning on
     rts
 .ENDPROC
 

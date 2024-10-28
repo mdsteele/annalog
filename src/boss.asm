@@ -354,7 +354,7 @@ _FlipBreaker:
     cmp #eDevice::BreakerRising
     bne @finishedRising
     lda Ram_DeviceAnim_u8_arr + kBossBreakerDeviceIndex
-    and #$03
+    mod #4
     bne @done
     lda #6  ; param: num frames
     jmp Func_ShakeRoom

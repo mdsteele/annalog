@@ -96,8 +96,8 @@
 .INCLUDE "platforms/gate.inc"
 .INCLUDE "platforms/girder.inc"
 .INCLUDE "platforms/glass.inc"
-.INCLUDE "platforms/monitor.inc"
 .INCLUDE "platforms/stepstone.inc"
+.INCLUDE "platforms/terminal.inc"
 .INCLUDE "platforms/water.inc"
 .INCLUDE "portrait.inc"
 .INCLUDE "rooms/boss_city.inc"
@@ -1216,7 +1216,7 @@ _chr_begin:
     chr_inc "winch",               kTileIdObjWinchFirst
     chr_inc "proj_grenade",        kTileIdObjProjGrenadeFirst
     chr_inc "orc_gronta_crouch",   kTileIdObjOrcGrontaCrouchFirst
-    chr_res $04
+    chr_inc "platform_terminal",   kTileIdObjPlatformTerminalFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1422,7 +1422,7 @@ _chr_begin:
     chr_inc "upgrade_opaddsub",   kTileIdObjUpgradeOpAddSubFirst
     chr_inc "machine_drums",      kTileIdObjMachineDrumsFirst
     chr_inc "npc_duck",           kTileIdObjNpcDuckFirst
-    chr_inc "monitor",            kTileIdObjMonitorFirst
+    chr_inc "platform_monitor",   kTileIdObjPlatformMonitorFirst
     chr_inc "platform_rocks",     kTileIdObjPlatformRocksFirst
     chr_res $02
     chr_inc "bad_grub",           kTileIdObjBadGrubFirst

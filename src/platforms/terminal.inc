@@ -17,32 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-.INCLUDE "../macros.inc"
-.INCLUDE "monitor.inc"
+;;; OBJ tile IDs for drawing monitor platforms.
+kTileIdObjPlatformMonitorFirst = $94
 
-.IMPORT FuncA_Objects_Draw2x2Shape
-.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
-.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-
-;;;=========================================================================;;;
-
-;;; The OBJ palette number used for drawing monitor platforms.
-kPaletteObjMonitor = 0
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-;;; Draws a platform that is a console monitor.  The platform width should be
-;;; kBlockWidthPx and the platform height should be kBlockHeightPx.
-;;; @param X The platform index.
-.EXPORT FuncA_Objects_DrawMonitorPlatform
-.PROC FuncA_Objects_DrawMonitorPlatform
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
-    lda #kTileIdObjMonitorFirst  ; param: first tile ID
-    ldy #kPaletteObjMonitor  ; param: flags
-    jmp FuncA_Objects_Draw2x2Shape  ; preserves X and T2+
-.ENDPROC
+;;; OBJ tile IDs for drawing terminal platforms.
+kTileIdObjPlatformTerminalFirst = $fc
 
 ;;;=========================================================================;;;

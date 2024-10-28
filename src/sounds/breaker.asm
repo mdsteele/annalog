@@ -69,6 +69,14 @@
     jmp Func_PlaySfxSequenceNoise  ; preserves T0+
 .ENDPROC
 
+;;; Starts playing the sound for when a breaker device rises from the floor.
+;;; @preserve T0+
+.EXPORT FuncA_Cutscene_PlaySfxBreakerRising
+.PROC FuncA_Cutscene_PlaySfxBreakerRising
+    ldya #Data_BreakerRising_sSfxSeq_arr
+    jmp Func_PlaySfxSequenceNoise  ; preserves T0+
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"

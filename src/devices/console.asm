@@ -80,7 +80,7 @@ kPaletteObjScreen     = 1
     ;; If the device is animating, blink the console screen quickly.
     lda Ram_DeviceAnim_u8_arr, x
     and #$04
-    bne _Blank
+    bne FuncA_Objects_DrawDeviceScreenBlank  ; preserves X
     ;; Check the machine's status.
     ldy Ram_DeviceTarget_byte_arr, x  ; machine index
     lda Ram_MachineStatus_eMachine_arr, y
@@ -90,7 +90,7 @@ _Error:
     ;; Blink the console screen slowly.
     lda Zp_FrameCounter_u8
     and #$08
-    beq _Blank
+    beq FuncA_Objects_DrawDeviceScreenBlank  ; preserves X
     ;; Draw the error screen.
     ldy #kPaletteObjConsoleErr  ; param: object flags
     lda #kTileIdObjConsoleErr  ; param: tile ID
@@ -101,7 +101,12 @@ _Ok:
     lda #kTileIdObjConsoleOk  ; param: tile ID
 _Draw:
     jmp FuncA_Objects_Draw1x1Shape  ; preserves X
-_Blank:
+.ENDPROC
+
+;;; Draws a console or screen device that's blank.
+;;; @param X The device index.
+;;; @preserve X
+.PROC FuncA_Objects_DrawDeviceScreenBlank
     rts
 .ENDPROC
 
@@ -139,6 +144,11 @@ _Blank:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawDeviceScreenRed
 .PROC FuncA_Objects_DrawDeviceScreenRed
+    ;; If the device is animating, blink the screen quickly.
+    lda Ram_DeviceAnim_u8_arr, x
+    and #$04
+    bne FuncA_Objects_DrawDeviceScreenBlank  ; preserves X
+    ;; Draw the sceeen.
     lda #kPaletteObjScreen  ; param: object flags
     fall FuncA_Objects_DrawDeviceScreenFloor
 .ENDPROC
