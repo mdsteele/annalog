@@ -28,6 +28,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "city_sinkhole.inc"
 
 .IMPORT DataA_Room_City_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -123,7 +124,8 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
+:   .assert * - :- = kCitySinkholeDoorDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
     d_byte BlockCol_u8, 6

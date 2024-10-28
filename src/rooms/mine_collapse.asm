@@ -28,6 +28,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "mine_collapse.inc"
 
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -193,6 +194,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 13
     d_byte Target_byte, kCraneMachineIndex
     D_END
+    .assert * - :- = kMineCollapseDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 11

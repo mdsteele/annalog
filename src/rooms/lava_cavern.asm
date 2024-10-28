@@ -30,6 +30,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "lava_cavern.inc"
 
 .IMPORT DataA_Room_Lava_sTileset
 .IMPORT FuncA_Machine_BoilerFinishEmittingSteam
@@ -213,7 +214,8 @@ _Actors_sActor_arr:
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
+:   .assert * - :- = kLavaCavernDoorDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 9
     d_byte BlockCol_u8, 25

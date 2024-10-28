@@ -31,6 +31,7 @@
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 .INCLUDE "../spawn.inc"
+.INCLUDE "crypt_tomb.inc"
 
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT DataA_Text0_CryptTombPlaque_Page1_u8_arr
@@ -73,8 +74,6 @@
 ;;; The device indices for the levers in this room.
 kLeverLeftDeviceIndex = 1
 kLeverRightDeviceIndex = 2
-;;; The device index for the door that leads to the boss room.
-kDoorDeviceIndex = 3
 
 ;;; The machine index for the CryptTombWinch machine in this room.
 kWinchMachineIndex = 0
@@ -278,7 +277,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 7
     d_byte Target_byte, sState::LeverRight_u8
     D_END
-    .assert * - :- = kDoorDeviceIndex * .sizeof(sDevice), error
+    .assert * - :- = kCryptTombDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 21
@@ -605,7 +604,7 @@ _SolidFloorZ_u8_arr:
 .PROC FuncA_Room_CryptTomb_EnterRoom
     ;; If the player avatar enters the room from the doorway, remove the
     ;; breakable floors (to ensure they aren't stuck down there).
-    cmp #bSpawn::Device | kDoorDeviceIndex
+    cmp #bSpawn::Device | kCryptTombDoorDeviceIndex
     beq FuncA_Room_CryptTomb_RemoveBreakableFloors
     ;; If the weak floors have already been broken, remove them platforms.
     flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombBrokeFloors

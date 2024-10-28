@@ -23,6 +23,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "temple_spire.inc"
 
 .IMPORT DataA_Room_Temple_sTileset
 .IMPORT Data_Empty_sPlatform_arr
@@ -73,7 +74,8 @@ _Actors_sActor_arr:
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
-:   D_STRUCT sDevice
+:   .assert * - :- = kTempleSpireDoorDeviceIndex * .sizeof(sDevice), error
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 8

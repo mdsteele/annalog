@@ -28,6 +28,7 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/lava.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "shadow_depths.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
 .IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
@@ -208,6 +209,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 71
     d_byte Target_byte, eFlag::PaperJerome32
     D_END
+    .assert * - :- = kShadowDepthsDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 11

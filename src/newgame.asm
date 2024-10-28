@@ -25,6 +25,13 @@
 .INCLUDE "mmc3.inc"
 .INCLUDE "newgame.inc"
 .INCLUDE "room.inc"
+.INCLUDE "rooms/city_sinkhole.inc"
+.INCLUDE "rooms/crypt_tomb.inc"
+.INCLUDE "rooms/garden_tower.inc"
+.INCLUDE "rooms/lava_cavern.inc"
+.INCLUDE "rooms/mine_collapse.inc"
+.INCLUDE "rooms/shadow_depths.inc"
+.INCLUDE "rooms/temple_spire.inc"
 .INCLUDE "spawn.inc"
 
 .IMPORT Func_SetFlag
@@ -165,28 +172,28 @@ _SetFlags:
     D_ARRAY .enum, eNewGame
     d_byte Town,     bSpawn::Device | 0
     d_byte Prison,   bSpawn::Device | 0
-    d_byte Tower,    bSpawn::Device | 3  ; TODO: use a constant
+    d_byte Tower,    bSpawn::Device | kGardenTowerDoorDeviceIndex
     d_byte Breaker1, bSpawn::Device | kBossDoorDeviceIndex
-    d_byte Spire,    bSpawn::Device | 0  ; TODO: use a constant
+    d_byte Spire,    bSpawn::Device | kTempleSpireDoorDeviceIndex
     d_byte Breaker2, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Rescue,   bSpawn::Passage | 1
     d_byte Petition, bSpawn::Device | 0
     d_byte Nave,     bSpawn::Passage | 3
-    d_byte Tomb,     bSpawn::Device | 3  ; TODO: use a constant
+    d_byte Tomb,     bSpawn::Device | kCryptTombDoorDeviceIndex
     d_byte Breaker3, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Spring,   bSpawn::Passage | 0
-    d_byte Cavern,   bSpawn::Device | 0  ; TODO: use a constant
+    d_byte Cavern,   bSpawn::Device | kLavaCavernDoorDeviceIndex
     d_byte Breaker4, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Mine,     bSpawn::Passage | 0
-    d_byte Collapse, bSpawn::Device | 2  ; TODO: use a constant
+    d_byte Collapse, bSpawn::Device | kMineCollapseDoorDeviceIndex
     d_byte Breaker5, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Pass,     bSpawn::Passage | 1
     d_byte City,     bSpawn::Passage | 1
-    d_byte Sinkhole, bSpawn::Device | 0  ; TODO: use a constant
+    d_byte Sinkhole, bSpawn::Device | kCitySinkholeDoorDeviceIndex
     d_byte Breaker6, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Shadow,   bSpawn::Device | kTeleporterDeviceIndex
     d_byte Office,   bSpawn::Passage | 0
-    d_byte Depths,   bSpawn::Device | 0  ; TODO: use a constant
+    d_byte Depths,   bSpawn::Device | kShadowDepthsDoorDeviceIndex
     d_byte Breaker7, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Core,     bSpawn::Passage | 1
     D_END

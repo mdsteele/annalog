@@ -73,8 +73,6 @@
 ;;; The device indices for the levers in this room.
 kLeverLeftDeviceIndex = 0
 kLeverRightDeviceIndex = 1
-;;; The device index for the door that leads to the boss room.
-kDoorDeviceIndex = 3
 
 ;;; The machine index for the GardenTowerCannon machine.
 kCannonMachineIndex = 0
@@ -329,7 +327,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 2
     d_byte Target_byte, kCannonMachineIndex
     D_END
-    .assert * - :- = kDoorDeviceIndex * .sizeof(sDevice), error
+    .assert * - :- = kGardenTowerDoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 10
@@ -388,7 +386,7 @@ _BreakableWall:
     ;; player won't be trapped.  (In normal gameplay, it should be impossible
     ;; to enter from that door if the wall is still there; this is just a
     ;; safety measure.)
-    cmp #bSpawn::Device | kDoorDeviceIndex
+    cmp #bSpawn::Device | kGardenTowerDoorDeviceIndex
     beq @removeWall
     ;; Check if the breakable wall has been broken already; if so, remove it.
     flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerWallBroken

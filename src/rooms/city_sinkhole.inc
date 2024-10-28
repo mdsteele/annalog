@@ -17,10 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The device index for the door that leads from GardenTower to BossGarden.
-kGardenTowerDoorDeviceIndex = 3
-
-;;; OBJ tile IDs for drawing the GardenTower room.
-kTileIdObjGardenBricksFirst = $8e
+;;; The device index for the door that leads from CitySinkhole to BossCity.
+kCitySinkholeDoorDeviceIndex = 0
 
 ;;;=========================================================================;;;
