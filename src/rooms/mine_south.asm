@@ -186,8 +186,8 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, kHoistMachineWidthPx
     d_byte HeightPx_u8, kHoistMachineHeightPx
-    d_word Left_i16,  $0190
-    d_word Top_i16,   $0090
+    d_word Left_i16,  $0180
+    d_word Top_i16,   $00a0
     D_END
     .assert * - :- = kHoistPulleyPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -244,7 +244,7 @@ _Actors_sActor_arr:
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
-    d_byte BlockRow_u8, 13
+    d_byte BlockRow_u8, 14
     d_byte BlockCol_u8, 24
     d_byte Target_byte, kTrolleyMachineIndex
     D_END
