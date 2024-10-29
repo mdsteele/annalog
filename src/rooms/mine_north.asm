@@ -24,24 +24,35 @@
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/conveyor.inc"
+.INCLUDE "../machines/hoist.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT FuncA_Machine_ConveyorWriteReg
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_HoistMoveTowardGoal
+.IMPORT FuncA_Machine_HoistTryMove
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_DrawConveyorMachine
+.IMPORT FuncA_Objects_DrawGirderPlatform
+.IMPORT FuncA_Objects_DrawHoistMachine
+.IMPORT FuncA_Objects_DrawHoistPulley
+.IMPORT FuncA_Objects_DrawHoistRopeToPulley
+.IMPORT FuncA_Objects_MoveShapeLeftByA
 .IMPORT FuncA_Room_ResetLever
 .IMPORT Func_Noop
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineState2_byte_arr
+.IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_AvatarPushDelta_i8
 .IMPORTZP Zp_AvatarSubX_u8
@@ -67,6 +78,29 @@ kConveyorPushMax = $190
 
 ;;;=========================================================================;;;
 
+;;; The machine index for the MineNorthHoist machine in this room.
+kHoistMachineIndex = 1
+
+;;; The platform indices for the MineNorthHoist machine and its pulley and
+;;; girder.
+kHoistPlatformIndex = 7
+kHoistPulleyPlatformIndex = 8
+kHoistGirderPlatformIndex = 9
+
+;;; The initial and maximum permitted values for the hoist's Z-goal.
+kHoistInitGoalZ = 6
+kHoistMaxGoalZ  = 9
+
+;;; The minimum and initial room pixel position for the top edge of the hoist
+;;; girder.
+.LINECONT +
+kHoistGirderMinPlatformTop = $00d8
+kHoistGirderInitPlatformTop = \
+    kHoistGirderMinPlatformTop + kBlockHeightPx * kHoistInitGoalZ
+.LINECONT +
+
+;;;=========================================================================;;;
+
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current states of the room's two levers.
@@ -88,7 +122,7 @@ kConveyorPushMax = $190
     d_byte MinimapStartRow_u8, 9
     d_byte MinimapStartCol_u8, 21
     d_addr TerrainData_ptr, _TerrainData
-    d_byte NumMachines_u8, 1
+    d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjMine)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
@@ -126,7 +160,26 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_MineNorthConveyor_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawConveyorMachine
-    d_addr Reset_func_ptr, FuncA_Room_MineNorthConveyor_Reset
+    d_addr Reset_func_ptr, FuncC_Mine_NorthConveyor_Reset
+    D_END
+    .assert * - :- = kHoistMachineIndex * .sizeof(sMachine), error
+    D_STRUCT sMachine
+    d_byte Code_eProgram, eProgram::MineNorthHoist
+    d_byte Breaker_eFlag, 0
+    d_byte Flags_bMachine, bMachine::FlipH | bMachine::MoveV
+    d_byte Status_eDiagram, eDiagram::HoistLeft
+    d_word ScrollGoalX_u16, $110
+    d_byte ScrollGoalY_u8, $c0
+    d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
+    d_byte MainPlatform_u8, kHoistPlatformIndex
+    d_addr Init_func_ptr, FuncC_Mine_NorthHoist_InitReset
+    d_addr ReadReg_func_ptr, FuncC_Mine_NorthHoist_ReadReg
+    d_addr WriteReg_func_ptr, Func_Noop
+    d_addr TryMove_func_ptr, FuncA_Machine_MineNorthHoist_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_Error
+    d_addr Tick_func_ptr, FuncA_Machine_MineNorthHoist_Tick
+    d_addr Draw_func_ptr, FuncC_Mine_NorthHoist_Draw
+    d_addr Reset_func_ptr, FuncC_Mine_NorthHoist_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -181,6 +234,30 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $01b0
     d_word Top_i16,   $00a8
     D_END
+    .assert * - :- = kHoistPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, kHoistMachineWidthPx
+    d_byte HeightPx_u8, kHoistMachineHeightPx
+    d_word Left_i16,  $01e0
+    d_word Top_i16,   $00c0
+    D_END
+    .assert * - :- = kHoistPulleyPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $01c8
+    d_word Top_i16,   $00b0
+    D_END
+    .assert * - :- = kHoistGirderPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $01c4
+    d_word Top_i16, kHoistGirderInitPlatformTop
+    D_END
     ;; Terrain spikes:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
@@ -188,13 +265,6 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00d0
     d_word Top_i16,   $015e
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $01d0
-    d_word Top_i16,   $0166
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -235,6 +305,12 @@ _Devices_sDevice_arr:
     d_byte Target_byte, kConveyorMachineIndex
     D_END
     D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::ConsoleFloor
+    d_byte BlockRow_u8, 16
+    d_byte BlockCol_u8, 31
+    d_byte Target_byte, kHoistMachineIndex
+    D_END
+    D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Paper
     d_byte BlockRow_u8, 3
     d_byte BlockCol_u8, 18
@@ -273,6 +349,12 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 11
     d_byte SpawnAdjust_byte, $f1
     D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Bottom | 1
+    d_byte Destination_eRoom, eRoom::MineSouth
+    d_byte SpawnBlock_u8, 27
+    d_byte SpawnAdjust_byte, $e1
+    D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
@@ -292,17 +374,40 @@ _RegL:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_MineNorthConveyor_Reset
+.PROC FuncC_Mine_NorthConveyor_Reset
     lda #0
     sta Ram_MachineGoalHorz_u8_arr + kConveyorMachineIndex  ; conveyor gear
     ldx #kLeverUpperDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
     ldx #kLeverLowerDeviceIndex  ; param: device index
     jmp FuncA_Room_ResetLever
+.ENDPROC
+
+.PROC FuncC_Mine_NorthHoist_InitReset
+    lda #kHoistInitGoalZ
+    sta Ram_MachineGoalVert_u8_arr + kHoistMachineIndex
+    rts
+.ENDPROC
+
+.PROC FuncC_Mine_NorthHoist_ReadReg
+    lda Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex
+    sub #<(kHoistGirderMinPlatformTop - kTileHeightPx)
+    div #kBlockHeightPx
+    rts
+.ENDPROC
+
+.PROC FuncC_Mine_NorthHoist_Draw
+    ldx #kHoistPulleyPlatformIndex  ; param: platform index
+    ldy Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex  ; param: rope
+    jsr FuncA_Objects_DrawHoistPulley
+    ldx #kHoistGirderPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawGirderPlatform
+    lda #3  ; param: offset
+    jsr FuncA_Objects_MoveShapeLeftByA
+    ldx #kHoistPulleyPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_DrawHoistRopeToPulley
+    lda Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex  ; param: rope
+    jmp FuncA_Objects_DrawHoistMachine
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -380,6 +485,19 @@ _MotionOffset_i8_arr10:
     .byte <-3, 0, 3
     .byte <-6, 0, 6
     .byte <-9, 0, 9
+.ENDPROC
+
+.PROC FuncA_Machine_MineNorthHoist_TryMove
+    lda #kHoistMaxGoalZ  ; param: max goal vert
+    jmp FuncA_Machine_HoistTryMove
+.ENDPROC
+
+.PROC FuncA_Machine_MineNorthHoist_Tick
+    ldx #kHoistGirderPlatformIndex  ; param: platform index
+    ldya #kHoistGirderMinPlatformTop  ; param: min platform top
+    jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C
+    jcs FuncA_Machine_ReachedGoal
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

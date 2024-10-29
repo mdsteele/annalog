@@ -395,7 +395,7 @@ _Finish:
     .byte $fd
 .ENDPROC
 .PROC DataA_Pause_MinimapQuestMarkerTiles_u8_arr
-    .byte $f0, $a9, $ed, '?', '?', $ee, '?', '?'
+    .byte $f0, $a9, $aa, '?', '?', $ee, '?', '?'
     .byte '?', '?', '?', '?', '?', $ef, '?', '?'
     .byte '?', '?', '?', '?', '?', $f9, '?', '?'
     .byte $f4, '?', '?', '?', '?', '?', $fe, '?'

@@ -202,6 +202,8 @@
     TempleFoyerCarriage
     TempleNaveLowerCarriage
     TempleNaveUpperCarriage
+    ;; TODO: Sort these in alphabetically once it won't disrupt playtesting.
+    MineNorthHoist
     NUM_VALUES
 .ENDENUM
 

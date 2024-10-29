@@ -229,9 +229,9 @@ _Actors_sActor_arr:
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadWasp
-    d_word PosX_i16, $0070
-    d_word PosY_i16, $0030
-    d_byte Param_byte, (bBadWasp::ThetaMask & $c0) | (bBadWasp::DeltaMask & 2)
+    d_word PosX_i16, $0068
+    d_word PosY_i16, $0034
+    d_byte Param_byte, (bBadWasp::ThetaMask & $40) | (bBadWasp::DeltaMask & -2)
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadWasp
@@ -268,6 +268,12 @@ _Passages_sPassage_arr:
     d_byte Destination_eRoom, eRoom::MineEntry
     d_byte SpawnBlock_u8, 20
     d_byte SpawnAdjust_byte, 0
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Top | 0
+    d_byte Destination_eRoom, eRoom::MineNorth
+    d_byte SpawnBlock_u8, 10
+    d_byte SpawnAdjust_byte, $01
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 1
