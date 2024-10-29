@@ -138,9 +138,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_GardenEast_EnterRoom
+    d_addr Enter_func_ptr, FuncC_Garden_East_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, FuncA_Room_GardenEast_TickRoom
+    d_addr Tick_func_ptr, FuncC_Garden_East_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -164,7 +164,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_GardenEastBridge_Tick
     d_addr Draw_func_ptr, FuncC_Garden_EastBridge_Draw
-    d_addr Reset_func_ptr, FuncA_Room_GardenEastBridge_Reset
+    d_addr Reset_func_ptr, FuncC_Garden_EastBridge_Reset
     D_END
     .assert * - :- = kCannonMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -186,7 +186,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_GardenEastCannon_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_CannonTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawCannonMachine
-    d_addr Reset_func_ptr, FuncA_Room_GardenEastCannon_Reset
+    d_addr Reset_func_ptr, FuncC_Garden_EastCannon_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -356,11 +356,7 @@ _Passages_sPassage_arr:
     jmp FuncA_Objects_DrawBridgeMachine
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_GardenEast_EnterRoom
+.PROC FuncC_Garden_East_EnterRoom
     ;; Remove Corra from this room if the player has already met with the
     ;; mermaid queen.
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
@@ -375,7 +371,8 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-.PROC FuncA_Room_GardenEast_TickRoom
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Garden_East_TickRoom
     lda #eActor::ProjGrenade  ; param: projectile type
     jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen  ; preserves X
 _SetPointToVinebugPosition:
@@ -405,14 +402,16 @@ _Done:
     rts
 .ENDPROC
 
-.PROC FuncA_Room_GardenEastBridge_Reset
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Garden_EastBridge_Reset
     lda #0
     sta Ram_MachineGoalVert_u8_arr + kBridgeMachineIndex
     ldx #kLeverBridgeDeviceIndex  ; param: device index
     jmp FuncA_Room_ResetLever
 .ENDPROC
 
-.PROC FuncA_Room_GardenEastCannon_Reset
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Garden_EastCannon_Reset
     ldx #kLeverCannonDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
     jmp FuncA_Room_MachineCannonReset

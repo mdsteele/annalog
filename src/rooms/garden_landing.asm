@@ -115,9 +115,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_GardenLanding_EnterRoom
+    d_addr Enter_func_ptr, FuncC_Garden_Landing_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, FuncA_Room_GardenLanding_TickRoom
+    d_addr Tick_func_ptr, FuncC_Garden_Landing_TickRoom
     d_addr Draw_func_ptr, FuncC_Garden_Landing_DrawRoom
     D_END
 _TerrainData:
@@ -181,13 +181,9 @@ _SetUpIrq:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
 ;;; Called when the player avatar enters the GardenLanding room.
 ;;; @param A The bSpawn value for where the avatar is entering the room.
-.PROC FuncA_Room_GardenLanding_EnterRoom
+.PROC FuncC_Garden_Landing_EnterRoom
     cmp #bSpawn::Passage | kShaftPassageIndex
     beq _EnterFromShaft
 _EnterNotFromShaft:
@@ -221,7 +217,7 @@ _EnterFromShaft:
     jmp Func_MarkMinimap
 .ENDPROC
 
-.PROC FuncA_Room_GardenLanding_TickRoom
+.PROC FuncC_Garden_Landing_TickRoom
     lda Zp_RoomState + sState::RemainingTeleports_u8
     bne _ScrollDownExtra
 _UpdateScrollLock:
