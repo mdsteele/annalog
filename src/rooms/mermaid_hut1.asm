@@ -249,7 +249,7 @@ _Alex:
     ;; Make Alex walk to the edge of the platform.
     act_WalkNpcAlex kAlexActorIndex, $00a0
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
-    act_ForkStart 1, _SwimAvatar_sCutscene
+    act_ForkStart 1, _MoveAvatarSwim_sCutscene
     act_WaitFrames 6
     ;; Make Alex jump into the water.
     ;; TODO: play a sound for Alex jumping
@@ -268,8 +268,8 @@ _Alex:
     act_WaitFrames 15
     act_CallFunc _RemoveAlex
     act_ContinueExploring
-_SwimAvatar_sCutscene:
-    act_SwimAvatar $0066
+_MoveAvatarSwim_sCutscene:
+    act_MoveAvatarSwim $0066
     act_SetAvatarFlags kPaletteObjAvatarNormal
     act_ForkStop $ff
 _ApplyAlexGravity:

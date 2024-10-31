@@ -27,4 +27,8 @@
 ;;; is increased.
 kBigShakeFrames = 17
 
+;;; If the room shake has at least this many frames left, the shake amplitude
+;;; is greatly increased.
+kHugeShakeFrames = 41
+
 ;;;=========================================================================;;;

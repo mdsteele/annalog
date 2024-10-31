@@ -410,6 +410,7 @@ _DrawDigits:
 
 ;;; Buffers a PPU transfer to blank out one tile column of terrain.
 ;;; @param Y The nametable tile column number to blank out.
+.EXPORT FuncA_Death_TransferBlankBgTileColumn
 .PROC FuncA_Death_TransferBlankBgTileColumn
     sty T0  ; nametable tile column index
     ldx Zp_PpuTransferLen_u8

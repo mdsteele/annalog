@@ -26,6 +26,7 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/console.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../fade.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/blaster.inc"
@@ -94,6 +95,7 @@
 .IMPORT FuncA_Room_ReflectFireblastsOffMirror
 .IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
+.IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetAngleFromPointToActor
 .IMPORT Func_GetAngleFromPointToAvatar
@@ -115,15 +117,19 @@
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxExplodeSmall
+.IMPORT Func_PlaySfxPoof
 .IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetAndTransferFade
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_SetScrollGoalFromPoint
 .IMPORT Func_ShakeRoom
+.IMPORT Main_Finale_YearsLater
 .IMPORT Ppu_ChrObjBoss3
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -288,6 +294,15 @@ kFirstNodeColumn = 2
     MachineHits_i8_arr .byte kNumCoreBossMachines
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
+
+;;;=========================================================================;;;
+
+;;; How many frames to wait between fade steps when fading to white during the
+;;; self destruct cutscene.
+kFadeToWhiteDivisor = 14
+;;; The total time to spend fading to white during the self destruct cutscene,
+;;; in frames.
+kFadeToWhiteFrames = kFadeToWhiteDivisor * (1 + eFade::White - eFade::Normal)
 
 ;;;=========================================================================;;;
 
@@ -2106,7 +2121,85 @@ _TurnOnFinalTerminal:
 
 .EXPORT DataA_Cutscene_CoreBossFinaleSelfDestruct_sCutscene
 .PROC DataA_Cutscene_CoreBossFinaleSelfDestruct_sCutscene
-    act_ContinueExploring  ; TODO: implement CoreBossFinaleReactivate cutscene
+    act_CallFunc Func_PlaySfxPoof
+    act_PlayMusic eMusic::Silence
+    act_WaitFrames 30
+    ;; Make Anna look around as the room starts to shake.
+    act_ForkStart 1, _ShakeSmall_sCutscene
+    act_WaitFrames 30
+    act_SetAvatarPose eAvatar::Standing
+    act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
+    act_WaitFrames 30
+    act_SetAvatarFlags kPaletteObjAvatarNormal
+    act_WaitFrames 30
+    act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
+    act_WaitFrames 60
+    ;; As the room shakes more, make Anna walk to the left edge and look up and
+    ;; down, as though searching for an exit.
+    act_ForkStart 1, _ShakeBig_sCutscene
+    act_WaitFrames 30
+    act_WalkAvatar $0100
+    act_SetAvatarPose eAvatar::Standing
+    act_WaitFrames 30
+    act_SetAvatarPose eAvatar::Kneeling
+    act_WaitFrames 90
+    ;; As the room starts to really shake, make Anna look around again, and
+    ;; then start running to the right, as though to leap off.
+    act_ForkStart 1, _ShakeHuge_sCutscene
+    act_WaitFrames 30
+    act_SetAvatarPose eAvatar::Standing
+    act_WaitFrames 30
+    act_SetAvatarFlags kPaletteObjAvatarNormal
+    act_WaitFrames 60
+    act_MoveAvatarRun $011c
+    ;; A huge explosion flings Anna rightward as the screen fades to white.
+    act_CallFunc Func_PlaySfxExplodeBig
+    act_SetAvatarVelX 800
+    act_SetAvatarVelY -700
+    act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
+    act_SetCutsceneFlags bCutscene::AvatarRagdoll
+    act_RepeatFunc kFadeToWhiteFrames, _FadeToWhite
+    act_WaitFrames 60
+    act_JumpToMain Main_Finale_YearsLater
+_ShakeSmall_sCutscene:
+    act_RepeatFunc 32, _ShakeSmall
+    act_ForkStart 1, _ShakeSmall_sCutscene
+_ShakeBig_sCutscene:
+    act_RepeatFunc 32, _ShakeBig
+    act_ForkStart 1, _ShakeBig_sCutscene
+_ShakeHuge_sCutscene:
+    act_RepeatFunc 32, _ShakeHuge
+    act_ForkStart 1, _ShakeHuge_sCutscene
+_ShakeSmall:
+    txa  ; repeat counter
+    mod #4
+    bne _Return
+    lda #6  ; param: num frames
+    jmp Func_ShakeRoom
+_ShakeBig:
+    txa  ; repeat counter
+    mod #4
+    bne _Return
+    lda #kBigShakeFrames + 6  ; param: num frames
+    jmp Func_ShakeRoom
+_ShakeHuge:
+    txa  ; repeat counter
+    mod #4
+    bne _Return
+    lda #kHugeShakeFrames + 6  ; param: num frames
+    jmp Func_ShakeRoom
+_FadeToWhite:
+    txa  ; repeat counter (param: dividend)
+    ldy #kFadeToWhiteDivisor  ; param: divisor
+    jsr Func_DivMod  ; returns quotient in Y and remainder in A
+    tax  ; remainder
+    bne _Return
+    .repeat eFade::Normal
+    iny  ; param: eFade value
+    .endrepeat
+    jmp Func_SetAndTransferFade
+_Return:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

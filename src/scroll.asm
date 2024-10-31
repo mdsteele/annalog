@@ -324,6 +324,8 @@ _ShakeScrollY:
     lda Zp_RoomShake_u8
     beq @done
     dec Zp_RoomShake_u8
+    cmp #kHugeShakeFrames
+    bge @hugeShake
     cmp #kBigShakeFrames
     bge @bigShake
     @smallShake:
@@ -333,12 +335,21 @@ _ShakeScrollY:
     lsr a
     rol Zp_RoomScrollY_u8
     bcc @done  ; unconditional
+    @hugeShake:
+    ;; Replace bit 2 of Zp_RoomScrollY_u8 with bit 1 of Zp_RoomShake_u8.
+    and #%00000010
+    asl a
+    sta T0
+    lda Zp_RoomScrollY_u8
+    and #%11111011
+    jmp @oraT0
     @bigShake:
     ;; Replace bit 1 of Zp_RoomScrollY_u8 with bit 1 of Zp_RoomShake_u8.
     and #%00000010
     sta T0
     lda Zp_RoomScrollY_u8
     and #%11111101
+    @oraT0:
     ora T0
     sta Zp_RoomScrollY_u8
     @done:

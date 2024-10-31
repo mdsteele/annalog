@@ -72,6 +72,7 @@ kMaxForks = 4
     TownHouse4BreakerLava
     TownOutdoorsGetCaught
     TownOutdoorsOrcAttack
+    TownOutdoorsYearsLater
     NUM_VALUES
 .ENDENUM
 
@@ -112,6 +113,12 @@ kMaxForks = 4
     ;; Ends the cutscene immediately, jumping to the specified main, even if
     ;; other cutscene forks are still executing.
     JumpToMain         ; args: main ptr (2 bytes)
+    ;; Causes the player avatar to run/swim/walk to the specified room pixel
+    ;; X-position.  Suspends the current cutscene fork until the avatar reaches
+    ;; the goal position.
+    MoveAvatarRun      ; args: goal X-position (2 bytes)
+    MoveAvatarSwim     ; args: goal X-position (2 bytes)
+    MoveAvatarWalk     ; args: goal X-position (2 bytes)
     ;; Queues up the specified music/SFX to play next, then the current
     ;; cutscene fork immediately continues on to the next action.
     PlayMusic          ; args: eMusic value
@@ -159,10 +166,6 @@ kMaxForks = 4
     ;; Shakes the room by the specified amount, then the current cutscene fork
     ;; immediately continues on to the next action.
     ShakeRoom          ; args: num shake frames
-    ;; Causes the player avatar to swim to the specified room pixel X-position.
-    ;; Suspends the current cutscene fork until the avatar reaches the goal
-    ;; position.
-    SwimAvatar         ; args: goal X-position (2 bytes)
     ;; Causes the specified actor to swim to the specified room pixel
     ;; X-position.  Suspends the current cutscene fork until the actor reaches
     ;; the goal position.
@@ -175,10 +178,6 @@ kMaxForks = 4
     ;; cutscene fork immediately continues on to the next action.
     WaitUntilC         ; args: func ptr (2 bytes); func must return C
     WaitUntilZ         ; args: func ptr (2 bytes); func must return Z
-    ;; Causes the player avatar to walk to the specified room pixel X-position.
-    ;; Suspends the current cutscene fork until the avatar reaches the goal
-    ;; position.
-    WalkAvatar         ; args: goal X-position (2 bytes)
     ;; Causes the specified actor to walk to the specified room pixel
     ;; X-position.  Suspends the current cutscene fork until the actor reaches
     ;; the goal position.
@@ -227,6 +226,22 @@ kMaxForks = 4
 .MACRO act_JumpToMain MAIN
     .byte eAction::JumpToMain
     .addr MAIN
+.ENDMACRO
+
+.MACRO act_MoveAvatarRun GOALX
+    .byte eAction::MoveAvatarRun
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_MoveAvatarSwim GOALX
+    .byte eAction::MoveAvatarSwim
+    .word GOALX
+.ENDMACRO
+
+;;; TODO: rename this to act_MoveAvatarWalk
+.MACRO act_WalkAvatar GOALX
+    .byte eAction::MoveAvatarWalk
+    .word GOALX
 .ENDMACRO
 
 .MACRO act_PlayMusic EMUSIC
@@ -341,11 +356,6 @@ kMaxForks = 4
     .byte eAction::ShakeRoom, FRAMES
 .ENDMACRO
 
-.MACRO act_SwimAvatar GOALX
-    .byte eAction::SwimAvatar
-    .word GOALX
-.ENDMACRO
-
 .MACRO act_SwimNpcAlex INDEX, GOALX
     .byte eAction::SwimNpcAlex, INDEX
     .word GOALX
@@ -363,11 +373,6 @@ kMaxForks = 4
 .MACRO act_WaitUntilZ FUNC
     .byte eAction::WaitUntilZ
     .addr FUNC
-.ENDMACRO
-
-.MACRO act_WalkAvatar GOALX
-    .byte eAction::WalkAvatar
-    .word GOALX
 .ENDMACRO
 
 .MACRO act_WalkNpcAlex INDEX, GOALX

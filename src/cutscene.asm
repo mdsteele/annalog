@@ -61,6 +61,7 @@
 .IMPORT DataA_Cutscene_TownHouse4BreakerLava_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
+.IMPORT DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
 .IMPORT FuncA_Actor_TickAllDevicesAndActors
 .IMPORT FuncA_Actor_TickAllDevicesAndSmokeActors
 .IMPORT FuncA_Avatar_RagdollMove
@@ -269,6 +270,8 @@ _Finish:
             DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
     d_entry table, TownOutdoorsOrcAttack, \
             DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
+    d_entry table, TownOutdoorsYearsLater, \
+            DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
     D_END
 .ENDREPEAT
 .LINECONT -
@@ -377,6 +380,9 @@ _InitMainFork:
     d_entry table, ForkStart,         _ForkStart
     d_entry table, ForkStop,          _ForkStop
     d_entry table, JumpToMain,        _JumpToMain
+    d_entry table, MoveAvatarRun,     _MoveAvatarRun
+    d_entry table, MoveAvatarSwim,    _MoveAvatarSwim
+    d_entry table, MoveAvatarWalk,    _MoveAvatarWalk
     d_entry table, PlayMusic,         _PlayMusic
     d_entry table, PlaySfxSample,     _PlaySfxSample
     d_entry table, RepeatFunc,        _RepeatFunc
@@ -402,12 +408,10 @@ _InitMainFork:
     d_entry table, SetDeviceAnim,     _SetDeviceAnim
     d_entry table, SetScrollFlags,    _SetScrollFlags
     d_entry table, ShakeRoom,         _ShakeRoom
-    d_entry table, SwimAvatar,        _SwimAvatar
     d_entry table, SwimNpcAlex,       _SwimNpcAlex
     d_entry table, WaitFrames,        _WaitFrames
     d_entry table, WaitUntilC,        _WaitUntilC
     d_entry table, WaitUntilZ,        _WaitUntilZ
-    d_entry table, WalkAvatar,        _WalkAvatar
     d_entry table, WalkNpcAlex,       _WalkNpcAlex
     d_entry table, WalkNpcBruno,      _WalkNpcBruno
     d_entry table, WalkNpcGronta,     _WalkNpcGronta
@@ -720,18 +724,24 @@ _WaitUntilZ:
 _DoneWaitingUntil:
     ldy #3  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
+_MoveAvatarRun:
+    jsr _StartMoveAvatar  ; returns Z and N
+    beq _MoveAvatarReachedGoal
+    jsr FuncA_Cutscene_MoveAvatarTowardPointX  ; returns Z and N
+    bne _MoveAvatarRunOrWalk
 _MoveAvatarReachedGoal:
     ldy #3  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
-_SwimAvatar:
+_MoveAvatarSwim:
     jsr _StartMoveAvatar  ; returns Z and N
     beq _MoveAvatarReachedGoal
     jsr FuncA_Cutscene_AnimateAvatarSwimming
     clc  ; cutscene should continue
     rts
-_WalkAvatar:
+_MoveAvatarWalk:
     jsr _StartMoveAvatar  ; returns Z and N
     beq _MoveAvatarReachedGoal
+_MoveAvatarRunOrWalk:
     jsr FuncA_Cutscene_AnimateAvatarWalking
     clc  ; cutscene should continue
     rts
