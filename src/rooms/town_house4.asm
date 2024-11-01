@@ -195,7 +195,7 @@ _Devices_sDevice_arr:
 .EXPORT DataA_Cutscene_TownHouse4BreakerLava_sCutscene
 .PROC DataA_Cutscene_TownHouse4BreakerLava_sCutscene
     act_WaitFrames 30
-    act_WalkNpcOrc kThurgActorIndex, $0060
+    act_MoveNpcOrcWalk kThurgActorIndex, $0060
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
     act_RunDialog eDialog::TownHouse4BreakerLava1
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntThrowing1
@@ -217,14 +217,14 @@ _Devices_sDevice_arr:
     act_WaitFrames 70
     act_SetActorFlags kThurgActorIndex, 0
     act_WaitFrames 30
-    act_WalkNpcOrc kThurgActorIndex, $0070
+    act_MoveNpcOrcWalk kThurgActorIndex, $0070
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
     act_WaitFrames 30
     act_RunDialog eDialog::TownHouse4BreakerLava3
-    act_WalkNpcOrc kThurgActorIndex, $0088
+    act_MoveNpcOrcWalk kThurgActorIndex, $0088
     act_CallFunc _RemoveThurg
     act_WaitFrames 30
-    act_WalkNpcOrc kHobokActorIndex, $0050
+    act_MoveNpcOrcWalk kHobokActorIndex, $0050
     act_SetActorState1 kHobokActorIndex, eNpcOrc::GruntStanding
     act_WaitFrames 60
     act_JumpToMain Main_Breaker_FadeBackToBreakerRoom

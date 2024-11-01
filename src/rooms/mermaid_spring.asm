@@ -480,7 +480,7 @@ _RaindropVelY_u8_arr:
 .EXPORT DataA_Cutscene_MermaidSpringFixConsole_sCutscene
 .PROC DataA_Cutscene_MermaidSpringFixConsole_sCutscene
     act_ForkStart 1, _WalkAvatar_sCutscene
-    act_WalkNpcAlex kAlexActorIndex, $00ba
+    act_MoveNpcAlexWalk kAlexActorIndex, $00ba
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_WaitFrames 45
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
@@ -498,13 +498,13 @@ _RaindropVelY_u8_arr:
     act_WaitFrames 70
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_WaitFrames 45
-    act_WalkNpcAlex kAlexActorIndex, $00b0
+    act_MoveNpcAlexWalk kAlexActorIndex, $00b0
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_SetActorState2 kAlexActorIndex, 0
     act_RunDialog eDialog::MermaidSpringAlex
     act_ContinueExploring
 _WalkAvatar_sCutscene:
-    act_WalkAvatar $00a0 | kTalkRightAvatarOffset
+    act_MoveAvatarWalk $00a0 | kTalkRightAvatarOffset
     act_SetAvatarPose eAvatar::Standing
     act_SetAvatarFlags kPaletteObjAvatarNormal
     act_ForkStop $ff

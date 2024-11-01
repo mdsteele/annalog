@@ -746,7 +746,7 @@ _WriteRegLock:
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_WaitFrames 30
     ;; Make Alex walk over to talk to Gronta.
-    act_WalkNpcAlex kAlexActorIndex, $0346
+    act_MoveNpcAlexWalk kAlexActorIndex, $0346
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_RunDialog eDialog::CityCenterBreakerCity1
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
@@ -770,10 +770,10 @@ _WriteRegLock:
     ;; Make Gronta mutter to herself, then walk offscreen.
     act_SetActorFlags kAlexActorIndex, 0
     act_RunDialog eDialog::CityCenterBreakerCity2
-    act_WalkNpcGronta kGrontaActorIndex, $0418
+    act_MoveNpcGrontaWalk kGrontaActorIndex, $0418
     act_WaitFrames 90
     ;; Make Alex walk to the edge of the roof.
-    act_WalkNpcAlex kAlexActorIndex, $0322
+    act_MoveNpcAlexWalk kAlexActorIndex, $0322
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_WaitFrames 6
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling

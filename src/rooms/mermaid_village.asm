@@ -418,7 +418,7 @@ _Corra:
 
 .EXPORT DataA_Cutscene_MermaidVillageAlexLeave_sCutscene
 .PROC DataA_Cutscene_MermaidVillageAlexLeave_sCutscene
-    act_SwimNpcAlex kAlexActorIndex, $01f8
+    act_MoveNpcAlexSwim kAlexActorIndex, $01f8
     act_CallFunc _RemoveAlex
     act_ContinueExploring
 _RemoveAlex:

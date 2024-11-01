@@ -379,7 +379,7 @@ _Passages_sPassage_arr:
     act_SetActorVelY kGrontaActorIndex, 0
     ;; Make Gronta run through the eastern passage.
     act_WaitFrames 20
-    act_WalkNpcGronta kGrontaActorIndex, $0118
+    act_MoveNpcGrontaWalk kGrontaActorIndex, $0118
     act_WaitFrames 90
     act_JumpToMain Main_Breaker_FadeBackToBreakerRoom
 _RaiseLift3:

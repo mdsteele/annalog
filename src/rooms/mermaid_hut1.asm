@@ -247,7 +247,7 @@ _Alex:
 .PROC DataA_Cutscene_MermaidHut1AlexPetition_sCutscene
     act_RunDialog eDialog::MermaidHut1AlexPetition
     ;; Make Alex walk to the edge of the platform.
-    act_WalkNpcAlex kAlexActorIndex, $00a0
+    act_MoveNpcAlexWalk kAlexActorIndex, $00a0
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_ForkStart 1, _MoveAvatarSwim_sCutscene
     act_WaitFrames 6
@@ -263,7 +263,7 @@ _Alex:
     act_SetActorVelY kAlexActorIndex, 0
     act_SetActorPosY kAlexActorIndex, $00c4
     ;; Make Alex swim to the door and exit the room.
-    act_SwimNpcAlex kAlexActorIndex, $0077
+    act_MoveNpcAlexSwim kAlexActorIndex, $0077
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexSwimDoor
     act_WaitFrames 15
     act_CallFunc _RemoveAlex

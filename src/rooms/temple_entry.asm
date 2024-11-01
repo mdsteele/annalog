@@ -378,7 +378,7 @@ _MoveColumn:
     act_SetAvatarVelX 0
     act_SetAvatarPose eAvatar::Standing
     act_RunDialog eDialog::TempleEntryCorraWait
-    act_WalkAvatar $00e6
+    act_MoveAvatarWalk $00e6
     act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
     act_SetAvatarPose eAvatar::Standing
     act_WaitFrames 30

@@ -383,6 +383,14 @@ _InitMainFork:
     d_entry table, MoveAvatarRun,     _MoveAvatarRun
     d_entry table, MoveAvatarSwim,    _MoveAvatarSwim
     d_entry table, MoveAvatarWalk,    _MoveAvatarWalk
+    d_entry table, MoveNpcAlexSwim,   _MoveNpcAlexSwim
+    d_entry table, MoveNpcAlexWalk,   _MoveNpcAlexWalk
+    d_entry table, MoveNpcBrunoWalk,  _MoveNpcBrunoWalk
+    d_entry table, MoveNpcGrontaWalk, _MoveNpcGrontaWalk
+    d_entry table, MoveNpcMarieWalk,  _MoveNpcMarieWalk
+    d_entry table, MoveNpcNinaWalk,   _MoveNpcNinaWalk
+    d_entry table, MoveNpcNoraWalk,   _MoveNpcNoraWalk
+    d_entry table, MoveNpcOrcWalk,    _MoveNpcOrcWalk
     d_entry table, PlayMusic,         _PlayMusic
     d_entry table, PlaySfxSample,     _PlaySfxSample
     d_entry table, RepeatFunc,        _RepeatFunc
@@ -408,17 +416,9 @@ _InitMainFork:
     d_entry table, SetDeviceAnim,     _SetDeviceAnim
     d_entry table, SetScrollFlags,    _SetScrollFlags
     d_entry table, ShakeRoom,         _ShakeRoom
-    d_entry table, SwimNpcAlex,       _SwimNpcAlex
     d_entry table, WaitFrames,        _WaitFrames
     d_entry table, WaitUntilC,        _WaitUntilC
     d_entry table, WaitUntilZ,        _WaitUntilZ
-    d_entry table, WalkNpcAlex,       _WalkNpcAlex
-    d_entry table, WalkNpcBruno,      _WalkNpcBruno
-    d_entry table, WalkNpcGronta,     _WalkNpcGronta
-    d_entry table, WalkNpcMarie,      _WalkNpcMarie
-    d_entry table, WalkNpcNora,       _WalkNpcNora
-    d_entry table, WalkNpcOrc,        _WalkNpcOrc
-    d_entry table, WalkNpcToddler,    _WalkNpcToddler
     D_END
 .ENDREPEAT
 _BranchIfC:
@@ -755,56 +755,56 @@ _StartMoveAvatar:
 _MoveNpcReachedGoal:
     ldy #4  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
-_SwimNpcAlex:
+_MoveNpcAlexSwim:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcAlexSwimming  ; preserves X
     jsr FuncA_Cutscene_FaceAvatarTowardsActor
     clc  ; cutscene should continue
     rts
-_WalkNpcAlex:
+_MoveNpcAlexWalk:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcAlexWalking  ; preserves X
     jsr FuncA_Cutscene_FaceAvatarTowardsActor
     clc  ; cutscene should continue
     rts
-_WalkNpcBruno:
+_MoveNpcBrunoWalk:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcBrunoWalking  ; preserves X
     jsr FuncA_Cutscene_FaceAvatarTowardsActor
     clc  ; cutscene should continue
     rts
-_WalkNpcGronta:
+_MoveNpcGrontaWalk:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcGrontaWalking
     clc  ; cutscene should continue
     rts
-_WalkNpcMarie:
+_MoveNpcMarieWalk:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcMarieWalking  ; preserves X
     jsr FuncA_Cutscene_FaceAvatarTowardsActor
     clc  ; cutscene should continue
     rts
-_WalkNpcNora:
+_MoveNpcNinaWalk:
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
+    jsr FuncA_Cutscene_AnimateNpcToddlerWalking
+    clc  ; cutscene should continue
+    rts
+_MoveNpcNoraWalk:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcNoraWalking
     clc  ; cutscene should continue
     rts
-_WalkNpcOrc:
+_MoveNpcOrcWalk:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcOrcWalking
-    clc  ; cutscene should continue
-    rts
-_WalkNpcToddler:
-    jsr _StartMoveNpc  ; returns X, Z, and N
-    beq _MoveNpcReachedGoal
-    jsr FuncA_Cutscene_AnimateNpcToddlerWalking
     clc  ; cutscene should continue
     rts
 _StartMoveNpc:

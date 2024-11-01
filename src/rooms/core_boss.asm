@@ -1964,12 +1964,12 @@ _Blaster:
     act_SetActorState2 kGrontaActorIndex, $ff
     act_BranchIfZ _GetHorzScreen, _LeftSide_sCutscene
 _RightSide_sCutscene:
-    act_WalkAvatar $0168
+    act_MoveAvatarWalk $0168
     act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
     act_ForkStart 0, _IntroDialog_sCutscene
 _LeftSide_sCutscene:
     act_SetActorFlags kGrontaActorIndex, bObj::FlipH
-    act_WalkAvatar $00b8
+    act_MoveAvatarWalk $00b8
     act_SetAvatarFlags kPaletteObjAvatarNormal
 _IntroDialog_sCutscene:
     act_SetAvatarPose eAvatar::Standing
@@ -2138,7 +2138,7 @@ _TurnOnFinalTerminal:
     ;; down, as though searching for an exit.
     act_ForkStart 1, _ShakeBig_sCutscene
     act_WaitFrames 30
-    act_WalkAvatar $0100
+    act_MoveAvatarWalk $0100
     act_SetAvatarPose eAvatar::Standing
     act_WaitFrames 30
     act_SetAvatarPose eAvatar::Kneeling

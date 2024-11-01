@@ -497,7 +497,7 @@ _SetFace:
 .EXPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
     act_CallFunc _RemoveDevicesAndTownsfolk
-    act_WalkNpcAlex kAlexActorIndex, kAlexPickupPositionX
+    act_MoveNpcAlexWalk kAlexActorIndex, kAlexPickupPositionX
     ;; Animate Alex bending down, picking something up, then turning around and
     ;; showing it to Anna.
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
@@ -585,9 +585,9 @@ _InitOrcs:
     act_SetAvatarPose eAvatar::Sleeping
     act_WaitFrames 30
     act_CallFunc _InitThurgAndGrunt
-    act_WalkNpcOrc kThurgActorIndex, kOrc1InitPosX
+    act_MoveNpcOrcWalk kThurgActorIndex, kOrc1InitPosX
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
-    act_WalkNpcOrc kOrc3ActorIndex, kOrc2InitPosX
+    act_MoveNpcOrcWalk kOrc3ActorIndex, kOrc2InitPosX
     act_SetActorState1 kOrc3ActorIndex, eNpcOrc::GruntStanding
     act_WaitFrames 60
     act_RunDialog eDialog::TownOutdoorsGronta

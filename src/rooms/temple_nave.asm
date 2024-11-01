@@ -665,7 +665,7 @@ _MoveToBottomRight:
     act_WaitFrames 90
     ;; Make Alex talk more, then walk over to his boosting position.
     act_RunDialog eDialog::TempleNaveAlexBoost1
-    act_WalkNpcAlex kAlexActorIndex, kAlexBoostingPositionX
+    act_MoveNpcAlexWalk kAlexActorIndex, kAlexBoostingPositionX
     ;; Animate Alex turning around, crouching down, and raising his arms to
     ;; give Anna a boost.
     act_SetActorFlags kAlexActorIndex, 0

@@ -642,7 +642,7 @@ _WriteL:
     act_SetAvatarVelX 0
     act_SetAvatarPose eAvatar::Standing
     act_RunDialog eDialog::FactoryElevatorBrunoWait
-    act_WalkAvatar $00ba
+    act_MoveAvatarWalk $00ba
     act_SetAvatarFlags kPaletteObjAvatarNormal | 0
     act_SetAvatarPose eAvatar::Standing
     act_WaitFrames 30

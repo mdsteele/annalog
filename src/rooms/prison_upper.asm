@@ -494,17 +494,17 @@ _FreeAlex:
     act_WaitFrames 90
     act_SetActorFlags kBrunoActorIndex, bObj::Pri
     ;; Make a second orc run into the room and deliver a message to the first.
-    act_WalkNpcOrc kOrc2ActorIndex, $01b6
+    act_MoveNpcOrcWalk kOrc2ActorIndex, $01b6
     act_SetActorState1 kOrc2ActorIndex, eNpcOrc::GruntThrowing1
     act_RunDialog eDialog::PrisonUpperBreakerTemple1
     ;; Make the two orcs exit the room.
     act_ForkStart 1, _Orc2Exit_sCutscene
-    act_WalkNpcOrc kOrc1ActorIndex, $01ac
+    act_MoveNpcOrcWalk kOrc1ActorIndex, $01ac
     act_SetActorPosY kOrc1ActorIndex, $00b0
-    act_WalkNpcOrc kOrc1ActorIndex, $01e8
+    act_MoveNpcOrcWalk kOrc1ActorIndex, $01e8
     act_WaitFrames 60
     ;; Make Bruno call out after the guards.
-    act_WalkNpcBruno kBrunoActorIndex, $0179
+    act_MoveNpcBrunoWalk kBrunoActorIndex, $0179
     act_SetActorState1 kBrunoActorIndex, eNpcChild::BrunoStanding
     act_RunDialog eDialog::PrisonUpperBreakerTemple2
     act_WaitFrames 60
@@ -512,7 +512,7 @@ _FreeAlex:
 _Orc2Exit_sCutscene:
     act_SetActorState1 kOrc2ActorIndex, eNpcOrc::GruntStanding
     act_WaitFrames 20
-    act_WalkNpcOrc kOrc2ActorIndex, $01e8
+    act_MoveNpcOrcWalk kOrc2ActorIndex, $01e8
     act_ForkStop $ff
 .ENDPROC
 
@@ -520,7 +520,7 @@ _Orc2Exit_sCutscene:
 .PROC DataA_Cutscene_PrisonUpperLoosenBrick_sCutscene
     act_ForkStart 1, _WalkAvatar_sCutscene
     ;; Animate Marie walking over to the eastern edge of her cell.
-    act_WalkNpcMarie kMarieActorIndex, kMarieJumpPositionX
+    act_MoveNpcMarieWalk kMarieActorIndex, kMarieJumpPositionX
     act_SetActorState1 kMarieActorIndex, eNpcChild::MarieStanding
     act_WaitFrames 60
     ;; Animate Marie jumping up to push the brick.
@@ -535,14 +535,14 @@ _Orc2Exit_sCutscene:
     act_SetActorPosY  kMarieActorIndex, $00b8
     act_WaitFrames 60
     ;; Animate Marie walking back to her starting place.
-    act_WalkNpcMarie kMarieActorIndex, kMarieCellPositionX
+    act_MoveNpcMarieWalk kMarieActorIndex, kMarieCellPositionX
     act_SetActorState1 kMarieActorIndex, eNpcChild::MarieStanding
     act_SetActorState2 kMarieActorIndex, 0
     act_RunDialog eDialog::PrisonUpperMarie
     act_SetScrollFlags 0  ; unlock scrolling from the previous dialog
     act_ContinueExploring
 _WalkAvatar_sCutscene:
-    act_WalkAvatar $0180 | kTalkRightAvatarOffset
+    act_MoveAvatarWalk $0180 | kTalkRightAvatarOffset
     act_SetAvatarPose eAvatar::Standing
     act_SetAvatarFlags kPaletteObjAvatarNormal
     act_ForkStop $ff
@@ -579,7 +579,7 @@ _ApplyMarieGravity:
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_WaitFrames 15
     ;; Make Alex walk out of the prison cell.
-    act_WalkNpcAlex kAlexActorIndex, kAlexFreePositionX
+    act_MoveNpcAlexWalk kAlexActorIndex, kAlexFreePositionX
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_SetActorState2 kAlexActorIndex, $00
     act_ContinueExploring
@@ -604,7 +604,7 @@ _OpenGate:
     ;; have Nina move to watch what's happening).
     act_ForkStart 1, _Scroll_sCutscene
     act_ForkStart 2, _NinaWait_sCutscene
-    act_WalkNpcAlex kAlexActorIndex, kFreeKidsOffscreenPositionX
+    act_MoveNpcAlexWalk kAlexActorIndex, kFreeKidsOffscreenPositionX
     ;; Have Alex pick the locks offscreen.  While he does so, Nina leads Nora
     ;; out of the cell.
     act_WaitFrames 30
@@ -618,14 +618,14 @@ _OpenGate:
     act_WaitFrames 10
     act_ForkStart 2, _NinaEscape_sCutscene
     act_WaitFrames 31
-    act_WalkNpcNora kNoraActorIndex, kFreeKidsOffscreenPositionX
+    act_MoveNpcNoraWalk kNoraActorIndex, kFreeKidsOffscreenPositionX
     act_WaitFrames 90
     ;; Make Alex walk back onscreen to report on his scouting.
-    act_WalkNpcAlex kAlexActorIndex, $00d8
+    act_MoveNpcAlexWalk kAlexActorIndex, $00d8
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_RunDialog eDialog::PrisonUpperAlexLast
     ;; Make Alex walk back offscreen (and lead the kids out offscreen).
-    act_WalkNpcAlex kAlexActorIndex, kFreeKidsOffscreenPositionX
+    act_MoveNpcAlexWalk kAlexActorIndex, kFreeKidsOffscreenPositionX
     act_CallFunc _RemoveKids
     act_SetScrollFlags 0
     act_ContinueExploring
@@ -635,10 +635,10 @@ _Scroll_sCutscene:
     act_ForkStop $ff
 _NinaWait_sCutscene:
     act_WaitFrames 10
-    act_WalkNpcToddler kNinaActorIndex, $00f8
+    act_MoveNpcNinaWalk kNinaActorIndex, $00f8
     act_ForkStop $ff
 _NinaEscape_sCutscene:
-    act_WalkNpcToddler kNinaActorIndex, kFreeKidsOffscreenPositionX
+    act_MoveNpcNinaWalk kNinaActorIndex, kFreeKidsOffscreenPositionX
     act_ForkStop $ff
 _RemoveKids:
     ;; Remove talk devices.

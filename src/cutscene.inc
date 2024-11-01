@@ -119,6 +119,17 @@ kMaxForks = 4
     MoveAvatarRun      ; args: goal X-position (2 bytes)
     MoveAvatarSwim     ; args: goal X-position (2 bytes)
     MoveAvatarWalk     ; args: goal X-position (2 bytes)
+    ;; Causes the specified actor to swim/walk to the specified room pixel
+    ;; X-position.  Suspends the current cutscene fork until the actor reaches
+    ;; the goal position.
+    MoveNpcAlexSwim    ; args: actor index, goal X-position (2 bytes)
+    MoveNpcAlexWalk    ; args: actor index, goal X-position (2 bytes)
+    MoveNpcBrunoWalk   ; args: actor index, goal X-position (2 bytes)
+    MoveNpcGrontaWalk  ; args: actor index, goal X-position (2 bytes)
+    MoveNpcMarieWalk   ; args: actor index, goal X-position (2 bytes)
+    MoveNpcNinaWalk    ; args: actor index, goal X-position (2 bytes)
+    MoveNpcNoraWalk    ; args: actor index, goal X-position (2 bytes)
+    MoveNpcOrcWalk     ; args: actor index, goal X-position (2 bytes)
     ;; Queues up the specified music/SFX to play next, then the current
     ;; cutscene fork immediately continues on to the next action.
     PlayMusic          ; args: eMusic value
@@ -166,10 +177,6 @@ kMaxForks = 4
     ;; Shakes the room by the specified amount, then the current cutscene fork
     ;; immediately continues on to the next action.
     ShakeRoom          ; args: num shake frames
-    ;; Causes the specified actor to swim to the specified room pixel
-    ;; X-position.  Suspends the current cutscene fork until the actor reaches
-    ;; the goal position.
-    SwimNpcAlex        ; args: actor index, goal X-position (2 bytes)
     ;; Suspends the current cutscene fork for the specified number of frames.
     WaitFrames         ; args: number of frames
     ;; Calls the specified function.  If the function clears C/Z, then the
@@ -178,16 +185,6 @@ kMaxForks = 4
     ;; cutscene fork immediately continues on to the next action.
     WaitUntilC         ; args: func ptr (2 bytes); func must return C
     WaitUntilZ         ; args: func ptr (2 bytes); func must return Z
-    ;; Causes the specified actor to walk to the specified room pixel
-    ;; X-position.  Suspends the current cutscene fork until the actor reaches
-    ;; the goal position.
-    WalkNpcAlex        ; args: actor index, goal X-position (2 bytes)
-    WalkNpcBruno       ; args: actor index, goal X-position (2 bytes)
-    WalkNpcGronta      ; args: actor index, goal X-position (2 bytes)
-    WalkNpcMarie       ; args: actor index, goal X-position (2 bytes)
-    WalkNpcNora        ; args: actor index, goal X-position (2 bytes)
-    WalkNpcOrc         ; args: actor index, goal X-position (2 bytes)
-    WalkNpcToddler     ; args: actor index, goal X-position (2 bytes)
     NUM_VALUES
 .ENDENUM
 
@@ -238,9 +235,48 @@ kMaxForks = 4
     .word GOALX
 .ENDMACRO
 
-;;; TODO: rename this to act_MoveAvatarWalk
-.MACRO act_WalkAvatar GOALX
+.MACRO act_MoveAvatarWalk GOALX
     .byte eAction::MoveAvatarWalk
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_MoveNpcAlexSwim INDEX, GOALX
+    .byte eAction::MoveNpcAlexSwim, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_MoveNpcAlexWalk INDEX, GOALX
+    .byte eAction::MoveNpcAlexWalk, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_MoveNpcBrunoWalk INDEX, GOALX
+    .byte eAction::MoveNpcBrunoWalk, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_MoveNpcGrontaWalk INDEX, GOALX
+    .byte eAction::MoveNpcGrontaWalk, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_MoveNpcMarieWalk INDEX, GOALX
+    .byte eAction::MoveNpcMarieWalk, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_MoveNpcNinaWalk INDEX, GOALX
+    .byte eAction::MoveNpcNinaWalk, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_MoveNpcNoraWalk INDEX, GOALX
+    .byte eAction::MoveNpcNoraWalk, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_MoveNpcOrcWalk INDEX, GOALX
+    .byte eAction::MoveNpcOrcWalk, INDEX
     .word GOALX
 .ENDMACRO
 
@@ -356,11 +392,6 @@ kMaxForks = 4
     .byte eAction::ShakeRoom, FRAMES
 .ENDMACRO
 
-.MACRO act_SwimNpcAlex INDEX, GOALX
-    .byte eAction::SwimNpcAlex, INDEX
-    .word GOALX
-.ENDMACRO
-
 .MACRO act_WaitFrames FRAMES
     .byte eAction::WaitFrames, FRAMES
 .ENDMACRO
@@ -373,41 +404,6 @@ kMaxForks = 4
 .MACRO act_WaitUntilZ FUNC
     .byte eAction::WaitUntilZ
     .addr FUNC
-.ENDMACRO
-
-.MACRO act_WalkNpcAlex INDEX, GOALX
-    .byte eAction::WalkNpcAlex, INDEX
-    .word GOALX
-.ENDMACRO
-
-.MACRO act_WalkNpcBruno INDEX, GOALX
-    .byte eAction::WalkNpcBruno, INDEX
-    .word GOALX
-.ENDMACRO
-
-.MACRO act_WalkNpcGronta INDEX, GOALX
-    .byte eAction::WalkNpcGronta, INDEX
-    .word GOALX
-.ENDMACRO
-
-.MACRO act_WalkNpcMarie INDEX, GOALX
-    .byte eAction::WalkNpcMarie, INDEX
-    .word GOALX
-.ENDMACRO
-
-.MACRO act_WalkNpcNora INDEX, GOALX
-    .byte eAction::WalkNpcNora, INDEX
-    .word GOALX
-.ENDMACRO
-
-.MACRO act_WalkNpcOrc INDEX, GOALX
-    .byte eAction::WalkNpcOrc, INDEX
-    .word GOALX
-.ENDMACRO
-
-.MACRO act_WalkNpcToddler INDEX, GOALX
-    .byte eAction::WalkNpcToddler, INDEX
-    .word GOALX
 .ENDMACRO
 
 ;;;=========================================================================;;;

@@ -182,7 +182,7 @@ _Passages_sPassage_arr:
     ;; Anna steps out of the way to the left.
     act_ForkStart 1, _WalkAvatar_sCutscene
     ;; Alex walks over to the big tank and kneels down for a closer look.
-    act_WalkNpcAlex kAlexActorIndex, $007a
+    act_MoveNpcAlexWalk kAlexActorIndex, $007a
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_WaitFrames 45
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
@@ -190,7 +190,7 @@ _Passages_sPassage_arr:
     ;; Alex reads off the label on the tank.
     act_RunDialog eDialog::FactoryVaultAlex2
     ;; Alex walk over and looks at the tank from the right side.
-    act_WalkNpcAlex kAlexActorIndex, $009c
+    act_MoveNpcAlexWalk kAlexActorIndex, $009c
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_WaitFrames 10
     act_SetActorFlags kAlexActorIndex, bObj::FlipH
@@ -198,7 +198,7 @@ _Passages_sPassage_arr:
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexLooking
     act_WaitFrames 90
     ;; Alex walk over and looks at the tank from the left side.
-    act_WalkNpcAlex kAlexActorIndex, $006c
+    act_MoveNpcAlexWalk kAlexActorIndex, $006c
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_WaitFrames 10
     act_SetActorFlags kAlexActorIndex, 0
@@ -208,14 +208,14 @@ _Passages_sPassage_arr:
     ;; Alex thinks out loud for a bit.
     act_RunDialog eDialog::FactoryVaultAlex3
     ;; Alex walks back to where he was standing before and talks to Anna again.
-    act_WalkNpcAlex kAlexActorIndex, $0060
+    act_MoveNpcAlexWalk kAlexActorIndex, $0060
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_SetActorState2 kAlexActorIndex, 0
     act_CallFunc _SetFlag
     act_RunDialog eDialog::FactoryVaultAlex1
     act_ContinueExploring
 _WalkAvatar_sCutscene:
-    act_WalkAvatar $0050 | kTalkRightAvatarOffset
+    act_MoveAvatarWalk $0050 | kTalkRightAvatarOffset
     act_SetAvatarPose eAvatar::Standing
     act_SetAvatarFlags kPaletteObjAvatarNormal | 0
     act_ForkStop $ff

@@ -812,7 +812,7 @@ _ParticleAngle_u8_arr:
     act_WaitUntilZ _OpenGate
     ;; Animate the orc walking in.
     act_SetActorPosX kOrc1ActorIndex, $0118
-    act_WalkNpcOrc kOrc1ActorIndex, $00f8
+    act_MoveNpcOrcWalk kOrc1ActorIndex, $00f8
     act_SetActorState1 kOrc1ActorIndex, eNpcOrc::GruntStanding
     act_WaitFrames 30
     ;; Animate Anna getting thrown into the cell.
@@ -837,7 +837,7 @@ _ParticleAngle_u8_arr:
     act_SetAvatarPose eAvatar::Sleeping
     ;; Animate the orc walking out.
     act_WaitFrames 30
-    act_WalkNpcOrc kOrc1ActorIndex, $0118
+    act_MoveNpcOrcWalk kOrc1ActorIndex, $0118
     ;; Animate the prison gate closing.
     act_WaitUntilZ _CloseGate
     ;; Animate Anna standing back up.

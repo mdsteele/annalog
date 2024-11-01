@@ -147,7 +147,7 @@ _Passages_sPassage_arr:
     act_SetCutsceneFlags bCutscene::TickAllActors
     act_SetAvatarState 0
     act_SetAvatarVelX 0
-    act_WalkAvatar $0116
+    act_MoveAvatarWalk $0116
     act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH | bObj::Pri
     act_SetAvatarPose eAvatar::Kneeling
     act_WaitFrames 20
