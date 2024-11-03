@@ -80,6 +80,7 @@ kMaxActors = 16
     ProjSpine        ; a spine shot by the city boss
     ProjSteamHorz    ; emitted horizontally from boiler machine pipes
     ProjSteamUp      ; emitted vertically from boiler machine pipes
+    SmokeAxe         ; an axe thrown by Gronta in a cutscene
     SmokeBlood       ; a glob of blood from the temple boss
     SmokeDirt        ; a clump of dirt from the mine boss
     SmokeExplosion   ; a puff of smoke for when something explodes
@@ -101,7 +102,7 @@ kFirstNonStaticActorType = eActor::ProjAcid
 
 ;;; eActor values greater than or equal to this are "smoke" actors; that is,
 ;;; they are decorative animations that don't affect game physics.
-kFirstSmokeActorType = eActor::SmokeBlood
+kFirstSmokeActorType = eActor::SmokeAxe
 
 ;;;=========================================================================;;;
 

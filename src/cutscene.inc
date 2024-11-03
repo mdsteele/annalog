@@ -70,6 +70,7 @@ kMaxForks = 4
     TempleNaveAlexBoosting
     TownHouse2WakeUp
     TownHouse4BreakerLava
+    TownOutdoorsGaveRemote
     TownOutdoorsGetCaught
     TownOutdoorsOrcAttack
     TownOutdoorsYearsLater

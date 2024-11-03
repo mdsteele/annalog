@@ -50,6 +50,9 @@ kAvatarHarmStunFrames = 20
 ;;; How long the player avatar stays invincible after taking damage, in frames.
 kAvatarHarmInvincibleFrames = 60
 
+;;; How many frames to blink the screen when the avatar is almost healed.
+kAvatarHealBlinkFrames = 14
+
 ;;; If Zp_AvatarHarmTimer_u8 is set to this, then the avatar has been killed
 ;;; and we should go to death mode.
 kAvatarHarmDeath = $ff

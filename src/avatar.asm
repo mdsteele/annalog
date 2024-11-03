@@ -72,9 +72,6 @@ kAvatarHorzDecelSlow = 8
 ;;; in subpixels per frame.
 kAvatarJumpVelocity = $ffff & -850
 
-;;; How many frames to blink the screen when the avatar is almost healed.
-kAvatarHealBlinkFrames = 14
-
 ;;;=========================================================================;;;
 
 .ZEROPAGE

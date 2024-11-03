@@ -32,6 +32,7 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_FadeInFromBlackToNormal
 .IMPORT Func_FadeOutToBlack
+.IMPORT Func_FadeOutToBlackSlowly
 .IMPORT Func_ProcessFrame
 .IMPORT Func_WaitXFrames
 .IMPORT Main_Explore_EnterRoom
@@ -48,6 +49,18 @@
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
+
+;;; Mode for transitioning to the cutscene that plays in TownOutdoors after
+;;; giving the B-Remote to Gronta.
+;;; @prereq Rendering is enabled.
+.EXPORT Main_Finale_GaveRemote
+.PROC Main_Finale_GaveRemote
+    jsr Func_FadeOutToBlackSlowly
+    ldx #eRoom::TownOutdoors  ; param: room to load
+    ldy #eMusic::Silence  ; param: music to play
+    jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
+    jmp_prga MainA_Death_EnterFinaleGaveRemoteCutsceneRoom
+.ENDPROC
 
 ;;; Mode for displaying the "years later" text as part of the self-destruct
 ;;; finale, before switching to the "years later" cutscene.
@@ -142,6 +155,28 @@ _ReturnRoomAndMusic:
     stax Zp_AvatarPosY_i16
     ;; Enter the room and start the cutscene.
     lda #eCutscene::TownOutdoorsYearsLater
+    sta Zp_Next_eCutscene
+    jmp Main_Explore_EnterRoom
+.ENDPROC
+
+;;; Sets up the avatar, room scrolling, and next cutscene for the "gave remote"
+;;; cutscene, then jumps to Main_Explore_EnterRoom.
+;;; @prereq Rendering is disabled.
+;;; @prereq Static room data is loaded.
+.PROC MainA_Death_EnterFinaleGaveRemoteCutsceneRoom
+    ;; Hide the player avatar.
+    lda #eAvatar::Hidden
+    sta Zp_AvatarPose_eAvatar
+    ;; Position the (hidden) player avatar so as to make the room scroll
+    ;; position be what we want.  (We don't want to do this by locking
+    ;; scrolling, because we want e.g. the vertical scroll to be able to shift
+    ;; while the dialog window is open.)
+    ldax #$02c4
+    stax Zp_AvatarPosX_i16
+    ldax #$00c8
+    stax Zp_AvatarPosY_i16
+    ;; Enter the room and start the cutscene.
+    lda #eCutscene::TownOutdoorsGaveRemote
     sta Zp_Next_eCutscene
     jmp Main_Explore_EnterRoom
 .ENDPROC

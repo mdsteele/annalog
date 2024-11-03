@@ -77,6 +77,7 @@
 .IMPORT FuncA_Actor_TickProjSpine
 .IMPORT FuncA_Actor_TickProjSteamHorz
 .IMPORT FuncA_Actor_TickProjSteamUp
+.IMPORT FuncA_Actor_TickSmokeAxe
 .IMPORT FuncA_Actor_TickSmokeBlood
 .IMPORT FuncA_Actor_TickSmokeDirt
 .IMPORT FuncA_Actor_TickSmokeExplosion
@@ -530,6 +531,7 @@ _NoHit:
     d_byte ProjSpine,       kProjSpineRadius
     d_byte ProjSteamHorz,   kSteamMinorRadius
     d_byte ProjSteamUp,     kSteamMajorRadius
+    d_byte SmokeAxe,        kProjAxeRadius
     d_byte SmokeBlood,      kSmokeBloodRadius
     d_byte SmokeDirt,       kSmokeDirtRadius
     d_byte SmokeExplosion,  kSmokeExplosionRadius
@@ -599,6 +601,7 @@ _NoHit:
     d_byte ProjSpine,       kProjSpineRadius
     d_byte ProjSteamHorz,   kSteamMinorRadius
     d_byte ProjSteamUp,     kSteamMajorRadius
+    d_byte SmokeAxe,        kProjAxeRadius
     d_byte SmokeBlood,      kSmokeBloodRadius
     d_byte SmokeDirt,       kSmokeDirtRadius
     d_byte SmokeExplosion,  kSmokeExplosionRadius
@@ -668,6 +671,7 @@ _NoHit:
     d_byte ProjSpine,       kProjSpineRadius
     d_byte ProjSteamHorz,   kSteamMajorRadius
     d_byte ProjSteamUp,     kSteamMinorRadius
+    d_byte SmokeAxe,        kProjAxeRadius
     d_byte SmokeBlood,      kSmokeBloodRadius
     d_byte SmokeDirt,       kSmokeDirtRadius
     d_byte SmokeExplosion,  kSmokeExplosionRadius
@@ -805,6 +809,7 @@ _TypeSpecificTick:
     d_entry table, ProjSpine,       FuncA_Actor_TickProjSpine
     d_entry table, ProjSteamHorz,   FuncA_Actor_TickProjSteamHorz
     d_entry table, ProjSteamUp,     FuncA_Actor_TickProjSteamUp
+    d_entry table, SmokeAxe,        FuncA_Actor_TickSmokeAxe
     d_entry table, SmokeBlood,      FuncA_Actor_TickSmokeBlood
     d_entry table, SmokeDirt,       FuncA_Actor_TickSmokeDirt
     d_entry table, SmokeExplosion,  FuncA_Actor_TickSmokeExplosion
@@ -1049,6 +1054,7 @@ _Finish:
     d_entry table, ProjSpine,       FuncA_Objects_DrawActorProjSpine
     d_entry table, ProjSteamHorz,   FuncA_Objects_DrawActorProjSteamHorz
     d_entry table, ProjSteamUp,     FuncA_Objects_DrawActorProjSteamUp
+    d_entry table, SmokeAxe,        FuncA_Objects_DrawActorProjAxe
     d_entry table, SmokeBlood,      FuncA_Objects_DrawActorSmokeBlood
     d_entry table, SmokeDirt,       FuncA_Objects_DrawActorSmokeDirt
     d_entry table, SmokeExplosion,  FuncA_Objects_DrawActorSmokeExplosion

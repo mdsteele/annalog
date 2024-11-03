@@ -59,6 +59,7 @@
 .IMPORT DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
 .IMPORT DataA_Cutscene_TownHouse2WakeUp_sCutscene
 .IMPORT DataA_Cutscene_TownHouse4BreakerLava_sCutscene
+.IMPORT DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
@@ -266,6 +267,8 @@ _Finish:
             DataA_Cutscene_TownHouse2WakeUp_sCutscene
     d_entry table, TownHouse4BreakerLava, \
             DataA_Cutscene_TownHouse4BreakerLava_sCutscene
+    d_entry table, TownOutdoorsGaveRemote, \
+            DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
     d_entry table, TownOutdoorsGetCaught, \
             DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
     d_entry table, TownOutdoorsOrcAttack, \

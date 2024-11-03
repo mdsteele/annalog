@@ -140,11 +140,11 @@ hand it over, then?%
 Oh ho! Then are you
 prepared to fight me?%
 
-@CoreBossGrontaGive_Part1
+@CoreBossGrontaGive1
 Bwahahaha! What a
 coward!#
 
-@CoreBossGrontaGive_Part2
+@CoreBossGrontaGive2
 Now we orcs shall take
 our rightful place as
 masters of this world!#

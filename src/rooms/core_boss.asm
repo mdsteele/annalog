@@ -47,8 +47,8 @@
 .IMPORT DataA_Text1_CoreBossGrontaDying_Part1_u8_arr
 .IMPORT DataA_Text1_CoreBossGrontaDying_Part2_u8_arr
 .IMPORT DataA_Text1_CoreBossGrontaDying_Part3_u8_arr
-.IMPORT DataA_Text1_CoreBossGrontaGive_Part1_u8_arr
-.IMPORT DataA_Text1_CoreBossGrontaGive_Part2_u8_arr
+.IMPORT DataA_Text1_CoreBossGrontaGive1_u8_arr
+.IMPORT DataA_Text1_CoreBossGrontaGive2_u8_arr
 .IMPORT DataA_Text1_CoreBossGrontaIntro_Demand_u8_arr
 .IMPORT DataA_Text1_CoreBossGrontaIntro_HandItOver_u8_arr
 .IMPORT DataA_Text1_CoreBossGrontaIntro_Part1_u8_arr
@@ -57,6 +57,7 @@
 .IMPORT DataA_Text1_CoreBossScreen_Intro_u8_arr
 .IMPORT DataA_Text1_CoreBossScreen_Reactivate_u8_arr
 .IMPORT DataA_Text1_CoreBossScreen_SelfDestruct_u8_arr
+.IMPORT FuncA_Cutscene_InitActorSmokeAxe
 .IMPORT FuncA_Cutscene_PlaySfxBreakerRising
 .IMPORT FuncA_Machine_BlasterTick
 .IMPORT FuncA_Machine_BlasterTryAct
@@ -96,10 +97,12 @@
 .IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT Func_DivMod
+.IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetAngleFromPointToActor
 .IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetRandomByte
+.IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorBadGronta
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorNpcOrc
@@ -116,6 +119,7 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
+.IMPORT Func_MovePointHorz
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxExplodeSmall
@@ -129,6 +133,7 @@
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_SetScrollGoalFromPoint
 .IMPORT Func_ShakeRoom
+.IMPORT Main_Finale_GaveRemote
 .IMPORT Main_Finale_YearsLater
 .IMPORT Ppu_ChrObjBoss3
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -153,6 +158,7 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarState_bAvatar
@@ -292,6 +298,8 @@ kFirstNodeColumn = 2
     ;; How many times Gronta has been hurt by each machine, indexed by machine
     ;; index.  If negative, then the machine has been smashed.
     MachineHits_i8_arr .byte kNumCoreBossMachines
+    ;; If true ($ff), draw the final terminal; if false ($00) don't.
+    DrawFinalTerminal_bool .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -1879,9 +1887,8 @@ _Col1:
 
 .PROC FuncA_Objects_CoreBoss_DrawRoom
 _FinalTerminal:
-    lda Zp_RoomState + sState::Current_eGrontaPhase
-    cmp #eGrontaPhase::Defeated
-    bne @done
+    lda Zp_RoomState + sState::DrawFinalTerminal_bool
+    bpl @done
     ldx #kFinalTerminalPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawTerminalPlatform
     @done:
@@ -1997,17 +2004,53 @@ _GiveUpRemote_sCutscene:
     act_WaitFrames 65
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
     act_WaitFrames 10
-    act_RunDialog eDialog::CoreBossGrontaGive
-    ;; TODO: animate core activating
-    act_ContinueExploring
+    act_RunDialog eDialog::CoreBossGrontaGive1
+    ;; Animate Gronta throwing her axe at Anna.
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaArmsRaised
+    act_WaitFrames 15
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaThrowing
+    act_PlaySfxSample eSample::JumpGronta
+    act_CallFunc _SpawnActorForAxe
+    act_WaitFrames 21
+    act_SetCutsceneFlags bCutscene::AvatarRagdoll
+    act_CallFunc _HitAnnaWithAxe
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
+    act_WaitFrames 30
+    act_SetCutsceneFlags 0
+    act_RunDialog eDialog::CoreBossGrontaGive2
+    ;; Make Gronta step aside as the final terminal appears.
+    act_ForkStart 1, _GrontaAdjust_sCutscene
+    act_CallFunc FuncA_Cutscene_PlaySfxBreakerRising
+    act_RepeatFunc 64, FuncA_Cutscene_CoreBossRaiseFinalTerminal
+    act_WaitFrames 30
+    act_CallFunc FuncA_Cutscene_CoreBossTurnOnFinalTerminal
+    act_WaitFrames 60
+    ;; Make Gronta use the final terminal.
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaThrowing
+    act_WaitFrames 30
+    act_CallFunc Func_PlaySfxPoof
+    act_WaitFrames 60
+    act_CallFunc Func_PlaySfxExplodeBig
+    act_ShakeRoom 30
+    act_WaitFrames 60
+    act_JumpToMain Main_Finale_GaveRemote
+_GrontaAdjust_sCutscene:
+    act_MoveNpcGrontaWalk kGrontaActorIndex, $010c
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
+    act_SetActorFlags kGrontaActorIndex, 0
+    act_WaitFrames 30
+    act_RepeatFunc kAvatarHealBlinkFrames + 1, _HealAnna
+    act_ForkStop $ff
 _SetupFunc:
+    lda #0
+    sta Zp_AvatarHarmTimer_u8
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kPassageBarrierPlatformIndex
     ldax #$0090
     stax Zp_ScrollGoalX_u16
     rts
 _GetHorzScreen:
-    lda Zp_AvatarPosX_i16 + 1
+    lda Zp_AvatarPosX_i16 + 1  ; sets Z iff avatar is in left half of room
     rts
 _ShouldGiveUpRemoteFunc:
     lda Zp_RoomState + sState::Current_eGrontaPhase
@@ -2035,6 +2078,40 @@ _SpawnActorForRemote:
     sta Ram_ActorVelX_i16_1_arr, x
     @done:
     rts
+_SpawnActorForAxe:
+    ldx #kGrontaActorIndex  ; param: actor index
+    jsr Func_SetPointToActorCenter
+    ldy Zp_AvatarPosX_i16 + 1  ; 0 or 1
+    lda _AxeOffset_i8_arr2, y  ; param: offset (signed)
+    jsr Func_MovePointHorz
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @done
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    ldy Zp_AvatarPosX_i16 + 1  ; 0 or 1
+    lda _AxeAngle_u8_arr2, y  ; param: angle
+    jsr FuncA_Cutscene_InitActorSmokeAxe
+    @done:
+    rts
+_AxeOffset_i8_arr2:
+    .byte <-8, 8
+_AxeAngle_u8_arr2:
+    .byte $80, $00
+_HitAnnaWithAxe:
+    ;; Make Anna go flying backwards.
+    jsr Func_HarmAvatar
+    ;; Remove the axe actor.
+    lda #eActor::SmokeAxe  ; param: actor type
+    jsr Func_FindActorWithType  ; returns C and X
+    bcs @done
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
+    @done:
+    rts
+_HealAnna:
+    txa  ; repeat counter
+    rsub #kAvatarHealBlinkFrames
+    sta Zp_AvatarHarmTimer_u8
+    rts
 _ChangeGrontaFromNpcToBad:
     lda #eGrontaPhase::Fighting
     sta Zp_RoomState + sState::Current_eGrontaPhase
@@ -2061,9 +2138,9 @@ _ChangeGrontaFromNpcToBad:
     act_CallFunc _LookAtTopOfCore
     act_WaitFrames 60
     act_CallFunc FuncA_Cutscene_PlaySfxBreakerRising
-    act_RepeatFunc 64, _RaiseFinalTerminal
+    act_RepeatFunc 64, FuncA_Cutscene_CoreBossRaiseFinalTerminal
     act_WaitFrames 30
-    act_CallFunc _TurnOnFinalTerminal
+    act_CallFunc FuncA_Cutscene_CoreBossTurnOnFinalTerminal
     act_WaitFrames 90
     act_ContinueExploring
 _MakeGrontaDefeated:
@@ -2094,18 +2171,27 @@ _LookAtTopOfCore:
     stax Zp_ScrollGoalX_u16
     sta Zp_ScrollGoalY_u8
     rts
-_RaiseFinalTerminal:
+.ENDPROC
+
+;;; Raises the final terminal from the core, when called once per frame over 64
+;;; frames (via act_RepeatFunc 64, FuncA_Cutscene_CoreBossTurnOnFinalTerminal).
+;;; @param X The progress counter (0-63)
+.PROC FuncA_Cutscene_CoreBossRaiseFinalTerminal
     txa  ; repeat counter
     mod #4
     bne @done
     ldx #kFinalTerminalPlatformIndex  ; param: platform index
     lda #<-1  ; param: move by
+    sta Zp_RoomState + sState::DrawFinalTerminal_bool
     jsr Func_MovePlatformVert
     lda #6  ; param: num frames
     jmp Func_ShakeRoom
     @done:
     rts
-_TurnOnFinalTerminal:
+.ENDPROC
+
+;;; Activates the ScreenRed device for the final terminal.
+.PROC FuncA_Cutscene_CoreBossTurnOnFinalTerminal
     lda #eDevice::ScreenRed
     sta Ram_DeviceType_eDevice_arr + kFinalTerminalDeviceIndex
     lda #kConsoleAnimCountdown
@@ -2234,10 +2320,15 @@ _LockScrolling:
     rts
 .ENDPROC
 
-.EXPORT DataA_Dialog_CoreBossGrontaGive_sDialog
-.PROC DataA_Dialog_CoreBossGrontaGive_sDialog
-    dlg_Text OrcGrontaShout, DataA_Text1_CoreBossGrontaGive_Part1_u8_arr
-    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaGive_Part2_u8_arr
+.EXPORT DataA_Dialog_CoreBossGrontaGive1_sDialog
+.PROC DataA_Dialog_CoreBossGrontaGive1_sDialog
+    dlg_Text OrcGrontaShout, DataA_Text1_CoreBossGrontaGive1_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_CoreBossGrontaGive2_sDialog
+.PROC DataA_Dialog_CoreBossGrontaGive2_sDialog
+    dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaGive2_u8_arr
     dlg_Done
 .ENDPROC
 

@@ -617,6 +617,13 @@ _InitThurgAndGrunt:
     jmp Func_InitActorNpcOrc
 .ENDPROC
 
+.EXPORT DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
+.PROC DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
+    ;; TODO: Implement TownOutdoorsGaveRemote cutscene.
+    act_WaitFrames 60
+    act_ForkStart 0, DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
+.ENDPROC
+
 .EXPORT DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
     ;; TODO: Implement TownOutdoorsYearsLater cutscene.

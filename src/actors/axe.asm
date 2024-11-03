@@ -24,6 +24,7 @@
 .INCLUDE "axe.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Actor_ZeroVel
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_FindActorWithType
@@ -66,6 +67,29 @@ kAxeCatchDistance = 8
 
 ;;; The OBJ palette number used for axe projectile actors.
 kPaletteObjAxe = 0
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+;;; Initializes the specified actor as an axe smoke.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The angle to throw at, measured in increments of tau/256.
+;;; @param X The actor index.
+;;; @preserve X, T3+
+.EXPORT FuncA_Cutscene_InitActorSmokeAxe
+.PROC FuncA_Cutscene_InitActorSmokeAxe
+    pha  ; angle
+    add #$40
+    and #$80
+    .assert bObj::FlipH = $40, error
+    div #2  ; param: flags
+    ldy #eActor::SmokeAxe  ; param: actor type
+    jsr Func_InitActorWithFlags  ; preserves X and T0+
+    pla  ; param: angle
+    ldy #kProjAxeSpeed  ; param: speed
+    jmp Func_SetActorVelocityPolar  ; preserves X and T3+
+.ENDPROC
 
 ;;;=========================================================================;;;
 
@@ -178,6 +202,22 @@ _MakeGrontaIdle:
     @doneGronta:
     ldx T0  ; axe actor index
 _Done:
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for an axe smoke actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_TickSmokeAxe
+.PROC FuncA_Actor_TickSmokeAxe
+    inc Ram_ActorState1_byte_arr, x  ; axe age in frames
+    beq _Expire
+    jsr FuncA_Actor_IsInRoomBounds  ; preserves X, returns C
+    bcc _Expire
+    rts
+_Expire:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
     rts
 .ENDPROC
 

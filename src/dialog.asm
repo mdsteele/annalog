@@ -45,7 +45,8 @@
 .IMPORT DataA_Dialog_CityOutskirtsAlex1_sDialog
 .IMPORT DataA_Dialog_CityOutskirtsAlex2_sDialog
 .IMPORT DataA_Dialog_CoreBossGrontaDying_sDialog
-.IMPORT DataA_Dialog_CoreBossGrontaGive_sDialog
+.IMPORT DataA_Dialog_CoreBossGrontaGive1_sDialog
+.IMPORT DataA_Dialog_CoreBossGrontaGive2_sDialog
 .IMPORT DataA_Dialog_CoreBossGrontaIntro_sDialog
 .IMPORT DataA_Dialog_CoreBossScreen_sDialog
 .IMPORT DataA_Dialog_CoreLockBreakerShadow_sDialog
@@ -462,7 +463,8 @@ _Finish:
     d_entry t, CityOutskirtsAlex1,   DataA_Dialog_CityOutskirtsAlex1_sDialog
     d_entry t, CityOutskirtsAlex2,   DataA_Dialog_CityOutskirtsAlex2_sDialog
     d_entry t, CoreBossGrontaDying,  DataA_Dialog_CoreBossGrontaDying_sDialog
-    d_entry t, CoreBossGrontaGive,   DataA_Dialog_CoreBossGrontaGive_sDialog
+    d_entry t, CoreBossGrontaGive1,  DataA_Dialog_CoreBossGrontaGive1_sDialog
+    d_entry t, CoreBossGrontaGive2,  DataA_Dialog_CoreBossGrontaGive2_sDialog
     d_entry t, CoreBossGrontaIntro,  DataA_Dialog_CoreBossGrontaIntro_sDialog
     d_entry t, CoreBossScreen,       DataA_Dialog_CoreBossScreen_sDialog
     d_entry t, CoreLockBreakerShadow, \

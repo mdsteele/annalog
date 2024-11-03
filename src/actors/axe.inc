@@ -17,17 +17,17 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; State bytes for axe projectiles:
+;;; State bytes for axe projectiles and smoke:
 ;;;   * Flags: The bObj::FlipH bit is set if the axe is spinning
 ;;;     counterclockwise, or cleared if it is spinning clockwise.
-;;;   * State1: For AxeBoomer, this is the current age of the projectile, in
-;;;     frames.  For AxeSmash, this is unused.
-;;;   * State2: For AxeBoomer, this is unused.  For AxeSmash, this is the
-;;;     platform index to home in on.
+;;;   * State1: For ProjAxeBoomer and SmokeAxe, this is the current age of the
+;;;     projectile, in frames.  For ProjAxeSmash, this is unused.
+;;;   * State2: For ProjAxeBoomer and SmokeAxe, this is unused.  For AxeSmash,
+;;;     this is the platform index to home in on.
 ;;;   * State3: Unused.
 ;;;   * State4: Unused.
 
-;;; The first tile ID for drawing axe projectile actors.
+;;; The first tile ID for drawing axe projectile and smoke actors.
 kTileIdObjProjAxeFirst = $d8
 
 ;;;=========================================================================;;;
