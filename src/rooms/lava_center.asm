@@ -47,6 +47,7 @@
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_PlaySfxThudSmall
 .IMPORT FuncA_Room_ReflectFireblastsOffMirror
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
@@ -648,7 +649,7 @@ _MaybeHitFloor:
     ;; floor, then the crate is hitting the floor this frame.
     cmp T0  ; crate dist above floor
     blt @noHit
-    ;; TODO: play a sound for the crate hitting the floor
+    jsr FuncA_Room_PlaySfxThudSmall  ; preserves X and T0+
     ;; Zero the crate's velocity, and move it to exactly hit the floor.
     lda #0
     sta Zp_RoomState + sState::CrateSubY_u8_arr, x

@@ -36,6 +36,7 @@
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT FuncA_Machine_CraneMoveTowardGoal
 .IMPORT FuncA_Machine_GenericTryMoveZ
+.IMPORT FuncA_Machine_PlaySfxThudBig
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -399,7 +400,7 @@ _MaybeHitFloor:
     ;; floor, then the cage is hitting the floor this frame.
     cmp T0  ; cage dist above floor
     blt @done
-    ;; TODO: play a sound for the cage hitting the floor
+    jsr FuncA_Machine_PlaySfxThudBig  ; preserves T0+
     lda #kCageShakeFrames  ; param: shake frames
     jsr Func_ShakeRoom  ; preserves T0+
     ;; Zero the cage's velocity, and move it to exactly hit the floor.

@@ -50,6 +50,7 @@
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_DrawLauncherMachineHorz
 .IMPORT FuncA_Objects_DrawReloaderMachine
+.IMPORT FuncA_Room_PlaySfxThudSmall
 .IMPORT FuncA_Room_ResetLever
 .IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
@@ -455,7 +456,7 @@ _MakeCrate3Fall:
     ;; crate #1, then crate #3 is hitting crate #1 this frame.
     cmp T0  ; crate #3 dist above crate #1
     blt @noHit
-    ;; TODO: play a sound for the crate landing
+    jsr FuncA_Room_PlaySfxThudSmall  ; preserves T0+
     ;; Zero crate #3's velocity, and move it to exactly hit crate #1.
     lda #0
     sta Zp_RoomState + sState::Crate3SubY_u8
@@ -585,7 +586,7 @@ _TryDropOffAmmo:
     ;; Error if the launcher machine already has a rocket loaded.
     lda Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
     bne _Error
-    ;; TODO: play a sound
+    ;; TODO: play a sound for a rocket being transferred
     dec Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
     inc Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
     bne _StartWaiting  ; unconditional
@@ -599,7 +600,7 @@ _TryPickUpAmmo:
     and Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
     sta Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
     inc Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
-    ;; TODO: play a sound
+    ;; TODO: play a sound for a rocket being transferred
 _StartWaiting:
     lda #kReloaderActCountdown  ; param: num frames
     jmp FuncA_Machine_StartWaiting
