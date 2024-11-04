@@ -129,7 +129,7 @@ _Valve:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Machine_BoilerFinishEmittingSteam
 .PROC FuncA_Machine_BoilerFinishEmittingSteam
-    ;; TODO play a sound
+    ;; TODO play a sound for emitting steam
     ldx Zp_MachineIndex_u8
     lda #kSteamNumFrames
     sta Ram_MachineState2_byte_arr, x  ; ignition cooldown

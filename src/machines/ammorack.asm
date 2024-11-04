@@ -54,7 +54,7 @@ kPaletteObjRocket = 0
     ;; Refill all ammo slots.
     lda #(1 << kNumAmmoRackSlots) - 1
     sta Ram_MachineState1_byte_arr, x  ; ammo slot bits
-    ;; TODO: play a sound
+    ;; TODO: play a sound for refilling the rocket supply
     lda #kAmmoRackActCountdown  ; param: num frames
     jmp FuncA_Machine_StartWaiting
 .ENDPROC

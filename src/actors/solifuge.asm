@@ -129,7 +129,7 @@ _Steamed:
     ;; If the solifuge hits the ceiling, kill it.
     jsr FuncA_Actor_CenterHitsTerrainOrSolidPlatform  ; preserves X, returns C
     bcc @noHitCeiling
-    ;; TODO: play a sound
+    ;; TODO: play a sound for the solifuge dying
     jmp Func_InitActorSmokeExplosion  ; preserves X
     @noHitCeiling:
     ;; TODO: if hit floor, land

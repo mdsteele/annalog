@@ -58,6 +58,7 @@
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
@@ -492,6 +493,7 @@ _CheckForRocketImpact:
     bcs @doneExplosion
     jsr Func_SetActorCenterToPoint  ; preserves X
     jsr Func_InitActorSmokeExplosion
+    jsr Func_PlaySfxExplodeFracture
     @doneExplosion:
     pla  ; rocket actor index
     tax  ; rocket actor index

@@ -157,7 +157,7 @@ _BecomeAngered:
     sta Ram_ActorState2_byte_arr, x  ; mode timer
     lda #eBadRhino::Angered
     sta Ram_ActorState1_byte_arr, x  ; eBadRhino mode
-    ;; TODO: play a sound
+    ;; TODO: play a sound for the rhino being angered
     jmp FuncA_Actor_ZeroVelX  ; preserves X
 _SetVelocity:
     inc Ram_ActorState3_byte_arr, x  ; animation counter

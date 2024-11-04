@@ -29,6 +29,7 @@
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -115,7 +116,7 @@ _ShakeAndExplode:
     lda #kRocketShakeFrames  ; param: num frames
     jsr Func_ShakeRoom  ; preserves X
 _Explode:
-    ;; TODO: play a sound
+    jsr Func_PlaySfxExplodeBig  ; preserves X
     jmp Func_InitActorSmokeExplosion  ; preserves X
 _Expire:
     lda #eActor::None

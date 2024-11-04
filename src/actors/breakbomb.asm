@@ -30,6 +30,7 @@
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorDefault
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
@@ -125,7 +126,7 @@ _ExplodeIfHitsTerrain:
     ;; Explode into breakfire.
     lda #kBreakbombShakeFrames  ; param: num frames
     jsr Func_ShakeRoom  ; preserves X
-    ;; TODO: play a sound
+    jsr Func_PlaySfxExplodeBig  ; preserves X
     jsr Func_GetRandomByte  ; preserves X, returns A
     and #bObj::FlipH  ; param: flags
     jsr FuncA_Actor_InitActorProjBreakfire  ; preserves X

@@ -71,7 +71,7 @@ kBadGhostOrcAttackFrames = 70
     lda #eBadGhost::Disappearing  ; param: eBadGhost value
     jsr Func_InitActorWithState1  ; preserves X
     ;; TODO: Make the ghost baddie face the player avatar.
-    ;; TODO: Play a sound
+    ;; TODO: Play a sound for the ghost disappearing
     rts
 .ENDPROC
 

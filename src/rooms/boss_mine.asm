@@ -527,7 +527,7 @@ _BossBurrowing:
     bne @noShake
     lda #2  ; param: num frames
     jsr Func_ShakeRoom
-    ;; TODO: play a sound
+    ;; TODO: play a sound for the boss burrowing
     @noShake:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -562,8 +562,8 @@ _BossBurrowing:
     dec T3  ; loop index
     bpl @dirtLoop
     @dirtDone:
-    ;; Start emering from that exit.
-    ;; TODO: play a sound
+    ;; Start emerging from that exit.
+    ;; TODO: play a sound for the boss emerging
     lda #eBossMode::Emerging
     sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossEmergeFrames  ; param: num frames

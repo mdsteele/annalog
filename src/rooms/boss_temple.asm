@@ -888,7 +888,7 @@ _Boss:
     cmp #(kBossEyeOpenFrames + 1) * 3 / 4
     bge _EyeIsOpen
 _EyeIsClosed:
-    ;; TODO: play a sound
+    ;; TODO: play a sound for a bullet hitting a closed eye
     rts
 _EyeIsOpen:
     lda #eSample::BossHurtF  ; param: eSample to play
@@ -973,7 +973,7 @@ _KillBoss:
     dey
     bpl @loop
     @break:
-    ;; TODO: play a sound
+    ;; TODO: play a sound for blood spurting
     rts
 _BloodTile_u8_arr4:
     .byte kTileIdObjBloodFirst + 1

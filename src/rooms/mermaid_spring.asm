@@ -65,6 +65,7 @@
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToPlatformCenter
@@ -430,11 +431,12 @@ _DrainSpring:
     @return:
     rts
     @unplug:
+    ;; TODO: disable the machine
 _RemoveRocksAndWater:
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kRocksPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
-    ;; TODO: play a big explosion sound
+    jsr Func_PlaySfxExplodeFracture
     lda #30  ; param: num frames
     jsr Func_ShakeRoom
 _AnimateFallingWater:

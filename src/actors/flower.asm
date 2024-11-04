@@ -109,7 +109,7 @@ kBadFlowerAttackFrames = \
     jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
     bcc _Return  ; avatar is too far away horizontally
 _StartGrowing:
-    ;; TODO: play a sound
+    ;; TODO: play a sound for the flower growing
     .assert eBadFlower::Growing = eBadFlower::Dormant + 1, error
     inc Ram_ActorState1_byte_arr, x  ; current eBadFlower mode
 _Return:
@@ -158,7 +158,7 @@ _StartAttacking:
     sta Ram_ActorState2_byte_arr, x  ; mode timer
     rts
 _StartShrinking:
-    ;; TODO: play a sound
+    ;; TODO: play a sound for the flower shrinking
     lda #eBadFlower::Shrinking
     sta Ram_ActorState1_byte_arr, x  ; current eBadFlower mode
     lda #kBadFlowerTransformFrames

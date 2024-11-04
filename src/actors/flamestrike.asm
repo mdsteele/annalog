@@ -121,7 +121,7 @@ _Descending:
     dec Ram_ActorState3_byte_arr, x  ; timer
     rts
 _Lengthen:
-    ;; TODO: play a sound
+    ;; TODO: play a sound for the flamestrike lengthening
     ;; Set a cooldown before we expand again.
     lda #kFlamestrikeDescendFrames
     sta Ram_ActorState3_byte_arr, x  ; timer
