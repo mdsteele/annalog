@@ -624,6 +624,13 @@ _InitThurgAndGrunt:
     act_ForkStart 0, DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
 .ENDPROC
 
+.EXPORT DataA_Cutscene_TownOutdoorsReactivate_sCutscene
+.PROC DataA_Cutscene_TownOutdoorsReactivate_sCutscene
+    ;; TODO: Implement TownOutdoorsReactivate cutscene.
+    act_WaitFrames 60
+    act_ForkStart 0, DataA_Cutscene_TownOutdoorsReactivate_sCutscene
+.ENDPROC
+
 .EXPORT DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
     ;; TODO: Implement TownOutdoorsYearsLater cutscene.

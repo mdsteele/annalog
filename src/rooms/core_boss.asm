@@ -134,6 +134,7 @@
 .IMPORT Func_SetScrollGoalFromPoint
 .IMPORT Func_ShakeRoom
 .IMPORT Main_Finale_GaveRemote
+.IMPORT Main_Finale_Reactivate
 .IMPORT Main_Finale_YearsLater
 .IMPORT Ppu_ChrObjBoss3
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -2202,7 +2203,12 @@ _LookAtTopOfCore:
 
 .EXPORT DataA_Cutscene_CoreBossFinaleReactivate_sCutscene
 .PROC DataA_Cutscene_CoreBossFinaleReactivate_sCutscene
-    act_ContinueExploring  ; TODO: implement CoreBossFinaleReactivate cutscene
+    act_CallFunc Func_PlaySfxPoof
+    act_WaitFrames 60
+    act_CallFunc Func_PlaySfxExplodeBig
+    act_ShakeRoom 30
+    act_WaitFrames 60
+    act_JumpToMain Main_Finale_Reactivate
 .ENDPROC
 
 .EXPORT DataA_Cutscene_CoreBossFinaleSelfDestruct_sCutscene

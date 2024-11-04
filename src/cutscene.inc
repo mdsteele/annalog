@@ -73,6 +73,7 @@ kMaxForks = 4
     TownOutdoorsGaveRemote
     TownOutdoorsGetCaught
     TownOutdoorsOrcAttack
+    TownOutdoorsReactivate
     TownOutdoorsYearsLater
     NUM_VALUES
 .ENDENUM

@@ -62,6 +62,7 @@
 .IMPORT DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
+.IMPORT DataA_Cutscene_TownOutdoorsReactivate_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
 .IMPORT FuncA_Actor_TickAllDevicesAndActors
 .IMPORT FuncA_Actor_TickAllDevicesAndSmokeActors
@@ -273,6 +274,8 @@ _Finish:
             DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
     d_entry table, TownOutdoorsOrcAttack, \
             DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
+    d_entry table, TownOutdoorsReactivate, \
+            DataA_Cutscene_TownOutdoorsReactivate_sCutscene
     d_entry table, TownOutdoorsYearsLater, \
             DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
     D_END
