@@ -406,17 +406,23 @@ _DrainSpring:
     ;; If the spring has already been drained, remove the water and disable the
     ;; machine.
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
-    beq @done
+    bne @unplug
+    rts
+    @unplug:
+    inc Zp_RoomState + sState::Lever_u8  ; now Lever_u8 is 1
+    fall FuncA_Room_MermaidSpring_RemoveRocksAndWater
+.ENDPROC
+
+;;; Removes the water and rock platforms, and also halts the MermaidSpringPump
+;;; machine and disables its console.
+.PROC FuncA_Room_MermaidSpring_RemoveRocksAndWater
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kRocksPlatformIndex
-    .assert ePlatform::Zone = 1, error
-    sta Zp_RoomState + sState::Lever_u8
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
     lda #eMachine::Halted
     sta Ram_MachineStatus_eMachine_arr + kPumpMachineIndex
-    @done:
     rts
 .ENDPROC
 
@@ -431,14 +437,11 @@ _DrainSpring:
     @return:
     rts
     @unplug:
-    ;; TODO: disable the machine
 _RemoveRocksAndWater:
-    lda #ePlatform::Zone
-    sta Ram_PlatformType_ePlatform_arr + kRocksPlatformIndex
-    sta Ram_PlatformType_ePlatform_arr + kWaterPlatformIndex
     jsr Func_PlaySfxExplodeFracture
     lda #30  ; param: num frames
     jsr Func_ShakeRoom
+    jsr FuncA_Room_MermaidSpring_RemoveRocksAndWater
 _AnimateFallingWater:
     lda #0
     sta Zp_PointX_i16 + 1
