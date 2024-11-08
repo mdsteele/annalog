@@ -146,7 +146,7 @@ _Passages_sPassage_arr:
     sbc #>kScrollCutoffPosX
     blt _LockVert
 _LockHorz:
-    ldax #$010d  ; TODO: this should really be $0110, but scrolling is weird
+    ldax #$0110
     stax Zp_RoomScrollX_u16
     lda #bScroll::LockHorz
     sta Zp_Camera_bScroll

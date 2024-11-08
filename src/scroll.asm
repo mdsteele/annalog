@@ -265,14 +265,19 @@ _TrackScrollYTowardsGoal:
     ;; position, storing it in A.
     lda Zp_ScrollGoalY_u8
     sub Zp_RoomScrollY_u8
+    beq @done  ; delta is zero, so no need to scroll vertically
     blt @goalLessThanCurr
     ;; If the delta is positive, then we need to scroll down.  Divide the delta
     ;; by (1 << kScrollYSlowdown) to get the amount we'll scroll by this frame,
-    ;; but cap it at a maximum of kMaxScrollYSpeed.
+    ;; but cap it at a maximum of kMaxScrollYSpeed and a minimum of 1.
     @goalMoreThanCurr:
     .repeat kScrollYSlowdown
     lsr a
     .endrepeat
+    bne @clampPositive
+    lda #1
+    bne @scrollByA  ; unconditional
+    @clampPositive:
     cmp #kMaxScrollYSpeed
     blt @scrollByA
     lda #kMaxScrollYSpeed
@@ -280,20 +285,21 @@ _TrackScrollYTowardsGoal:
     ;; If the delta is negative, then we need to scroll up.  Divide the
     ;; (negative) delta by (1 << kScrollYSlowdown), roughly, to get the amount
     ;; we'll scroll by this frame, but cap it at a minimum of
-    ;; -kMaxScrollYSpeed.
+    ;; -kMaxScrollYSpeed.  (Because of how we do the division, we will always
+    ;; scroll by a nonzero amount here.)
     @goalLessThanCurr:
     .repeat kScrollYSlowdown
     sec
     ror a
     .endrepeat
-    cmp #$ff & -kMaxScrollYSpeed
+    cmp #<-kMaxScrollYSpeed
     bge @scrollByA
-    lda #$ff & -kMaxScrollYSpeed
+    lda #<-kMaxScrollYSpeed
     ;; Add A to the current scroll-Y position.
     @scrollByA:
     add Zp_RoomScrollY_u8
     sta Zp_RoomScrollY_u8
-    @doneScrollVert:
+    @done:
 _ClampScrollY:
     ;; Calculate the visible height of the screen (the part not covered by the
     ;; window), and store it in T0.
@@ -384,16 +390,26 @@ _TrackScrollXTowardsGoal:
     lda Zp_ScrollGoalX_u16 + 1
     sbc Zp_RoomScrollX_u16 + 1
     bmi @goalLessThanCurr
-    ;; If the delta is positive, then we need to scroll to the right.  Divide
-    ;; the delta by (1 << kScrollXSlowdown) to get the amount we'll scroll by
-    ;; this frame, but cap it at a maximum of kMaxScrollXSpeed.
+    ;; If the delta is non-negative, then we may need to scroll to the right.
+    ;; If the hi byte of the delta is nonzero, then just scroll by the maximum
+    ;; amount.
     @goalMoreThanCurr:
     .assert kMaxScrollXSpeed << kScrollXSlowdown < $100, error
-    bne @maxScroll
+    bne @maxScroll  ; delta is >= $100, so scroll right by max amount
+    ;; Otherwise, we can just consider the lo byte of the delta.  If the delta
+    ;; is actually zero, then we don't need to scroll horizontally at all.
     lda T1  ; delta (lo)
+    beq @done
+    ;; Divide the (positive) delta by (1 << kScrollXSlowdown) to get the amount
+    ;; we'll scroll by this frame, but cap it at a maximum of kMaxScrollXSpeed
+    ;; and a minimum of 1.
     .repeat kScrollXSlowdown
     lsr a
     .endrepeat
+    bne @clampPositive
+    lda #1
+    bne @scrollByYA  ; unconditional
+    @clampPositive:
     cmp #kMaxScrollXSpeed
     blt @scrollByYA
     @maxScroll:
@@ -402,20 +418,21 @@ _TrackScrollXTowardsGoal:
     ;; If the delta is negative, then we need to scroll to the left.  Divide
     ;; the (negative) delta by (1 << kScrollXSlowdown), roughly, to get the
     ;; amount we'll scroll by this frame, but cap it at a minimum of
-    ;; -kMaxScrollXSpeed.
+    ;; -kMaxScrollXSpeed.  (Because of how we do the division, we will always
+    ;; scroll by a nonzero amount here.)
     @goalLessThanCurr:
     dey  ; now Y is $ff
     cmp #$ff
-    bne @minScroll
+    bne @minScroll  ; delta is <= -$100, so scroll left by max amount
     lda T1  ; delta (lo)
     .repeat kScrollXSlowdown
     sec
     ror a
     .endrepeat
-    cmp #$ff & -kMaxScrollXSpeed
+    cmp #<-kMaxScrollXSpeed
     bge @scrollByYA
     @minScroll:
-    lda #$ff & -kMaxScrollXSpeed
+    lda #<-kMaxScrollXSpeed
     ;; Add YA to the current scroll-X position.
     @scrollByYA:
     add Zp_RoomScrollX_u16 + 0
@@ -423,6 +440,7 @@ _TrackScrollXTowardsGoal:
     tya
     adc Zp_RoomScrollX_u16 + 1
     sta Zp_RoomScrollX_u16 + 1
+    @done:
 _UpdateNametable:
     ;; Calculate the index of the leftmost room tile column that should now be
     ;; in the nametable, and put that index in T1.
