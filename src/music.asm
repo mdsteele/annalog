@@ -32,6 +32,7 @@
 .IMPORT DataC_Title_Credits_sMusic
 .IMPORT DataC_Title_Title_sMusic
 .IMPORT DataC_Town_Attack_sMusic
+.IMPORT DataC_Town_Town_sMusic
 .IMPORT Data_Calm_sMusic
 .IMPORT Data_Empty_bMusic_arr
 .IMPORT Data_Upgrade_sMusic
@@ -61,6 +62,7 @@
     d_entry table, Prison,  DataC_Prison_Prison_sMusic
     d_entry table, Temple,  DataC_Temple_TemplePlaceholder_sMusic
     d_entry table, Title,   DataC_Title_Title_sMusic
+    d_entry table, Town,    DataC_Town_Town_sMusic
     d_entry table, Upgrade, Data_Upgrade_sMusic
     D_END
 .ENDREPEAT

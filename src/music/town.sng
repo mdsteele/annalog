@@ -1,0 +1,40 @@
+@PRGC_Town
+
+!SONG Town "|A"
+% Composer: Jon T. Moran
+
+=key 3b  % Eb major
+
+!INST 1A PulsePiano $06 d1/2
+!INST 2A PulsePiano $06 d1/4
+!INST TV TriangleVibrato
+
+!PART A
+
+=tempo q36
+
+1| iA e4q  g ' b  e5 | db5h+ ' + +q3 b4q3 c5 |
+ | db5q3 c b4 ' eh  | db5q3 c b4 ' eq eNq |
+2| iA b3w | a3h f4h | g3w | eNh b3q db4q |
+T| iV e3w | b2w | a2w | db3h. e3q |
+
+1| e4q  g ' b  e5 | db5h+ ' + +q3 b4q3 c5 |
+ | db5q3 c b4 ' eh  | db5q3 c b4 ' eq fq |
+2| iA b3w | a3h f4h | g3w | eNh b3h |
+T| iV e3w | b2w | a2w | db3h b3h |
+
+1| g4q ce e ' f g d5 e | d5q f4e g ' dh |
+ |  b4q ee f ' gq f | a4e b f c ' eq d |
+2| re b3q.+h | re g3q.+h | re f3q.+h | re e3q. re f3q. |
+T| c3w | b2w | a2w | f2h g2h |
+
+1| g4q ce e ' f4e g d5 e | d5q f4e g ' dh |
+ | b4q ee f ' gq c5q |
+2| re b3q.+h | re g3q.+h | re f3q.+h |
+T| c3w | b2w | a2w |
+
+=tempo q42
+
+1| g5e f e c ' b4e a eN eb ' dbh |
+2| re  e3q.  ' re  e3q.+   ' +h  |
+T| f2h       ' db3w              |

@@ -394,6 +394,7 @@ _AlexStanding:
     .assert kTileIdBgPortraitGrontaFirst = kTileIdBgPortraitAlexFirst, error
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_Explore1_u8_arr
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_Explore2_u8_arr
+    dlg_Call _SilenceMusic
     dlg_Call DataC_Town_OutdoorsScrollOrcsIntoView
     dlg_Text OrcGronta, DataA_Text0_TownOutdoorsAlex3_HandleThis_u8_arr
     dlg_Call _TurnKidsAround
@@ -404,6 +405,10 @@ _AlexStanding:
     dlg_Text ChildAlexShout, DataA_Text0_TownOutdoorsAlex3_Attack2_u8_arr
     dlg_Call _MakeOrcGruntsJump
     dlg_Done
+_SilenceMusic:
+    lda #eMusic::Silence
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    rts
 _TurnKidsAround:
     ;; Make Anna turn to face the orcs.
     lda #kPaletteObjAvatarNormal

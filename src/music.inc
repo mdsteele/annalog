@@ -33,6 +33,7 @@
     Prison
     Temple
     Title
+    Town
     Upgrade
     NUM_VALUES
 .ENDENUM

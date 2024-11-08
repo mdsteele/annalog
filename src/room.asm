@@ -633,13 +633,13 @@ _PrisonMusic:
     d_byte TemplePit,       eMusic::Temple
     d_byte TempleSpire,     eMusic::Temple
     d_byte TempleWest,      eMusic::Temple
-    d_byte TownHouse1,      eMusic::Silence
-    d_byte TownHouse2,      eMusic::Silence
-    d_byte TownHouse3,      eMusic::Silence
-    d_byte TownHouse4,      eMusic::Silence
-    d_byte TownHouse5,      eMusic::Silence
-    d_byte TownHouse6,      eMusic::Silence
-    d_byte TownOutdoors,    eMusic::Silence
+    d_byte TownHouse1,      eMusic::Town
+    d_byte TownHouse2,      eMusic::Town
+    d_byte TownHouse3,      eMusic::Town
+    d_byte TownHouse4,      eMusic::Town
+    d_byte TownHouse5,      eMusic::Town
+    d_byte TownHouse6,      eMusic::Town
+    d_byte TownOutdoors,    eMusic::Town
     D_END
 .ENDPROC
 
