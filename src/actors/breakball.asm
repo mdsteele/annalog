@@ -112,7 +112,6 @@ _InitVelX:
 .PROC FuncA_Actor_TickProjBreakball
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
     jsr FuncA_Actor_ProjBreakball_CheckForCollisionHorz  ; preserves X
-    ;; TODO: bounce off platform sides?
     jsr FuncA_Actor_ProjBreakball_CheckForCollisionVert  ; preserves X
     rts
 .ENDPROC

@@ -61,7 +61,7 @@
 ;;; How many frames a launcher machine spends per ACT operation.
 kLaserActFrames = 90
 
-;;; The width of the laser beam for hit detection purposes, in pixels.
+;;; The normal width of the laser beam for hit detection purposes, in pixels.
 kLaserBeamWidthPx = 8
 
 ;;; How many different images the laser beam goes through during its animation.
@@ -103,21 +103,32 @@ kTileIdObjLaserBeam3  = kTileIdObjLaserFirst + 3
 ;;; @preserve T2+
 .EXPORT FuncA_Room_IsPointInLaserBeam
 .PROC FuncA_Room_IsPointInLaserBeam
+    lda #(kLaserMachineWidthPx - kLaserBeamWidthPx) / 2  ; param: inset
+    fall FuncA_Room_IsPointInLaserBeamWithInset  ; preserves T2+, returns C
+.ENDPROC
+
+;;; Checks if the point stored in Zp_PointX_i16 and Zp_PointY_i16 is inside a
+;;; laser machine's beam, using the given inset distance from the sides of the
+;;; machine to the sides of the beam.  If the machine is not currently firing a
+;;; beam, the answer will be "no".
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param A The extra horizontal distance to allow for on either side.
+;;; @return C Set if the point is near the beam, cleared otherwise.
+;;; @preserve T2+
+.PROC FuncA_Room_IsPointInLaserBeamWithInset
     ;; If debugging, answer "no".
-    lda Zp_ConsoleMachineIndex_u8
+    ldx Zp_ConsoleMachineIndex_u8
     bpl _Outside
     ;; If the laser is not firing, answer "no".
     ldx Zp_MachineIndex_u8
-    lda Ram_MachineSlowdown_u8_arr, x  ; laser beam frames remaining
+    ldy Ram_MachineSlowdown_u8_arr, x  ; laser beam frames remaining
     beq _Outside
+    sta T1  ; inset distance
 _CheckBeamBottom:
     lda Zp_PointY_i16 + 0
     cmp Ram_MachineState2_byte_arr, x  ; laser beam bottom (lo)
     lda Zp_PointY_i16 + 1
     sbc Ram_MachineState3_byte_arr, x  ; laser beam bottom (hi)
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
     bpl _Outside
 _CheckBeamTop:
     ;; The top of the beam is the bottom of the machine platform.
@@ -128,40 +139,31 @@ _CheckBeamTop:
     cmp Ram_PlatformBottom_i16_0_arr, y
     lda Zp_PointY_i16 + 1
     sbc Ram_PlatformBottom_i16_1_arr, y
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
     bmi _Outside
 _CheckBeamLeft:
     lda Ram_PlatformLeft_i16_0_arr, y
-    add #(kLaserMachineWidthPx - kLaserBeamWidthPx) / 2
+    add T1  ; inset distance
     sta T0  ; laser beam left (lo)
     lda Ram_PlatformLeft_i16_1_arr, y
     adc #0
-    sta T1  ; laser beam left (hi)
-    lda Zp_PointX_i16 + 0
-    cmp T0  ; laser beam left (lo)
-    lda Zp_PointX_i16 + 1
-    sbc T1  ; laser beam left (hi)
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
-    bmi _Outside
+    pha     ; laser beam left (hi)
+    lda T0  ; laser beam left (lo)
+    cmp Zp_PointX_i16 + 0
+    pla     ; laser beam left (hi)
+    sbc Zp_PointX_i16 + 1
+    bpl _Outside
 _CheckBeamRight:
     lda Ram_PlatformRight_i16_0_arr, y
-    sub #(kLaserMachineWidthPx - kLaserBeamWidthPx) / 2
+    sub T1  ; inset distance
     sta T0  ; laser beam right (lo)
     lda Ram_PlatformRight_i16_1_arr, y
     sbc #0
-    sta T1  ; laser beam right (hi)
-    lda Zp_PointX_i16 + 0
-    cmp T0  ; laser beam right (lo)
-    lda Zp_PointX_i16 + 1
-    sbc T1  ; laser beam right (hi)
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
-    bpl _Outside
+    pha     ; laser beam right (hi)
+    lda T0  ; laser beam right (lo)
+    cmp Zp_PointX_i16 + 0
+    pla     ; laser beam right (hi)
+    sbc Zp_PointX_i16 + 1
+    bmi _Outside
 _Inside:
     sec
     rts
@@ -207,8 +209,8 @@ _Outside:
     ;; If the laser isn't hitting this goo baddie, skip it.
     jsr Func_SetPointToActorCenter  ; preserves X
     stx T2  ; actor index
-    ;; TODO: Allow hitting any part of the goo, not just the center.
-    jsr FuncA_Room_IsPointInLaserBeam  ; preserves T2+, returns C
+    lda #0  ; param: inset
+    jsr FuncA_Room_IsPointInLaserBeamWithInset  ; preserves T2+, returns C
     ldx T2  ; actor index
     bcc @continue
     ;; Kill the goo.
