@@ -31,6 +31,8 @@
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
+.IMPORT Func_IsFlagSet
+.IMPORT Func_Noop
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
@@ -44,6 +46,7 @@
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_Next_eCutscene
@@ -79,13 +82,7 @@ kFieldActCooldown = $20
 
 ;;; Reset implemention for teleport field machines.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT FuncA_Room_MachineFieldReset
-.PROC FuncA_Room_MachineFieldReset
-    ldx Zp_MachineIndex_u8
-    lda #0
-    sta Ram_MachineState1_byte_arr, x  ; charge frames
-    rts
-.ENDPROC
+.EXPORT FuncA_Room_MachineFieldReset := Func_Noop
 
 ;;;=========================================================================;;;
 
@@ -109,8 +106,6 @@ _NotCharged:
     .assert kTeleporterAnimPartial > 0, error
     bne _Cooldown  ; unconditional
 _IsCharged:
-    ;; TODO: Instead of immediately doing the teleport zap, animate energy
-    ;; balls for a few frames first.
     lda #kTeleportShakeFrames
     jsr Func_ShakeRoom
     lda #kTeleporterAnimFull
@@ -181,14 +176,33 @@ _Cooldown:
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
 .EXPORT FuncA_Machine_FieldTick
 .PROC FuncA_Machine_FieldTick
-    ;; TODO: don't charge if console is open
-    ;; TODO: don't charge if machine's breaker isn't activated
+    ;; If the console window is open, don't charge up.
+    ldx Zp_ConsoleMachineIndex_u8
+    bpl _Discharge  ; a console window is open
+    ;; If the machine's breaker hasn't been activated, don't charge up.
+    ldy #sMachine::Breaker_eFlag
+    lda (Zp_Current_sMachine_ptr), y
+    beq _Charge  ; No breaker flag, so the machine always has power.
+    tax  ; param: flag
+    jsr Func_IsFlagSet  ; returns Z
+    beq _Discharge  ; The breaker isn't activated, so the machine has no power.
+_Charge:
+    ;; Charge by one point per frame.
     ldx Zp_MachineIndex_u8
     lda Ram_MachineState1_byte_arr, x  ; charge frames
     cmp #kFieldMaxChargePoints * kFieldFramesPerChargePoint
-    bge @done
+    bge _Finish  ; max charge has been reached
     inc Ram_MachineState1_byte_arr, x  ; charge frames
-    @done:
+    bne _Finish  ; unconditional
+_Discharge:
+    ;; Discharge by two points per frame.
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineState1_byte_arr, x  ; charge frames
+    beq _Finish  ; fully discharged
+    dec Ram_MachineState1_byte_arr, x  ; charge frames
+    beq _Finish  ; fully discharged
+    dec Ram_MachineState1_byte_arr, x  ; charge frames
+_Finish:
     jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
@@ -201,13 +215,9 @@ _Cooldown:
 .EXPORT FuncA_Objects_DrawFieldMachine
 .PROC FuncA_Objects_DrawFieldMachine
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
-_Light:
     jsr FuncA_Objects_GetMachineLightTileId  ; returns A (param: tile ID)
     ldy #kPaletteObjMachineLight  ; param: object flags
-    jsr FuncA_Objects_Draw1x1Shape
-_Zap:
-    ;; TODO: draw energy balls
-    rts
+    jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 
 ;;;=========================================================================;;;
