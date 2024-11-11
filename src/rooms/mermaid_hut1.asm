@@ -48,6 +48,14 @@
 .IMPORT DataA_Text0_MermaidHut1BreakerCrypt_Part7_u8_arr
 .IMPORT DataA_Text0_MermaidHut1BreakerGarden_u8_arr
 .IMPORT DataA_Text0_MermaidHut1Guard_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_AfterCity1_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_AfterCity2_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_AfterCity3_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_AfterCity4_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_AfterCity5_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_AfterCrypt1_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_AfterCrypt2_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_AfterMine_u8_arr
 .IMPORT DataA_Text0_MermaidHut1Queen_FindYourFriends_u8_arr
 .IMPORT DataA_Text0_MermaidHut1Queen_FirstMeeting1_u8_arr
 .IMPORT DataA_Text0_MermaidHut1Queen_FirstMeeting2_u8_arr
@@ -361,7 +369,6 @@ _InitialFunc:
     ldx #eFlag::CoreSouthCorraWaiting  ; param: flag
     jsr Func_SetFlag
     ;; Once quests are done, give other dialog.
-    ;; TODO: Change the queen's dialog as the game progresses.
     ldya #_KidsRescued_sDialog
     rts
 _Quest1Func:
@@ -418,8 +425,25 @@ _OtherRuins_sDialog:
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FindYourFriends_u8_arr
     dlg_Done
 _KidsRescued_sDialog:
+    dlg_IfSet BreakerCity, _AfterCity_sDialog
+    dlg_IfSet BreakerMine, _AfterMine_sDialog
+    dlg_IfSet BreakerCrypt, _AfterCrypt_sDialog
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_KidsRescued1_u8_arr
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_KidsRescued2_u8_arr
+    dlg_Done
+_AfterCrypt_sDialog:
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterCrypt1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterCrypt2_u8_arr
+    dlg_Done
+_AfterMine_sDialog:
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterMine_u8_arr
+    dlg_Done
+_AfterCity_sDialog:
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterCity1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterCity2_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterCity3_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterCity4_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterCity5_u8_arr
     dlg_Done
 .ENDPROC
 

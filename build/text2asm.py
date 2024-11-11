@@ -22,6 +22,9 @@ import sys
 
 #=============================================================================#
 
+MAX_CHARS_PER_LINE = 22
+MAX_LINES_PER_TEXT = 4
+
 MAX_PAIRS = 0xfd - 0x80
 
 HEADER = """\
@@ -77,17 +80,22 @@ def parse_text(data):
 def parse_input_file(filepath):
     texts = {}
     current_text_name = None
+    current_text_num_lines = 0
     current_text_data = ''
     original_size = 0
     for line in open(filepath):
         line = line.rstrip('\n')
         if current_text_name is not None:
+            if current_text_num_lines >= MAX_LINES_PER_TEXT:
+                raise ValueError(f'too many lines for {current_text_name}')
+            current_text_num_lines += 1
             current_text_data += line
             if line.endswith('#') or line.endswith('%'):
                 (text, size) = parse_text(current_text_data)
                 texts[current_text_name] = text
                 original_size += size
                 current_text_name = None
+                current_text_num_lines = 0
                 current_text_data = ''
             else:
                 current_text_data += '$'

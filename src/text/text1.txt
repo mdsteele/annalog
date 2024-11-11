@@ -518,17 +518,78 @@ give you a better use
 for all those terrible
 machines.#
 
-@MermaidHut5Marie
+@MermaidHut5Marie_AfterRescue1
 The mermaid queen is
 letting us stay here,
 but she doesn't seem
 happy about it.#
 
-@MermaidHut5Nora
+@MermaidHut5Marie_AfterRescue2
+We're all settling in
+fine, but I'm worried
+about the adults. Do
+you think they're OK?#
+
+@MermaidHut5Marie_AfterCrypt1
+Alex keeps talking
+about some old city.
+He seems weirdly
+obsessed with it.#
+
+@MermaidHut5Marie_AfterCrypt2
+Whatever you two are
+planning...just make
+sure you stay safe, OK
+Anna?#
+
+@MermaidHut5Marie_AfterMine
+TODO#
+
+@MermaidHut5Marie_AfterCity1
+Anna, I think Alex has
+convinced me. We need
+to reclaim all those
+machines for humans.#
+
+@MermaidHut5Marie_AfterCity2
+We won't be safe until
+we defeat the orcs. We
+can't do that without
+the old technology.#
+
+@MermaidHut5Marie_AfterCity3
+The mermaids might not
+like it, but, well, we
+aren't mermaids. Let's
+do what we have to do.#
+
+@MermaidHut5Nora_AfterRescue
 Well...if we're stuck
 here, I guess I may as
 well potty train my
 little sister.#
+
+@MermaidHut5Nora_AfterCrypt
+C'mon, stop running
+around, Nina! It's
+gotta go IN the potty!#
+
+@MermaidHut5Nora_AfterMine
+I think little Nina is
+getting the hang of
+using the potty now.
+Mostly, anyway.#
+
+@MermaidHut5Nora_AfterCity1
+Someday my baby sister
+will be all grown up.
+I wonder what she'll
+be like?#
+
+@MermaidHut5Nora_AfterCity2
+I hope we get to go
+home soon. You know,
+before she grows up.#
 
 @MermaidVillageAlex_Part1
 Anna! Did you SEE that

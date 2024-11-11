@@ -416,6 +416,51 @@ You can find them in
 the southeastern hut
 of this village.#
 
+@MermaidHut1Queen_AfterCrypt1
+You and the children
+are free to stay here
+until the orc threat
+has been resolved.#
+
+@MermaidHut1Queen_AfterCrypt2
+I hope in the meantime
+that you will consider
+well the benefits of
+our way of life.#
+
+@MermaidHut1Queen_AfterMine
+TODO#
+
+@MermaidHut1Queen_AfterCity1
+Anna, please. You must
+convince your brother
+to abandon the ancient
+humans' technology.#
+
+@MermaidHut1Queen_AfterCity2
+Do you know the fable
+of the Monkey's Paw?
+It would grant you
+any wish you asked.#
+
+@MermaidHut1Queen_AfterCity3
+Any wish, no questions
+asked, no matter how
+foolish. No matter how
+self-destructive.#
+
+@MermaidHut1Queen_AfterCity4
+That is the power you
+are flirting with. Who
+could you ever trust
+with such an object?#
+
+@MermaidHut1Queen_AfterCity5
+You must cast it away,
+forever. The only wise
+wish is to wish for no
+more wishes.#
+
 @MermaidHut1BreakerGarden
 What the...What did
 that human girl just

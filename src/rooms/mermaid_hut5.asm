@@ -28,8 +28,19 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
-.IMPORT DataA_Text1_MermaidHut5Marie_u8_arr
-.IMPORT DataA_Text1_MermaidHut5Nora_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Marie_AfterCity1_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Marie_AfterCity2_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Marie_AfterCity3_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Marie_AfterCrypt1_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Marie_AfterCrypt2_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Marie_AfterMine_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Marie_AfterRescue1_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Marie_AfterRescue2_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Nora_AfterCity1_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Nora_AfterCity2_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Nora_AfterCrypt_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Nora_AfterMine_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Nora_AfterRescue_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTown
@@ -179,15 +190,44 @@ _Devices_sDevice_arr:
 
 .EXPORT DataA_Dialog_MermaidHut5Marie_sDialog
 .PROC DataA_Dialog_MermaidHut5Marie_sDialog
-    ;; TODO: Report on what the mermaids are up to throughout the game.
-    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_u8_arr
+    dlg_IfSet BreakerCity, _AfterCity_sDialog
+    dlg_IfSet BreakerMine, _AfterMine_sDialog
+    dlg_IfSet BreakerCrypt, _AfterCrypt_sDialog
+_AfterRescue_sDialog:
+    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterRescue1_u8_arr
+    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterRescue2_u8_arr
+    dlg_Done
+_AfterCrypt_sDialog:
+    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterCrypt1_u8_arr
+    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterCrypt2_u8_arr
+    dlg_Done
+_AfterMine_sDialog:
+    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterMine_u8_arr
+    dlg_Done
+_AfterCity_sDialog:
+    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterCity1_u8_arr
+    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterCity2_u8_arr
+    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterCity3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_MermaidHut5Nora_sDialog
 .PROC DataA_Dialog_MermaidHut5Nora_sDialog
-    ;; TODO: at some point in the game, change dialog
-    dlg_Text ChildNora, DataA_Text1_MermaidHut5Nora_u8_arr
+    dlg_IfSet BreakerCity, _AfterCity_sDialog
+    dlg_IfSet BreakerMine, _AfterMine_sDialog
+    dlg_IfSet BreakerCrypt, _AfterCrypt_sDialog
+_AfterRescue_sDialog:
+    dlg_Text ChildNora, DataA_Text1_MermaidHut5Nora_AfterRescue_u8_arr
+    dlg_Done
+_AfterCrypt_sDialog:
+    dlg_Text ChildNora, DataA_Text1_MermaidHut5Nora_AfterCrypt_u8_arr
+    dlg_Done
+_AfterMine_sDialog:
+    dlg_Text ChildNora, DataA_Text1_MermaidHut5Nora_AfterMine_u8_arr
+    dlg_Done
+_AfterCity_sDialog:
+    dlg_Text ChildNora, DataA_Text1_MermaidHut5Nora_AfterCity1_u8_arr
+    dlg_Text ChildNora, DataA_Text1_MermaidHut5Nora_AfterCity2_u8_arr
     dlg_Done
 .ENDPROC
 

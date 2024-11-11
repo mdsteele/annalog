@@ -866,7 +866,6 @@ _HitEye:
 _HitClosedEye:
     ;; If the hit eye is closed, shake the room and switch the boss to Angry
     ;; mode.
-    ;; TODO: Perhaps only if not in spray mode?
     lda #kBossAngrySpikeCooldown * kBossAngryNumSpikes  ; param: num frames
     jsr Func_ShakeRoom  ; preserves X
     lda #eBossMode::Angry
