@@ -29,7 +29,7 @@
 
 ;;; SFX sequence data for the "menu cancel" sound effect.
 .PROC Data_MenuCancel_sSfx
-    sfx_SetAll bEnvelope::Duty18 | bEnvelope::NoLength | 1, 0, $0180
+    sfx_SetAll bEnvelope::Duty18 | bEnvelope::NoLength | 1, kNoSweep, $0180
     sfx_Wait 5
     sfx_SetEnvTimer bEnvelope::Duty14 | bEnvelope::NoLength | 1, $01e0
     sfx_Wait 5
@@ -38,7 +38,7 @@
 
 ;;; SFX sequence data for the "menu confirm" sound effect.
 .PROC Data_MenuConfirm_sSfx
-    sfx_SetAll bEnvelope::Duty12 | bEnvelope::NoLength | 1, 0, $0180
+    sfx_SetAll bEnvelope::Duty12 | bEnvelope::NoLength | 1, kNoSweep, $0180
     sfx_Wait 5
     sfx_SetEnvTimer bEnvelope::Duty14 | bEnvelope::NoLength | 1, $0120
     sfx_Wait 5
@@ -47,7 +47,7 @@
 
 ;;; SFX data for the "menu move" sound effect.
 .PROC Data_MenuMove_sSfx
-    sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 0, 0, $01a0
+    sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 0, kNoSweep, $01a0
     sfx_Wait 3
     sfx_End
 .ENDPROC

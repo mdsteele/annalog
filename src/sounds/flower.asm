@@ -42,7 +42,7 @@
 
 ;;; SFX data for the "pick up flower" sound effect.
 .PROC Data_PickUpFlower_sSfx
-    sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 3, 0, $00d2
+    sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 3, kNoSweep, $00d2
     sfx_Wait 3
     sfx_SetTimer $00a9
     sfx_Wait 3

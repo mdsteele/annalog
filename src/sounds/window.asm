@@ -43,7 +43,7 @@
     .linecont +
     sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | \
                 bEnvelope::ConstVol | 5), \
-               (pulse_sweep -2, 0), $03ff
+               (pulse_sweep -2, 0), $0400
     sfx_Wait 15
     sfx_End
     .linecont -

@@ -29,7 +29,7 @@
 
 ;;; SFX data for the "machine end" sound effect.
 .PROC Data_MachineEnd_sSfx
-    sfx_SetAll bEnvelope::Duty12 | bEnvelope::NoLength | 3, 0, $0120
+    sfx_SetAll bEnvelope::Duty12 | bEnvelope::NoLength | 3, kNoSweep, $0120
     sfx_Wait 8
     sfx_SetTimerHi $01
     sfx_Wait 16
@@ -38,7 +38,7 @@
 
 ;;; SFX data for the "machine error" sound effect.
 .PROC Data_MachineError_sSfx
-    sfx_SetAll        bEnvelope::Duty14 | bEnvelope::NoLength | 4, 0, $0340
+    sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 4, kNoSweep, $0340
     sfx_Wait 8
     sfx_SetEnvTimerHi bEnvelope::Duty18 | bEnvelope::NoLength | 4,    $03
     sfx_Wait 8
@@ -49,9 +49,9 @@
 
 ;;; SFX data for the "machine sync" sound effect.
 .PROC Data_MachineSync_sSfx
-    sfx_SetAll      bEnvelope::Duty18 | bEnvelope::NoLength | 3, 0, $0120
+    sfx_SetAll bEnvelope::Duty18 | bEnvelope::NoLength | 3, kNoSweep, $0120
     sfx_Wait 5
-    sfx_SetEnvTimer bEnvelope::Duty14 | bEnvelope::NoLength | 3,    $00e0
+    sfx_SetEnvTimer bEnvelope::Duty14 | bEnvelope::NoLength | 3,      $00e0
     sfx_Wait 10
     sfx_End
 .ENDPROC

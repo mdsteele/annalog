@@ -30,9 +30,9 @@
 
 ;;; SFX data for the "metallic clang" sound effect.
 .PROC Data_MetallicClang_sSfx
-    sfx_SetAll      bEnvelope::Duty18 | bEnvelope::NoLength | 7, 0, $00f7
+    sfx_SetAll bEnvelope::Duty18 | bEnvelope::NoLength | 7, kNoSweep, $00f7
     sfx_Wait 4
-    sfx_SetEnvTimer bEnvelope::Duty14 | bEnvelope::NoLength | 9,    $00f5
+    sfx_SetEnvTimer bEnvelope::Duty14 | bEnvelope::NoLength | 9,      $00f5
     sfx_Wait 40
     sfx_End
 .ENDPROC

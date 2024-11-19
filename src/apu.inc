@@ -68,15 +68,28 @@ Hw_Channels_sChanRegs_arr5 = $4000
 
 ;;;=========================================================================;;;
 
+.SCOPE bSweep
+    Enable     = %10000000
+    PeriodMask = %01110000
+    Negate     = %00001000
+    ShiftMask  = %00000111
+.ENDSCOPE
+
 ;;; Constructs a frequency sweep byte for a pulse channel from a shift value
 ;;; (which must range from -7 to 7) and a period value (which must range from 0
 ;;; to 7).
 .LINECONT +
-.DEFINE pulse_sweep(SHIFT, PERIOD) (((SHIFT) <> 0) * \
-    ($80 | ((PERIOD) << 4) | \
+.DEFINE pulse_sweep(SHIFT, PERIOD) \
+    (((SHIFT) <> 0) * (bSweep::Enable | ((PERIOD) << 4) | \
      (((SHIFT) < 0) * ($0f & (SHIFT)) + \
-      ((SHIFT) > 0) * (8 - (SHIFT)))))
+      ((SHIFT) >= 0) * (8 - (SHIFT)))))
 .LINECONT -
+
+;;; The frequency sweep byte to set for pulse channel to disable the sweep
+;;; unit.  Note that a value of $00 only *mostly* disables the sweep unit, as
+;;; it will disable sweep but still effectively mute tones with a timer value
+;;; of $400 or more (see https://www.nesdev.org/wiki/APU_Sweep#Muting).
+kNoSweep = bSweep::Negate
 
 ;;;=========================================================================;;;
 

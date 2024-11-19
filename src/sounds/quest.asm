@@ -30,7 +30,7 @@
 
 ;;; SFX data for the "quest marker" sound effect.
 .PROC Data_QuestMarker_sSfx
-    sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 4, 0, $011c
+    sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 4, kNoSweep, $011c
     sfx_Wait 5
     sfx_SetTimer $0152
     sfx_Wait 5
