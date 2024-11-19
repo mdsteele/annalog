@@ -19,8 +19,8 @@
 
 ;;; The initial value to set in Ram_DeviceAnim_u8_arr when animating various
 ;;; breaker devices.
-kBreakerRisingDeviceAnimStart = 63
-kBreakerDoneDeviceAnimStart   = 31
+.DEFINE kBreakerRisingDeviceAnimStart 63
+kBreakerDoneDeviceAnimStart = 31
 
 ;;; The horizontal mod-16 offset within a breaker device's block that the
 ;;; player avatar should be positioned at when activing a breaker.

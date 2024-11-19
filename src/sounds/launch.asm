@@ -18,12 +18,11 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Ram_Sound_sChanSfx_arr
-.IMPORTZP Zp_Next_sChanSfx_arr
+.IMPORT Func_PlaySfxBytecodeNoise
+.IMPORTZP Zp_AudioTmp_byte
 
 ;;;=========================================================================;;;
 
@@ -34,32 +33,29 @@ kSfxLaunchDurationFrames = $1c
 
 .SEGMENT "PRG8"
 
-;;; SFX function for a rocket launch sound.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X, T0+
-.EXPORT Func_SfxLaunch
-.PROC Func_SfxLaunch
-    lda Ram_Sound_sChanSfx_arr + eChan::Noise + sChanSfx::Timer_u8
-    bne _Continue
-    sec  ; set C to indicate that the sound is finished
-    rts
-_Continue:
-    pha
+;;; SFX data for the "rocket launch" sound effect.
+.PROC Data_Launch_sSfx
+    sfx_Func _Func
+    sfx_End
+_Func:
+    sty Zp_AudioTmp_byte  ; frames so far
+    lda #kSfxLaunchDurationFrames
+    sub Zp_AudioTmp_byte  ; frames so far
+    beq @stop
     div #2
     ora #bEnvelope::NoLength | bEnvelope::ConstVol
     sta Hw_NoiseEnvelope_wo
-    pla
-    rsub #kSfxLaunchDurationFrames
-    cmp #$0f
-    blt @setPeriod
-    lda #$0f
-    @setPeriod:
-    sta Hw_NoisePeriod_wo
     lda #0
     sta Hw_NoiseLength_wo
-    dec Ram_Sound_sChanSfx_arr + eChan::Noise + sChanSfx::Timer_u8
+    cpy #$0f
+    blt @setPeriod
+    ldy #$0f
+    @setPeriod:
+    sty Hw_NoisePeriod_wo
     clc  ; clear C to indicate that the sound is still going
+    rts
+    @stop:
+    sec  ; set C to indicate that the sound is finished
     rts
 .ENDPROC
 
@@ -68,14 +64,11 @@ _Continue:
 .SEGMENT "PRGA_Machine"
 
 ;;; Starts playing a rocket launch sound.
-;;; @preserve X, Y, T0+
+;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxLaunch
 .PROC FuncA_Machine_PlaySfxLaunch
-    lda #kSfxLaunchDurationFrames
-    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Timer_u8
-    lda #eSound::Launch
-    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Sfx_eSound
-    rts
+    ldya #Data_Launch_sSfx
+    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

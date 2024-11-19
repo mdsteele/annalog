@@ -18,36 +18,27 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequenceNoise
+.IMPORT Func_PlaySfxBytecodeNoise
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "small thud" sound effect.
-.PROC Data_ThudSmall_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 6
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 1
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $000c
-    D_END
-    .byte 0
+;;; SFX data for the "small thud" sound effect.
+.PROC Data_ThudSmall_sSfx
+    sfx_SetEnvTimer bEnvelope::NoLength | 1, $000c
+    sfx_Wait 6
+    sfx_End
 .ENDPROC
 
-;;; SFX sequence data for the "big thud" sound effect.
-.PROC Data_ThudBig_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 24
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 5
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $000d
-    D_END
-    .byte 0
+;;; SFX data for the "big thud" sound effect.
+.PROC Data_ThudBig_sSfx
+    sfx_SetEnvTimer bEnvelope::NoLength | 5, $000d
+    sfx_Wait 24
+    sfx_End
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -61,8 +52,8 @@
 .PROC FuncA_Room_PlaySfxThudSmall
     txa
     pha
-    ldya #Data_ThudSmall_sSfxSeq_arr
-    jsr Func_PlaySfxSequenceNoise  ; preserves T0+
+    ldya #Data_ThudSmall_sSfx
+    jsr Func_PlaySfxBytecodeNoise  ; preserves T0+
     pla
     tax
     rts
@@ -76,8 +67,8 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxThudBig
 .PROC FuncA_Machine_PlaySfxThudBig
-    ldya #Data_ThudBig_sSfxSeq_arr
-    jmp Func_PlaySfxSequenceNoise  ; preserves T0+
+    ldya #Data_ThudBig_sSfx
+    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

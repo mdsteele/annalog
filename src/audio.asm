@@ -50,7 +50,7 @@
     Next_bChain_ptr .addr
     ;; A pointer to the next note in the current phrase to execute once the
     ;; current note finishes.
-    PhraseNext_ptr   .addr
+    PhraseNext_ptr  .addr
 .ENDSTRUCT
 
 ;;; Assert that all the channel structs we use are exactly four bytes.  This
@@ -116,10 +116,10 @@ Zp_CurrentChannel_bApuStatus: .res 1
 
 ;;; Temporary variables that any audio-thread function can use, including
 ;;; custom instrument and SFX functions.
-.EXPORTZP Zp_AudioTmp1_byte
-Zp_AudioTmp1_byte: .res 1
-.EXPORTZP Zp_AudioTmp2_byte
-Zp_AudioTmp2_byte: .res 1
+.EXPORTZP Zp_AudioTmp_byte
+Zp_AudioTmp_byte: .res 1
+.EXPORTZP Zp_AudioTmp_ptr
+Zp_AudioTmp_ptr: .res kSizeofAddr
 
 ;;;=========================================================================;;;
 
@@ -248,13 +248,12 @@ _StartSfx:
     stx Zp_Current_eMusic
 _CopyMusicStruct:
     lda Data_Music_sMusic_ptr_0_arr, x
-    sta Zp_AudioTmp1_byte
+    sta Zp_AudioTmp_ptr + 0
     lda Data_Music_sMusic_ptr_1_arr, x
-    sta Zp_AudioTmp2_byte
+    sta Zp_AudioTmp_ptr + 1
     ldy #.sizeof(sMusic) - 1
     @loop:
-    .assert Zp_AudioTmp1_byte + 1 = Zp_AudioTmp2_byte, error
-    lda (Zp_AudioTmp1_byte), y
+    lda (Zp_AudioTmp_ptr), y
     sta Zp_Current_sMusic, y
     dey
     .assert .sizeof(sMusic) <= $80, error
@@ -368,9 +367,9 @@ _OpcodePlay:
     ;; the current song's Parts_sPart_arr_ptr.
     .assert .sizeof(sPart) = 10, error
     mul #2
-    sta Zp_AudioTmp1_byte
+    sta Zp_AudioTmp_byte
     mul #4
-    adc Zp_AudioTmp1_byte
+    adc Zp_AudioTmp_byte
     tay  ; byte offset for part in Parts_sPart_arr_ptr
     ;; Read in the sPart struct and populate Zp_Music_sChanNext_arr.
     ldx #0
@@ -501,14 +500,14 @@ _StartNextNote:
     ;; end of the phrase.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
     beq _NoteDone
-    sta Zp_AudioTmp1_byte  ; first note byte
+    sta Zp_AudioTmp_byte  ; first note byte
     ;; Increment the channel's PhraseNext_ptr.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne @incDone
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 1, x
     @incDone:
     ;; Determine what kind of note this is.
-    bit Zp_AudioTmp1_byte  ; first note byte
+    bit Zp_AudioTmp_byte  ; first note byte
     .assert bNote::IsToneOrSame = bProc::Negative, error
     bpl _NoteInstOrRest
 _NoteToneOrSame:
@@ -532,7 +531,7 @@ _NoteToneOrSame:
     lda #$40
     bne @setSweep  ; unconditional
     @notDmc:
-    jsr Func_EnableCurrentChannel  ; preserves X and Zp_AudioTmp*_byte
+    jsr Func_EnableCurrentChannel  ; preserves X and Zp_AudioTmp*
     lda #0
     @setSweep:
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Sweep_wo, x
@@ -543,7 +542,7 @@ _NoteToneOrSame:
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     ;; Mask the first byte of the TONE/SAME note and use it as the TimerHi
     ;; value.
-    lda Zp_AudioTmp1_byte  ; first note byte
+    lda Zp_AudioTmp_byte  ; first note byte
     and #bNote::ToneSameMask
     sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
@@ -551,7 +550,7 @@ _NoteToneOrSame:
     ;; registers (because otherwise it will restart the previous sample).
     cpx #eChan::Dmc
     bne @enableDone
-    jsr Func_EnableCurrentChannel  ; preserves X and Zp_AudioTmp*_byte
+    jsr Func_EnableCurrentChannel  ; preserves X and Zp_AudioTmp*
     @enableDone:
     ;; Increment the channel's PhraseNext_ptr a second time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
@@ -560,7 +559,7 @@ _NoteToneOrSame:
     @incDone2:
     ;; If this is a SAME note, there's no third byte; we just reuse the
     ;; previous duration value.
-    bit Zp_AudioTmp1_byte  ; first note byte
+    bit Zp_AudioTmp_byte  ; first note byte
     .assert bNote::IsSame = bProc::Overflow, error
     bvs _ContinueTone
     ;; Read the third byte of the TONE note and use it as the note duration.
@@ -611,7 +610,7 @@ _SkipToneOrSame:
     @incDone2:
     ;; If this is a SAME note, there's no third byte; we just reuse the
     ;; previous duration value.
-    bit Zp_AudioTmp1_byte  ; first note byte
+    bit Zp_AudioTmp_byte  ; first note byte
     .assert bNote::IsSame = bProc::Overflow, error
     bvs @incDone3
     ;; Read the third byte of the TONE note and use it as the note duration.
@@ -677,7 +676,7 @@ _SoundFinished:
 
 ;;; Disables the current APU channel.
 ;;; @prereq Zp_CurrentChannel_bApuStatus is initialized.
-;;; @preserve C, X, Y, Zp_AudioTmp*_byte
+;;; @preserve C, X, Y, Zp_AudioTmp*
 .PROC Func_DisableCurrentChannel
     lda Zp_CurrentChannel_bApuStatus
     eor #$ff
@@ -689,7 +688,7 @@ _SoundFinished:
 
 ;;; Enables the current APU channel.
 ;;; @prereq Zp_CurrentChannel_bApuStatus is initialized.
-;;; @preserve C, X, Y, Zp_AudioTmp*_byte
+;;; @preserve C, X, Y, Zp_AudioTmp*
 .PROC Func_EnableCurrentChannel
     lda Zp_CurrentChannel_bApuStatus
     ora Zp_ActiveChannels_bApuStatus

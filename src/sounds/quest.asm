@@ -22,57 +22,25 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Ram_Sound_sChanSfx_arr
-.IMPORTZP Zp_Next_sChanSfx_arr
-
-;;;=========================================================================;;;
-
-;;; The eChan value for the channel that Quest Marker sounds play on.
-kChannel = eChan::Pulse1
-
-;;; How slowly the envelope volume decreases (0-15).
-kQuestEnvPeriod = 4
+.IMPORT Func_PlaySfxBytecode
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX function for the quest marker jingle.  When starting this sound,
-;;; Timer_u8 and Param1_byte should be initialized to zero.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X, T0+
-.EXPORT Func_SfxQuest
-.PROC Func_SfxQuest
-    lda Ram_Sound_sChanSfx_arr + kChannel + sChanSfx::Timer_u8
-    beq _StartNote
-_ContinueNote:
-    dec Ram_Sound_sChanSfx_arr + kChannel + sChanSfx::Timer_u8
-    clc  ; clear C to indicate that the sound is still going
-    rts
-_StartNote:
-    ldy Ram_Sound_sChanSfx_arr + kChannel + sChanSfx::Param1_byte
-    cpy #5
-    bge _SoundFinished
-    inc Ram_Sound_sChanSfx_arr + kChannel + sChanSfx::Param1_byte
-    lda _NoteDuration_u8_arr5, y
-    sta Ram_Sound_sChanSfx_arr + kChannel + sChanSfx::Timer_u8
-    lda #bEnvelope::Duty14 | bEnvelope::NoLength | kQuestEnvPeriod
-    sta Hw_Channels_sChanRegs_arr5 + kChannel + sChanRegs::Envelope_wo
-    lda #0
-    sta Hw_Channels_sChanRegs_arr5 + kChannel + sChanRegs::Sweep_wo
-    lda _NoteFreq_u16_0_arr5, y
-    sta Hw_Channels_sChanRegs_arr5 + kChannel + sChanRegs::TimerLo_wo
-    lda _NoteFreq_u16_1_arr5, y
-    sta Hw_Channels_sChanRegs_arr5 + kChannel + sChanRegs::TimerHi_wo
-    clc  ; clear C to indicate that the sound is still going
-    rts
-_SoundFinished:
-    sec  ; set C to indicate that the sound is finished
-    rts
-_NoteDuration_u8_arr5: .byte 4, 4, 4, 4, 16
-_NoteFreq_u16_0_arr5: .byte $1c, $52, $1c, $52, $d5
-_NoteFreq_u16_1_arr5: .byte $01, $01, $01, $01, $00
+;;; SFX data for the "quest marker" sound effect.
+.PROC Data_QuestMarker_sSfx
+    sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 4, 0, $011c
+    sfx_Wait 5
+    sfx_SetTimer $0152
+    sfx_Wait 5
+    sfx_SetTimer $011c
+    sfx_Wait 5
+    sfx_SetTimer $0152
+    sfx_Wait 5
+    sfx_SetTimer $00d5
+    sfx_Wait 15
+    sfx_End
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -81,15 +49,12 @@ _NoteFreq_u16_1_arr5: .byte $01, $01, $01, $01, $00
 
 ;;; Starts playing the jingle sound for when a quest marker is added to the
 ;;; minimap.
-;;; @preserve X, Y, T0+
+;;; @preserve T0+
 .EXPORT FuncA_Dialog_PlaySfxQuestMarker
 .PROC FuncA_Dialog_PlaySfxQuestMarker
-    lda #0
-    sta Zp_Next_sChanSfx_arr + kChannel + sChanSfx::Timer_u8
-    sta Zp_Next_sChanSfx_arr + kChannel + sChanSfx::Param1_byte
-    lda #eSound::Quest
-    sta Zp_Next_sChanSfx_arr + kChannel + sChanSfx::Sfx_eSound
-    rts
+    ldx #eChan::Pulse1
+    ldya #Data_QuestMarker_sSfx
+    jmp Func_PlaySfxBytecode  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

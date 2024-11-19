@@ -18,25 +18,20 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequenceNoise
+.IMPORT Func_PlaySfxBytecodeNoise
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "crack" sound effect.
-.PROC Data_Crack_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 6
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 1
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $000b
-    D_END
-    .byte 0
+;;; SFX data for the "crack" sound effect.
+.PROC Data_Crack_sSfx
+    sfx_SetEnvTimer bEnvelope::NoLength | 1, $000b
+    sfx_Wait 6
+    sfx_End
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -47,8 +42,8 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Room_PlaySfxCrack
 .PROC FuncA_Room_PlaySfxCrack
-    ldya #Data_Crack_sSfxSeq_arr
-    jmp Func_PlaySfxSequenceNoise  ; preserves T0+
+    ldya #Data_Crack_sSfx
+    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

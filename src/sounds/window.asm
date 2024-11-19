@@ -18,62 +18,51 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequencePulse2
+.IMPORT Func_PlaySfxBytecodePulse2
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "window close" sound effect.
-.PROC Data_WindowClose_sSfxSeq_arr
+;;; SFX data for the "window close" sound effect.
+.PROC Data_WindowClose_sSfx
     .linecont +
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 15
-    d_byte Env_bEnvelope, \
-           bEnvelope::Duty14 | bEnvelope::NoLength | bEnvelope::ConstVol | 5
-    d_byte Sweep_byte, pulse_sweep +2, 0
-    d_word Timer_u16, $0360
-    D_END
-    .byte 0
+    sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | \
+                bEnvelope::ConstVol | 5), \
+               (pulse_sweep +2, 0), $0360
+    sfx_Wait 15
+    sfx_End
     .linecont -
 .ENDPROC
 
-;;; SFX sequence data for the "window open" sound effect.
-.PROC Data_WindowOpen_sSfxSeq_arr
+;;; SFX data for the "window open" sound effect.
+.PROC Data_WindowOpen_sSfx
     .linecont +
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 15
-    d_byte Env_bEnvelope, \
-           bEnvelope::Duty14 | bEnvelope::NoLength | bEnvelope::ConstVol | 5
-    d_byte Sweep_byte, pulse_sweep -2, 0
-    d_word Timer_u16, $03ff
-    D_END
-    .byte 0
+    sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | \
+                bEnvelope::ConstVol | 5), \
+               (pulse_sweep -2, 0), $03ff
+    sfx_Wait 15
+    sfx_End
     .linecont -
 .ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRG8"
 
 ;;; Starts playing the sound for closing the UI window.
 ;;; @preserve T0+
 .EXPORT Func_PlaySfxWindowClose
 .PROC Func_PlaySfxWindowClose
-    ldya #Data_WindowClose_sSfxSeq_arr
-    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_WindowClose_sSfx
+    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for opening the UI window.
 ;;; @preserve T0+
 .EXPORT Func_PlaySfxWindowOpen
 .PROC Func_PlaySfxWindowOpen
-    ldya #Data_WindowOpen_sSfxSeq_arr
-    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_WindowOpen_sSfx
+    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

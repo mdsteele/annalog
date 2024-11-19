@@ -18,43 +18,30 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../devices/breaker.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequenceNoise
+.IMPORT Func_PlaySfxBytecodeNoise
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "flip breaker" sound effect.
-.PROC Data_FlipBreaker_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 8
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 3
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0002
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 16
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 5
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $008d
-    D_END
-    .byte 0
+;;; SFX data for the "flip breaker" sound effect.
+.PROC Data_FlipBreaker_sSfx
+    sfx_SetEnvTimer bEnvelope::NoLength | 3, $0002
+    sfx_Wait 8
+    sfx_SetEnvTimer bEnvelope::NoLength | 5, $008d
+    sfx_Wait 16
+    sfx_End
 .ENDPROC
 
-;;; SFX sequence data for the "breaker rising" sound effect.
-.PROC Data_BreakerRising_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, kBreakerRisingDeviceAnimStart
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 0
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $008e
-    D_END
-    .byte 0
+;;; SFX data for the "breaker rising" sound effect.
+.PROC Data_BreakerRising_sSfx
+    sfx_SetEnvTimer bEnvelope::NoLength | 0, $008e
+    sfx_Wait kBreakerRisingDeviceAnimStart
+    sfx_End
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -65,16 +52,16 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Cutscene_PlaySfxFlipBreaker
 .PROC FuncA_Cutscene_PlaySfxFlipBreaker
-    ldya #Data_FlipBreaker_sSfxSeq_arr
-    jmp Func_PlaySfxSequenceNoise  ; preserves T0+
+    ldya #Data_FlipBreaker_sSfx
+    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for when a breaker device rises from the floor.
 ;;; @preserve T0+
 .EXPORT FuncA_Cutscene_PlaySfxBreakerRising
 .PROC FuncA_Cutscene_PlaySfxBreakerRising
-    ldya #Data_BreakerRising_sSfxSeq_arr
-    jmp Func_PlaySfxSequenceNoise  ; preserves T0+
+    ldya #Data_BreakerRising_sSfx
+    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -85,8 +72,8 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Room_PlaySfxBreakerRising
 .PROC FuncA_Room_PlaySfxBreakerRising
-    ldya #Data_BreakerRising_sSfxSeq_arr
-    jmp Func_PlaySfxSequenceNoise  ; preserves T0+
+    ldya #Data_BreakerRising_sSfx
+    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

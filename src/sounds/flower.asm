@@ -22,63 +22,35 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequence
-.IMPORT Func_PlaySfxSequenceNoise
+.IMPORT Func_PlaySfxBytecode
+.IMPORT Func_PlaySfxBytecodeNoise
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "break flower" sound effect.
-.PROC Data_BreakFlower_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 2
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 2
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $f883
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 2
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 2
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $f885
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 7
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 2
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $f88a
-    D_END
-    .byte 0
+;;; SFX data for the "break flower" sound effect.
+.PROC Data_BreakFlower_sSfx
+    sfx_SetEnvTimer bEnvelope::NoLength | 2, $0083
+    sfx_Wait 2
+    sfx_SetTimer $0085
+    sfx_Wait 2
+    sfx_SetTimer $008a
+    sfx_Wait 7
+    sfx_End
 .ENDPROC
 
-;;; SFX sequence data for the "pick up flower" sound effect.
-.PROC Data_PickUpFlower_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 3
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 3
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $00d2
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 3
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 3
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $00a9
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 3
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 3
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $009f
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 9
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 3
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $008e
-    D_END
-    .byte 0
+;;; SFX data for the "pick up flower" sound effect.
+.PROC Data_PickUpFlower_sSfx
+    sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 3, 0, $00d2
+    sfx_Wait 3
+    sfx_SetTimer $00a9
+    sfx_Wait 3
+    sfx_SetTimer $009f
+    sfx_Wait 3
+    sfx_SetTimer $008e
+    sfx_Wait 9
+    sfx_End
 .ENDPROC
 
 ;;; Starts playing the sound for when the player avatar breaks a flower.
@@ -89,8 +61,8 @@
     pha
     tya
     pha
-    ldya #Data_BreakFlower_sSfxSeq_arr
-    jsr Func_PlaySfxSequenceNoise  ; preserves T0+
+    ldya #Data_BreakFlower_sSfx
+    jsr Func_PlaySfxBytecodeNoise  ; preserves T0+
     pla
     tay
     pla
@@ -107,8 +79,8 @@
 .EXPORT FuncA_Avatar_PlaySfxPickUpFlower
 .PROC FuncA_Avatar_PlaySfxPickUpFlower
     ldx #eChan::Pulse1
-    ldya #Data_PickUpFlower_sSfxSeq_arr
-    jmp Func_PlaySfxSequence  ; preserves T0+
+    ldya #Data_PickUpFlower_sSfx
+    jmp Func_PlaySfxBytecode  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

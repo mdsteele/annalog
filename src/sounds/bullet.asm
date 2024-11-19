@@ -22,21 +22,17 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequenceNoise
+.IMPORT Func_PlaySfxBytecodeNoise
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "shoot bullet" sound effect.
-.PROC Data_ShootBullet_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 8
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 1
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $f803
-    D_END
-    .byte 0
+;;; SFX data for the "shoot bullet" sound effect.
+.PROC Data_ShootBullet_sSfx
+    sfx_SetEnvTimer bEnvelope::NoLength | 1, $0003
+    sfx_Wait 8
+    sfx_End
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -47,8 +43,8 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxShootBullet
 .PROC FuncA_Machine_PlaySfxShootBullet
-    ldya #Data_ShootBullet_sSfxSeq_arr
-    jmp Func_PlaySfxSequenceNoise  ; preserves T0+
+    ldya #Data_ShootBullet_sSfx
+    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

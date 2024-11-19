@@ -26,8 +26,8 @@
 
 .IMPORT Ram_Music_sChanInst_arr
 .IMPORT Ram_Music_sChanNote_arr
-.IMPORTZP Zp_AudioTmp1_byte
-.IMPORTZP Zp_AudioTmp2_byte
+.IMPORTZP Zp_AudioTmp_byte
+.IMPORTZP Zp_AudioTmp_ptr
 .IMPORTZP Zp_Current_bAudio
 
 ;;;=========================================================================;;;
@@ -97,15 +97,15 @@ _Envelope:
 .PROC Func_InstrumentPulseBasic
     lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
     and #bEnvelope::VolMask
-    sta Zp_AudioTmp1_byte  ; max volume
+    sta Zp_AudioTmp_byte  ; max volume
     lda Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
     sub Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     mul #2
     bcs @useMaxVolume
-    cmp Zp_AudioTmp1_byte  ; max volume
+    cmp Zp_AudioTmp_byte  ; max volume
     blt Func_CombineVolumeWithDuty
     @useMaxVolume:
-    lda Zp_AudioTmp1_byte  ; max volume
+    lda Zp_AudioTmp_byte  ; max volume
     bpl Func_CombineVolumeWithDuty  ; unconditional
 .ENDPROC
 
@@ -146,17 +146,17 @@ _Quiet:
 .PROC Func_InstrumentPulsePluck
     lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
     and #bEnvelope::VolMask
-    sta Zp_AudioTmp1_byte  ; max volume
+    sta Zp_AudioTmp_byte  ; max volume
     lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     cmp #2
     bge _Decay
 _Pluck:
-    lda Zp_AudioTmp1_byte  ; max volume
+    lda Zp_AudioTmp_byte  ; max volume
     ora #bEnvelope::Duty12 | bEnvelope::NoLength | bEnvelope::ConstVol
     rts
 _Decay:
     div #2
-    rsub Zp_AudioTmp1_byte  ; max volume
+    rsub Zp_AudioTmp_byte  ; max volume
     blt Func_InstrumentSilent
     fall Func_CombineVolumeWithDuty  ; preserves X
 .ENDPROC
@@ -173,11 +173,11 @@ _Decay:
     bvc @noReduce
     div #2
     @noReduce:
-    sta Zp_AudioTmp1_byte  ; volume
+    sta Zp_AudioTmp_byte  ; volume
     lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
     and #bEnvelope::DutyMask
     ora #bEnvelope::NoLength | bEnvelope::ConstVol
-    ora Zp_AudioTmp1_byte  ; volume
+    ora Zp_AudioTmp_byte  ; volume
     rts
 .ENDPROC
 
@@ -203,7 +203,7 @@ _Vibrato:
 _Envelope:
     lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
     and #bEnvelope::VolMask
-    sta Zp_AudioTmp1_byte  ; max volume
+    sta Zp_AudioTmp_byte  ; max volume
     div #2
     rsub Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     bge @decay
@@ -214,7 +214,7 @@ _Envelope:
     bne Func_CombineVolumeWithDuty  ; unconditional
     @decay:
     div #8
-    rsub Zp_AudioTmp1_byte  ; max volume
+    rsub Zp_AudioTmp_byte  ; max volume
     blt Func_InstrumentSilent
     bge Func_CombineVolumeWithDuty  ; unconditional
 _VibratoDelta_i8_arr4:
@@ -356,11 +356,10 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 .PROC Func_AudioCallInstrument
     ldy Ram_Music_sChanInst_arr + sChanInst::Instrument_eInst, x
     lda Data_Instruments_func_ptr_0_arr, y
-    sta Zp_AudioTmp1_byte
+    sta Zp_AudioTmp_ptr + 0
     lda Data_Instruments_func_ptr_1_arr, y
-    sta Zp_AudioTmp2_byte
-    .assert Zp_AudioTmp1_byte + 1 = Zp_AudioTmp2_byte, error
-    jmp (Zp_AudioTmp1_byte)
+    sta Zp_AudioTmp_ptr + 1
+    jmp (Zp_AudioTmp_ptr)
 .ENDPROC
 
 ;;; An instrument that sets a constant duty/envelope byte.  This is the default

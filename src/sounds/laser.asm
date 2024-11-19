@@ -22,21 +22,20 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequencePulse2
+.IMPORT Func_PlaySfxBytecodePulse2
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "laser" sound effect.
-.PROC Data_Laser_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 30
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 12
-    d_byte Sweep_byte, pulse_sweep +5, 1
-    d_word Timer_u16, $0020
-    D_END
-    .byte 0
+;;; SFX data for the "laser" sound effect.
+.PROC Data_Laser_sSfx
+    .linecont +
+    sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | 12), \
+               (pulse_sweep +5, 1), $0020
+    sfx_Wait 30
+    sfx_End
+    .linecont -
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -47,8 +46,8 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxLaser
 .PROC FuncA_Machine_PlaySfxLaser
-    ldya #Data_Laser_sSfxSeq_arr
-    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_Laser_sSfx
+    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

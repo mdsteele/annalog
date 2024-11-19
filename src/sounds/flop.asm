@@ -18,27 +18,23 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequencePulse2
+.IMPORT Func_PlaySfxBytecodePulse2
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "flop down" sound effect.
-.PROC Data_FlopDown_sSfxSeq_arr
+;;; SFX data for the "flop down" sound effect.
+.PROC Data_FlopDown_sSfx
     .linecont +
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 6
-    d_byte Env_bEnvelope, \
-           bEnvelope::Duty14 | bEnvelope::NoLength | bEnvelope::ConstVol | 12
-    d_byte Sweep_byte, pulse_sweep +6, 0
-    d_word Timer_u16, $0120
-    D_END
-    .byte 0
+    sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | \
+                bEnvelope::ConstVol | 12), \
+               (pulse_sweep +6, 0), $0120
+    sfx_Wait 6
+    sfx_End
     .linecont -
 .ENDPROC
 
@@ -49,8 +45,8 @@
 .PROC Func_PlaySfxFlopDown
     txa
     pha
-    ldya #Data_FlopDown_sSfxSeq_arr
-    jsr Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_FlopDown_sSfx
+    jsr Func_PlaySfxBytecodePulse2  ; preserves T0+
     pla
     tax
     rts

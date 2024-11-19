@@ -18,25 +18,23 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequencePulse2
+.IMPORT Func_PlaySfxBytecodePulse2
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "bounce" sound effect.
-.PROC Data_Bounce_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 6
-    d_byte Env_bEnvelope, bEnvelope::Duty18 | bEnvelope::NoLength | 3
-    d_byte Sweep_byte, pulse_sweep +5, 0
-    d_word Timer_u16, $0180
-    D_END
-    .byte 0
+;;; SFX data for the "bounce" sound effect.
+.PROC Data_Bounce_sSfx
+    .linecont +
+    sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | 3), \
+               (pulse_sweep +5, 0), $0180
+    sfx_Wait 6
+    sfx_End
+    .linecont -
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -49,8 +47,8 @@
 .PROC FuncA_Actor_PlaySfxBounce
     txa
     pha
-    ldya #Data_Bounce_sSfxSeq_arr
-    jsr Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_Bounce_sSfx
+    jsr Func_PlaySfxBytecodePulse2  ; preserves T0+
     pla
     tax
     rts

@@ -18,43 +18,30 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequenceNoise
-.IMPORT Func_PlaySfxSequencePulse2
+.IMPORT Func_PlaySfxBytecodeNoise
+.IMPORT Func_PlaySfxBytecodePulse2
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "metallic clang" sound effect.
-.PROC Data_MetallicClang_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 4
-    d_byte Env_bEnvelope, bEnvelope::Duty18 | bEnvelope::NoLength | 7
-    d_byte Sweep_byte, pulse_sweep +0, 0
-    d_word Timer_u16, $00f7
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 40
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 9
-    d_byte Sweep_byte, pulse_sweep +0, 0
-    d_word Timer_u16, $00f5
-    D_END
-    .byte 0
+;;; SFX data for the "metallic clang" sound effect.
+.PROC Data_MetallicClang_sSfx
+    sfx_SetAll      bEnvelope::Duty18 | bEnvelope::NoLength | 7, 0, $00f7
+    sfx_Wait 4
+    sfx_SetEnvTimer bEnvelope::Duty14 | bEnvelope::NoLength | 9,    $00f5
+    sfx_Wait 40
+    sfx_End
 .ENDPROC
 
-;;; SFX sequence data for the "metallic ding" sound effect.
-.PROC Data_MetallicDing_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 4
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 1
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0081
-    D_END
-    .byte 0
+;;; SFX data for the "metallic ding" sound effect.
+.PROC Data_MetallicDing_sSfx
+    sfx_SetEnvTimer bEnvelope::NoLength | 1, $0081
+    sfx_Wait 4
+    sfx_End
 .ENDPROC
 
 ;;; Starts playing a metallic "ding" sound.
@@ -63,8 +50,8 @@
 .PROC Func_PlaySfxMetallicDing
     txa
     pha
-    ldya #Data_MetallicDing_sSfxSeq_arr
-    jsr Func_PlaySfxSequenceNoise  ; preserves T0+
+    ldya #Data_MetallicDing_sSfx
+    jsr Func_PlaySfxBytecodeNoise  ; preserves T0+
     pla
     tax
     rts
@@ -78,8 +65,8 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Room_PlaySfxMetallicClang
 .PROC FuncA_Room_PlaySfxMetallicClang
-    ldya #Data_MetallicClang_sSfxSeq_arr
-    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_MetallicClang_sSfx
+    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

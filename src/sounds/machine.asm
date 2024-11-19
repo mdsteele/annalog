@@ -18,71 +18,42 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequencePulse2
+.IMPORT Func_PlaySfxBytecodePulse2
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "machine end" sound effect.
-.PROC Data_MachineEnd_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 8
-    d_byte Env_bEnvelope, bEnvelope::Duty12 | bEnvelope::NoLength | 3
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0120
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 16
-    d_byte Env_bEnvelope, bEnvelope::Duty12 | bEnvelope::NoLength | 3
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0120
-    D_END
-    .byte 0
+;;; SFX data for the "machine end" sound effect.
+.PROC Data_MachineEnd_sSfx
+    sfx_SetAll bEnvelope::Duty12 | bEnvelope::NoLength | 3, 0, $0120
+    sfx_Wait 8
+    sfx_SetTimerHi $01
+    sfx_Wait 16
+    sfx_End
 .ENDPROC
 
-;;; SFX sequence data for the "machine error" sound effect.
-.PROC Data_MachineError_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 8
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 4
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0340
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 8
-    d_byte Env_bEnvelope, bEnvelope::Duty18 | bEnvelope::NoLength | 4
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0340
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 8
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 4
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0340
-    D_END
-    .byte 0
+;;; SFX data for the "machine error" sound effect.
+.PROC Data_MachineError_sSfx
+    sfx_SetAll        bEnvelope::Duty14 | bEnvelope::NoLength | 4, 0, $0340
+    sfx_Wait 8
+    sfx_SetEnvTimerHi bEnvelope::Duty18 | bEnvelope::NoLength | 4,    $03
+    sfx_Wait 8
+    sfx_SetEnvTimerHi bEnvelope::Duty14 | bEnvelope::NoLength | 4,    $03
+    sfx_Wait 8
+    sfx_End
 .ENDPROC
 
-;;; SFX sequence data for the "machine sync" sound effect.
-.PROC Data_MachineSync_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 5
-    d_byte Env_bEnvelope, bEnvelope::Duty18 | bEnvelope::NoLength | 3
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0120
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 10
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 3
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $00e0
-    D_END
-    .byte 0
+;;; SFX data for the "machine sync" sound effect.
+.PROC Data_MachineSync_sSfx
+    sfx_SetAll      bEnvelope::Duty18 | bEnvelope::NoLength | 3, 0, $0120
+    sfx_Wait 5
+    sfx_SetEnvTimer bEnvelope::Duty14 | bEnvelope::NoLength | 3,    $00e0
+    sfx_Wait 10
+    sfx_End
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -93,24 +64,24 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxEnd
 .PROC FuncA_Machine_PlaySfxEnd
-    ldya #Data_MachineEnd_sSfxSeq_arr
-    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_MachineEnd_sSfx
+    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for when a machine encounters an error.
 ;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxError
 .PROC FuncA_Machine_PlaySfxError
-    ldya #Data_MachineError_sSfxSeq_arr
-    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_MachineError_sSfx
+    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for when all machines SYNC up.
 ;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxSync
 .PROC FuncA_Machine_PlaySfxSync
-    ldya #Data_MachineSync_sSfxSeq_arr
-    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_MachineSync_sSfx
+    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

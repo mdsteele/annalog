@@ -18,25 +18,20 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequenceNoise
+.IMPORT Func_PlaySfxBytecodeNoise
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "prison gate" sound effect.
-.PROC Data_PrisonGate_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 2
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 0
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0002
-    D_END
-    .byte 0
+;;; SFX data for the "prison gate" sound effect.
+.PROC Data_PrisonGate_sSfx
+    sfx_SetEnvTimer bEnvelope::NoLength | 0, $0002
+    sfx_Wait 2
+    sfx_End
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -47,8 +42,8 @@
 ;;; @preserve T0+
 .EXPORT FuncC_Prison_PlaySfxPrisonGate
 .PROC FuncC_Prison_PlaySfxPrisonGate
-    ldya #Data_PrisonGate_sSfxSeq_arr
-    jmp Func_PlaySfxSequenceNoise  ; preserves T0+
+    ldya #Data_PrisonGate_sSfx
+    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

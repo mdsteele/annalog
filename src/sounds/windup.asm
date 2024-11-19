@@ -22,23 +22,20 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequencePulse2
+.IMPORT Func_PlaySfxBytecodePulse2
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "windup" sound effect.
-.PROC Data_Windup_sSfxSeq_arr
+;;; SFX data for the "windup" sound effect.
+.PROC Data_Windup_sSfx
     .linecont +
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 85
-    d_byte Env_bEnvelope, \
-           bEnvelope::Duty18 | bEnvelope::NoLength | bEnvelope::ConstVol | 15
-    d_byte Sweep_byte, pulse_sweep -2, 1
-    d_word Timer_u16, $0280
-    D_END
-    .byte 0
+    sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | \
+                bEnvelope::ConstVol | 15), \
+               (pulse_sweep -2, 1), $0280
+    sfx_Wait 85
+    sfx_End
     .linecont -
 .ENDPROC
 
@@ -50,8 +47,8 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Room_PlaySfxWindup
 .PROC FuncA_Room_PlaySfxWindup
-    ldya #Data_Windup_sSfxSeq_arr
-    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_Windup_sSfx
+    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

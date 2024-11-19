@@ -18,87 +18,62 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequencePulse2
+.IMPORT Func_PlaySfxBytecodePulse2
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
 ;;; SFX sequence data for the "menu cancel" sound effect.
-.PROC Data_MenuCancel_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 5
-    d_byte Env_bEnvelope, bEnvelope::Duty18 | bEnvelope::NoLength | 1
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0180
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 5
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 1
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $01e0
-    D_END
-    .byte 0
+.PROC Data_MenuCancel_sSfx
+    sfx_SetAll bEnvelope::Duty18 | bEnvelope::NoLength | 1, 0, $0180
+    sfx_Wait 5
+    sfx_SetEnvTimer bEnvelope::Duty14 | bEnvelope::NoLength | 1, $01e0
+    sfx_Wait 5
+    sfx_End
 .ENDPROC
 
 ;;; SFX sequence data for the "menu confirm" sound effect.
-.PROC Data_MenuConfirm_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 5
-    d_byte Env_bEnvelope, bEnvelope::Duty12 | bEnvelope::NoLength | 1
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0180
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 5
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 1
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0120
-    D_END
-    .byte 0
+.PROC Data_MenuConfirm_sSfx
+    sfx_SetAll bEnvelope::Duty12 | bEnvelope::NoLength | 1, 0, $0180
+    sfx_Wait 5
+    sfx_SetEnvTimer bEnvelope::Duty14 | bEnvelope::NoLength | 1, $0120
+    sfx_Wait 5
+    sfx_End
 .ENDPROC
 
-;;; SFX sequence data for the "menu move" sound effect.
-.PROC Data_MenuMove_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 3
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 0
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $01a0
-    D_END
-    .byte 0
+;;; SFX data for the "menu move" sound effect.
+.PROC Data_MenuMove_sSfx
+    sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 0, 0, $01a0
+    sfx_Wait 3
+    sfx_End
 .ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRG8"
 
 ;;; Starts playing the sound for cancelling in a menu.
 ;;; @preserve T0+
 .EXPORT Func_PlaySfxMenuCancel
 .PROC Func_PlaySfxMenuCancel
-    ldya #Data_MenuCancel_sSfxSeq_arr
-    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_MenuCancel_sSfx
+    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for confirming a menu item.
 ;;; @preserve T0+
 .EXPORT Func_PlaySfxMenuConfirm
 .PROC Func_PlaySfxMenuConfirm
-    ldya #Data_MenuConfirm_sSfxSeq_arr
-    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_MenuConfirm_sSfx
+    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for moving the cursor in a menu.
 ;;; @preserve T0+
 .EXPORT Func_PlaySfxMenuMove
 .PROC Func_PlaySfxMenuMove
-    ldya #Data_MenuMove_sSfxSeq_arr
-    jmp Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_MenuMove_sSfx
+    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -18,49 +18,28 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequenceNoise
+.IMPORT Func_PlaySfxBytecodeNoise
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "shoot fire" sound effect.
-.PROC Data_ShootFire_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 3
-    d_byte Env_bEnvelope, bEnvelope::NoLength | bEnvelope::ConstVol | 4
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $000a
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 3
-    d_byte Env_bEnvelope, bEnvelope::NoLength | bEnvelope::ConstVol | 8
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $000b
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 3
-    d_byte Env_bEnvelope, bEnvelope::NoLength | bEnvelope::ConstVol | 12
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $000c
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 3
-    d_byte Env_bEnvelope, bEnvelope::NoLength | bEnvelope::ConstVol | 8
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $000d
-    D_END
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 3
-    d_byte Env_bEnvelope, bEnvelope::NoLength | bEnvelope::ConstVol | 4
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $000e
-    D_END
-    .byte 0
+;;; SFX data for the "shoot fire" sound effect.
+.PROC Data_ShootFire_sSfx
+    sfx_SetEnvTimer   bEnvelope::NoLength | bEnvelope::ConstVol |  4, $000a
+    sfx_Wait 3
+    sfx_SetEnvTimerLo bEnvelope::NoLength | bEnvelope::ConstVol |  8,   $0b
+    sfx_Wait 3
+    sfx_SetEnvTimerLo bEnvelope::NoLength | bEnvelope::ConstVol | 12,   $0c
+    sfx_Wait 3
+    sfx_SetEnvTimerLo bEnvelope::NoLength | bEnvelope::ConstVol |  8,   $0d
+    sfx_Wait 3
+    sfx_SetEnvTimerLo bEnvelope::NoLength | bEnvelope::ConstVol |  4,   $0e
+    sfx_Wait 3
+    sfx_End
 .ENDPROC
 
 ;;; Starts playing the sound for when something shoots a firey projectile.
@@ -69,8 +48,8 @@
 .PROC Func_PlaySfxShootFire
     txa
     pha
-    ldya #Data_ShootFire_sSfxSeq_arr
-    jsr Func_PlaySfxSequenceNoise  ; preserves T0+
+    ldya #Data_ShootFire_sSfx
+    jsr Func_PlaySfxBytecodeNoise  ; preserves T0+
     pla
     tax
     rts

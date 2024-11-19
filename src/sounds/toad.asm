@@ -18,25 +18,23 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequencePulse2
+.IMPORT Func_PlaySfxBytecodePulse2
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for the "toad jump" sound effect.
-.PROC Data_ToadJump_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 24
-    d_byte Env_bEnvelope, bEnvelope::Duty14 | bEnvelope::NoLength | 5
-    d_byte Sweep_byte, pulse_sweep -2, 0
-    d_word Timer_u16, $03e0
-    D_END
-    .byte 0
+;;; SFX data for the "toad jump" sound effect.
+.PROC Data_ToadJump_sSfx
+    .linecont +
+    sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 5, \
+               (pulse_sweep -2, 0), $03e0
+    sfx_Wait 24
+    sfx_End
+    .linecont -
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -49,8 +47,8 @@
 .PROC FuncA_Actor_PlaySfxToadJump
     txa
     pha
-    ldya #Data_ToadJump_sSfxSeq_arr
-    jsr Func_PlaySfxSequencePulse2  ; preserves T0+
+    ldya #Data_ToadJump_sSfx
+    jsr Func_PlaySfxBytecodePulse2  ; preserves T0+
     pla
     tax
     rts

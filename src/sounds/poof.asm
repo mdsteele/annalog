@@ -18,40 +18,32 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxSequenceNoise
-.IMPORT Func_PlaySfxSequencePulse2
+.IMPORT Func_PlaySfxBytecodeNoise
+.IMPORT Func_PlaySfxBytecodePulse2
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX sequence data for pulse channel portion of the "poof" sound effect.
-.PROC Data_PoofPulse_sSfxSeq_arr
+;;; SFX data for the pulse channel portion of the "poof" sound effect.
+.PROC Data_PoofPulse_sSfx
     .linecont +
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 12
-    d_byte Env_bEnvelope, \
-           bEnvelope::Duty12 | bEnvelope::NoLength | bEnvelope::ConstVol | 8
-    d_byte Sweep_byte, pulse_sweep +5, 0
-    d_word Timer_u16, $0110
-    D_END
-    .byte 0
+    sfx_SetAll (bEnvelope::Duty12 | bEnvelope::NoLength | \
+                bEnvelope::ConstVol | 8), \
+               (pulse_sweep +5, 0), $0110
+    sfx_Wait 12
+    sfx_End
     .linecont -
 .ENDPROC
 
-;;; SFX sequence data for pulse channel portion of the "poof" sound effect.
-.PROC Data_PoofNoise_sSfxSeq_arr
-    D_STRUCT sSfxSeq
-    d_byte Duration_u8, 15
-    d_byte Env_bEnvelope, bEnvelope::NoLength | 3
-    d_byte Sweep_byte, 0
-    d_word Timer_u16, $0001
-    D_END
-    .byte 0
+;;; SFX data for the noise channel portion of the "poof" sound effect.
+.PROC Data_PoofNoise_sSfx
+    sfx_SetEnvTimer bEnvelope::NoLength | 3, $0001
+    sfx_Wait 15
+    sfx_End
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -65,10 +57,10 @@
 .PROC Func_PlaySfxPoof
     txa
     pha
-    ldya #Data_PoofPulse_sSfxSeq_arr
-    jsr Func_PlaySfxSequencePulse2  ; preserves T0+
-    ldya #Data_PoofNoise_sSfxSeq_arr
-    jsr Func_PlaySfxSequenceNoise  ; preserves T0+
+    ldya #Data_PoofPulse_sSfx
+    jsr Func_PlaySfxBytecodePulse2  ; preserves T0+
+    ldya #Data_PoofNoise_sSfx
+    jsr Func_PlaySfxBytecodeNoise  ; preserves T0+
     pla
     tax
     rts
