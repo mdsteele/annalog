@@ -518,7 +518,7 @@ _NoteToneOrSame:
     sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x  ; A is zero
     ;; For non-DMC channels, we need to enable the channel *before* writing the
     ;; registers (because otherwise the writes won't take effect), and we want
-    ;; to reset sweep to zero by default.  For the DMC channel, the sweep
+    ;; to reset sweep to kNoSweep by default.  For the DMC channel, the sweep
     ;; register is used for setting the DMC level directly, and we want to
     ;; reset it back to the mid-level value of $40 out of $7f.
     cpx #eChan::Dmc
@@ -532,7 +532,7 @@ _NoteToneOrSame:
     bne @setSweep  ; unconditional
     @notDmc:
     jsr Func_EnableCurrentChannel  ; preserves X and Zp_AudioTmp*
-    lda #0
+    lda #kNoSweep
     @setSweep:
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Sweep_wo, x
     ;; Read the second byte of the TONE/SAME note and use it as the TimerLo
