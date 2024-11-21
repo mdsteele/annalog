@@ -22,48 +22,27 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
+.IMPORT Func_PlaySfxBytecodePulse2
 .IMPORT Ram_Audio_sChanSfx_arr
 .IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
 
-;;; The duration of a Func_SfxBeep sound, in frames.
-kBeepDurationFrames = 15
-
-;;; How slowly the envelope volume decreases (0-15).
-kBeepEnvPeriod = 3
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRG8"
 
-;;; SFX function for the BEEP opcode.  When starting this sound, Param1_byte
-;;; should hold the tone number (0-9), and Param3_byte should be initialized to
-;;; zero.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X, T0+
-.EXPORT Func_SfxBeep
-.PROC Func_SfxBeep
-    lda Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
-    beq _Initialize
-    cmp #kBeepDurationFrames
-    blt _Continue
-    sec  ; set C to indicate that the sound is finished
-    rts
-_Initialize:
-    lda #bEnvelope::Duty12 | bEnvelope::NoLength | kBeepEnvPeriod
-    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Envelope_wo, x
-    lda #0
-    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Sweep_wo, x
-    ldy Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x  ; tone
+;;; SFX data for the "beep" sound effect.
+.PROC Data_Beep_sSfx
+    sfx_SetEnvSweep bEnvelope::Duty12 | bEnvelope::NoLength | 3, kNoSweep
+    sfx_Func _InitializeTimer
+    sfx_Wait 15
+    sfx_End
+_InitializeTimer:
+    ldy Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; tone
     lda _TimerLo_u8_arr10, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     lda _TimerHi_u8_arr10, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
-_Continue:
-    inc Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
-    clc  ; clear C to indicate that the sound is still going
+    sec  ; set C to indicate that the function is finished
     rts
 ;;; These values represent the ten natural notes from A3 through C5.
 _TimerLo_u8_arr10: .byte $fb, $c4, $ab, $7c, $52, $3f, $1c, $fd, $e1, $d5
@@ -76,15 +55,12 @@ _TimerHi_u8_arr10: .byte $01, $01, $01, $01, $01, $01, $01, $00, $00, $00
 
 ;;; Starts playing a sound for the BEEP opcode.
 ;;; @param A The tone number (0-9).
-;;; @preserve X, Y, T0+
+;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxBeep
 .PROC FuncA_Machine_PlaySfxBeep
-    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Param1_byte  ; tone
-    lda #0
-    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Param3_byte  ; timer
-    lda #eSound::Beep
-    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Sfx_eSound
-    rts
+    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Param3_byte  ; tone
+    ldya #Data_Beep_sSfx
+    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

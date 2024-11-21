@@ -20,7 +20,6 @@
 ;;; SFX functions that can be played.
 .ENUM eSound
     None
-    Beep
     Bytecode
     DialogText
     Explode
@@ -50,6 +49,7 @@
     SetTimerLo    = %00000100 | Set
     SetSweep      = %00000010 | Set
     SetEnv        = %00000001 | Set
+    SetEnvSweep   = SetEnv | SetSweep
     SetEnvTimer   = SetEnv | SetTimer
     SetEnvTimerHi = SetEnv | SetTimerHi
     SetEnvTimerLo = SetEnv | SetTimerLo
@@ -90,6 +90,12 @@
 .MACRO sfx_SetEnv ENV
     .byte bSfxOp::SetEnv
     .byte ENV
+.ENDMACRO
+
+.MACRO sfx_SetEnvSweep ENV, SWEEP
+    .byte bSfxOp::SetEnvSweep
+    .byte ENV
+    .byte SWEEP
 .ENDMACRO
 
 .MACRO sfx_SetEnvTimerHi ENV, TIMERHI
