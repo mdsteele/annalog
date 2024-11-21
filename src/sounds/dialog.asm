@@ -23,7 +23,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Ram_Sound_sChanSfx_arr
+.IMPORT Ram_Audio_sChanSfx_arr
 .IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
@@ -48,19 +48,19 @@ kSfxDialogTextDurationFrames = 4
 
 ;;; SFX function for dialog text.  When starting this sound, Param1_byte should
 ;;; hold the TimerLo value, Param2_byte should hold the bSfxDialog value, and
-;;; Timer_u8 should be initialized to zero.
+;;; Param3_byte should be initialized to zero.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if the sound is finished, cleared otherwise.
 ;;; @preserve X, T0+
 .EXPORT Func_SfxDialogText
 .PROC Func_SfxDialogText
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
     beq _Initialize
     cmp #kSfxDialogTextDurationFrames
     bcc _Continue
     rts  ; C is set to indicate that sound is finished
 _Initialize:
-    ldy Ram_Sound_sChanSfx_arr + sChanSfx::Param2_byte, x
+    ldy Ram_Audio_sChanSfx_arr + sChanSfx::Param2_byte, x
     tya  ; Param2_byte
     and #bSfxDialog::TypeMask
     ora #bEnvelope::NoLength | 0
@@ -71,13 +71,13 @@ _Initialize:
     div #8
     ora #$88
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Sweep_wo, x
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Param1_byte, x
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     tya  ; Param2_byte
     and #bSfxDialog::TimerHiMask
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
 _Continue:
-    inc Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
+    inc Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
     clc  ; clear C to indicate that the sound is still going
     rts
 .ENDPROC
@@ -106,7 +106,7 @@ _Continue:
     lda DataA_Dialog_SfxDialogTextParam1_u8_arr, y
     sta Zp_Next_sChanSfx_arr + sChanSfx::Param1_byte, x
     lda #0
-    sta Zp_Next_sChanSfx_arr + sChanSfx::Timer_u8, x
+    sta Zp_Next_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
     lda #eSound::DialogText
     sta Zp_Next_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     rts

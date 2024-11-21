@@ -42,17 +42,18 @@
     TimerHi_byte       .byte
 .ENDSTRUCT
 
-;;; Music instrument state variables for a given APU channel.
-.STRUCT sChanInst
+;;; Music/SFX control variables for a given APU channel.
+.STRUCT sChanCtrl
     ;; Indicates which instrument function to call each frame to update the
     ;; tone.
     Instrument_eInst .byte
     ;; Parameter byte for the instrument.
-    Param_byte       .byte
-    ;; Currently-unused padding byte.
-    Unused           .byte
+    InstParam_byte   .byte
     ;; How many times the same chain repeat has been reached in a row.
-    RepeatCount_u8   .byte
+    ChainRepeat_u8   .byte
+    ;; How many times the same FUNC or WAIT operation has already been executed
+    ;; by the current sound effect on this channel.
+    SfxRepeat_u8     .byte
 .ENDSTRUCT
 
 ;;; SFX state variables for a given APU channel.
@@ -60,12 +61,10 @@
     ;; Indicates which SFX function to call each frame while the sound is
     ;; active.
     Sfx_eSound  .byte
-    ;; Typically used as a frame timer to track how long the sound effect
-    ;; should play, but the SFX function can use this however it wants.
-    Timer_u8    .byte
     ;; Arbitrary parameter/state bytes that can be used by the SFX function.
     Param1_byte .byte
     Param2_byte .byte
+    Param3_byte .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

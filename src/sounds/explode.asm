@@ -23,15 +23,15 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Ram_Sound_sChanSfx_arr
+.IMPORT Ram_Audio_sChanSfx_arr
 .IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
 
 ;;; Bitfield used for Param1_byte for the eSound::Explode SFX function.
 .SCOPE bSfxExplode
-    DivEnv   = %10000000  ; if set, halve Timer_u8 before setting envelope
-    ModTimer = %01000000  ; if set, mod Timer_u8 by 2 before indexing period
+    DivEnv   = %10000000  ; if set, halve timer before setting envelope
+    ModTimer = %01000000  ; if set, mod timer by 2 before indexing period
 .ENDSCOPE
 
 ;;;=========================================================================;;;
@@ -44,12 +44,12 @@
 ;;; @preserve X, T0+
 .EXPORT Func_SfxExplode
 .PROC Func_SfxExplode
-    lda Ram_Sound_sChanSfx_arr + eChan::Noise + sChanSfx::Timer_u8
+    lda Ram_Audio_sChanSfx_arr + eChan::Noise + sChanSfx::Param3_byte  ; timer
     bne _Continue
     sec  ; set C to indicate that the sound is finished
     rts
 _Continue:
-    bit Ram_Sound_sChanSfx_arr + eChan::Noise + sChanSfx::Param1_byte
+    bit Ram_Audio_sChanSfx_arr + eChan::Noise + sChanSfx::Param1_byte
     .assert bSfxExplode::DivEnv = bProc::Negative, error
     bpl @noDivEnv
     div #2
@@ -62,13 +62,13 @@ _Continue:
     tay
     bpl @loadTimer  ; unconditional
     @noModTimer:
-    ldy Ram_Sound_sChanSfx_arr + eChan::Noise + sChanSfx::Timer_u8
+    ldy Ram_Audio_sChanSfx_arr + eChan::Noise + sChanSfx::Param3_byte  ; timer
     @loadTimer:
     lda _NoisePeriod_u8_arr, y
     sta Hw_NoisePeriod_wo
     lda #0
     sta Hw_NoiseLength_wo
-    dec Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
+    dec Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
     clc  ; clear C to indicate that the sound is still going
     rts
 _NoisePeriod_u8_arr:
@@ -116,10 +116,10 @@ _NoisePeriod_u8_arr:
 
 ;;; Starts playing a explosion sound.
 ;;; @prereq The Param1_byte is already initialized.
-;;; @param A The value to set for Timer_u8.
+;;; @param A The value to set for Param3_byte.
 ;;; @preserve X, Y, T0+
 .PROC Func_PlaySfxExplode
-    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Timer_u8
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Param3_byte  ; timer
     lda #eSound::Explode
     sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Sfx_eSound
     rts

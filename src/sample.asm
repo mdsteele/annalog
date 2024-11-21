@@ -24,7 +24,7 @@
 .INCLUDE "sound.inc"
 
 .IMPORT Data_SampleKickDrum_arr657
-.IMPORT Ram_Sound_sChanSfx_arr
+.IMPORT Ram_Audio_sChanSfx_arr
 .IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
@@ -106,9 +106,9 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; @preserve X, Y, T0+
 .EXPORT Func_PlaySfxSample
 .PROC Func_PlaySfxSample
-    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte  ; eSample
     lda #0
-    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Timer_u8
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param3_byte  ; timer
     lda #eSound::Sample
     sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Sfx_eSound
     rts
@@ -172,15 +172,15 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 .ENDPROC
 
 ;;; SFX function for playing delta modulated samples on the DMC.  When starting
-;;; this sound, Param1_byte should hold the eSample value, and Timer_u8 should
-;;; be initialized to zero.
+;;; this sound, Param1_byte should hold the eSample value, and Param3_byte
+;;; should be initialized to zero.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if the sound is finished, cleared otherwise.
 ;;; @preserve X, T0+
 .EXPORT Func_SfxSample
 .PROC Func_SfxSample
-    ldy Ram_Sound_sChanSfx_arr + sChanSfx::Param1_byte, x
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
+    ldy Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x  ; eSample
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
     beq _Initialize
     cmp Data_SampleFrames_u8_arr, y
     blt _Continue
@@ -196,7 +196,7 @@ _Initialize:
     lda Data_SampleLength_u8_arr, y
     sta Hw_DmcSampleLength_wo
 _Continue:
-    inc Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
+    inc Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
     clc  ; clear C to indicate that the sound is still going
     rts
 .ENDPROC

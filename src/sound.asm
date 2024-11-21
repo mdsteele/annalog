@@ -28,7 +28,8 @@
 .IMPORT Func_SfxDialogText
 .IMPORT Func_SfxExplode
 .IMPORT Func_SfxSample
-.IMPORT Ram_Sound_sChanSfx_arr
+.IMPORT Ram_Audio_sChanCtrl_arr
+.IMPORT Ram_Audio_sChanSfx_arr
 .IMPORTZP Zp_AudioTmp_byte
 .IMPORTZP Zp_AudioTmp_ptr
 .IMPORTZP Zp_Next_sChanSfx_arr
@@ -43,9 +44,9 @@
 ;;; @preserve X, T0+
 .PROC Func_SfxBytecode
 _ExecuteNext:
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Param1_byte, x
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x
     sta Zp_AudioTmp_ptr + 0
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Param2_byte, x
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::Param2_byte, x
     sta Zp_AudioTmp_ptr + 1
     ldy #0
     lda (Zp_AudioTmp_ptr), y  ; opcode
@@ -57,9 +58,9 @@ _WaitOrSet:
     bit Data_PowersOfTwo_u8_arr8 + 6
     bne _SetRegisters
 _WaitFrames:
-    cmp Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
+    cmp Ram_Audio_sChanCtrl_arr + sChanCtrl::SfxRepeat_u8, x
     beq _AdvanceByY
-    inc Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
+    inc Ram_Audio_sChanCtrl_arr + sChanCtrl::SfxRepeat_u8, x
     clc  ; clear C to indicate that the sound is still going
     rts
 _SetRegisters:
@@ -96,12 +97,12 @@ _AdvanceByY:
     tya
 _AdvanceByA:
     ;; Add A to the param pointer, and reset repeat count to zero.
-    add Ram_Sound_sChanSfx_arr + sChanSfx::Param1_byte, x
-    sta Ram_Sound_sChanSfx_arr + sChanSfx::Param1_byte, x
+    add Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x
+    sta Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x
     lda #0
-    sta Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
-    adc Ram_Sound_sChanSfx_arr + sChanSfx::Param2_byte, x
-    sta Ram_Sound_sChanSfx_arr + sChanSfx::Param2_byte, x
+    sta Ram_Audio_sChanCtrl_arr + sChanCtrl::SfxRepeat_u8, x
+    adc Ram_Audio_sChanSfx_arr + sChanSfx::Param2_byte, x
+    sta Ram_Audio_sChanSfx_arr + sChanSfx::Param2_byte, x
     jmp _ExecuteNext
 _EndSound:
     sec  ; set C to indicate that the sound is finished
@@ -113,8 +114,8 @@ _CallFunc:
     sta Zp_AudioTmp_ptr + 0
     pla  ; func addr (hi)
     sta Zp_AudioTmp_ptr + 1
-    ldy Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x  ; param: repeat count
-    inc Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
+    ldy Ram_Audio_sChanCtrl_arr + sChanCtrl::SfxRepeat_u8, x  ; param: count
+    inc Ram_Audio_sChanCtrl_arr + sChanCtrl::SfxRepeat_u8, x
     jsr _CallAudioTmpPtr  ; preserves X and T0+, returns C
     lda #2  ; byte offset
     bcs _AdvanceByA
@@ -150,8 +151,6 @@ _CallAudioTmpPtr:
 .PROC Func_PlaySfxBytecode
     sta Zp_Next_sChanSfx_arr + sChanSfx::Param1_byte, x
     sty Zp_Next_sChanSfx_arr + sChanSfx::Param2_byte, x
-    lda #0
-    sta Zp_Next_sChanSfx_arr + sChanSfx::Timer_u8, x
     lda #eSound::Bytecode
     sta Zp_Next_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     rts

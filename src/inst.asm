@@ -24,8 +24,8 @@
 .INCLUDE "macros.inc"
 .INCLUDE "music.inc"
 
-.IMPORT Ram_Music_sChanInst_arr
-.IMPORT Ram_Music_sChanNote_arr
+.IMPORT Ram_Audio_sChanCtrl_arr
+.IMPORT Ram_Audio_sChanNote_arr
 .IMPORTZP Zp_AudioTmp_byte
 .IMPORTZP Zp_AudioTmp_ptr
 .IMPORTZP Zp_Current_bAudio
@@ -72,10 +72,10 @@
 ;;; @preserve X
 .PROC Func_InstrumentPulseVibrato
 _Vibrato:
-    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     and #$07
     tay
-    lda Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
     add Data_VibratoDelta_i16_0_arr8, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     ;; Note that we intentionally *don't* carry the addition over into TimerHi
@@ -95,11 +95,11 @@ _Envelope:
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_InstrumentPulseBasic
-    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     and #bEnvelope::VolMask
     sta Zp_AudioTmp_byte  ; max volume
-    lda Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
-    sub Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::DurationFrames_u8, x
+    sub Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     mul #2
     bcs @useMaxVolume
     cmp Zp_AudioTmp_byte  ; max volume
@@ -118,14 +118,14 @@ _Envelope:
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_InstrumentPulseEcho
-    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     and #bEnvelope::VolMask
     tay  ; max volume
-    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     and #%00110000
     ora #%00001100
     div #4
-    cmp Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    cmp Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     blt _Quiet
 _Loud:
     tya  ; max volume
@@ -144,10 +144,10 @@ _Quiet:
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_InstrumentPulsePluck
-    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     and #bEnvelope::VolMask
     sta Zp_AudioTmp_byte  ; max volume
-    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     cmp #2
     bge _Decay
 _Pluck:
@@ -174,7 +174,7 @@ _Decay:
     div #2
     @noReduce:
     sta Zp_AudioTmp_byte  ; volume
-    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     and #bEnvelope::DutyMask
     ora #bEnvelope::NoLength | bEnvelope::ConstVol
     ora Zp_AudioTmp_byte  ; volume
@@ -188,10 +188,10 @@ _Decay:
 ;;; @preserve X
 .PROC Func_InstrumentPulsePiano
 _Vibrato:
-    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     and #$03
     tay
-    lda Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
     add _VibratoDelta_i8_arr4, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     ;; Note that we intentionally *don't* carry the addition over into TimerHi
@@ -201,14 +201,14 @@ _Vibrato:
     ;; instrument for pitches right next to a TimerLo carry boundary, then
     ;; TimerHi wouldn't change anyway, and everything will sound fine.
 _Envelope:
-    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     and #bEnvelope::VolMask
     sta Zp_AudioTmp_byte  ; max volume
     div #2
-    rsub Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    rsub Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     bge @decay
     @attack:
-    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     sec
     rol a
     bne Func_CombineVolumeWithDuty  ; unconditional
@@ -229,12 +229,12 @@ _VibratoDelta_i8_arr4:
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_InstrumentNoiseSnare
-    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     cmp #2
     bne @done
-    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     div #$10
-    add Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    add Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
     mod #$10
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     @done:
@@ -249,9 +249,9 @@ _VibratoDelta_i8_arr4:
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_InstrumentStaccato
-    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     and #bEnvelope::VolMask
-    sub Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    sub Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     bge Func_CombineVolumeWithDuty
     fall Func_InstrumentSilent  ; preserves X
 .ENDPROC
@@ -273,15 +273,15 @@ _VibratoDelta_i8_arr4:
 ;;; @preserve X
 .PROC Func_InstrumentTriangleDrum
 _Pitch:
-    lda Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
-    add Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
-    sta Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
+    add Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
-    lda Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::TimerHi_byte, x
     adc #0
     and #$07
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
-    sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::TimerHi_byte, x
 _Envelope:
     lda #$ff
     rts
@@ -294,16 +294,16 @@ _Envelope:
 ;;; @preserve X
 .PROC Func_InstrumentTriangleSlide
 _Slide:
-    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     and #$01
     beq @done
-    lda Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
     add #1
-    sta Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
-    lda Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::TimerHi_byte, x
     adc #0
     and #$07
-    sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::TimerHi_byte, x
     @done:
 _Vibrato:
     fall Func_InstrumentTriangleVibrato  ; preserves X
@@ -316,13 +316,13 @@ _Vibrato:
 ;;; @preserve X
 .PROC Func_InstrumentTriangleVibrato
 _Vibrato:
-    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     and #$07
     tay
-    lda Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
     add Data_VibratoDelta_i16_0_arr8, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
-    lda Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::TimerHi_byte, x
     adc Data_VibratoDelta_i16_1_arr8, y
     and #$07
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
@@ -354,7 +354,7 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; @preserve X
 .EXPORT Func_AudioCallInstrument
 .PROC Func_AudioCallInstrument
-    ldy Ram_Music_sChanInst_arr + sChanInst::Instrument_eInst, x
+    ldy Ram_Audio_sChanCtrl_arr + sChanCtrl::Instrument_eInst, x
     lda Data_Instruments_func_ptr_0_arr, y
     sta Zp_AudioTmp_ptr + 0
     lda Data_Instruments_func_ptr_1_arr, y
@@ -368,7 +368,7 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_InstrumentConstant
-    lda Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     rts
 .ENDPROC
 

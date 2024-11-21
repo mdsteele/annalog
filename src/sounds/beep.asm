@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Ram_Sound_sChanSfx_arr
+.IMPORT Ram_Audio_sChanSfx_arr
 .IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
@@ -38,14 +38,14 @@ kBeepEnvPeriod = 3
 .SEGMENT "PRG8"
 
 ;;; SFX function for the BEEP opcode.  When starting this sound, Param1_byte
-;;; should hold the tone number (0-9), and Timer_u8 should be initialized to
+;;; should hold the tone number (0-9), and Param3_byte should be initialized to
 ;;; zero.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if the sound is finished, cleared otherwise.
 ;;; @preserve X, T0+
 .EXPORT Func_SfxBeep
 .PROC Func_SfxBeep
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
     beq _Initialize
     cmp #kBeepDurationFrames
     blt _Continue
@@ -56,13 +56,13 @@ _Initialize:
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Envelope_wo, x
     lda #0
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Sweep_wo, x
-    ldy Ram_Sound_sChanSfx_arr + sChanSfx::Param1_byte, x
+    ldy Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x  ; tone
     lda _TimerLo_u8_arr10, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     lda _TimerHi_u8_arr10, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
 _Continue:
-    inc Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
+    inc Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
     clc  ; clear C to indicate that the sound is still going
     rts
 ;;; These values represent the ten natural notes from A3 through C5.
@@ -79,9 +79,9 @@ _TimerHi_u8_arr10: .byte $01, $01, $01, $01, $01, $01, $01, $00, $00, $00
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Machine_PlaySfxBeep
 .PROC FuncA_Machine_PlaySfxBeep
-    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Param1_byte
+    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Param1_byte  ; tone
     lda #0
-    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Timer_u8
+    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Param3_byte  ; timer
     lda #eSound::Beep
     sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Sfx_eSound
     rts

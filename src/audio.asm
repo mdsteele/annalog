@@ -56,7 +56,7 @@
 ;;; Assert that all the channel structs we use are exactly four bytes.  This
 ;;; allows us to use four times the channel number as a byte index into any the
 ;;; struct arrays.
-.ASSERT .sizeof(sChanInst) = 4, error
+.ASSERT .sizeof(sChanCtrl) = 4, error
 .ASSERT .sizeof(sChanNext) = 4, error
 .ASSERT .sizeof(sChanNote) = 4, error
 .ASSERT .sizeof(sChanRegs) = 4, error
@@ -125,15 +125,13 @@ Zp_AudioTmp_ptr: .res kSizeofAddr
 
 .SEGMENT "RAM_Audio"
 
-;;; Music channel state for all the different APU channels.
-.EXPORT Ram_Music_sChanInst_arr
-Ram_Music_sChanInst_arr: .res .sizeof(sChanInst) * kNumApuChannels
-.EXPORT Ram_Music_sChanNote_arr
-Ram_Music_sChanNote_arr: .res .sizeof(sChanNote) * kNumApuChannels
-
-;;; SFX channel state for all the different APU channels.
-.EXPORT Ram_Sound_sChanSfx_arr
-Ram_Sound_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
+;;; Music/SFX channel state for all the different APU channels.
+.EXPORT Ram_Audio_sChanCtrl_arr
+Ram_Audio_sChanCtrl_arr: .res .sizeof(sChanCtrl) * kNumApuChannels
+.EXPORT Ram_Audio_sChanNote_arr
+Ram_Audio_sChanNote_arr: .res .sizeof(sChanNote) * kNumApuChannels
+.EXPORT Ram_Audio_sChanSfx_arr
+Ram_Audio_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
 
 ;;;=========================================================================;;;
 
@@ -169,7 +167,7 @@ _HaltSfx:
     lda #0
     ldx #.sizeof(sChanSfx) * kNumApuChannels - 1
     @loop:
-    sta Ram_Sound_sChanSfx_arr, x
+    sta Ram_Audio_sChanSfx_arr, x
     dex
     .assert .sizeof(sChanSfx) * kNumApuChannels <= $80, error
     bpl @loop
@@ -216,17 +214,19 @@ _StartSfx:
     ;; If not, continue to the next channel.
     .assert eSound::None = 0, error
     beq @continue
-    ;; Otherwise, copy this sChanSfx struct into Ram_Sound_sChanSfx_arr.
-    sta Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
-    lda Zp_Next_sChanSfx_arr + sChanSfx::Timer_u8, x
-    sta Ram_Sound_sChanSfx_arr + sChanSfx::Timer_u8, x
+    ;; Otherwise, copy this sChanSfx struct into Ram_Audio_sChanSfx_arr.
+    sta Ram_Audio_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     lda Zp_Next_sChanSfx_arr + sChanSfx::Param1_byte, x
-    sta Ram_Sound_sChanSfx_arr + sChanSfx::Param1_byte, x
+    sta Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x
     lda Zp_Next_sChanSfx_arr + sChanSfx::Param2_byte, x
-    sta Ram_Sound_sChanSfx_arr + sChanSfx::Param2_byte, x
+    sta Ram_Audio_sChanSfx_arr + sChanSfx::Param2_byte, x
+    lda Zp_Next_sChanSfx_arr + sChanSfx::Param3_byte, x
+    sta Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x
+    lda #0
+    sta Ram_Audio_sChanCtrl_arr + sChanCtrl::SfxRepeat_u8, x
     ;; Null out the Sfx_eSound field in Zp_Next_sAudioCtrl, so we don't restart
     ;; this SFX again next frame.
-    lda #eSound::None
+    .assert eSound::None = 0, error
     sta Zp_Next_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     ;; Disable the channel that the sound is about to play on, so as to reset
     ;; its state (it'll get enabled again when we call the SFX function).
@@ -264,13 +264,13 @@ _ResetChannels:
     tax  ; now X is zero
     @loop:
     ;; At this point, A is still zero.
-    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
-    sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
-    sta Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
-    sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
-    sta Ram_Music_sChanInst_arr + sChanInst::Instrument_eInst, x
-    sta Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
-    sta Ram_Music_sChanInst_arr + sChanInst::RepeatCount_u8, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::DurationFrames_u8, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::TimerHi_byte, x
+    sta Ram_Audio_sChanCtrl_arr + sChanCtrl::Instrument_eInst, x
+    sta Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
+    sta Ram_Audio_sChanCtrl_arr + sChanCtrl::ChainRepeat_u8, x
     .assert Data_Empty_bChain_arr = Data_Empty_sPhrase, error
     ldy #<Data_Empty_bChain_arr
     sty Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 0, x
@@ -430,14 +430,14 @@ _ContinuePhrase:
     rts
 _FinishRepeat:
     lda #0
-    sta Ram_Music_sChanInst_arr + sChanInst::RepeatCount_u8, x
+    sta Ram_Audio_sChanCtrl_arr + sChanCtrl::ChainRepeat_u8, x
     inc Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 0, x
     bne _ReadNextItem
     inc Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 1, x
     bne _ReadNextItem  ; unconditional
 _StartRepeat:
-    inc Ram_Music_sChanInst_arr + sChanInst::RepeatCount_u8, x
-    cmp Ram_Music_sChanInst_arr + sChanInst::RepeatCount_u8, x
+    inc Ram_Audio_sChanCtrl_arr + sChanCtrl::ChainRepeat_u8, x
+    cmp Ram_Audio_sChanCtrl_arr + sChanCtrl::ChainRepeat_u8, x
     beq _FinishRepeat
     ;; Decrement the channel's Next_bChain_ptr.
     lda Zp_Music_sChanNext_arr + sChanNext::Next_bChain_ptr + 0, x
@@ -475,12 +475,12 @@ _ChainFinished:
 ;;; @return C Set if no note/rest was played, and the phrase is now finished.
 ;;; @preserve X
 .PROC Func_AudioContinuePhrase
-    lda Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
-    cmp Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    cmp Ram_Audio_sChanNote_arr + sChanNote::DurationFrames_u8, x
     bge _StartNextNote
 _ContinueNote:
     ;; If this channel is playing SFX, then don't play music on this channel.
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     .assert eSound::None = 0, error
     bne _IncrementFramesAndReturn
     ;; Otherwise, if the channel is disabled, then we're playing a rest (rather
@@ -492,7 +492,7 @@ _ContinueTone:
     jsr Func_AudioCallInstrument  ; preserves X, returns A
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Envelope_wo, x
 _IncrementFramesAndReturn:
-    inc Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    inc Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     clc  ; clear C to indicate that the phrase is still going
     rts
 _StartNextNote:
@@ -512,10 +512,10 @@ _StartNextNote:
     bpl _NoteInstOrRest
 _NoteToneOrSame:
     ;; If this channel is playing SFX, skip this tone.
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     .assert eSound::None = 0, error
     bne _SkipToneOrSame
-    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x  ; A is zero
+    sta Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x  ; A is zero
     ;; For non-DMC channels, we need to enable the channel *before* writing the
     ;; registers (because otherwise the writes won't take effect), and we want
     ;; to reset sweep to kNoSweep by default.  For the DMC channel, the sweep
@@ -538,13 +538,13 @@ _NoteToneOrSame:
     ;; Read the second byte of the TONE/SAME note and use it as the TimerLo
     ;; value.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
-    sta Ram_Music_sChanNote_arr + sChanNote::TimerLo_byte, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     ;; Mask the first byte of the TONE/SAME note and use it as the TimerHi
     ;; value.
     lda Zp_AudioTmp_byte  ; first note byte
     and #bNote::ToneSameMask
-    sta Ram_Music_sChanNote_arr + sChanNote::TimerHi_byte, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::TimerHi_byte, x
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
     ;; For the DMC channel, we need to enable the channel *after* updating the
     ;; registers (because otherwise it will restart the previous sample).
@@ -564,7 +564,7 @@ _NoteToneOrSame:
     bvs _ContinueTone
     ;; Read the third byte of the TONE note and use it as the note duration.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
-    sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::DurationFrames_u8, x
     ;; Increment the channel's PhraseNext_ptr a third time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne _ContinueTone
@@ -575,11 +575,11 @@ _NoteInstOrRest:
     bvc _NoteRest
 _NoteInst:
     and #bNote::InstMask
-    sta Ram_Music_sChanInst_arr + sChanInst::Instrument_eInst, x
+    sta Ram_Audio_sChanCtrl_arr + sChanCtrl::Instrument_eInst, x
     .assert bNote::InstMask & $80 = 0, error
     ;; Read the second byte of the INST note and use it as the param byte.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
-    sta Ram_Music_sChanInst_arr + sChanInst::Param_byte, x
+    sta Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     ;; Increment the channel's PhraseNext_ptr a second time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne _StartNextNote
@@ -590,19 +590,19 @@ _NoteDone:
     bcs _DisableChannelUnlessSfx  ; unconditional
 _NoteRest:
     ;; Record the rest duration.
-    sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::DurationFrames_u8, x
     lda #1
-    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     clc  ; clear C to indicate that the phrase is still going
 _DisableChannelUnlessSfx:
     ;; Disable this channel unless it's playing SFX.
-    lda Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     .assert eSound::None = 0, error
     beq Func_DisableCurrentChannel  ; preserves C and X
     rts
 _SkipToneOrSame:
     lda #1
-    sta Ram_Music_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     ;; Increment the channel's PhraseNext_ptr a second time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne @incDone2
@@ -615,7 +615,7 @@ _SkipToneOrSame:
     bvs @incDone3
     ;; Read the third byte of the TONE note and use it as the note duration.
     lda (Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr, x)
-    sta Ram_Music_sChanNote_arr + sChanNote::DurationFrames_u8, x
+    sta Ram_Audio_sChanNote_arr + sChanNote::DurationFrames_u8, x
     ;; Increment the channel's PhraseNext_ptr a third time.
     inc Zp_Music_sChanNext_arr + sChanNext::PhraseNext_ptr + 0, x
     bne @incDone3
@@ -648,7 +648,7 @@ _SkipToneOrSame:
 ;;; @preserve X
 .PROC Func_AudioContinueOneSfx
     ;; Check if there's an active SFX.  If not, we're done.
-    ldy Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x  ; param: eSound
+    ldy Ram_Audio_sChanSfx_arr + sChanSfx::Sfx_eSound, x  ; param: eSound
     .assert eSound::None = 0, error
     beq _Return
     ;; For non-DMC channels, we need to enable the channel *before* calling the
@@ -669,7 +669,7 @@ _Return:
 _SoundFinished:
     ;; Halt the SFX.
     lda #eSound::None
-    sta Ram_Sound_sChanSfx_arr + sChanSfx::Sfx_eSound, x
+    sta Ram_Audio_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     ;; Disable the channel.
     fall Func_DisableCurrentChannel  ; preserves X
 .ENDPROC
