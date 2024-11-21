@@ -23,7 +23,6 @@
     Bytecode
     DialogText
     Explode
-    Sample
     NUM_VALUES
 .ENDENUM
 

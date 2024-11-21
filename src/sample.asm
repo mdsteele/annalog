@@ -106,10 +106,12 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; @preserve X, Y, T0+
 .EXPORT Func_PlaySfxSample
 .PROC Func_PlaySfxSample
-    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte  ; eSample
-    lda #0
-    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param3_byte  ; timer
-    lda #eSound::Sample
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param3_byte  ; eSample
+    lda #<Data_Sample_sSfx
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte  ; addr lo
+    lda #>Data_Sample_sSfx
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param2_byte  ; addr hi
+    lda #eSound::Bytecode
     sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Sfx_eSound
     rts
 .ENDPROC
@@ -171,22 +173,12 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
     D_END
 .ENDPROC
 
-;;; SFX function for playing delta modulated samples on the DMC.  When starting
-;;; this sound, Param1_byte should hold the eSample value, and Param3_byte
-;;; should be initialized to zero.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X, T0+
-.EXPORT Func_SfxSample
-.PROC Func_SfxSample
-    ldy Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x  ; eSample
-    lda Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
-    beq _Initialize
-    cmp Data_SampleFrames_u8_arr, y
-    blt _Continue
-    sec  ; set C to indicate that the sound is finished
-    rts
+.PROC Data_Sample_sSfx
+    sfx_Func _Initialize
+    sfx_Func _Wait
+    sfx_End
 _Initialize:
+    ldy Ram_Audio_sChanSfx_arr + eChan::Dmc + sChanSfx::Param3_byte  ; eSample
     lda Data_SampleRate_u8_arr, y
     sta Hw_DmcFlags_wo
     lda #$40
@@ -195,9 +187,12 @@ _Initialize:
     sta Hw_DmcSampleStart_wo
     lda Data_SampleLength_u8_arr, y
     sta Hw_DmcSampleLength_wo
-_Continue:
-    inc Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
-    clc  ; clear C to indicate that the sound is still going
+    sec  ; set C to indicate that the function is finished
+    rts
+_Wait:
+    tya  ; repeat count
+    ldy Ram_Audio_sChanSfx_arr + eChan::Dmc + sChanSfx::Param3_byte  ; eSample
+    cmp Data_SampleFrames_u8_arr, y
     rts
 .ENDPROC
 

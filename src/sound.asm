@@ -26,7 +26,6 @@
 .IMPORT Func_Noop
 .IMPORT Func_SfxDialogText
 .IMPORT Func_SfxExplode
-.IMPORT Func_SfxSample
 .IMPORT Ram_Audio_sChanCtrl_arr
 .IMPORT Ram_Audio_sChanSfx_arr
 .IMPORTZP Zp_AudioTmp_byte
@@ -184,7 +183,6 @@ _CallAudioTmpPtr:
     d_entry table, Bytecode,   Func_SfxBytecode
     d_entry table, DialogText, Func_SfxDialogText
     d_entry table, Explode,    Func_SfxExplode
-    d_entry table, Sample,     Func_SfxSample
     D_END
 .ENDREPEAT
 
