@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodePulse2
+.IMPORT Func_PlaySfxOnPulse2Channel
 
 ;;;=========================================================================;;;
 
@@ -47,7 +47,7 @@
 .EXPORT FuncA_Machine_PlaySfxLaser
 .PROC FuncA_Machine_PlaySfxLaser
     ldya #Data_Laser_sSfx
-    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

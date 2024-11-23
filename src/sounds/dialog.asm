@@ -28,9 +28,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The duration of a Func_SfxDialogText sound, in frames.
-kSfxDialogTextDurationFrames = 4
-
 .SCOPE bSfxDialog
     TypeMask    = %11000000
     SweepMask   = %00111000
@@ -46,19 +43,12 @@ kSfxDialogTextDurationFrames = 4
 
 .SEGMENT "PRG8"
 
-;;; SFX function for dialog text.  When starting this sound, Param1_byte should
-;;; hold the TimerLo value, Param2_byte should hold the bSfxDialog value, and
-;;; Param3_byte should be initialized to zero.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X, T0+
-.EXPORT Func_SfxDialogText
-.PROC Func_SfxDialogText
-    lda Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
-    beq _Initialize
-    cmp #kSfxDialogTextDurationFrames
-    bcc _Continue
-    rts  ; C is set to indicate that sound is finished
+;;; SFX data for dialog text sounds.  Param1_byte should hold the TimerLo
+;;; value, and Param2_byte should hold the bSfxDialog value.
+.PROC Data_DialogText_sSfx
+    sfx_Func _Initialize
+    sfx_Wait 4
+    sfx_End
 _Initialize:
     ldy Ram_Audio_sChanSfx_arr + sChanSfx::Param2_byte, x
     tya  ; Param2_byte
@@ -76,9 +66,7 @@ _Initialize:
     tya  ; Param2_byte
     and #bSfxDialog::TimerHiMask
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
-_Continue:
-    inc Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
-    clc  ; clear C to indicate that the sound is still going
+    sec  ; set C to indicate that the function is finished
     rts
 .ENDPROC
 
@@ -105,10 +93,10 @@ _Continue:
     sta Zp_Next_sChanSfx_arr + sChanSfx::Param2_byte, x
     lda DataA_Dialog_SfxDialogTextParam1_u8_arr, y
     sta Zp_Next_sChanSfx_arr + sChanSfx::Param1_byte, x
-    lda #0
-    sta Zp_Next_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
-    lda #eSound::DialogText
-    sta Zp_Next_sChanSfx_arr + sChanSfx::Sfx_eSound, x
+    lda #<Data_DialogText_sSfx
+    sta Zp_Next_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 0, x
+    lda #>Data_DialogText_sSfx
+    sta Zp_Next_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 1, x
     rts
 .ENDPROC
 

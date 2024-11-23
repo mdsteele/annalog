@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodePulse2
+.IMPORT Func_PlaySfxOnPulse2Channel
 
 ;;;=========================================================================;;;
 
@@ -51,7 +51,7 @@
 .EXPORT FuncA_Room_PlaySfxAlarm
 .PROC FuncA_Room_PlaySfxAlarm
     ldya #Data_Alarm_sSfx
-    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

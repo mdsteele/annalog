@@ -209,25 +209,24 @@ _StartSfx:
     sta Zp_CurrentChannel_bApuStatus
     ldx #eChan::Dmc
     @loop:
-    ;; Check if there's an SFX to start on this channel.
-    lda Zp_Next_sChanSfx_arr + sChanSfx::Sfx_eSound, x
-    ;; If not, continue to the next channel.
-    .assert eSound::None = 0, error
+    ;; Check if there's an SFX to start on this channel.  If not, continue to
+    ;; the next channel.
+    lda Zp_Next_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 1, x
     beq @continue
     ;; Otherwise, copy this sChanSfx struct into Ram_Audio_sChanSfx_arr.
-    sta Ram_Audio_sChanSfx_arr + sChanSfx::Sfx_eSound, x
+    sta Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 1, x
+    lda Zp_Next_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 0, x
+    sta Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 0, x
     lda Zp_Next_sChanSfx_arr + sChanSfx::Param1_byte, x
     sta Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x
     lda Zp_Next_sChanSfx_arr + sChanSfx::Param2_byte, x
     sta Ram_Audio_sChanSfx_arr + sChanSfx::Param2_byte, x
-    lda Zp_Next_sChanSfx_arr + sChanSfx::Param3_byte, x
-    sta Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x
+    ;; Null out the hi byte of the NextOp_sSfx_ptr field in Zp_Next_sAudioCtrl,
+    ;; so we don't restart this SFX again next frame, and reset the repeat
+    ;; counter.
     lda #0
+    sta Zp_Next_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 1, x
     sta Ram_Audio_sChanCtrl_arr + sChanCtrl::SfxRepeat_u8, x
-    ;; Null out the Sfx_eSound field in Zp_Next_sAudioCtrl, so we don't restart
-    ;; this SFX again next frame.
-    .assert eSound::None = 0, error
-    sta Zp_Next_sChanSfx_arr + sChanSfx::Sfx_eSound, x
     ;; Disable the channel that the sound is about to play on, so as to reset
     ;; its state (it'll get enabled again when we call the SFX function).
     jsr Func_DisableCurrentChannel  ; preserves X
@@ -480,9 +479,8 @@ _ChainFinished:
     bge _StartNextNote
 _ContinueNote:
     ;; If this channel is playing SFX, then don't play music on this channel.
-    lda Ram_Audio_sChanSfx_arr + sChanSfx::Sfx_eSound, x
-    .assert eSound::None = 0, error
-    bne _IncrementFramesAndReturn
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 1, x
+    bne _IncrementFramesAndReturn  ; a sound is playing
     ;; Otherwise, if the channel is disabled, then we're playing a rest (rather
     ;; than a tone).
     lda Zp_CurrentChannel_bApuStatus
@@ -512,9 +510,8 @@ _StartNextNote:
     bpl _NoteInstOrRest
 _NoteToneOrSame:
     ;; If this channel is playing SFX, skip this tone.
-    lda Ram_Audio_sChanSfx_arr + sChanSfx::Sfx_eSound, x
-    .assert eSound::None = 0, error
-    bne _SkipToneOrSame
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 1, x
+    bne _SkipToneOrSame  ; a sound is playing
     sta Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x  ; A is zero
     ;; For non-DMC channels, we need to enable the channel *before* writing the
     ;; registers (because otherwise the writes won't take effect), and we want
@@ -596,8 +593,7 @@ _NoteRest:
     clc  ; clear C to indicate that the phrase is still going
 _DisableChannelUnlessSfx:
     ;; Disable this channel unless it's playing SFX.
-    lda Ram_Audio_sChanSfx_arr + sChanSfx::Sfx_eSound, x
-    .assert eSound::None = 0, error
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 1, x
     beq Func_DisableCurrentChannel  ; preserves C and X
     rts
 _SkipToneOrSame:
@@ -648,8 +644,7 @@ _SkipToneOrSame:
 ;;; @preserve X
 .PROC Func_AudioContinueOneSfx
     ;; Check if there's an active SFX.  If not, we're done.
-    ldy Ram_Audio_sChanSfx_arr + sChanSfx::Sfx_eSound, x  ; param: eSound
-    .assert eSound::None = 0, error
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 1, x
     beq _Return
     ;; For non-DMC channels, we need to enable the channel *before* calling the
     ;; SFX function (because otherwise the register writes won't take effect).
@@ -667,9 +662,9 @@ _SkipToneOrSame:
 _Return:
     rts
 _SoundFinished:
-    ;; Halt the SFX.
-    lda #eSound::None
-    sta Ram_Audio_sChanSfx_arr + sChanSfx::Sfx_eSound, x
+    ;; Halt the SFX by nulling out the hi byte of the NextOp_sSfx_ptr field.
+    lda #0
+    sta Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 1, x
     ;; Disable the channel.
     fall Func_DisableCurrentChannel  ; preserves X
 .ENDPROC

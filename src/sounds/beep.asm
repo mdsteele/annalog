@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodePulse2
+.IMPORT Func_PlaySfxOnPulse2Channel
 .IMPORT Ram_Audio_sChanSfx_arr
 .IMPORTZP Zp_Next_sChanSfx_arr
 
@@ -37,7 +37,7 @@
     sfx_Wait 15
     sfx_End
 _InitializeTimer:
-    ldy Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; tone
+    ldy Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x  ; tone
     lda _TimerLo_u8_arr10, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     lda _TimerHi_u8_arr10, y
@@ -58,9 +58,9 @@ _TimerHi_u8_arr10: .byte $01, $01, $01, $01, $01, $01, $01, $00, $00, $00
 ;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxBeep
 .PROC FuncA_Machine_PlaySfxBeep
-    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Param3_byte  ; tone
+    sta Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::Param1_byte  ; tone
     ldya #Data_Beep_sSfx
-    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

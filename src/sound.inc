@@ -17,17 +17,6 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; SFX functions that can be played.
-.ENUM eSound
-    None
-    Bytecode
-    DialogText
-    Explode
-    NUM_VALUES
-.ENDENUM
-
-;;;=========================================================================;;;
-
 ;;; An SFX operation consists of one or more bytes, using the following
 ;;; encoding:
 ;;; * END (1 byte) [00000000].  This marks the end of the sound.
@@ -55,6 +44,8 @@
     SetTimer      = SetTimerLo | SetTimerHi
     SetAll        = SetEnv | SetSweep | SetTimer
 .ENDSCOPE
+
+;;;=========================================================================;;;
 
 .MACRO sfx_Func LABEL
     ;; The bSfxOp encoding above requires that the function address have a high

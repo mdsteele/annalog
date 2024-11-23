@@ -21,8 +21,8 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodeNoise
-.IMPORT Func_PlaySfxBytecodePulse2
+.IMPORT Func_PlaySfxOnNoiseChannel
+.IMPORT Func_PlaySfxOnPulse2Channel
 
 ;;;=========================================================================;;;
 
@@ -48,13 +48,8 @@
 ;;; @preserve X, T0+
 .EXPORT Func_PlaySfxMetallicDing
 .PROC Func_PlaySfxMetallicDing
-    txa
-    pha
     ldya #Data_MetallicDing_sSfx
-    jsr Func_PlaySfxBytecodeNoise  ; preserves T0+
-    pla
-    tax
-    rts
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -66,7 +61,7 @@
 .EXPORT FuncA_Room_PlaySfxMetallicClang
 .PROC FuncA_Room_PlaySfxMetallicClang
     ldya #Data_MetallicClang_sSfx
-    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

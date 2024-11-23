@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodeNoise
+.IMPORT Func_PlaySfxOnNoiseChannel
 
 ;;;=========================================================================;;;
 
@@ -53,7 +53,7 @@
 .EXPORT FuncA_Cutscene_PlaySfxFlipBreaker
 .PROC FuncA_Cutscene_PlaySfxFlipBreaker
     ldya #Data_FlipBreaker_sSfx
-    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for when a breaker device rises from the floor.
@@ -61,7 +61,7 @@
 .EXPORT FuncA_Cutscene_PlaySfxBreakerRising
 .PROC FuncA_Cutscene_PlaySfxBreakerRising
     ldya #Data_BreakerRising_sSfx
-    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -73,7 +73,7 @@
 .EXPORT FuncA_Room_PlaySfxBreakerRising
 .PROC FuncA_Room_PlaySfxBreakerRising
     ldya #Data_BreakerRising_sSfx
-    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

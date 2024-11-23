@@ -99,6 +99,9 @@ kSoundChip     = 0      ; 0 = no extra sound chips
 .ENDPROC
 
 ;;; Stub implementation.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return C Set if the sound is finished, cleared otherwise.
+;;; @preserve X, T0+
 .EXPORT Func_AudioCallSfx
 .PROC Func_AudioCallSfx
     sec  ; set C to indicate that the sound is finished

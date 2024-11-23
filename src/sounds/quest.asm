@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecode
+.IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
 
@@ -52,9 +52,9 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Dialog_PlaySfxQuestMarker
 .PROC FuncA_Dialog_PlaySfxQuestMarker
-    ldx #eChan::Pulse1
     ldya #Data_QuestMarker_sSfx
-    jmp Func_PlaySfxBytecode  ; preserves T0+
+    stya Zp_Next_sChanSfx_arr + eChan::Pulse1 + sChanSfx::NextOp_sSfx_ptr
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodePulse2
+.IMPORT Func_PlaySfxOnPulse2Channel
 
 ;;;=========================================================================;;;
 
@@ -43,13 +43,8 @@
 ;;; @preserve X, T0+
 .EXPORT Func_PlaySfxFlopDown
 .PROC Func_PlaySfxFlopDown
-    txa
-    pha
     ldya #Data_FlopDown_sSfx
-    jsr Func_PlaySfxBytecodePulse2  ; preserves T0+
-    pla
-    tax
-    rts
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

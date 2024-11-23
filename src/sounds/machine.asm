@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodePulse2
+.IMPORT Func_PlaySfxOnPulse2Channel
 
 ;;;=========================================================================;;;
 
@@ -65,7 +65,7 @@
 .EXPORT FuncA_Machine_PlaySfxEnd
 .PROC FuncA_Machine_PlaySfxEnd
     ldya #Data_MachineEnd_sSfx
-    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for when a machine encounters an error.
@@ -73,7 +73,7 @@
 .EXPORT FuncA_Machine_PlaySfxError
 .PROC FuncA_Machine_PlaySfxError
     ldya #Data_MachineError_sSfx
-    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for when all machines SYNC up.
@@ -81,7 +81,7 @@
 .EXPORT FuncA_Machine_PlaySfxSync
 .PROC FuncA_Machine_PlaySfxSync
     ldya #Data_MachineSync_sSfx
-    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

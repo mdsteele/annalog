@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodeNoise
+.IMPORT Func_PlaySfxOnNoiseChannel
 
 ;;;=========================================================================;;;
 
@@ -46,13 +46,8 @@
 ;;; @preserve X, T0+
 .EXPORT Func_PlaySfxShootFire
 .PROC Func_PlaySfxShootFire
-    txa
-    pha
-    ldya #Data_ShootFire_sSfx
-    jsr Func_PlaySfxBytecodeNoise  ; preserves T0+
-    pla
-    tax
-    rts
+    ldya #Data_ShootFire_sSfx  ; param: sSfx pointer
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

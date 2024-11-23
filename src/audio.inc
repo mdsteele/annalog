@@ -58,13 +58,12 @@
 
 ;;; SFX state variables for a given APU channel.
 .STRUCT sChanSfx
-    ;; Indicates which SFX function to call each frame while the sound is
-    ;; active.
-    Sfx_eSound  .byte
-    ;; Arbitrary parameter/state bytes that can be used by the SFX function.
-    Param1_byte .byte
-    Param2_byte .byte
-    Param3_byte .byte
+    ;; A pointer to the next SFX operation to execute.  If the hi byte of this
+    ;; pointer is zero, then the pointer is treated as null (no sound to play).
+    NextOp_sSfx_ptr .addr
+    ;; Arbitrary parameter/state bytes that can be used by FUNC operations.
+    Param1_byte     .byte
+    Param2_byte     .byte
 .ENDSTRUCT
 
 ;;;=========================================================================;;;

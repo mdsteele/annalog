@@ -22,7 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodeNoise
+.IMPORT Func_PlaySfxOnNoiseChannel
 
 ;;;=========================================================================;;;
 
@@ -46,7 +46,7 @@
 .EXPORT FuncA_Machine_PlaySfxCannonFire
 .PROC FuncA_Machine_PlaySfxCannonFire
     ldya #Data_CannonFire_sSfx
-    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

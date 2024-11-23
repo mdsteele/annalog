@@ -23,9 +23,6 @@
 .INCLUDE "sound.inc"
 
 .IMPORT Data_PowersOfTwo_u8_arr8
-.IMPORT Func_Noop
-.IMPORT Func_SfxDialogText
-.IMPORT Func_SfxExplode
 .IMPORT Ram_Audio_sChanCtrl_arr
 .IMPORT Ram_Audio_sChanSfx_arr
 .IMPORTZP Zp_AudioTmp_byte
@@ -36,15 +33,16 @@
 
 .SEGMENT "PRG8"
 
-;;; SFX function for playing sSfx operations.
+;;; Executes the sound effect on the specified APU channel.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if the sound is finished, cleared otherwise.
 ;;; @preserve X, T0+
-.PROC Func_SfxBytecode
+.EXPORT Func_AudioCallSfx
+.PROC Func_AudioCallSfx
 _ExecuteNext:
-    lda Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 0, x
     sta Zp_AudioTmp_ptr + 0
-    lda Ram_Audio_sChanSfx_arr + sChanSfx::Param2_byte, x
+    lda Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 1, x
     sta Zp_AudioTmp_ptr + 1
     ldy #0
     lda (Zp_AudioTmp_ptr), y  ; opcode
@@ -95,12 +93,12 @@ _AdvanceByY:
     tya
 _AdvanceByA:
     ;; Add A to the param pointer, and reset repeat count to zero.
-    add Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x
-    sta Ram_Audio_sChanSfx_arr + sChanSfx::Param1_byte, x
+    add Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 0, x
+    sta Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 0, x
     lda #0
     sta Ram_Audio_sChanCtrl_arr + sChanCtrl::SfxRepeat_u8, x
-    adc Ram_Audio_sChanSfx_arr + sChanSfx::Param2_byte, x
-    sta Ram_Audio_sChanSfx_arr + sChanSfx::Param2_byte, x
+    adc Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 1, x
+    sta Ram_Audio_sChanSfx_arr + sChanSfx::NextOp_sSfx_ptr + 1, x
     jmp _ExecuteNext
 _EndSound:
     sec  ; set C to indicate that the sound is finished
@@ -122,68 +120,22 @@ _CallAudioTmpPtr:
     jmp (Zp_AudioTmp_ptr)
 .ENDPROC
 
-;;; Starts playing a sSfx-based sound effect on the Noise channel.
+;;; Starts playing a sound effect on the Noise channel.
 ;;; @param YA The sSfx pointer.
 ;;; @preserve X, T0+
-.EXPORT Func_PlaySfxBytecodeNoise
-.PROC Func_PlaySfxBytecodeNoise
-    ldx #eChan::Noise  ; param: eChan value
-    .assert eChan::Noise > 0, error
-    bne Func_PlaySfxBytecode  ; unconditional; preserves T0+
-.ENDPROC
-
-;;; Starts playing a sSfx-based sound effect on the Pulse2 channel.
-;;; @param YA The sSfx pointer.
-;;; @preserve X, T0+
-.EXPORT Func_PlaySfxBytecodePulse2
-.PROC Func_PlaySfxBytecodePulse2
-    ldx #eChan::Pulse2  ; param: eChan value
-    fall Func_PlaySfxBytecode  ; preserves T0+
-.ENDPROC
-
-;;; Starts playing a sSfxSeq-based sound effect.
-;;; @param X The eChan value for channel to play the sound on.
-;;; @param YA The sSfx pointer.
-;;; @preserve T0+
-.EXPORT Func_PlaySfxBytecode
-.PROC Func_PlaySfxBytecode
-    sta Zp_Next_sChanSfx_arr + sChanSfx::Param1_byte, x
-    sty Zp_Next_sChanSfx_arr + sChanSfx::Param2_byte, x
-    lda #eSound::Bytecode
-    sta Zp_Next_sChanSfx_arr + sChanSfx::Sfx_eSound, x
+.EXPORT Func_PlaySfxOnNoiseChannel
+.PROC Func_PlaySfxOnNoiseChannel
+    stya Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::NextOp_sSfx_ptr
     rts
 .ENDPROC
 
-;;; Calls the SFX function for the specified sound on the specified APU
-;;; channel.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @param Y The eSound value for the SFX function to call.
-;;; @return C Set if the sound is finished, cleared otherwise.
+;;; Starts playing a sound effect on the Pulse2 channel.
+;;; @param YA The sSfx pointer.
 ;;; @preserve X, T0+
-.EXPORT Func_AudioCallSfx
-.PROC Func_AudioCallSfx
-    lda Data_Sfx_func_ptr_0_arr, y
-    sta Zp_AudioTmp_ptr + 0
-    lda Data_Sfx_func_ptr_1_arr, y
-    sta Zp_AudioTmp_ptr + 1
-    jmp (Zp_AudioTmp_ptr)
+.EXPORT Func_PlaySfxOnPulse2Channel
+.PROC Func_PlaySfxOnPulse2Channel
+    stya Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::NextOp_sSfx_ptr
+    rts
 .ENDPROC
-
-;;; Maps from eSound enum values to SFX function pointers.  An SFX function is
-;;; called each frame that the sound effect is active to update the channel's
-;;; APU registers.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X, T0+
-.REPEAT 2, table
-    D_TABLE_LO table, Data_Sfx_func_ptr_0_arr
-    D_TABLE_HI table, Data_Sfx_func_ptr_1_arr
-    D_TABLE .enum, eSound
-    d_entry table, None,       Func_Noop
-    d_entry table, Bytecode,   Func_SfxBytecode
-    d_entry table, DialogText, Func_SfxDialogText
-    d_entry table, Explode,    Func_SfxExplode
-    D_END
-.ENDREPEAT
 
 ;;;=========================================================================;;;

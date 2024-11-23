@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodePulse2
+.IMPORT Func_PlaySfxOnPulse2Channel
 
 ;;;=========================================================================;;;
 
@@ -57,7 +57,7 @@
 .EXPORT Func_PlaySfxMenuCancel
 .PROC Func_PlaySfxMenuCancel
     ldya #Data_MenuCancel_sSfx
-    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for confirming a menu item.
@@ -65,7 +65,7 @@
 .EXPORT Func_PlaySfxMenuConfirm
 .PROC Func_PlaySfxMenuConfirm
     ldya #Data_MenuConfirm_sSfx
-    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for moving the cursor in a menu.
@@ -73,7 +73,7 @@
 .EXPORT Func_PlaySfxMenuMove
 .PROC Func_PlaySfxMenuMove
     ldya #Data_MenuMove_sSfx
-    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

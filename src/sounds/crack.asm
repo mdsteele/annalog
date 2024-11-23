@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodeNoise
+.IMPORT Func_PlaySfxOnNoiseChannel
 
 ;;;=========================================================================;;;
 
@@ -43,7 +43,7 @@
 .EXPORT FuncA_Room_PlaySfxCrack
 .PROC FuncA_Room_PlaySfxCrack
     ldya #Data_Crack_sSfx
-    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

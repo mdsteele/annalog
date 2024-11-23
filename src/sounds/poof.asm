@@ -21,8 +21,8 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodeNoise
-.IMPORT Func_PlaySfxBytecodePulse2
+.IMPORT Func_PlaySfxOnNoiseChannel
+.IMPORT Func_PlaySfxOnPulse2Channel
 
 ;;;=========================================================================;;;
 
@@ -55,15 +55,10 @@
 ;;; @preserve X, T0+
 .EXPORT Func_PlaySfxPoof
 .PROC Func_PlaySfxPoof
-    txa
-    pha
     ldya #Data_PoofPulse_sSfx
-    jsr Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jsr Func_PlaySfxOnPulse2Channel  ; preserves X and T0+
     ldya #Data_PoofNoise_sSfx
-    jsr Func_PlaySfxBytecodeNoise  ; preserves T0+
-    pla
-    tax
-    rts
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

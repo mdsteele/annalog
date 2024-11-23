@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodeNoise
+.IMPORT Func_PlaySfxOnNoiseChannel
 .IMPORTZP Zp_AudioTmp_byte
 
 ;;;=========================================================================;;;
@@ -68,7 +68,7 @@ _Func:
 .EXPORT FuncA_Machine_PlaySfxLaunch
 .PROC FuncA_Machine_PlaySfxLaunch
     ldya #Data_Launch_sSfx
-    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

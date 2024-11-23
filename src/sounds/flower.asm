@@ -22,8 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecode
-.IMPORT Func_PlaySfxBytecodeNoise
+.IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
 
@@ -57,16 +56,10 @@
 ;;; @preserve X, Y, T0+
 .EXPORT Func_PlaySfxBreakFlower
 .PROC Func_PlaySfxBreakFlower
-    txa
-    pha
-    tya
-    pha
-    ldya #Data_BreakFlower_sSfx
-    jsr Func_PlaySfxBytecodeNoise  ; preserves T0+
-    pla
-    tay
-    pla
-    tax
+    lda #<Data_BreakFlower_sSfx
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::NextOp_sSfx_ptr + 0
+    lda #>Data_BreakFlower_sSfx
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::NextOp_sSfx_ptr + 1
     rts
 .ENDPROC
 
@@ -78,9 +71,9 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Avatar_PlaySfxPickUpFlower
 .PROC FuncA_Avatar_PlaySfxPickUpFlower
-    ldx #eChan::Pulse1
     ldya #Data_PickUpFlower_sSfx
-    jmp Func_PlaySfxBytecode  ; preserves T0+
+    stya Zp_Next_sChanSfx_arr + eChan::Pulse1 + sChanSfx::NextOp_sSfx_ptr
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

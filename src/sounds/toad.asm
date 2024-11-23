@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodePulse2
+.IMPORT Func_PlaySfxOnPulse2Channel
 
 ;;;=========================================================================;;;
 
@@ -45,13 +45,8 @@
 ;;; @preserve X, T0+
 .EXPORT FuncA_Actor_PlaySfxToadJump
 .PROC FuncA_Actor_PlaySfxToadJump
-    txa
-    pha
     ldya #Data_ToadJump_sSfx
-    jsr Func_PlaySfxBytecodePulse2  ; preserves T0+
-    pla
-    tax
-    rts
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

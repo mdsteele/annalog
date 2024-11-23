@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodeNoise
+.IMPORT Func_PlaySfxOnNoiseChannel
 
 ;;;=========================================================================;;;
 
@@ -50,13 +50,8 @@
 ;;; @preserve X, T0+
 .EXPORT FuncA_Room_PlaySfxThudSmall
 .PROC FuncA_Room_PlaySfxThudSmall
-    txa
-    pha
     ldya #Data_ThudSmall_sSfx
-    jsr Func_PlaySfxBytecodeNoise  ; preserves T0+
-    pla
-    tax
-    rts
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -68,7 +63,7 @@
 .EXPORT FuncA_Machine_PlaySfxThudBig
 .PROC FuncA_Machine_PlaySfxThudBig
     ldya #Data_ThudBig_sSfx
-    jmp Func_PlaySfxBytecodeNoise  ; preserves T0+
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

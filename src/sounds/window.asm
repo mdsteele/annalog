@@ -21,7 +21,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxBytecodePulse2
+.IMPORT Func_PlaySfxOnPulse2Channel
 
 ;;;=========================================================================;;;
 
@@ -54,7 +54,7 @@
 .EXPORT Func_PlaySfxWindowClose
 .PROC Func_PlaySfxWindowClose
     ldya #Data_WindowClose_sSfx
-    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;; Starts playing the sound for opening the UI window.
@@ -62,7 +62,7 @@
 .EXPORT Func_PlaySfxWindowOpen
 .PROC Func_PlaySfxWindowOpen
     ldya #Data_WindowOpen_sSfx
-    jmp Func_PlaySfxBytecodePulse2  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

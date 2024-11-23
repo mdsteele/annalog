@@ -106,13 +106,11 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; @preserve X, Y, T0+
 .EXPORT Func_PlaySfxSample
 .PROC Func_PlaySfxSample
-    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param3_byte  ; eSample
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte  ; eSample
     lda #<Data_Sample_sSfx
-    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte  ; addr lo
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::NextOp_sSfx_ptr + 0
     lda #>Data_Sample_sSfx
-    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Param2_byte  ; addr hi
-    lda #eSound::Bytecode
-    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::Sfx_eSound
+    sta Zp_Next_sChanSfx_arr + eChan::Dmc + sChanSfx::NextOp_sSfx_ptr + 1
     rts
 .ENDPROC
 
@@ -178,7 +176,7 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
     sfx_Func _Wait
     sfx_End
 _Initialize:
-    ldy Ram_Audio_sChanSfx_arr + eChan::Dmc + sChanSfx::Param3_byte  ; eSample
+    ldy Ram_Audio_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte  ; eSample
     lda Data_SampleRate_u8_arr, y
     sta Hw_DmcFlags_wo
     lda #$40
@@ -191,7 +189,7 @@ _Initialize:
     rts
 _Wait:
     tya  ; repeat count
-    ldy Ram_Audio_sChanSfx_arr + eChan::Dmc + sChanSfx::Param3_byte  ; eSample
+    ldy Ram_Audio_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte  ; eSample
     cmp Data_SampleFrames_u8_arr, y
     rts
 .ENDPROC

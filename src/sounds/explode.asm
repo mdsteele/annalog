@@ -24,6 +24,7 @@
 .INCLUDE "../sound.inc"
 
 .IMPORT Ram_Audio_sChanSfx_arr
+.IMPORTZP Zp_AudioTmp_byte
 .IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
@@ -38,17 +39,17 @@
 
 .SEGMENT "PRG8"
 
-;;; SFX function for an explosion sound.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return C Set if the sound is finished, cleared otherwise.
-;;; @preserve X, T0+
-.EXPORT Func_SfxExplode
-.PROC Func_SfxExplode
-    lda Ram_Audio_sChanSfx_arr + eChan::Noise + sChanSfx::Param3_byte  ; timer
-    bne _Continue
+.PROC Data_Explode_sSfx
+    sfx_Func _Func
+    sfx_End
+_Func:
+    tya
+    rsub Ram_Audio_sChanSfx_arr + eChan::Noise + sChanSfx::Param2_byte
+    bne @continue
     sec  ; set C to indicate that the sound is finished
     rts
-_Continue:
+    @continue:
+    sta Zp_AudioTmp_byte  ; frames remaining
     bit Ram_Audio_sChanSfx_arr + eChan::Noise + sChanSfx::Param1_byte
     .assert bSfxExplode::DivEnv = bProc::Negative, error
     bpl @noDivEnv
@@ -62,13 +63,12 @@ _Continue:
     tay
     bpl @loadTimer  ; unconditional
     @noModTimer:
-    ldy Ram_Audio_sChanSfx_arr + eChan::Noise + sChanSfx::Param3_byte  ; timer
+    ldy Zp_AudioTmp_byte  ; frames remaining
     @loadTimer:
     lda _NoisePeriod_u8_arr, y
     sta Hw_NoisePeriod_wo
     lda #0
     sta Hw_NoiseLength_wo
-    dec Ram_Audio_sChanSfx_arr + sChanSfx::Param3_byte, x  ; timer
     clc  ; clear C to indicate that the sound is still going
     rts
 _NoisePeriod_u8_arr:
@@ -116,12 +116,14 @@ _NoisePeriod_u8_arr:
 
 ;;; Starts playing a explosion sound.
 ;;; @prereq The Param1_byte is already initialized.
-;;; @param A The value to set for Param3_byte.
+;;; @param A The value to set for Param2_byte.
 ;;; @preserve X, Y, T0+
 .PROC Func_PlaySfxExplode
-    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Param3_byte  ; timer
-    lda #eSound::Explode
-    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Sfx_eSound
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Param2_byte  ; timer
+    lda #<Data_Explode_sSfx
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::NextOp_sSfx_ptr + 0
+    lda #>Data_Explode_sSfx
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::NextOp_sSfx_ptr + 1
     rts
 .ENDPROC
 
