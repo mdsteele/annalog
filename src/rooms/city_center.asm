@@ -818,7 +818,7 @@ _ApplyAlexGravity:
     dlg_Text OrcGronta, DataA_Text1_CityCenterBreakerCity1_Part5_u8_arr
     dlg_Text OrcGronta, DataA_Text1_CityCenterBreakerCity1_Part6_u8_arr
     dlg_Text ChildAlex, DataA_Text1_CityCenterBreakerCity1_Part7_u8_arr
-    dlg_Call _GrontaRaiseArm
+    dlg_Call _GrontaRaiseAxe
     dlg_Text OrcGrontaShout, DataA_Text1_CityCenterBreakerCity1_Part8_u8_arr
     dlg_Done
 _AlexRaiseArm:
@@ -829,8 +829,8 @@ _AlexLowerArm:
     lda #eNpcChild::AlexStanding
     sta Ram_ActorState1_byte_arr + kAlexActorIndex
     rts
-_GrontaRaiseArm:
-    lda #eNpcOrc::GrontaArmsRaised
+_GrontaRaiseAxe:
+    lda #eNpcOrc::GrontaAxeRaised
     sta Ram_ActorState1_byte_arr + kGrontaActorIndex
     rts
 .ENDPROC

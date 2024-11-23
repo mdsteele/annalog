@@ -1384,7 +1384,6 @@ _chr_begin:
     chr_inc "upgrade_opif",        kTileIdObjUpgradeOpIfFirst
     chr_res $08
     chr_inc "eirene_parley",       kTileIdObjEireneParleyFirst
-    chr_res $04
     chr_inc "orc_gronta_parley",   kTileIdObjOrcGrontaParleyFirst
     chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
     chr_inc "orc_gronta_running",  kTileIdObjOrcGrontaRunningFirst

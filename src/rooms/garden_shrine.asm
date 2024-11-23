@@ -46,6 +46,7 @@
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjParley
 .IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -212,8 +213,13 @@ _Passages_sPassage_arr:
 .PROC DataA_Dialog_GardenShrineBreakerMine2_sDialog
     .assert kTileIdBgPortraitEireneFirst = kTileIdBgPortraitGrontaFirst, error
     dlg_Text MermaidEirene, DataA_Text0_GardenShrineBreakerMine2_Part1_u8_arr
+    dlg_Call _GrontaRaiseArms
     dlg_Text OrcGrontaShout, DataA_Text0_GardenShrineBreakerMine2_Part2_u8_arr
     dlg_Done
+_GrontaRaiseArms:
+    lda #eNpcOrc::GrontaArmsRaised
+    sta Ram_ActorState1_byte_arr + kGrontaActorIndex
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

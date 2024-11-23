@@ -2001,13 +2001,13 @@ _GiveUpRemote_sCutscene:
     act_SetAvatarPose eAvatar::Standing
     ;; Animate Gronta catching the remote.
     act_WaitFrames 5
-    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaArmsRaised
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaAxeRaised
     act_WaitFrames 65
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
     act_WaitFrames 10
     act_RunDialog eDialog::CoreBossGrontaGive1
     ;; Animate Gronta throwing her axe at Anna.
-    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaArmsRaised
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaAxeRaised
     act_WaitFrames 15
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaThrowing
     act_PlaySfxSample eSample::JumpGronta

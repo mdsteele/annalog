@@ -357,7 +357,7 @@ _Passages_sPassage_arr:
     act_ShakeRoom 30
     act_WaitFrames 50
     act_RepeatFunc kBlockHeightPx * 2, _RaiseLift3
-    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaArmsRaised
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaAxeRaised
     act_WaitFrames 10
     act_RunDialog eDialog::CoreLockBreakerShadow
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding

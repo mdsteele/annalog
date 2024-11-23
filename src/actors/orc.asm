@@ -1005,11 +1005,11 @@ _Poses_eNpcOrc_arr:
     d_byte JumpWindup,   eNpcOrc::GrontaStanding
     d_byte JumpAirborne, eNpcOrc::GrontaJumping
     d_byte Running,      eNpcOrc::GrontaRunning1
-    d_byte SmashWindup,  eNpcOrc::GrontaArmsRaised
+    d_byte SmashWindup,  eNpcOrc::GrontaAxeRaised
     d_byte SmashWaiting, eNpcOrc::GrontaThrowing
-    d_byte ThrowWindup,  eNpcOrc::GrontaArmsRaised
+    d_byte ThrowWindup,  eNpcOrc::GrontaAxeRaised
     d_byte ThrowWaiting, eNpcOrc::GrontaThrowing
-    d_byte ThrowCatch,   eNpcOrc::GrontaArmsRaised
+    d_byte ThrowCatch,   eNpcOrc::GrontaAxeRaised
     D_END
 .ENDPROC
 
@@ -1118,17 +1118,18 @@ _TileIdHead_u8_arr:
     d_byte GruntStanding,    kTileIdObjOrcGruntHeadHigh
     d_byte GruntKneeling,    kTileIdObjOrcGruntThrowingFirst  + $00
     d_byte GhostStanding,    kTileIdObjOrcGhostFirst          + $00
-    d_byte GrontaArmsRaised, kTileIdObjOrcGrontaStandingFirst + $04
+    d_byte GrontaArmsRaised, kTileIdObjOrcGrontaParleyFirst   + $00
+    d_byte GrontaAxeRaised,  kTileIdObjOrcGrontaStandingFirst + $04
     d_byte GrontaCrouching,  kTileIdObjOrcGrontaCrouchFirst   + $00
     d_byte GrontaJumping,    kTileIdObjOrcGrontaStandingFirst + $04
     d_byte GrontaKneeling,   kTileIdObjOrcGrontaCrouchFirst   + $00
     d_byte GrontaParley,     kTileIdObjOrcGrontaHeadHigh
     d_byte GrontaStanding,   kTileIdObjOrcGrontaHeadHigh
-    d_byte GrontaThrowing,   kTileIdObjOrcGrontaHeadLow
     d_byte GrontaRunning1,   kTileIdObjOrcGrontaHeadLow
     d_byte GrontaRunning2,   kTileIdObjOrcGrontaHeadHigh
     d_byte GrontaRunning3,   kTileIdObjOrcGrontaHeadLow
     d_byte GrontaRunning4,   kTileIdObjOrcGrontaHeadHigh
+    d_byte GrontaThrowing,   kTileIdObjOrcGrontaHeadLow
     d_byte EireneParley,     kTileIdObjEireneParleyFirst      + $00
     D_END
 _TileIdFeet_u8_arr:
@@ -1143,16 +1144,17 @@ _TileIdFeet_u8_arr:
     d_byte GruntKneeling,    kTileIdObjOrcGruntKneelingFirst
     d_byte GhostStanding,    kTileIdObjOrcGhostFirst          + $04
     d_byte GrontaArmsRaised, kTileIdObjOrcGrontaStandingFirst + $0c
+    d_byte GrontaAxeRaised,  kTileIdObjOrcGrontaStandingFirst + $0c
     d_byte GrontaCrouching,  kTileIdObjOrcGrontaCrouchFirst   + $04
     d_byte GrontaJumping,    kTileIdObjOrcGrontaJumpingFirst
     d_byte GrontaKneeling,   kTileIdObjOrcGrontaCrouchFirst   + $08
-    d_byte GrontaParley,     kTileIdObjOrcGrontaParleyFirst
+    d_byte GrontaParley,     kTileIdObjOrcGrontaParleyFirst   + $04
     d_byte GrontaStanding,   kTileIdObjOrcGrontaStandingFirst + $08
-    d_byte GrontaThrowing,   kTileIdObjOrcGrontaThrowingFirst
     d_byte GrontaRunning1,   kTileIdObjOrcGrontaFeetRunning1
     d_byte GrontaRunning2,   kTileIdObjOrcGrontaFeetRunning2
     d_byte GrontaRunning3,   kTileIdObjOrcGrontaFeetRunning3
     d_byte GrontaRunning4,   kTileIdObjOrcGrontaFeetRunning2
+    d_byte GrontaThrowing,   kTileIdObjOrcGrontaThrowingFirst
     d_byte EireneParley,     kTileIdObjEireneParleyFirst      + $04
     D_END
 .ENDPROC

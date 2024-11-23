@@ -399,7 +399,7 @@ _AlexStanding:
     dlg_Text OrcGronta, DataA_Text0_TownOutdoorsAlex3_HandleThis_u8_arr
     dlg_Call _TurnKidsAround
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_WhaWhat_u8_arr
-    dlg_Call _RaiseGrontaArms
+    dlg_Call _RaiseGrontaAxe
     dlg_Text OrcGrontaShout, DataA_Text0_TownOutdoorsAlex3_Attack1_u8_arr
     dlg_Call _StartAttackMusic
     dlg_Text ChildAlexShout, DataA_Text0_TownOutdoorsAlex3_Attack2_u8_arr
@@ -419,8 +419,8 @@ _TurnKidsAround:
     lda #0
     sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
     rts
-_RaiseGrontaArms:
-    lda #eNpcOrc::GrontaArmsRaised
+_RaiseGrontaAxe:
+    lda #eNpcOrc::GrontaAxeRaised
     sta Ram_ActorState1_byte_arr + kGrontaActorIndex
     rts
 _StartAttackMusic:

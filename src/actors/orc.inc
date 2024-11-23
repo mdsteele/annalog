@@ -114,16 +114,17 @@ kBadGrontaMaxJumpUpBlocks = 2
     GhostStanding
     ;; Gronta (or Eirene) (red palette for head):
     GrontaArmsRaised
+    GrontaAxeRaised
     GrontaCrouching
     GrontaJumping
     GrontaKneeling
     GrontaParley
     GrontaStanding
-    GrontaThrowing
     GrontaRunning1
     GrontaRunning2
     GrontaRunning3
     GrontaRunning4
+    GrontaThrowing
     EireneParley  ; not really an orc, but drawn like Gronta
     NUM_VALUES
 .ENDENUM
@@ -153,7 +154,7 @@ kOrcTrappedDistance = 7
 kTileIdObjOrcGhostFirst          = $d0
 kTileIdObjOrcGrontaCrouchFirst   = $f0
 kTileIdObjOrcGrontaJumpingFirst  = $c4
-kTileIdObjOrcGrontaParleyFirst   = $9c
+kTileIdObjOrcGrontaParleyFirst   = $98
 kTileIdObjOrcGrontaRunningFirst  = $b0
 kTileIdObjOrcGrontaStandingFirst = $a0
 kTileIdObjOrcGrontaThrowingFirst = $c0
