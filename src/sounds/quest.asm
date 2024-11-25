@@ -18,11 +18,10 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
-.INCLUDE "../audio.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORTZP Zp_Next_sChanSfx_arr
+.IMPORT Func_PlaySfxOnPulse1Channel
 
 ;;;=========================================================================;;;
 
@@ -53,8 +52,7 @@
 .EXPORT FuncA_Dialog_PlaySfxQuestMarker
 .PROC FuncA_Dialog_PlaySfxQuestMarker
     ldya #Data_QuestMarker_sSfx
-    stya Zp_Next_sChanSfx_arr + eChan::Pulse1 + sChanSfx::NextOp_sSfx_ptr
-    rts
+    jmp Func_PlaySfxOnPulse1Channel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -34,6 +34,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ram_ActorType_eActor_arr
@@ -215,6 +216,7 @@ _Outside:
     bcc @continue
     ;; Kill the goo.
     jsr Func_InitActorSmokeExplosion  ; preserves X
+    jsr Func_PlaySfxBaddieDeath  ; preserves X
     @continue:
     dex
     .assert kMaxActors <= $80, error

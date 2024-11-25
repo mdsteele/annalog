@@ -22,6 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
+.IMPORT Func_PlaySfxOnPulse1Channel
 .IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
@@ -72,8 +73,7 @@
 .EXPORT FuncA_Avatar_PlaySfxPickUpFlower
 .PROC FuncA_Avatar_PlaySfxPickUpFlower
     ldya #Data_PickUpFlower_sSfx
-    stya Zp_Next_sChanSfx_arr + eChan::Pulse1 + sChanSfx::NextOp_sSfx_ptr
-    rts
+    jmp Func_PlaySfxOnPulse1Channel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

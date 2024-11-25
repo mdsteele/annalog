@@ -49,6 +49,7 @@
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_MachineLaserReadRegC
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_WriteToUpperAttributeTable
@@ -287,7 +288,7 @@ _MaybeKillFlowerBaddie:
     jsr FuncA_Room_SpawnExplosionAtPoint
     ldx #kFlowerActorIndex  ; param: actor index
     jsr Func_InitActorSmokeExplosion
-    ;; TODO: play a sound for the flower baddie dying
+    jsr Func_PlaySfxBaddieDeath
     @done:
     rts
 .ENDPROC

@@ -56,6 +56,7 @@
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
@@ -438,7 +439,7 @@ _HitColumn:
 _HitBeetle:
     ;; Kill the beetle.
     jsr Func_InitActorSmokeExplosion  ; preserves T0+
-    ;; TODO: play a sound for the beetle dying
+    jsr Func_PlaySfxBaddieDeath  ; preserves T0+
     ;; Remove the bullet.
     ldx T2  ; bullet actor index
     lda #eActor::None

@@ -120,12 +120,12 @@ _CallAudioTmpPtr:
     jmp (Zp_AudioTmp_ptr)
 .ENDPROC
 
-;;; Starts playing a sound effect on the Noise channel.
+;;; Starts playing a sound effect on the Pulse1 channel.
 ;;; @param YA The sSfx pointer.
 ;;; @preserve X, T0+
-.EXPORT Func_PlaySfxOnNoiseChannel
-.PROC Func_PlaySfxOnNoiseChannel
-    stya Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::NextOp_sSfx_ptr
+.EXPORT Func_PlaySfxOnPulse1Channel
+.PROC Func_PlaySfxOnPulse1Channel
+    stya Zp_Next_sChanSfx_arr + eChan::Pulse1 + sChanSfx::NextOp_sSfx_ptr
     rts
 .ENDPROC
 
@@ -135,6 +135,15 @@ _CallAudioTmpPtr:
 .EXPORT Func_PlaySfxOnPulse2Channel
 .PROC Func_PlaySfxOnPulse2Channel
     stya Zp_Next_sChanSfx_arr + eChan::Pulse2 + sChanSfx::NextOp_sSfx_ptr
+    rts
+.ENDPROC
+
+;;; Starts playing a sound effect on the Noise channel.
+;;; @param YA The sSfx pointer.
+;;; @preserve X, T0+
+.EXPORT Func_PlaySfxOnNoiseChannel
+.PROC Func_PlaySfxOnNoiseChannel
+    stya Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::NextOp_sSfx_ptr
     rts
 .ENDPROC
 

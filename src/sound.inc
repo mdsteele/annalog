@@ -77,6 +77,11 @@
     .word TIMER
 .ENDMACRO
 
+.MACRO sfx_SetSweep SWEEP
+    .byte bSfxOp::SetSweep
+    .byte SWEEP
+.ENDMACRO
+
 .MACRO sfx_SetEnv ENV
     .byte bSfxOp::SetEnv
     .byte ENV

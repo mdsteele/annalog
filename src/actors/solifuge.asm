@@ -43,6 +43,7 @@
 .IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
@@ -129,7 +130,7 @@ _Steamed:
     ;; If the solifuge hits the ceiling, kill it.
     jsr FuncA_Actor_CenterHitsTerrainOrSolidPlatform  ; preserves X, returns C
     bcc @noHitCeiling
-    ;; TODO: play a sound for the solifuge dying
+    jsr Func_PlaySfxBaddieDeath  ; preserves X
     jmp Func_InitActorSmokeExplosion  ; preserves X
     @noHitCeiling:
     ;; TODO: if hit floor, land

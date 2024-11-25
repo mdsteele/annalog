@@ -58,6 +58,7 @@
 .IMPORT Func_MachineBridgeReadRegY
 .IMPORT Func_MachineCannonReadRegY
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ppu_ChrObjGarden
@@ -397,7 +398,7 @@ _CheckForCollision:
     ldx #kKillableVinebugActorIndex  ; param: actor index
     jsr Func_InitActorSmokeExplosion
     jsr Func_PlaySfxExplodeSmall
-    ;; TODO: maybe play a sound (on another channel) for vinebug dying?
+    jsr Func_PlaySfxBaddieDeath
 _Done:
     rts
 .ENDPROC

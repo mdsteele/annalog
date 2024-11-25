@@ -21,20 +21,41 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
+.IMPORT Func_PlaySfxOnPulse1Channel
 .IMPORT Func_PlaySfxOnPulse2Channel
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
+;;; SFX data for the "baddie death" sound effect.
+.PROC Data_BaddieDeath_sSfx
+    .linecont +
+    sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | 11), \
+               (pulse_sweep -3, 0), $0180
+    sfx_Wait 6
+    sfx_SetSweep (pulse_sweep +5, 0)
+    sfx_Wait 7
+    sfx_End
+    .linecont -
+.ENDPROC
+
 ;;; SFX data for the "toad jump" sound effect.
 .PROC Data_ToadJump_sSfx
     .linecont +
-    sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 5, \
+    sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | 5), \
                (pulse_sweep -2, 0), $03e0
     sfx_Wait 24
     sfx_End
     .linecont -
+.ENDPROC
+
+;;; Starts playing the sound for when a baddie dies.
+;;; @preserve X, T0+
+.EXPORT Func_PlaySfxBaddieDeath
+.PROC Func_PlaySfxBaddieDeath
+    ldya #Data_BaddieDeath_sSfx
+    jmp Func_PlaySfxOnPulse1Channel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

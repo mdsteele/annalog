@@ -59,6 +59,7 @@
 .IMPORT Func_MachineBlasterReadRegM
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
+.IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_PlaySfxPoof
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
@@ -558,7 +559,7 @@ _CheckIfFireblastHitsHothead:
     sta Ram_ActorType_eActor_arr, x
     ldx #kHotheadActorIndex  ; param: actor index
     jsr Func_InitActorSmokeExplosion
-    ;; TODO: play a sound for the hothead dying
+    jsr Func_PlaySfxBaddieDeath
     jmp @done
     @continue:
     dex

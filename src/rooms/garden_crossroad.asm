@@ -42,6 +42,7 @@
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorType_eActor_arr
@@ -262,8 +263,8 @@ _ReadL:
     beq @noSquish  ; the machine didn't move
     bmi @noSquish  ; the machine moved up, not down
     lda Ram_ActorType_eActor_arr + kSquishableActorIndex
-    .assert eActor::None = 0, error
-    beq @noSquish  ; the actor is already gone
+    cmp #eActor::BadGrub
+    bne @noSquish  ; the actor is already gone
     ;; Check the upper-left corner of the grub's bounding box.
     ldx #kSquishableActorIndex  ; param: actor index
     jsr Func_SetPointToActorCenter  ; preserves X
@@ -279,7 +280,8 @@ _ReadL:
     jsr Func_IsPointInPlatform  ; preserves X, returns C
     bcc @noSquish
     @squish:
-    jmp Func_InitActorSmokeExplosion
+    jsr Func_InitActorSmokeExplosion
+    jmp Func_PlaySfxBaddieDeath
     @noSquish:
     rts
 .ENDPROC
