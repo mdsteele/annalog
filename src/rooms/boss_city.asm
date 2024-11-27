@@ -48,6 +48,7 @@
 .IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_LauncherTryAct
+.IMPORT FuncA_Machine_PlaySfxRocketTransfer
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_WriteToLever
@@ -1127,7 +1128,7 @@ _TryDropOffAmmo:
     ;; Error if the launcher machine already has a rocket loaded.
     lda Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
     bne _Error
-    ;; TODO: play a sound for a rocket being transferred
+    jsr FuncA_Machine_PlaySfxRocketTransfer
     dec Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
     inc Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
     bne _StartWaiting  ; unconditional
@@ -1141,7 +1142,7 @@ _TryPickUpAmmo:
     and Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
     sta Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
     inc Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
-    ;; TODO: play a sound for a rocket being transferred
+    jsr FuncA_Machine_PlaySfxRocketTransfer
 _StartWaiting:
     lda #kReloaderActCountdown  ; param: num frames
     jmp FuncA_Machine_StartWaiting

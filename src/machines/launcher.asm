@@ -28,7 +28,7 @@
 
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_InitActorProjRocket
-.IMPORT FuncA_Machine_PlaySfxLaunch
+.IMPORT FuncA_Machine_PlaySfxRocketLaunch
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2MachineShape
 .IMPORT FuncA_Objects_GetMachineLightTileId
@@ -106,7 +106,7 @@ _DecrementAmmo:
     ldx Zp_MachineIndex_u8
     dec Ram_MachineState1_byte_arr, x  ; ammo count
 _Finish:
-    jsr FuncA_Machine_PlaySfxLaunch
+    jsr FuncA_Machine_PlaySfxRocketLaunch
     lda #kLauncherActFrames  ; param: wait frames
     jmp FuncA_Machine_StartWaiting
 _Error:

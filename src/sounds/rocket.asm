@@ -34,7 +34,7 @@ kSfxLaunchDurationFrames = $1c
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "rocket launch" sound effect.
-.PROC Data_Launch_sSfx
+.PROC Data_RocketLaunch_sSfx
     sfx_Func _Func
     sfx_End
 _Func:
@@ -59,15 +59,33 @@ _Func:
     rts
 .ENDPROC
 
+;;; SFX data for the "rocket transfer" sound effect.
+.PROC Data_RocketTransfer_sSfx
+    sfx_SetEnvTimer (bEnvelope::NoLength | 0), $08a
+    sfx_Wait 3
+    sfx_SetTimerLo $88
+    sfx_Wait 3
+    sfx_End
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
 
 ;;; Starts playing a rocket launch sound.
 ;;; @preserve T0+
-.EXPORT FuncA_Machine_PlaySfxLaunch
-.PROC FuncA_Machine_PlaySfxLaunch
-    ldya #Data_Launch_sSfx
+.EXPORT FuncA_Machine_PlaySfxRocketLaunch
+.PROC FuncA_Machine_PlaySfxRocketLaunch
+    ldya #Data_RocketLaunch_sSfx
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
+.ENDPROC
+
+;;; Starts playing the sound for when a rocket is transferred between machines
+;;; (e.g. a reloader and a launcher).
+;;; @preserve T0+
+.EXPORT FuncA_Machine_PlaySfxRocketTransfer
+.PROC FuncA_Machine_PlaySfxRocketTransfer
+    ldya #Data_RocketTransfer_sSfx
     jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
 .ENDPROC
 
