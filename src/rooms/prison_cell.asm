@@ -68,6 +68,7 @@
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxConsoleTurnOn
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_PlaySfxFlopDown
 .IMPORT Func_SetFlag
@@ -560,7 +561,7 @@ _LiftConsole:
     beq @done  ; console is already active
     dec Zp_RoomState + sState::LiftConsoleTimer_u8
     bne @done  ; don't activate console yet
-    ;; TODO: play a sound for the console turning on
+    jsr Func_PlaySfxConsoleTurnOn
     lda #eDevice::ConsoleFloor
     sta Ram_DeviceType_eDevice_arr + kLiftConsoleDeviceIndex
     lda #kConsoleAnimCountdown

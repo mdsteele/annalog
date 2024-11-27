@@ -121,6 +121,7 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_MovePointHorz
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxConsoleTurnOn
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_PlaySfxPoof
@@ -2197,8 +2198,7 @@ _LookAtTopOfCore:
     sta Ram_DeviceType_eDevice_arr + kFinalTerminalDeviceIndex
     lda #kConsoleAnimCountdown
     sta Ram_DeviceAnim_u8_arr + kFinalTerminalDeviceIndex
-    ;; TODO: play a sound for the terminal turning on
-    rts
+    jmp Func_PlaySfxConsoleTurnOn
 .ENDPROC
 
 .EXPORT DataA_Cutscene_CoreBossFinaleReactivate_sCutscene

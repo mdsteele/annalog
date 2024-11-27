@@ -66,6 +66,7 @@
 .IMPORT Func_MovePointLeftByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxConsoleTurnOn
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
@@ -498,7 +499,7 @@ _RaindropVelY_u8_arr:
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
     act_WaitUntilZ _DropMonitorPlatform
     act_CallFunc FuncA_Cutscene_PlaySfxClick
-    act_WaitFrames 15
+    act_WaitFrames 25
     act_CallFunc _FixConsole
     act_SetDeviceAnim kConsoleDeviceIndex, kConsoleAnimCountdown
     act_SetScrollFlags 0
@@ -540,7 +541,7 @@ _DropMonitorPlatform:
     lda #1  ; param: max move by
     jmp Func_MovePlatformTopTowardPointY  ; returns Z
 _FixConsole:
-    ;; TODO: play a sound for the console turning on
+    jsr Func_PlaySfxConsoleTurnOn
     lda #eDevice::ConsoleFloor
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
     ldx #eFlag::MermaidSpringConsoleFixed  ; param: flag

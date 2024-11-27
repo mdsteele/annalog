@@ -44,6 +44,7 @@
 .IMPORT FuncC_Prison_TickGatePlatform
 .IMPORT Func_ClearFlag
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxConsoleTurnOn
 .IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetOrClearFlag
@@ -337,7 +338,7 @@ _ConsoleDelay:
     beq @done
     dec Zp_RoomState + sState::ConsoleDelay_u8
     bne @done
-    ;; TODO: play a sound for the console turning on
+    jsr Func_PlaySfxConsoleTurnOn
     lda #eDevice::ConsoleFloor
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
     lda #kConsoleAnimCountdown
