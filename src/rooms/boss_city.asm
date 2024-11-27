@@ -36,6 +36,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "boss_city.inc"
 
 .IMPORT DataA_Room_Building_sTileset
@@ -81,6 +82,8 @@
 .IMPORT Func_MovePointHorz
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
@@ -1026,7 +1029,8 @@ _BossIsAlive:
     ;; If the rocket hits the boss's core, make the boss react to getting hit.
     cpy #kBossCorePlatformIndex
     bne @notBossCore
-    ;; TODO: play a sound for hurting the boss
+    lda #eSample::BossHurtE  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves X and Y
     lda #eBossMode::Hurt
     sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossHurtCooldown
@@ -1049,7 +1053,7 @@ _BossIsAlive:
     jsr Func_ShakeRoom  ; preserves X
     @explodeRocket:
     jsr Func_InitActorSmokeExplosion
-    ;; TODO: play a sound for the rocket exploding
+    jsr Func_PlaySfxExplodeBig
     @done:
 _TickBoss:
     .assert eBossMode::Dead = 0, error
