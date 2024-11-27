@@ -47,6 +47,7 @@
 .IMPORT DataA_Text0_MermaidSpringAlex_Part5_u8_arr
 .IMPORT DataA_Text0_MermaidSpringSign_Closed_u8_arr
 .IMPORT DataA_Text0_MermaidSpringSign_Open_u8_arr
+.IMPORT FuncA_Cutscene_PlaySfxClick
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_PumpTick
@@ -496,6 +497,7 @@ _RaindropVelY_u8_arr:
     act_WaitFrames 60
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
     act_WaitUntilZ _DropMonitorPlatform
+    act_CallFunc FuncA_Cutscene_PlaySfxClick
     act_WaitFrames 15
     act_CallFunc _FixConsole
     act_SetDeviceAnim kConsoleDeviceIndex, kConsoleAnimCountdown

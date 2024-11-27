@@ -59,13 +59,25 @@ _Func:
     rts
 .ENDPROC
 
-;;; SFX data for the "rocket transfer" sound effect.
-.PROC Data_RocketTransfer_sSfx
+;;; SFX data for a clicking sound effect.
+.PROC Data_Click_sSfx
     sfx_SetEnvTimer (bEnvelope::NoLength | 0), $08a
     sfx_Wait 3
     sfx_SetTimerLo $88
     sfx_Wait 3
     sfx_End
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+;;; Starts playing the sound for when a stepstone is pushed into position.
+;;; @preserve T0+
+.EXPORT FuncA_Cutscene_PlaySfxClick
+.PROC FuncA_Cutscene_PlaySfxClick
+    ldya #Data_Click_sSfx
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -85,7 +97,7 @@ _Func:
 ;;; @preserve T0+
 .EXPORT FuncA_Machine_PlaySfxRocketTransfer
 .PROC FuncA_Machine_PlaySfxRocketTransfer
-    ldya #Data_RocketTransfer_sSfx
+    ldya #Data_Click_sSfx
     jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
 .ENDPROC
 

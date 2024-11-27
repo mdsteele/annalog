@@ -57,6 +57,7 @@
 .IMPORT DataA_Text0_PrisonUpperMarie_StandCareful_u8_arr
 .IMPORT DataA_Text0_PrisonUpperNora_u8_arr
 .IMPORT Data_Empty_sDialog
+.IMPORT FuncA_Cutscene_PlaySfxClick
 .IMPORT FuncA_Objects_DrawStepstonePlatform
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
@@ -548,10 +549,10 @@ _WalkAvatar_sCutscene:
     act_ForkStop $ff
 _PushBrick_sCutscene:
     act_WaitFrames 20
+    act_CallFunc FuncA_Cutscene_PlaySfxClick
     act_CallFunc _PlaceStepstone
     act_ForkStop $ff
 _PlaceStepstone:
-    ;; TODO: play a sound for pushing the stepstone
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kStepstonePlatformIndex
     ldx #eFlag::PrisonUpperLoosenedBrick  ; param: flag
@@ -611,10 +612,16 @@ _OpenGate:
     act_CallFunc Func_PlaySfxMetallicDing
     act_WaitFrames 12
     act_CallFunc Func_PlaySfxMetallicDing
+    act_WaitFrames 12
+    act_CallFunc FuncA_Cutscene_PlaySfxClick
     act_WaitFrames 70
     act_CallFunc Func_PlaySfxMetallicDing
     act_WaitFrames 12
     act_CallFunc Func_PlaySfxMetallicDing
+    act_WaitFrames 12
+    act_CallFunc Func_PlaySfxMetallicDing
+    act_WaitFrames 12
+    act_CallFunc FuncA_Cutscene_PlaySfxClick
     act_WaitFrames 10
     act_ForkStart 2, _NinaEscape_sCutscene
     act_WaitFrames 31
