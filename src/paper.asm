@@ -132,6 +132,7 @@
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT FuncA_Pause_DirectDrawWindowBlankLine
 .IMPORT FuncA_Pause_DirectDrawWindowLineSide
+.IMPORT FuncA_Pause_PlaySfxCollectPaper
 .IMPORT Func_AllocObjects
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_IsFlagSet
@@ -219,7 +220,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
     tax  ; param: flag
     jsr Func_SetFlag  ; sets C if flag was already set
     bcs @doneSfx
-    ;; TODO: play a sound for collecting a new paper
+    jsr FuncA_Pause_PlaySfxCollectPaper
     @doneSfx:
     pla  ; eFlag::Paper* value
     .assert eDialog::PaperJerome01 > eFlag::PaperJerome01, error
