@@ -969,6 +969,7 @@ _MovingDown:
 
 ;;; Checks whether the player avatar is currently in water, and updates
 ;;; Zp_AvatarState_bAvatar accordingly.
+;;; @return C Set if the player avatar has just entered the water.
 .EXPORT FuncA_Avatar_UpdateWaterDepth
 .PROC FuncA_Avatar_UpdateWaterDepth
     ldx #kMaxPlatforms - 1
@@ -989,8 +990,16 @@ _NotInWater:
     lda #bAvatar::Airborne
     sta Zp_AvatarState_bAvatar
     @done:
+    clc  ; clear C since the avatar is not swimming
     rts
 _InWater:
+    ;; At this point, the C flag is set.  If the player avatar was already
+    ;; swimming, then clear the C flag to indicate no change in swimming state.
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvc @updateState  ; avatar wasn't already swimming, so leave C set
+    clc  ; clear C to indicate that avatar was already swimming
+    @updateState:
     ora #bAvatar::Swimming
     sta Zp_AvatarState_bAvatar
     rts

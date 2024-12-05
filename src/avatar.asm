@@ -28,6 +28,7 @@
 .INCLUDE "room.inc"
 .INCLUDE "sample.inc"
 
+.IMPORT FuncA_Avatar_PlaySfxSplash
 .IMPORT FuncA_Avatar_UpdateWaterDepth
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_MovePointUpByA
@@ -214,8 +215,17 @@ _ApplyVelocity:
     jsr FuncA_Avatar_ApplyVelY
     @done:
 _ApplyGravity:
-    ;; Update state now that the avatar is repositioned.
-    jsr FuncA_Avatar_UpdateWaterDepth
+    ;; Update avatar state now that the avatar is repositioned.  We need to
+    ;; update this before applying gravity, since gravity is different
+    ;; underwater.  If the avatar has just fallen into water (at a
+    ;; non-negligible velocity), play a splash sound.
+    jsr FuncA_Avatar_UpdateWaterDepth  ; sets C if avatar just entered water
+    bcc @noSplash  ; avatar isn't in water, or didn't just enter it
+    lda Zp_AvatarVelY_i16 + 1
+    bmi @noSplash  ; avatar is moving upward
+    beq @noSplash  ; avatar is, at most, moving downward slowly
+    jsr FuncA_Avatar_PlaySfxSplash
+    @noSplash:
     jsr FuncA_Avatar_ApplyGravity
 _SetAvatarPose:
     ;; Check if the player avatar is airborne, swimming, or grounded.
@@ -349,8 +359,12 @@ _UpdatePosition:
     adc #0
     sta Zp_AvatarPushDelta_i8
     jsr Func_TryPushAvatarVert
-_CheckIfAirborne:
+_CheckIfSwimmingOrAirborne:
     pla  ; old gravity-relative Y-vel (hi); negative if moving against gravity
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvs _Return  ; swimming
+    tay  ; old gravity-relative Y-vel (hi); negative if moving against gravity
     bmi _NowAirborne  ; avatar is moving against gravity
     sta T0  ; old vertical speed (hi)
     lda Zp_AvatarCollided_ePlatform
@@ -376,6 +390,7 @@ _NowAirborne:
     lda #bAvatar::Airborne
     sta Zp_AvatarState_bAvatar
     @done:
+_Return:
     rts
 .ENDPROC
 
@@ -599,6 +614,8 @@ _Grounded:
     bpl @noJump
     lda #eSample::JumpAnna  ; param: eSample to play
     jsr Func_PlaySfxSample
+    ;; Set the avatar's initial jump velocity, taking the direction of gravity
+    ;; into account
     bit Zp_AvatarFlags_bObj
     .assert bObj::FlipV = bProc::Negative, error
     bpl @normalGravity
@@ -609,6 +626,13 @@ _Grounded:
     ldax #kAvatarJumpVelocity
     @setVelocity:
     stax Zp_AvatarVelY_i16
+    ;; If the avatar is jumping out from the water, play a splashing sound.
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Swimming = bProc::Overflow, error
+    bvc @noSplash
+    jsr FuncA_Avatar_PlaySfxSplash
+    @noSplash:
+    ;; The avatar is now jumping.
     lda #bAvatar::Airborne | bAvatar::Jumping
     sta Zp_AvatarState_bAvatar
     @noJump:
