@@ -39,6 +39,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_GetRandomByte
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxConsoleTurnOn
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCity
 .IMPORT Sram_ProgressFlags_arr
@@ -88,7 +89,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncA_Room_CityBuilding2_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, FuncA_Room_CityBuilding2_TickRoom
-    d_addr Draw_func_ptr, FuncC_City_Building2_DrawRoom
+    d_addr Draw_func_ptr, FuncA_Objects_CityBuilding2_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/city_building2.room"
@@ -121,7 +122,11 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_City_Building2_DrawRoom
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+.PROC FuncA_Objects_CityBuilding2_DrawRoom
     flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
     bne @done
     ldx #kLastDigitPlatformIndex  ; param: platform index
@@ -221,7 +226,11 @@ _Unlocked_sDialog:
     dlg_Done
 _ConnectKeygen:
     ldx #eFlag::CityCenterKeygenConnected  ; param: flag
-    jmp Func_SetFlag
+    jsr Func_SetFlag  ; sets C if flag was already set
+    bcs @done
+    jmp Func_PlaySfxConsoleTurnOn
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

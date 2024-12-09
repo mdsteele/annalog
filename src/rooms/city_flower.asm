@@ -82,7 +82,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, FuncC_City_Flower_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_CityFlower_TickRoom
     d_addr Draw_func_ptr, FuncC_City_Flower_DrawRoom
     D_END
 _TerrainData:
@@ -141,8 +141,18 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_City_Flower_TickRoom
+;;; Draw function for the CityFlower room.
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_City_Flower_DrawRoom
+    ldx #kCratePlatformIndex  ; param: platform index
+    jmp FuncA_Objects_DrawCratePlatform
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CityFlower_TickRoom
 _OrcAttack:
     ;; If the orc is already hostile, we're done.
     lda Ram_ActorType_eActor_arr + kOrcActorIndex
@@ -160,13 +170,6 @@ _OrcAttack:
     @done:
 _RespawnFlower:
     jmp FuncA_Room_RespawnFlowerDeviceIfDropped
-.ENDPROC
-
-;;; Draw function for the CityFlower room.
-;;; @prereq PRGA_Objects is loaded.
-.PROC FuncC_City_Flower_DrawRoom
-    ldx #kCratePlatformIndex  ; param: platform index
-    jmp FuncA_Objects_DrawCratePlatform
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -155,7 +155,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncA_Room_CityCenter_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, FuncA_Room_CityCenter_TickRoom
-    d_addr Draw_func_ptr, FuncC_City_Center_DrawRoom
+    d_addr Draw_func_ptr, FuncA_Objects_CityCenter_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/city_center1.room"
@@ -473,33 +473,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_City_Center_DrawRoom
-    ;; Once the door is unlocked, disable both display screens.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
-    bne _Return
-    ;; Draw the lock display screen.
-    ldx Ram_MachineGoalHorz_u8_arr + kSemaphore4MachineIndex  ; lock index
-    ldy Zp_RoomState + sCityCenterState::Lock_u8_arr, x  ; param: digit
-    ldx #kLockScreenPlatformIndex  ; param: platform index
-    jsr _DrawScreen
-    ;; Until the keygen is connected, disable the key display screen.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterKeygenConnected
-    beq _Return
-    ;; Draw the key display screen.
-    ldx Ram_MachineGoalHorz_u8_arr + kSemaphore1MachineIndex  ; key index
-    ldy Zp_RoomState + sCityCenterState::Key_u8_arr, x  ; param: digit
-    ldx #kKeyScreenPlatformIndex  ; param: platform index
-_DrawScreen:
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y
-    ldx Ram_MachineGoalHorz_u8_arr + kSemaphore1MachineIndex  ; key array index
-    tya  ; digit
-    add #kTileIdObjComboFirst  ; param: tile ID
-    ldy #kPaletteObjComboDigit  ; param: object flags
-    jmp FuncA_Objects_Draw1x1Shape
-_Return:
-    rts
-.ENDPROC
-
 ;;; ReadReg implemention for the semaphore machines in this room.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param A The register to read ($c-$f).
@@ -555,6 +528,37 @@ _ReadRegY:
     lda Ram_MachineState3_byte_arr, y  ; vertical offset
     add #kTileHeightPx
     div #kBlockHeightPx
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+.PROC FuncA_Objects_CityCenter_DrawRoom
+    ;; Once the door is unlocked, disable both display screens.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
+    bne _Return
+    ;; Draw the lock display screen.
+    ldx Ram_MachineGoalHorz_u8_arr + kSemaphore4MachineIndex  ; lock index
+    ldy Zp_RoomState + sCityCenterState::Lock_u8_arr, x  ; param: digit
+    ldx #kLockScreenPlatformIndex  ; param: platform index
+    jsr _DrawScreen
+    ;; Until the keygen is connected, disable the key display screen.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterKeygenConnected
+    beq _Return
+    ;; Draw the key display screen.
+    ldx Ram_MachineGoalHorz_u8_arr + kSemaphore1MachineIndex  ; key index
+    ldy Zp_RoomState + sCityCenterState::Key_u8_arr, x  ; param: digit
+    ldx #kKeyScreenPlatformIndex  ; param: platform index
+_DrawScreen:
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y
+    ldx Ram_MachineGoalHorz_u8_arr + kSemaphore1MachineIndex  ; key array index
+    tya  ; digit
+    add #kTileIdObjComboFirst  ; param: tile ID
+    ldy #kPaletteObjComboDigit  ; param: object flags
+    jmp FuncA_Objects_Draw1x1Shape
+_Return:
     rts
 .ENDPROC
 

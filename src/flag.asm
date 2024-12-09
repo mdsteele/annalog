@@ -59,7 +59,7 @@
 .PROC Func_SetOrClearFlag
     tay
     beq Func_ClearFlag
-    fall Func_SetFlag
+    fall Func_SetFlag  ; preserves T0+
 .ENDPROC
 
 ;;; Sets the specified eFlag to true if it isn't already.

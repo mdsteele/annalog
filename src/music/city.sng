@@ -1,0 +1,34 @@
+@PRGC_City
+
+!SONG City "|A"
+% Composer: Jon T. Moran
+
+=tempo q48
+=key 3b  % C minor
+
+!INST 1A PulseEcho   $08 d1/2
+!INST 2A PulsePluck  $08 d1/4
+!INST 2E PulsePluck  $04 d1/4
+!INST TA TriangleVibrato
+!INST ND Staccato    $07
+
+!PART A
+
+1| iA g5h fq ' dh cq | aN4q3 eN5 eN eN eN eNq3+ ' +h |
+2| p(iA re e3s  iE es iA f iE f iA a  iE a  iA g iE g iA b  iE b )2A :2 |
+ | p(iA re eN3s iE eN iA f iE f iA aN iE aN iA g iE g iA bN iE bN)2B :2 |
+T| iA f2h+e. rs ' fh+e. rs | dh+e. rs ' dh+e. rs |
+N| iD x3h x1q :16 |
+
+1| g5h fq ' dh+e ee | eN5e4 aN4 aN aNe4+q+s gs ' aNh c5q |
+2| p2A :2 | p2B :2 |
+T| :2 |
+
+1| d5q g4q. fe ' g4e d5 aN4q. be | bN4e f# eNq. c5e ' f#4q. ge aN c5 |
+2| p(iA re e3s  iE e  iA f  iE f  iA aN iE aN iA g iE g iA b  iE b )2C :2 |
+ | p(iA re eN3s iE eN iA f# iE f# iA aN iE aN iA g iE g iA bN iE bN)2D :2 |
+T| c2h+e. rs ' ch+e. rs | aN1h+e. rs ' aNh+e. rs |
+
+1| d5q g4q. fNe ' g4e d5 aN4q. bbe | bN4e eN5 f# aN gw |
+2| p2C :2 | p2D :2 |
+T| :2 |

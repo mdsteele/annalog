@@ -167,7 +167,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncA_Room_CityBuilding3_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, FuncA_Room_CityBuilding3_TickRoom
-    d_addr Draw_func_ptr, FuncC_City_Building3_DrawRoom
+    d_addr Draw_func_ptr, FuncA_Objects_CityBuilding3_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/city_building3.room"
@@ -361,19 +361,6 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_City_Building3_DrawRoom
-    ldx #kNumCratePlatforms - 1
-    @loop:
-    txa
-    pha
-    jsr FuncA_Objects_DrawCratePlatform
-    pla
-    tax
-    dex
-    bpl @loop
-    rts
-.ENDPROC
-
 .PROC FuncC_City_Building3Launcher_ReadReg
     cmp #$f
     bne FuncC_City_Building3_ReadRegLR
@@ -406,6 +393,23 @@ _RegL:
     rts
 _RegR:
     lda Zp_RoomState + sState::LeverRight_u8
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Objects"
+
+.PROC FuncA_Objects_CityBuilding3_DrawRoom
+    ldx #kNumCratePlatforms - 1
+    @loop:
+    txa
+    pha
+    jsr FuncA_Objects_DrawCratePlatform
+    pla
+    tax
+    dex
+    bpl @loop
     rts
 .ENDPROC
 

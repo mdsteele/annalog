@@ -24,6 +24,7 @@
     Boss1
     Boss2
     Calm
+    City
     Credits
     Crypt
     Florist

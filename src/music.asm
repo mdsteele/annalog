@@ -21,6 +21,7 @@
 .INCLUDE "music.inc"
 
 .IMPORT DataC_Boss_Boss1_sMusic
+.IMPORT DataC_City_City_sMusic
 .IMPORT DataC_Core_Boss2_sMusic
 .IMPORT DataC_Crypt_Crypt_sMusic
 .IMPORT DataC_Garden_Garden_sMusic
@@ -53,6 +54,7 @@
     d_entry table, Boss1,   DataC_Boss_Boss1_sMusic
     d_entry table, Boss2,   DataC_Core_Boss2_sMusic
     d_entry table, Calm,    Data_Calm_sMusic
+    d_entry table, City,    DataC_City_City_sMusic
     d_entry table, Credits, DataC_Title_Credits_sMusic
     d_entry table, Crypt,   DataC_Crypt_Crypt_sMusic
     d_entry table, Florist, DataC_Mermaid_Florist_sMusic

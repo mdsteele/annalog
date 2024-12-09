@@ -1145,6 +1145,7 @@ static void parse_input(void) {
             adjust_base_duration(1, 2);
             break;
           case '3': adjust_base_duration(2, 3); break;
+          case '4': adjust_base_duration(3, 4); break;
           case '5': adjust_base_duration(4, 5); break;
           case '+':
             parser.extra_duration += parser.base_duration;

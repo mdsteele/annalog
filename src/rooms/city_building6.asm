@@ -65,7 +65,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
-    d_addr Enter_func_ptr, FuncC_City_Building6_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_CityBuilding6_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
@@ -160,7 +160,11 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-.PROC FuncC_City_Building6_EnterRoom
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CityBuilding6_EnterRoom
     flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
     beq @done
     lda #eDevice::Door1Unlocked

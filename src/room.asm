@@ -504,21 +504,21 @@ _PrisonMusic:
     d_byte BossMine,        bRoomMusic::Boss | eBreaker::Mine
     d_byte BossShadow,      bRoomMusic::Boss | eBreaker::Shadow
     d_byte BossTemple,      bRoomMusic::Boss | eBreaker::Temple
-    d_byte CityBuilding1,   eMusic::Silence
-    d_byte CityBuilding2,   eMusic::Silence
-    d_byte CityBuilding3,   eMusic::Silence
-    d_byte CityBuilding4,   eMusic::Silence
-    d_byte CityBuilding5,   eMusic::Silence
-    d_byte CityBuilding6,   eMusic::Silence
-    d_byte CityBuilding7,   eMusic::Silence
-    d_byte CityCenter,      eMusic::Silence
-    d_byte CityDrain,       eMusic::Silence
-    d_byte CityDump,        eMusic::Silence
-    d_byte CityEast,        eMusic::Silence
-    d_byte CityFlower,      eMusic::Silence
-    d_byte CityOutskirts,   eMusic::Silence
-    d_byte CitySinkhole,    eMusic::Silence
-    d_byte CityWest,        eMusic::Silence
+    d_byte CityBuilding1,   eMusic::City
+    d_byte CityBuilding2,   eMusic::City
+    d_byte CityBuilding3,   eMusic::City
+    d_byte CityBuilding4,   eMusic::City
+    d_byte CityBuilding5,   eMusic::City
+    d_byte CityBuilding6,   eMusic::City
+    d_byte CityBuilding7,   eMusic::City
+    d_byte CityCenter,      eMusic::City
+    d_byte CityDrain,       eMusic::City
+    d_byte CityDump,        eMusic::City
+    d_byte CityEast,        eMusic::City
+    d_byte CityFlower,      eMusic::City
+    d_byte CityOutskirts,   eMusic::City
+    d_byte CitySinkhole,    eMusic::City
+    d_byte CityWest,        eMusic::City
     d_byte CoreBoss,        eMusic::Silence
     d_byte CoreEast,        eMusic::Silence
     d_byte CoreElevator,    eMusic::Silence
