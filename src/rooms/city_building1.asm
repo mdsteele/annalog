@@ -41,7 +41,7 @@
     d_byte Flags_bRoom, bRoom::ReduceMusic | eArea::City
     d_byte MinimapStartRow_u8, 2
     d_byte MinimapStartCol_u8, 17
-    d_addr TerrainData_ptr, _TerrainData
+    d_addr TerrainData_ptr, DataC_City_Building1TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCity)
@@ -59,9 +59,6 @@ _Ext_sRoomExt:
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     D_END
-_TerrainData:
-:   .incbin "out/rooms/city_building1.room"
-    .assert * - :- = 16 * 15, error
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadRodent
@@ -116,6 +113,53 @@ _Devices_sDevice_arr:
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
+.ENDPROC
+
+.PROC DataC_City_Building1TerrainData
+:   .incbin "out/rooms/city_building1.room"
+    .assert * - :- = 13 * 15, error
+    fall DataC_City_Building4TerrainData
+.ENDPROC
+
+.EXPORT DataC_City_Building4TerrainData
+.PROC DataC_City_Building4TerrainData
+:   .incbin "out/rooms/city_building4.room"
+    .assert * - :- = 14 * 24, error
+    fall DataC_City_Building6TerrainData
+.ENDPROC
+
+.EXPORT DataC_City_Building6TerrainData
+.PROC DataC_City_Building6TerrainData
+:   .incbin "out/rooms/city_building6.room"
+    .assert * - :- = 15 * 24, error
+    fall DataC_City_Building7TerrainData
+.ENDPROC
+
+.EXPORT DataC_City_Building7TerrainData
+.PROC DataC_City_Building7TerrainData
+:   .incbin "out/rooms/city_building7.room"
+    .assert * - :- = 15 * 15, error
+    fall DataC_City_Building2TerrainData
+.ENDPROC
+
+.EXPORT DataC_City_Building2TerrainData
+.PROC DataC_City_Building2TerrainData
+:   .incbin "out/rooms/city_building2.room"
+    .assert * - :- = 15 * 15, error
+    fall DataC_City_Building3TerrainData
+.ENDPROC
+
+.EXPORT DataC_City_Building3TerrainData
+.PROC DataC_City_Building3TerrainData
+:   .incbin "out/rooms/city_building3.room"
+    .assert * - :- = 15 * 15, error
+    fall DataC_City_Building5TerrainData
+.ENDPROC
+
+.EXPORT DataC_City_Building5TerrainData
+.PROC DataC_City_Building5TerrainData
+:   .incbin "out/rooms/city_building5.room"
+    .assert * - :- = 16 * 15, error
 .ENDPROC
 
 ;;;=========================================================================;;;

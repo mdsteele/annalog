@@ -29,6 +29,7 @@
 .IMPORT DataA_Room_Building_sTileset
 .IMPORT DataA_Text0_CityBuilding2Screen_Locked_u8_arr
 .IMPORT DataA_Text0_CityBuilding2Screen_Unlocked_u8_arr
+.IMPORT DataC_City_Building6TerrainData
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjCity
@@ -52,7 +53,7 @@ kLockedDoorDeviceIndex = 1
     d_byte Flags_bRoom, bRoom::Tall | bRoom::ReduceMusic | eArea::City
     d_byte MinimapStartRow_u8, 1
     d_byte MinimapStartCol_u8, 22
-    d_addr TerrainData_ptr, _TerrainData
+    d_addr TerrainData_ptr, DataC_City_Building6TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCity)
@@ -70,9 +71,6 @@ _Ext_sRoomExt:
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     D_END
-_TerrainData:
-:   .incbin "out/rooms/city_building6.room"
-    .assert * - :- = 16 * 24, error
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadRodent

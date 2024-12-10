@@ -31,6 +31,7 @@
 .IMPORT DataA_Text0_CityBuilding2Screen_Locked_u8_arr
 .IMPORT DataA_Text0_CityBuilding2Screen_Question_u8_arr
 .IMPORT DataA_Text0_CityBuilding2Screen_Unlocked_u8_arr
+.IMPORT DataC_City_Building2TerrainData
 .IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeLeftByA
@@ -73,7 +74,7 @@ kPerDigitSpinFrames = 10
     d_byte Flags_bRoom, bRoom::ReduceMusic | bRoom::ShareState | eArea::City
     d_byte MinimapStartRow_u8, 1
     d_byte MinimapStartCol_u8, 19
-    d_addr TerrainData_ptr, _TerrainData
+    d_addr TerrainData_ptr, DataC_City_Building2TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjCity)
@@ -91,9 +92,6 @@ _Ext_sRoomExt:
     d_addr Tick_func_ptr, FuncA_Room_CityBuilding2_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_CityBuilding2_DrawRoom
     D_END
-_TerrainData:
-:   .incbin "out/rooms/city_building2.room"
-    .assert * - :- = 16 * 15, error
 _Platforms_sPlatform_arr:
 :   .assert * - :- = kLastDigitPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform

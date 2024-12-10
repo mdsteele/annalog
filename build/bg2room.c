@@ -28,7 +28,6 @@
 #define HEIGHT_SHORT 15
 #define HEIGHT_TALL 24
 
-#define MIN_WIDTH 16
 #define MAX_WIDTH 128
 
 /*===========================================================================*/
@@ -62,7 +61,7 @@ int main(int argc, char **argv) {
   input_init(&input, stdin);
   bg_background_t *background = bg_parse_background(&input);
 
-  if (background->width < MIN_WIDTH || background->width > MAX_WIDTH ||
+  if (background->width > MAX_WIDTH ||
       (background->height != HEIGHT_SHORT &&
        background->height != HEIGHT_TALL)) {
     ag_fatal("invalid size: %dx%d", background->width, background->height);

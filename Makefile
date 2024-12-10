@@ -295,6 +295,14 @@ $(OBJDIR)/sample.o: src/sample.asm $(INC_FILES) $(SFX_DM_FILES)
 $(OBJDIR)/title.o: src/title.asm $(INC_FILES) $(DATA_OUT_DIR)/title.map
 	$(compile-asm)
 
+$(OBJDIR)/rooms/city_building1.o: \
+  src/rooms/city_building1.asm $(INC_FILES) \
+  $(ROOM_OUT_DIR)/city_building1.room $(ROOM_OUT_DIR)/city_building2.room \
+  $(ROOM_OUT_DIR)/city_building3.room $(ROOM_OUT_DIR)/city_building4.room \
+  $(ROOM_OUT_DIR)/city_building5.room $(ROOM_OUT_DIR)/city_building6.room \
+  $(ROOM_OUT_DIR)/city_building7.room
+	$(compile-asm)
+
 $(OBJDIR)/rooms/city_center.o: \
   src/rooms/city_center.asm $(INC_FILES) \
   $(ROOM_OUT_DIR)/city_center1.room $(ROOM_OUT_DIR)/city_center2.room

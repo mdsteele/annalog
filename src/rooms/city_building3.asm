@@ -34,6 +34,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Building_sTileset
+.IMPORT DataC_City_Building3TerrainData
 .IMPORT Data_Empty_sActor_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT FuncA_Machine_AmmoRack_TryAct
@@ -151,7 +152,7 @@ kLeverRightDeviceIndex = 1
     d_byte Flags_bRoom, bRoom::ReduceMusic | eArea::City
     d_byte MinimapStartRow_u8, 2
     d_byte MinimapStartCol_u8, 19
-    d_addr TerrainData_ptr, _TerrainData
+    d_addr TerrainData_ptr, DataC_City_Building3TerrainData
     d_byte NumMachines_u8, 3
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
@@ -169,9 +170,6 @@ _Ext_sRoomExt:
     d_addr Tick_func_ptr, FuncA_Room_CityBuilding3_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_CityBuilding3_DrawRoom
     D_END
-_TerrainData:
-:   .incbin "out/rooms/city_building3.room"
-    .assert * - :- = 16 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kLauncherMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
