@@ -795,7 +795,7 @@ _MovingDown:
 ;;; the platform, and (2) the top of the avatar is above the bottom of the
 ;;; platform.
 ;;; @param X The platform index.
-;;; @return Z Cleared if the avatar is within the platform horizontally.
+;;; @return Z Cleared if the avatar is within the platform vertically.
 ;;; @preserve X
 .PROC Func_IsAvatarInPlatformVert
     jsr Func_AvatarDepthIntoPlatformBottom  ; preserves X, returns Z
@@ -827,9 +827,9 @@ _MovingDown:
     lda T1  ; bottom of avatar (hi)
     sbc Ram_PlatformTop_i16_1_arr, x
     bmi Func_AvatarNotInPlatform  ; preserves X and T0+, returns A and Z
-    bne Func_AvatarAtMaxPlatformDepth  ; preserves X and T0+, returns A and Z
+    bne Func_AvatarAtMinPlatformDepth  ; preserves X and T0+, returns A and Z
     cpy #127
-    bge Func_AvatarAtMaxPlatformDepth  ; preserves X and T0+, returns A and Z
+    bge Func_AvatarAtMinPlatformDepth  ; preserves X and T0+, returns A and Z
     ;; Set A equal to -Y.
     dey
     tya
@@ -878,6 +878,17 @@ _MovingDown:
 .ENDPROC
 
 ;;; Helper function for Func_AvatarDepthIntoPlatform* functions.  Returns a
+;;; depth of -127, with Z cleared to indicate that the player avatar is within
+;;; the platform along that direction.
+;;; @return A Always -127.
+;;; @return Z Always cleared.
+;;; @preserve X, T0+
+.PROC Func_AvatarAtMinPlatformDepth
+    lda #<-127
+    rts
+.ENDPROC
+
+;;; Helper function for Func_AvatarDepthIntoPlatform* functions.  Returns a
 ;;; depth of zero, with Z set to indicate that the player avatar is fully
 ;;; outside the platform along that direction.
 ;;; @return A Always zero.
@@ -894,6 +905,7 @@ _MovingDown:
 ;;; @param X The platform index.
 ;;; @return Z Cleared if the avatar is within the platform horizontally.
 ;;; @preserve X
+.EXPORT Func_IsAvatarInPlatformHorz
 .PROC Func_IsAvatarInPlatformHorz
     jsr Func_AvatarDepthIntoPlatformRight  ; preserves X, returns Z
     bne @checkLeft
@@ -924,9 +936,9 @@ _MovingDown:
     lda T1  ; avatar's right side (hi)
     sbc Ram_PlatformLeft_i16_1_arr, x
     bmi Func_AvatarNotInPlatform  ; preserves X and T0+, returns A and Z
-    bne Func_AvatarAtMaxPlatformDepth  ; preserves X and T0+, returns A and Z
+    bne Func_AvatarAtMinPlatformDepth  ; preserves X and T0+, returns A and Z
     cpy #127
-    bge Func_AvatarAtMaxPlatformDepth  ; preserves X and T0+, returns A and Z
+    bge Func_AvatarAtMinPlatformDepth  ; preserves X and T0+, returns A and Z
     ;; Set A equal to -Y.
     dey
     tya

@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../avatar.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -33,12 +34,21 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
+.IMPORT Func_AvatarDepthIntoPlatformBottom
+.IMPORT Func_AvatarDepthIntoPlatformLeft
+.IMPORT Func_AvatarDepthIntoPlatformRight
+.IMPORT Func_AvatarDepthIntoPlatformTop
 .IMPORT Func_DivMod
 .IMPORT Func_GetRandomByte
+.IMPORT Func_HarmAvatar
+.IMPORT Func_IsAvatarInPlatformHorz
+.IMPORT Func_KillAvatar
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_SetPlatformTopLeftToPoint
 .IMPORT Func_SetPointToPlatformTopLeft
+.IMPORT Func_TryPushAvatarHorz
+.IMPORT Func_TryPushAvatarVert
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
@@ -47,6 +57,8 @@
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORTZP Zp_AvatarCollided_ePlatform
+.IMPORTZP Zp_AvatarPushDelta_i8
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_MachineIndex_u8
 
@@ -185,12 +197,97 @@ kPaletteObjEmitterGlow = 1
     ;; Make the forcefield platform solid.
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kEmitterForcefieldPlatformIndex
-    ;; TODO: if avatar is deep in platform, harm (kill?) it
-    ;; TODO: push avatar out of platform
+    jsr FuncA_Machine_PushAvatarOutOfEmitterForcefield
 _Finish:
     ;; Make the emitter machine wait to cool down.
     lda #kEmitterActCooldown  ; param: num frames to wait
     jmp FuncA_Machine_StartWaiting
+.ENDPROC
+
+;;; If the player avatar is colliding with the emitter forcefield's new
+;;; position, pushes the avatar out in an appropriate direction.
+.PROC FuncA_Machine_PushAvatarOutOfEmitterForcefield
+    ldx #kEmitterForcefieldPlatformIndex  ; param: platform index
+_MaybePushUp:
+    ;; If the avatar's feet (but not center) are in the forcefield, push the
+    ;; avatar up out of the forcefield.
+    jsr Func_AvatarDepthIntoPlatformTop  ; preserves X, returns Z and A
+    beq _Return  ; avatar is fully above the forcefield
+    cmp #<-kAvatarBoundingBoxDown
+    blt @doNotPushUp  ; avatar is too deep below the top of the forcefield
+    sta Zp_AvatarPushDelta_i8
+    jsr Func_IsAvatarInPlatformHorz  ; returns Z
+    beq _Return  ; avatar is fully to the left or right of the forcefield
+    jsr Func_TryPushAvatarVert
+    ;; If the forcefield squashed the avatar into something else solid, kill
+    ;; the avatar.
+    lda Zp_AvatarCollided_ePlatform
+    .assert ePlatform::None = 0, error
+    beq _Return
+    jmp Func_KillAvatar
+    @doNotPushUp:
+_MaybePushLeft:
+    ;; If the avatar's right side (but not center) is in the forcefield, push
+    ;; the avatar to the left, out of the forcefield.
+    jsr Func_AvatarDepthIntoPlatformLeft  ; preserves X, returns Z and A
+    beq _Return  ; avatar is fully to the left of the forcefield
+    cmp #<-kAvatarBoundingBoxRight
+    blt @doNotPushLeft  ; avatar is too deep into the side of the forcefield
+    sta Zp_AvatarPushDelta_i8
+    ;; We already know from above that the avatar isn't fully above the
+    ;; platform, so we only need to check here that it isn't fully below.
+    jsr Func_AvatarDepthIntoPlatformBottom  ; returns Z
+    beq _Return  ; avatar is fully below the forcefield
+    jsr Func_TryPushAvatarHorz
+    ;; If the forcefield squashed the avatar into something else solid, kill
+    ;; the avatar.
+    lda Zp_AvatarCollided_ePlatform
+    .assert ePlatform::None = 0, error
+    beq _Return
+    jmp Func_KillAvatar
+    @doNotPushLeft:
+_MaybePushRight:
+    ;; If the avatar's left side (but not center) is in the forcefield, push
+    ;; the avatar to the right, out of the forcefield.
+    jsr Func_AvatarDepthIntoPlatformRight  ; preserves X, returns Z and A
+    beq _Return  ; avatar is fully to the right of the forcefield
+    cmp #kAvatarBoundingBoxLeft
+    bge @doNotPushRight  ; avatar is too deep into the side of the forcefield
+    sta Zp_AvatarPushDelta_i8
+    ;; We already know from above that the avatar isn't fully above the
+    ;; platform, so we only need to check here that it isn't fully below.
+    jsr Func_AvatarDepthIntoPlatformBottom  ; returns Z
+    beq _Return  ; avatar is fully below the forcefield
+    jsr Func_TryPushAvatarHorz
+    ;; If the forcefield squashed the avatar into something else solid, kill
+    ;; the avatar.
+    lda Zp_AvatarCollided_ePlatform
+    .assert ePlatform::None = 0, error
+    beq _Return
+    jmp Func_KillAvatar
+    @doNotPushRight:
+_MaybePushDown:
+    ;; We already know from above that the avatar is neither fully above nor
+    ;; fully to either side of the platform, so if the avatar isn't fully below
+    ;; the forcefield, then it's intersecting it.
+    jsr Func_AvatarDepthIntoPlatformBottom  ; returns Z and A
+    beq _Return  ; avatar is fully below the forcefield
+    ;; If the avatar is deep inside the platform, harm it.  Either way, push it
+    ;; down and out.
+    sta Zp_AvatarPushDelta_i8
+    cmp #kAvatarBoundingBoxUp
+    blt @noHarm
+    jsr Func_HarmAvatar
+    @noHarm:
+    jsr Func_TryPushAvatarVert
+    ;; If the forcefield squashed the avatar into something else solid, kill
+    ;; the avatar.
+    lda Zp_AvatarCollided_ePlatform
+    .assert ePlatform::None = 0, error
+    beq _Return
+    jmp Func_KillAvatar
+_Return:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
