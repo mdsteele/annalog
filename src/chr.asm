@@ -1427,7 +1427,8 @@ _chr_begin:
     chr_inc "bad_grub",           kTileIdObjBadGrubFirst
     chr_inc "bad_slime",          kTileIdObjBadSlimeFirst
     chr_inc "machine_trombone",   kTileIdObjMachineTromboneFirst
-    chr_res $05
+    chr_inc "machine_organ",      kTileIdObjMachineOrganFirst
+    chr_res $01
     chr_inc "raindrop",           kTileIdObjRaindrop
     chr_inc "bad_toad",           kTileIdObjBadToadFirst
     chr_inc "bad_bird",           kTileIdObjBadBirdFirst

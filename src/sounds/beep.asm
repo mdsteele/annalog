@@ -51,9 +51,8 @@ kTromboneEnvFlags = \
 
 ;;; SFX data for the "hi-hat" sound effect.
 .PROC Data_HiHat_sSfx
-    ;; TODO: Improve the hi-hat sound.
-    sfx_SetEnvTimer bEnvelope::NoLength | 1, $0001
-    sfx_Wait 3
+    sfx_SetEnvTimer bEnvelope::NoLength | 1, $0002
+    sfx_Wait 8
     sfx_End
 .ENDPROC
 

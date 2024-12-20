@@ -24,6 +24,7 @@
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/drums.inc"
+.INCLUDE "../machines/organ.inc"
 .INCLUDE "../machines/shared.inc"
 .INCLUDE "../machines/trombone.inc"
 .INCLUDE "../macros.inc"
@@ -127,6 +128,7 @@ kTileIdObjMachineTromboneBellFirst   = kTileIdObjMachineTromboneFirst + 2
 ;;; this room.
 kPaletteObjDrumsBass     = 0
 kPaletteObjDrumsHiHat    = 0
+kPaletteObjOrganPuff     = 0
 kPaletteObjTromboneBell  = 0
 kPaletteObjTromboneSlide = 0
 
@@ -379,6 +381,26 @@ _MachineLight:
 ;;; @prereq PRGA_Objects is loaded.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .PROC FuncC_Mermaid_Hut6Organ_Draw
+_AirPuff:
+    lda Ram_MachineSlowdown_u8_arr + kOrganMachineIndex
+    beq @done
+    sub #1
+    div #2
+    add #kTileIdObjMachineOrganFirst
+    pha  ; tile ID
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft
+    lda Ram_MachineGoalHorz_u8_arr + kOrganMachineIndex  ; tone
+    mul #4
+    ora #2  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda Ram_MachineGoalHorz_u8_arr + kOrganMachineIndex  ; tone
+    mul #2
+    rsub #32  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA
+    ldy #kPaletteObjOrganPuff  ; param: object flags
+    pla  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+    @done:
 _Indicator:
     lda Ram_MachineStatus_eMachine_arr + kOrganMachineIndex
     cmp #eMachine::Halted
@@ -457,9 +479,16 @@ _MachineLight:
 .PROC FuncA_Machine_MermaidHut6Drums_TryMove
     lda #1  ; param: max vertical goal
     jsr FuncA_Machine_GenericTryMoveY
+    ;; If trying to move resulted in an error, we're done.
     lda Ram_MachineStatus_eMachine_arr + kDrumsMachineIndex
     cmp #eMachine::Error
     beq @done
+    ;; If we moved down successfully, play a hi-hat sound.
+    lda Ram_MachineGoalVert_u8_arr + kDrumsMachineIndex
+    bne @noHiHatSound
+    jsr FuncA_Machine_PlaySfxHiHat
+    @noHiHatSound:
+    ;; If we moved up or down successfully, wait a bit.
     lda #$08  ; param: num frames
     jmp FuncA_Machine_StartWaiting
     @done:
@@ -491,16 +520,8 @@ _MachineLight:
     stx Zp_PointY_i16 + 1
     ldx #kDrumsHiHatPlatformIndex  ; param: platform index
     jsr Func_MovePlatformTopTowardPointY  ; returns Z
-    beq @reachedGoal
+    jeq FuncA_Machine_ReachedGoal
     rts
-    ;; When the hi-hat reaches its goal position, if that goal position is Y=0,
-    ;; play a hi-hat sound.
-    @reachedGoal:
-    lda Ram_MachineGoalVert_u8_arr + kDrumsMachineIndex
-    bne @noHiHatSound
-    jsr FuncA_Machine_PlaySfxHiHat
-    @noHiHatSound:
-    jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
 .PROC FuncA_Machine_MermaidHut6Organ_WriteReg
@@ -511,7 +532,8 @@ _MachineLight:
 .PROC FuncA_Machine_MermaidHut6Organ_TryAct
     lda Ram_MachineGoalHorz_u8_arr + kOrganMachineIndex  ; param: tone
     jsr FuncA_Machine_PlaySfxOrgan
-    ;; TODO: Make a little puff of air over the organ pipe.
+    lda #$08
+    sta Ram_MachineSlowdown_u8_arr + kOrganMachineIndex
     lda #$10  ; param: num frames
     jmp FuncA_Machine_StartWaiting
 .ENDPROC

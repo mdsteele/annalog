@@ -28,4 +28,7 @@ kChrBankDiagramOrgan = $12
 ;;; BG tile IDs for organ machine diagrams.
 kTileIdBgDiagramOrganFirst = $e0
 
+;;; OBJ tile IDs used for drawing organ machines.
+kTileIdObjMachineOrganFirst = $b2
+
 ;;;=========================================================================;;;
