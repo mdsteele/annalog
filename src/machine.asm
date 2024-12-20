@@ -28,6 +28,7 @@
 .IMPORT FuncA_Machine_PlaySfxEnd
 .IMPORT FuncA_Machine_PlaySfxError
 .IMPORT FuncA_Machine_PlaySfxSync
+.IMPORT Func_IsFlagSet
 .IMPORT Sram_Programs_sProgram_arr
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_P1ButtonsHeld_bJoypad
@@ -316,6 +317,17 @@ _ReadRegB:
     ;; Initialize any machine-specific state.
     ldy #sMachine::Init_func_ptr  ; param: function pointer offset
     jsr Func_MachineCall
+    ;; If the machine's breaker hasn't been activated, halt the machine.
+    ldy #sMachine::Breaker_eFlag
+    lda (Zp_Current_sMachine_ptr), y
+    beq @doNotHalt  ; No breaker flag, so the machine always has power.
+    tax  ; param: flag
+    jsr Func_IsFlagSet  ; returns Z
+    bne @doNotHalt  ; The breaker is activated, so the machine has power.
+    ldx Zp_MachineIndex_u8
+    lda #eMachine::Halted
+    sta Ram_MachineStatus_eMachine_arr, x
+    @doNotHalt:
     ;; Continue to the next machine.
     ldx Zp_MachineIndex_u8
     inx

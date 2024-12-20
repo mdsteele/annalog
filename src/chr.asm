@@ -1417,7 +1417,7 @@ _chr_begin:
     chr_inc "multiplexer",        kTileIdObjMultiplexerFirst
     chr_inc "platform_water",     kTileIdObjPlatformWaterFirst
     chr_inc "bad_jelly",          kTileIdObjBadJellyFirst
-    chr_inc "machine_trombone",   kTileIdObjMachineTromboneFirst
+    chr_res $02
     chr_inc "upgrade_opaddsub",   kTileIdObjUpgradeOpAddSubFirst
     chr_inc "machine_drums",      kTileIdObjMachineDrumsFirst
     chr_inc "npc_duck",           kTileIdObjNpcDuckFirst
@@ -1426,7 +1426,8 @@ _chr_begin:
     chr_res $02
     chr_inc "bad_grub",           kTileIdObjBadGrubFirst
     chr_inc "bad_slime",          kTileIdObjBadSlimeFirst
-    chr_res $09
+    chr_inc "machine_trombone",   kTileIdObjMachineTromboneFirst
+    chr_res $05
     chr_inc "raindrop",           kTileIdObjRaindrop
     chr_inc "bad_toad",           kTileIdObjBadToadFirst
     chr_inc "bad_bird",           kTileIdObjBadBirdFirst

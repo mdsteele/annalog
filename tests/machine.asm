@@ -187,6 +187,17 @@ _Draw:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRG8"
+
+;;; Stub implementation.
+.EXPORT Func_IsFlagSet
+.PROC Func_IsFlagSet
+    lda #0  ; Set Z to indicate that the flag is cleared.
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "MAIN"
     sei
     cld

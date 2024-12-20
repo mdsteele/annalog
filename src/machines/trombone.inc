@@ -29,6 +29,6 @@ kChrBankDiagramTrombone = $12
 kTileIdBgDiagramTromboneFirst = $f0
 
 ;;; OBJ tile IDs used for drawing trombone machines.
-kTileIdObjMachineTromboneFirst = $8a
+kTileIdObjMachineTromboneFirst = $ae
 
 ;;;=========================================================================;;;

@@ -19,10 +19,12 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cursor.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/drums.inc"
+.INCLUDE "../machines/shared.inc"
 .INCLUDE "../machines/trombone.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -37,15 +39,19 @@
 .IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_GetGenericMoveSpeed
-.IMPORT FuncA_Machine_PlaySfxBeep
+.IMPORT FuncA_Machine_PlaySfxHiHat
+.IMPORT FuncA_Machine_PlaySfxOrgan
+.IMPORT FuncA_Machine_PlaySfxTrombone
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_Draw1x2Shape
 .IMPORT FuncA_Objects_Draw2x2MirroredShape
 .IMPORT FuncA_Objects_DrawPumpMachine
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MovePlatformLeftTowardPointX
@@ -115,11 +121,13 @@ kTileIdObjMachineDrumsBass           = kTileIdObjMachineDrumsFirst + 0
 kTileIdObjMachineDrumsHiHat          = kTileIdObjMachineDrumsFirst + 1
 kTileIdObjMachineTromboneSlideMiddle = kTileIdObjMachineTromboneFirst + 0
 kTileIdObjMachineTromboneSlideEnd    = kTileIdObjMachineTromboneFirst + 1
+kTileIdObjMachineTromboneBellFirst   = kTileIdObjMachineTromboneFirst + 2
 
 ;;; The OBJ palette numbers used for drawing various parts of the machines in
 ;;; this room.
 kPaletteObjDrumsBass     = 0
 kPaletteObjDrumsHiHat    = 0
+kPaletteObjTromboneBell  = 0
 kPaletteObjTromboneSlide = 0
 
 ;;;=========================================================================;;;
@@ -308,7 +316,18 @@ _Devices_sDevice_arr:
 ;;; @prereq PRGA_Objects is loaded.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .PROC FuncC_Mermaid_Hut6Trombone_Draw
-    ;; TODO: Animate horn when playing a note.
+_TromboneBell:
+    lda Ram_MachineSlowdown_u8_arr + kTromboneMachineIndex
+    beq @done
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft
+    lda #17  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #2  ; param: offset
+    jsr FuncA_Objects_MoveShapeUpByA
+    lda #kTileIdObjMachineTromboneBellFirst  ; param: tile ID
+    ldy #kPaletteObjTromboneBell  ; param: object flags
+    jsr FuncA_Objects_Draw1x2Shape
+    @done:
 _TromboneSlide:
     ldx #kTromboneSlidePlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -361,7 +380,18 @@ _MachineLight:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .PROC FuncC_Mermaid_Hut6Organ_Draw
 _Indicator:
-    ;; TODO: if machine is not halted, draw indicator light for selected pipe
+    lda Ram_MachineStatus_eMachine_arr + kOrganMachineIndex
+    cmp #eMachine::Halted
+    beq @done
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft
+    lda Ram_MachineGoalHorz_u8_arr + kOrganMachineIndex  ; tone
+    mul #4
+    ora #1  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #kTileIdObjCursorDimLeft  ; param: tile ID
+    ldy #kPaletteObjMachineLight | bObj::FlipH | bObj::Pri  ; param: obj flags
+    jsr FuncA_Objects_Draw1x1Shape
+    @done:
 _MachineLight:
     jmp FuncA_Objects_DrawPumpMachine
 .ENDPROC
@@ -399,8 +429,10 @@ _MachineLight:
 
 .PROC FuncA_Machine_MermaidHut6Trombone_TryAct
     lda Ram_MachineGoalHorz_u8_arr + kTromboneMachineIndex  ; param: tone
-    jsr FuncA_Machine_PlaySfxBeep  ; TODO: different sound for trombone
-    lda #$10  ; param: num frames
+    jsr FuncA_Machine_PlaySfxTrombone
+    lda #$0b
+    sta Ram_MachineSlowdown_u8_arr + kTromboneMachineIndex
+    lda #$10
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
@@ -444,21 +476,31 @@ _MachineLight:
 .ENDPROC
 
 .PROC FuncA_Machine_MermaidHut6Drums_Tick
-    ldx #kDrumsHiHatMaxPlatformTop - kDrumsHiHatStep
-    lda #1
+    ;; Pick the goal position to move the hi-hat towards, and the speed at
+    ;; which to move it (either up slowly, or down quickly).
+    ldx #kDrumsHiHatMaxPlatformTop - kDrumsHiHatStep  ; upper position
+    lda #1  ; param: move speed (slow)
     ldy Ram_MachineGoalVert_u8_arr + kDrumsMachineIndex
     bne @move
-    ldx #kDrumsHiHatMaxPlatformTop
-    mul #2
+    ldx #kDrumsHiHatMaxPlatformTop                    ; lower position
+    mul #2  ; param: move speed (fast)
     @move:
+    ;; Move the hi-hat platform towards its goal position.
     stx Zp_PointY_i16 + 0
     ldx #0
     stx Zp_PointY_i16 + 1
     ldx #kDrumsHiHatPlatformIndex  ; param: platform index
     jsr Func_MovePlatformTopTowardPointY  ; returns Z
-    ;; TODO: when reached Y=0, play hi-hat sound
-    jeq FuncA_Machine_ReachedGoal
+    beq @reachedGoal
     rts
+    ;; When the hi-hat reaches its goal position, if that goal position is Y=0,
+    ;; play a hi-hat sound.
+    @reachedGoal:
+    lda Ram_MachineGoalVert_u8_arr + kDrumsMachineIndex
+    bne @noHiHatSound
+    jsr FuncA_Machine_PlaySfxHiHat
+    @noHiHatSound:
+    jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
 .PROC FuncA_Machine_MermaidHut6Organ_WriteReg
@@ -468,7 +510,8 @@ _MachineLight:
 
 .PROC FuncA_Machine_MermaidHut6Organ_TryAct
     lda Ram_MachineGoalHorz_u8_arr + kOrganMachineIndex  ; param: tone
-    jsr FuncA_Machine_PlaySfxBeep  ; TODO: different sound for organ
+    jsr FuncA_Machine_PlaySfxOrgan
+    ;; TODO: Make a little puff of air over the organ pipe.
     lda #$10  ; param: num frames
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
