@@ -25,7 +25,8 @@
 ;;;   * State2: Counter that starts at zero and increments every frame.  If it
 ;;;     somehow wraps back around to zero without the breakfire bouncing, then
 ;;;     the breakfire will expire.  Resets to zero when the breakfire bounces.
-;;;   * State3: Unused.
+;;;   * State3: Counter for the "fire burning" sound effect.  Decrements each
+;;;     frame, plays the sound effect when it reaches zero, then resets.
 ;;;   * State4: Unused.
 
 ;;; The first tile ID for drawing breakfire projectile actors.

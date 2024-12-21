@@ -27,6 +27,7 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_NegateVelX
+.IMPORT FuncA_Actor_PlaySfxFireBurning
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
@@ -37,6 +38,7 @@
 .IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORTZP Zp_FrameCounter_u8
@@ -55,6 +57,10 @@ kProjBreakfireSpeed = $01c0
 ;;; The mimimum amount of time a breakfire should persist for before expiring,
 ;;; in frames.
 kProjBreakfireMinLifetime = kBlockWidthPx * 12 * $100 / kProjBreakfireSpeed
+
+;;; The initial and subsequent values to store in the breakfire's SFX timer.
+kProjBreakfireSfxTimerInit   = 16
+kProjBreakfireSfxTimerRepeat =  6
 
 ;;;=========================================================================;;;
 
@@ -84,6 +90,9 @@ _InitVelX:
     sta Ram_ActorVelX_i16_0_arr, x
     tya
     sta Ram_ActorVelX_i16_1_arr, x
+_InitSfxTimer:
+    lda #kProjBreakfireSfxTimerInit
+    sta Ram_ActorState3_byte_arr, x  ; SFX timer
     rts
 .ENDPROC
 
@@ -121,6 +130,12 @@ _Bounce:
     sta Ram_ActorState2_byte_arr, x  ; expiration timer
     jsr FuncA_Actor_NegateVelX  ; preserves X
 _Finish:
+    dec Ram_ActorState3_byte_arr, x  ; SFX timer
+    bne @noSound
+    jsr FuncA_Actor_PlaySfxFireBurning  ; preserves X
+    lda #kProjBreakfireSfxTimerRepeat
+    sta Ram_ActorState3_byte_arr, x  ; SFX timer
+    @noSound:
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _Expire:
     lda #$c0  ; param: angle ($c0 = up)

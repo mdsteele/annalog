@@ -24,6 +24,7 @@
 .INCLUDE "flamestrike.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_PlaySfxFireBurning
 .IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
@@ -121,7 +122,7 @@ _Descending:
     dec Ram_ActorState3_byte_arr, x  ; timer
     rts
 _Lengthen:
-    ;; TODO: play a sound for the flamestrike lengthening
+    jsr FuncA_Actor_PlaySfxFireBurning  ; preserves X
     ;; Set a cooldown before we expand again.
     lda #kFlamestrikeDescendFrames
     sta Ram_ActorState3_byte_arr, x  ; timer

@@ -42,11 +42,36 @@
     sfx_End
 .ENDPROC
 
+;;; SFX data for the "fire burning" sound effect.
+.PROC Data_FireBurning_sSfx
+    sfx_SetEnvTimer   bEnvelope::NoLength | bEnvelope::ConstVol | 8, $000d
+    sfx_Wait 3
+    sfx_SetTimerLo $8d
+    sfx_Wait 3
+    sfx_SetEnvTimerLo bEnvelope::NoLength | bEnvelope::ConstVol | 6,   $0d
+    sfx_Wait 3
+    sfx_SetEnvTimerLo bEnvelope::NoLength | bEnvelope::ConstVol | 3,   $8d
+    sfx_Wait 3
+    sfx_End
+.ENDPROC
+
 ;;; Starts playing the sound for when something shoots a firey projectile.
 ;;; @preserve X, T0+
 .EXPORT Func_PlaySfxShootFire
 .PROC Func_PlaySfxShootFire
     ldya #Data_ShootFire_sSfx  ; param: sSfx pointer
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Actor"
+
+;;; Starts playing the sound for a firey projectile continuing to burn.
+;;; @preserve X, T0+
+.EXPORT FuncA_Actor_PlaySfxFireBurning
+.PROC FuncA_Actor_PlaySfxFireBurning
+    ldya #Data_FireBurning_sSfx  ; param: sSfx pointer
     jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
 .ENDPROC
 
