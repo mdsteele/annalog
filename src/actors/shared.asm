@@ -77,6 +77,12 @@
 
 ;;;=========================================================================;;;
 
+;;; How far off screen the center of the actor can be and still be considered
+;;; "nearly" on screen.
+kNearlyOnScreenMargin = 12
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRG8"
 
 ;;; Sets an actor's velocity using polar coordinates.
@@ -225,6 +231,41 @@ _IsInRoom:
     sec
     rts
 _NotInRoom:
+    clc
+    rts
+.ENDPROC
+
+;;; Determines if the actor is on screen horizontally, or nearly so.
+;;; @param X The actor index.
+;;; @return C Set if the actor is on screen or nearly so.
+;;; @preserve X
+.EXPORT FuncA_Actor_IsActorNearlyOnScreenHorz
+.PROC FuncA_Actor_IsActorNearlyOnScreenHorz
+    lda Ram_ActorPosX_i16_0_arr, x
+    sub Zp_RoomScrollX_u16 + 0
+    sta T0  ; delta (lo)
+    lda Ram_ActorPosX_i16_1_arr, x
+    sbc Zp_RoomScrollX_u16 + 1
+    bmi @leftOfScreen
+    .assert kScreenWidthPx = $100, error
+    beq _OnScreen
+    @rightOfScreen:
+    cmp #1
+    bne _OffScreen  ; too far to right of screen
+    lda T0  ; delta (lo)
+    cmp #kNearlyOnScreenMargin
+    bge _OffScreen  ; too far to right of screen
+    blt _OnScreen  ; unconditional
+    @leftOfScreen:
+    cmp #<-1
+    bne _OffScreen  ; too far to left of screen
+    lda T0  ; delta (lo)
+    cmp #<-kNearlyOnScreenMargin
+    blt _OffScreen  ; too far to left of screen
+_OnScreen:
+    sec
+    rts
+_OffScreen:
     clc
     rts
 .ENDPROC

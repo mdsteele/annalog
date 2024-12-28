@@ -27,6 +27,7 @@
 .IMPORT FuncA_Actor_ApplyGravity
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsActorNearlyOnScreenHorz
 .IMPORT FuncA_Actor_LandOnTerrain
 .IMPORT FuncA_Actor_PlaySfxToadJump
 .IMPORT FuncA_Objects_Draw2x2Shape
@@ -105,10 +106,9 @@ _IsGrounded:
     lda Ram_ActorState1_byte_arr, x  ; jump timer
     beq _StartJump
     dec Ram_ActorState1_byte_arr, x  ; jump timer
+_Return:
     rts
 _StartJump:
-    ;; TODO: only play sound if the toad is on screen (or nearly)
-    jsr FuncA_Actor_PlaySfxToadJump  ; preserves X
     jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
     ;; Set Y-velocity.
     lda #<kToadJumpVelocity
@@ -118,7 +118,11 @@ _StartJump:
     ;; Mark the toad as being airborne.
     lda #1
     sta Ram_ActorState2_byte_arr, x  ; 0 if grounded, 1 if airborne
-    rts
+    ;; Play a sound effect for the jump, but only if the toad is on screen (or
+    ;; nearly so).
+    jsr FuncA_Actor_IsActorNearlyOnScreenHorz  ; preserves X, returns C
+    bcc _Return
+    jmp FuncA_Actor_PlaySfxToadJump  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

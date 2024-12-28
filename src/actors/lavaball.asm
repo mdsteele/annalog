@@ -28,11 +28,13 @@
 
 .IMPORT FuncA_Actor_ApplyGravity
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_IsActorNearlyOnScreenHorz
 .IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorWithState1
+.IMPORT Func_PlaySfxShootFire
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -83,6 +85,7 @@ kPaletteObjLavaball = 1
     beq _IsJumping
     dec Ram_ActorState2_byte_arr, x  ; jump delay
     beq _StartJumping
+_Return:
     rts
 _StartJumping:
     lda Ram_ActorState1_byte_arr, x  ; jump speed
@@ -91,7 +94,11 @@ _StartJumping:
     jsr Func_GetRandomByte  ; preserves X
     ora #$80
     sta Ram_ActorVelY_i16_0_arr, x
-    rts
+    ;; Play a sound effect for the jump, but only if the lavaball is on screen
+    ;; (or nearly so).
+    jsr FuncA_Actor_IsActorNearlyOnScreenHorz  ; preserves X, returns C
+    bcc _Return
+    jmp Func_PlaySfxShootFire  ; preserves X
 _IsJumping:
     ;; If the lavaball is moving upwards, then continue the jump.
     lda Ram_ActorVelY_i16_1_arr, x
