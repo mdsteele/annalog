@@ -5,36 +5,33 @@
 
 =key 3b  % Eb major
 
-!INST 1A PulsePiano $06 d1/2
-!INST 2A PulsePiano $06 d1/4
+!INST 1A PulsePiano $08 d1/2
+!INST 2A PulsePiano $06 d1/8
 !INST TV TriangleVibrato
 
 !PART A
 
-=tempo q36
-
-1| iA e4q  g ' b  e5 | db5h+ ' + +q3 b4q3 c5 |
- | db5q3 c b4 ' eh  | db5q3 c b4 ' eq eNq |
-2| iA b3w | a3h f4h | g3w | eNh b3q db4q |
-T| iV e3w | b2w | a2w | db3h. e3q |
-
-1| e4q  g ' b  e5 | db5h+ ' + +q3 b4q3 c5 |
- | db5q3 c b4 ' eh  | db5q3 c b4 ' eq fq |
-2| iA b3w | a3h f4h | g3w | eNh b3h |
-T| iV e3w | b2w | a2w | db3h b3h |
-
-1| g4q ce e ' f g d5 e | d5q f4e g ' dh |
- |  b4q ee f ' gq f | a4e b f c ' eq d |
-2| re b3q.+h | re g3q.+h | re f3q.+h | re e3q. re f3q. |
-T| c3w | b2w | a2w | f2h g2h |
-
-1| g4q ce e ' f4e g d5 e | d5q f4e g ' dh |
- | b4q ee f ' gq c5q |
-2| re b3q.+h | re g3q.+h | re f3q.+h |
-T| c3w | b2w | a2w |
-
 =tempo q42
 
-1| g5e f e c ' b4e a eN eb ' dbh |
-2| re  e3q.  ' re  e3q.+   ' +h  |
-T| f2h       ' db3w              |
+1| p( iA e4q  g ' b  e5 | db5h.+e3 b4e3 c5 |
+ |    db5q3 c b4 ' e4h | db5q3 c b4 eq )1A fb4q |
+ | p1A fN4q |
+2| iA g3e a b d4 ' e g b g | a4e f db c ' b3 a f db |
+ | c3e e f a ' b c4 e f | a4e b a fb ' db cb b3 a :2 |
+T| iV e3w | b2w | a2w | db3w :2 |
+
+1| p( g4q ce dN ' e f dN5 e | d5q f4e g ' dh | b4q ee f ' gq )1B f4q |
+ | a4e b f c ' eq d |
+ | p1B c5q |
+2| p( rq g3 ' b cN | rq f3 g b | rq e3 f a)2B |
+ | rq a3 c4 bN3 |
+ | p2B |
+T| p( c3w | b2w | a2w )TB |
+ | f2h g |
+ | pTB |
+
+=tempo q48
+
+1| g5e f e c b4 a ' fb e dbh |
+2| re e3 g a r cb ' db e fbh |
+T| f2h db2w |
