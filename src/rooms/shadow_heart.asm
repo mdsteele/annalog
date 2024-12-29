@@ -26,6 +26,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/emitter.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/force.inc"
 .INCLUDE "../ppu.inc"
@@ -257,7 +258,24 @@ _Actors_sActor_arr:
     d_word PosY_i16, $0071
     d_byte Param_byte, eNpcAdult::MermaidGhost
     D_END
-    ;; TODO: add some goo baddies
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooGreen
+    d_word PosX_i16, $00d8
+    d_word PosY_i16, $0038
+    d_byte Param_byte, 0
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooGreen
+    d_word PosX_i16, $00a8
+    d_word PosY_i16, $0068
+    d_byte Param_byte, bObj::FlipHV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooGreen
+    d_word PosX_i16, $0048
+    d_word PosY_i16, $0088
+    d_byte Param_byte, bObj::FlipHV
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -326,7 +344,6 @@ _MaybeRemoveGhost:
 .ENDPROC
 
 .PROC FuncA_Room_ShadowHeart_TickRoom
-    ;; TODO: if a goo baddie is in a solid forcefield platform, kill it
 _MaybeTagGhost:
     ;; If the avatar isn't in the tag zone, don't tag the ghost.
     jsr Func_SetPointToAvatarCenter

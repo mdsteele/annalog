@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
@@ -41,14 +42,19 @@
 .IMPORT Func_DivMod
 .IMPORT Func_GetRandomByte
 .IMPORT Func_HarmAvatar
+.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsAvatarInPlatformHorz
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_KillAvatar
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointRightByA
+.IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_SetPlatformTopLeftToPoint
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformTopLeft
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_TryPushAvatarVert
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
@@ -198,6 +204,7 @@ kPaletteObjEmitterGlow = 1
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kEmitterForcefieldPlatformIndex
     jsr FuncA_Machine_PushAvatarOutOfEmitterForcefield
+    jsr FuncA_Machine_KillGooWithEmitterForcefield
 _Finish:
     ;; Make the emitter machine wait to cool down.
     lda #kEmitterActCooldown  ; param: num frames to wait
@@ -287,6 +294,31 @@ _MaybePushDown:
     beq _Return
     jmp Func_KillAvatar
 _Return:
+    rts
+.ENDPROC
+
+;;; Checks if any green goo baddies are within the forcefield platform, and
+;;; kills them if so.
+;;; @prereq The forcefield platform is solid.
+.PROC FuncA_Machine_KillGooWithEmitterForcefield
+    ldx #kMaxActors - 1
+    @loop:
+    ;; If this actor isn't a green goo baddie, skip it.
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::BadGooGreen
+    bne @continue
+    ;; If the goo isn't in the forcefield platform, skip it.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    ldy #kEmitterForcefieldPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; preserves X, returns C
+    bcc @continue
+    ;; Kill the goo.
+    jsr Func_InitActorSmokeExplosion  ; preserves X
+    jsr Func_PlaySfxBaddieDeath  ; preserves X
+    @continue:
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
     rts
 .ENDPROC
 
