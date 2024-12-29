@@ -271,7 +271,7 @@ Zp_RoomState: .res kRoomStateSize
 ;;; @param X The eRoom value for the room to load.
 .EXPORT FuncM_SwitchPrgcAndLoadRoom
 .PROC FuncM_SwitchPrgcAndLoadRoom
-    jsr_prga FuncA_Room_ChooseMusicForRoom  ; preserves X, returns Y
+    jsr_prga FuncA_Avatar_ChooseMusicForRoom  ; preserves X, returns Y
     fall FuncM_SwitchPrgcAndLoadRoomWithMusic
 .ENDPROC
 
@@ -291,7 +291,232 @@ Zp_RoomState: .res kRoomStateSize
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Avatar"
+
+;;; Chooses the music that should play in the specified room, based partly on
+;;; the current progress flags.  The room does *not* need to be loaded already,
+;;; nor its PRGC bank set.
+;;; @param X The eRoom value for the room to choose music for.
+;;; @return Y The eMusic value for the music to play in the specified room.
+;;; @preserve X
+.PROC FuncA_Avatar_ChooseMusicForRoom
+    lda DataA_Avatar_Music_bRoomMusic_arr, x
+    ;; If the bRoomMusic::Boss bit is set, then this is a boss room.
+    .assert bRoomMusic::Boss = $80, error
+    bmi _BossMusic
+    .assert bRoomMusic::Prison = (1 << 6), error
+    ;; If the bRoomMusic::Prison bit is set, then this is a prison room.
+    bit Data_PowersOfTwo_u8_arr8 + 6
+    bne _PrisonMusic
+    ;; Otherwise, this room just uses a fixed music.
+    and #bRoomMusic::MusicMask
+    tay  ; eMusic value
+    rts
+_BossMusic:
+    ;; Check if this boss has been defeated yet.  If not, play the boss music;
+    ;; if so, play calm music.
+    and #bRoomMusic::BreakerMask
+    add #kFirstBossFlag
+    stx T0  ; eRoom value
+    tax  ; param: eFlag::Boss* value
+    jsr Func_IsFlagSet  ; preserves T0+, returns Z
+    bne @bossDead
+    @bossAlive:
+    ldy #eMusic::Boss1
+    .assert eMusic::Boss1 < $80, error
+    bpl @setMusic  ; unconditional
+    @bossDead:
+    ldy #eMusic::Calm
+    @setMusic:
+    ldx T0  ; eRoom value (to preserve X)
+    rts
+_PrisonMusic:
+    ;; Play calm music in the Prison Caves until Anna first escapes; then play
+    ;; the prison break music when she returns thereafter.
+    ldy #eMusic::Calm
+    flag_bit Sram_ProgressFlags_arr, eFlag::GardenLandingDroppedIn
+    beq @done
+    ldy #eMusic::Prison
+    @done:
+    rts
+.ENDPROC
+
+;;; Maps from eRoom values to the default eMusic to play in each room.
+.PROC DataA_Avatar_Music_bRoomMusic_arr
+    D_ARRAY .enum, eRoom
+    d_byte BossCity,        bRoomMusic::Boss | eBreaker::City
+    d_byte BossCrypt,       bRoomMusic::Boss | eBreaker::Crypt
+    d_byte BossGarden,      bRoomMusic::Boss | eBreaker::Garden
+    d_byte BossLava,        bRoomMusic::Boss | eBreaker::Lava
+    d_byte BossMine,        bRoomMusic::Boss | eBreaker::Mine
+    d_byte BossShadow,      bRoomMusic::Boss | eBreaker::Shadow
+    d_byte BossTemple,      bRoomMusic::Boss | eBreaker::Temple
+    d_byte CityBuilding1,   eMusic::City
+    d_byte CityBuilding2,   eMusic::City
+    d_byte CityBuilding3,   eMusic::City
+    d_byte CityBuilding4,   eMusic::City
+    d_byte CityBuilding5,   eMusic::City
+    d_byte CityBuilding6,   eMusic::City
+    d_byte CityBuilding7,   eMusic::City
+    d_byte CityCenter,      eMusic::City
+    d_byte CityDrain,       eMusic::City
+    d_byte CityDump,        eMusic::City
+    d_byte CityEast,        eMusic::City
+    d_byte CityFlower,      eMusic::City
+    d_byte CityOutskirts,   eMusic::City
+    d_byte CitySinkhole,    eMusic::City
+    d_byte CityWest,        eMusic::City
+    d_byte CoreBoss,        eMusic::Silence
+    d_byte CoreEast,        eMusic::Silence
+    d_byte CoreElevator,    eMusic::Silence
+    d_byte CoreFlower,      eMusic::Silence
+    d_byte CoreJunction,    eMusic::Silence
+    d_byte CoreLock,        eMusic::Silence
+    d_byte CoreSouth,       eMusic::Silence
+    d_byte CoreWest,        eMusic::Silence
+    d_byte CryptCenter,     eMusic::Crypt
+    d_byte CryptChains,     eMusic::Crypt
+    d_byte CryptEast,       eMusic::Crypt
+    d_byte CryptEscape,     eMusic::Crypt
+    d_byte CryptFlower,     eMusic::Crypt
+    d_byte CryptGallery,    eMusic::Crypt
+    d_byte CryptLanding,    eMusic::Crypt
+    d_byte CryptNest,       eMusic::Crypt
+    d_byte CryptNorth,      eMusic::Crypt
+    d_byte CryptSouth,      eMusic::Crypt
+    d_byte CryptSpiral,     eMusic::Crypt
+    d_byte CryptTomb,       eMusic::Crypt
+    d_byte CryptWest,       eMusic::Crypt
+    d_byte FactoryAccess,   eMusic::Silence
+    d_byte FactoryBridge,   eMusic::Silence
+    d_byte FactoryCenter,   eMusic::Silence
+    d_byte FactoryEast,     eMusic::Silence
+    d_byte FactoryElevator, eMusic::Silence
+    d_byte FactoryFlower,   eMusic::Silence
+    d_byte FactoryLock,     eMusic::Silence
+    d_byte FactoryPass,     eMusic::Silence
+    d_byte FactoryUpper,    eMusic::Silence
+    d_byte FactoryVault,    eMusic::Silence
+    d_byte FactoryWest,     eMusic::Silence
+    d_byte GardenCrossroad, eMusic::Garden
+    d_byte GardenEast,      eMusic::Garden
+    d_byte GardenFlower,    eMusic::Garden
+    d_byte GardenHallway,   eMusic::Garden
+    d_byte GardenLanding,   eMusic::Garden
+    d_byte GardenShaft,     eMusic::Garden
+    d_byte GardenShrine,    eMusic::Garden
+    d_byte GardenTower,     eMusic::Garden
+    d_byte GardenTunnel,    eMusic::Garden
+    d_byte LavaCavern,      eMusic::Silence
+    d_byte LavaCenter,      eMusic::Silence
+    d_byte LavaEast,        eMusic::Silence
+    d_byte LavaFlower,      eMusic::Silence
+    d_byte LavaShaft,       eMusic::Silence
+    d_byte LavaStation,     eMusic::Silence
+    d_byte LavaTeleport,    eMusic::Silence
+    d_byte LavaTunnel,      eMusic::Silence
+    d_byte LavaVent,        eMusic::Silence
+    d_byte LavaWest,        eMusic::Silence
+    d_byte MermaidCellar,   eMusic::Florist
+    d_byte MermaidEast,     eMusic::Mermaid
+    d_byte MermaidElevator, eMusic::Mermaid
+    d_byte MermaidEntry,    eMusic::Mermaid
+    d_byte MermaidFlower,   eMusic::Mermaid
+    d_byte MermaidHut1,     eMusic::Mermaid
+    d_byte MermaidHut2,     eMusic::Mermaid
+    d_byte MermaidHut3,     eMusic::Mermaid
+    d_byte MermaidHut4,     eMusic::Florist
+    d_byte MermaidHut5,     eMusic::Mermaid
+    d_byte MermaidHut6,     eMusic::Silence
+    d_byte MermaidSpring,   eMusic::Mermaid
+    d_byte MermaidVillage,  eMusic::Mermaid
+    d_byte MineCenter,      eMusic::Mine
+    d_byte MineCollapse,    eMusic::Mine
+    d_byte MineDrift,       eMusic::Mine
+    d_byte MineEast,        eMusic::Mine
+    d_byte MineEntry,       eMusic::Mine
+    d_byte MineFlower,      eMusic::Mine
+    d_byte MineNorth,       eMusic::Mine
+    d_byte MinePit,         eMusic::Mine
+    d_byte MineSouth,       eMusic::Mine
+    d_byte MineTunnel,      eMusic::Mine
+    d_byte MineWest,        eMusic::Mine
+    d_byte PrisonCell,      bRoomMusic::Prison
+    d_byte PrisonCrossroad, bRoomMusic::Prison
+    d_byte PrisonEast,      bRoomMusic::Prison
+    d_byte PrisonEscape,    bRoomMusic::Prison
+    d_byte PrisonFlower,    bRoomMusic::Prison
+    d_byte PrisonLower,     bRoomMusic::Prison
+    d_byte PrisonUpper,     bRoomMusic::Prison
+    d_byte SewerAscent,     eMusic::Silence
+    d_byte SewerBasin,      eMusic::Silence
+    d_byte SewerEast,       eMusic::Silence
+    d_byte SewerFaucet,     eMusic::Silence
+    d_byte SewerFlower,     eMusic::Silence
+    d_byte SewerNorth,      eMusic::Silence
+    d_byte SewerPipe,       eMusic::Silence
+    d_byte SewerPool,       eMusic::Silence
+    d_byte SewerSouth,      eMusic::Silence
+    d_byte SewerTrap,       eMusic::Silence
+    d_byte SewerWest,       eMusic::Silence
+    d_byte ShadowDepths,    eMusic::Silence
+    d_byte ShadowDescent,   eMusic::Silence
+    d_byte ShadowDrill,     eMusic::Silence
+    d_byte ShadowEntry,     eMusic::Silence
+    d_byte ShadowFlower,    eMusic::Silence
+    d_byte ShadowGate,      eMusic::Silence
+    d_byte ShadowHall,      eMusic::Silence
+    d_byte ShadowHeart,     eMusic::Silence
+    d_byte ShadowOffice,    eMusic::Silence
+    d_byte ShadowTeleport,  eMusic::Silence
+    d_byte ShadowTrap,      eMusic::Silence
+    d_byte TempleAltar,     eMusic::Temple
+    d_byte TempleApse,      eMusic::Temple
+    d_byte TempleChevet,    eMusic::Temple
+    d_byte TempleEntry,     eMusic::Temple
+    d_byte TempleFlower,    eMusic::Temple
+    d_byte TempleFoyer,     eMusic::Temple
+    d_byte TempleNave,      eMusic::Temple
+    d_byte TemplePit,       eMusic::Temple
+    d_byte TempleSpire,     eMusic::Temple
+    d_byte TempleWest,      eMusic::Temple
+    d_byte TownHouse1,      eMusic::Town
+    d_byte TownHouse2,      eMusic::Town
+    d_byte TownHouse3,      eMusic::Town
+    d_byte TownHouse4,      eMusic::Town
+    d_byte TownHouse5,      eMusic::Town
+    d_byte TownHouse6,      eMusic::Town
+    d_byte TownOutdoors,    eMusic::Town
+    D_END
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Room"
+
+;;; If the specified music is different than what's currently playing, disables
+;;; the audio system (processing an extra frame to do so), then sets up
+;;; Zp_Next_sAudioCtrl to re-enable the audio system and play the new music
+;;; next frame.
+;;; @prereq Rendering is disabled.
+;;; @param Y The eMusic value for the music to play in the new room.
+;;; @preserve X
+.PROC FuncA_Room_ChangeMusicIfNeeded
+    cpy Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    beq @done
+    lda #0
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
+    sty T1  ; eMusic to play
+    stx T0
+    jsr Func_ProcessFrame  ; preserves T0+
+    ldx T0
+    lda #bAudio::Enable
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
+    lda T1  ; eMusic to play
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    @done:
+    rts
+.ENDPROC
 
 ;;; Pointers and PRGC bank numbers for sRoom structs for all rooms in the game,
 ;;; indexed by eRoom values.
@@ -445,227 +670,6 @@ Zp_RoomState: .res kRoomStateSize
     d_entry table, TownOutdoors,    DataC_Town_Outdoors_sRoom
     D_END
 .ENDREPEAT
-
-;;; Chooses the music that should play in the specified room, based partly on
-;;; the current progress flags.  The room does *not* need to be loaded already,
-;;; nor its PRGC bank set.
-;;; @param X The eRoom value for the room to choose music for.
-;;; @return Y The eMusic value for the music to play in the specified room.
-;;; @preserve X
-.PROC FuncA_Room_ChooseMusicForRoom
-    lda DataA_Room_Music_bRoomMusic_arr, x
-    ;; If the bRoomMusic::Boss bit is set, then this is a boss room.
-    .assert bRoomMusic::Boss = $80, error
-    bmi _BossMusic
-    .assert bRoomMusic::Prison = (1 << 6), error
-    ;; If the bRoomMusic::Prison bit is set, then this is a prison room.
-    bit Data_PowersOfTwo_u8_arr8 + 6
-    bne _PrisonMusic
-    ;; Otherwise, this room just uses a fixed music.
-    and #bRoomMusic::MusicMask
-    tay  ; eMusic value
-    rts
-_BossMusic:
-    ;; Check if this boss has been defeated yet.  If not, play the boss music;
-    ;; if so, play calm music.
-    and #bRoomMusic::BreakerMask
-    add #kFirstBossFlag
-    stx T0  ; eRoom value
-    tax  ; param: eFlag::Boss* value
-    jsr Func_IsFlagSet  ; preserves T0+, returns Z
-    bne @bossDead
-    @bossAlive:
-    ldy #eMusic::Boss1
-    .assert eMusic::Boss1 < $80, error
-    bpl @setMusic  ; unconditional
-    @bossDead:
-    ldy #eMusic::Calm
-    @setMusic:
-    ldx T0  ; eRoom value (to preserve X)
-    rts
-_PrisonMusic:
-    ;; Play calm music in the Prison Caves until Anna first escapes; then play
-    ;; the prison break music when she returns thereafter.
-    ldy #eMusic::Calm
-    flag_bit Sram_ProgressFlags_arr, eFlag::GardenLandingDroppedIn
-    beq @done
-    ldy #eMusic::Prison
-    @done:
-    rts
-.ENDPROC
-
-;;; Maps from eRoom values to the default eMusic to play in each room.
-.PROC DataA_Room_Music_bRoomMusic_arr
-    D_ARRAY .enum, eRoom
-    d_byte BossCity,        bRoomMusic::Boss | eBreaker::City
-    d_byte BossCrypt,       bRoomMusic::Boss | eBreaker::Crypt
-    d_byte BossGarden,      bRoomMusic::Boss | eBreaker::Garden
-    d_byte BossLava,        bRoomMusic::Boss | eBreaker::Lava
-    d_byte BossMine,        bRoomMusic::Boss | eBreaker::Mine
-    d_byte BossShadow,      bRoomMusic::Boss | eBreaker::Shadow
-    d_byte BossTemple,      bRoomMusic::Boss | eBreaker::Temple
-    d_byte CityBuilding1,   eMusic::City
-    d_byte CityBuilding2,   eMusic::City
-    d_byte CityBuilding3,   eMusic::City
-    d_byte CityBuilding4,   eMusic::City
-    d_byte CityBuilding5,   eMusic::City
-    d_byte CityBuilding6,   eMusic::City
-    d_byte CityBuilding7,   eMusic::City
-    d_byte CityCenter,      eMusic::City
-    d_byte CityDrain,       eMusic::City
-    d_byte CityDump,        eMusic::City
-    d_byte CityEast,        eMusic::City
-    d_byte CityFlower,      eMusic::City
-    d_byte CityOutskirts,   eMusic::City
-    d_byte CitySinkhole,    eMusic::City
-    d_byte CityWest,        eMusic::City
-    d_byte CoreBoss,        eMusic::Silence
-    d_byte CoreEast,        eMusic::Silence
-    d_byte CoreElevator,    eMusic::Silence
-    d_byte CoreFlower,      eMusic::Silence
-    d_byte CoreJunction,    eMusic::Silence
-    d_byte CoreLock,        eMusic::Silence
-    d_byte CoreSouth,       eMusic::Silence
-    d_byte CoreWest,        eMusic::Silence
-    d_byte CryptCenter,     eMusic::Crypt
-    d_byte CryptChains,     eMusic::Crypt
-    d_byte CryptEast,       eMusic::Crypt
-    d_byte CryptEscape,     eMusic::Crypt
-    d_byte CryptFlower,     eMusic::Crypt
-    d_byte CryptGallery,    eMusic::Crypt
-    d_byte CryptLanding,    eMusic::Crypt
-    d_byte CryptNest,       eMusic::Crypt
-    d_byte CryptNorth,      eMusic::Crypt
-    d_byte CryptSouth,      eMusic::Crypt
-    d_byte CryptSpiral,     eMusic::Crypt
-    d_byte CryptTomb,       eMusic::Crypt
-    d_byte CryptWest,       eMusic::Crypt
-    d_byte FactoryAccess,   eMusic::Silence
-    d_byte FactoryBridge,   eMusic::Silence
-    d_byte FactoryCenter,   eMusic::Silence
-    d_byte FactoryEast,     eMusic::Silence
-    d_byte FactoryElevator, eMusic::Silence
-    d_byte FactoryFlower,   eMusic::Silence
-    d_byte FactoryLock,     eMusic::Silence
-    d_byte FactoryPass,     eMusic::Silence
-    d_byte FactoryUpper,    eMusic::Silence
-    d_byte FactoryVault,    eMusic::Silence
-    d_byte FactoryWest,     eMusic::Silence
-    d_byte GardenCrossroad, eMusic::Garden
-    d_byte GardenEast,      eMusic::Garden
-    d_byte GardenFlower,    eMusic::Garden
-    d_byte GardenHallway,   eMusic::Garden
-    d_byte GardenLanding,   eMusic::Garden
-    d_byte GardenShaft,     eMusic::Garden
-    d_byte GardenShrine,    eMusic::Garden
-    d_byte GardenTower,     eMusic::Garden
-    d_byte GardenTunnel,    eMusic::Garden
-    d_byte LavaCavern,      eMusic::Silence
-    d_byte LavaCenter,      eMusic::Silence
-    d_byte LavaEast,        eMusic::Silence
-    d_byte LavaFlower,      eMusic::Silence
-    d_byte LavaShaft,       eMusic::Silence
-    d_byte LavaStation,     eMusic::Silence
-    d_byte LavaTeleport,    eMusic::Silence
-    d_byte LavaTunnel,      eMusic::Silence
-    d_byte LavaVent,        eMusic::Silence
-    d_byte LavaWest,        eMusic::Silence
-    d_byte MermaidCellar,   eMusic::Florist
-    d_byte MermaidEast,     eMusic::Mermaid
-    d_byte MermaidElevator, eMusic::Mermaid
-    d_byte MermaidEntry,    eMusic::Mermaid
-    d_byte MermaidFlower,   eMusic::Mermaid
-    d_byte MermaidHut1,     eMusic::Mermaid
-    d_byte MermaidHut2,     eMusic::Mermaid
-    d_byte MermaidHut3,     eMusic::Mermaid
-    d_byte MermaidHut4,     eMusic::Florist
-    d_byte MermaidHut5,     eMusic::Mermaid
-    d_byte MermaidHut6,     eMusic::Silence
-    d_byte MermaidSpring,   eMusic::Mermaid
-    d_byte MermaidVillage,  eMusic::Mermaid
-    d_byte MineCenter,      eMusic::Mine
-    d_byte MineCollapse,    eMusic::Mine
-    d_byte MineDrift,       eMusic::Mine
-    d_byte MineEast,        eMusic::Mine
-    d_byte MineEntry,       eMusic::Mine
-    d_byte MineFlower,      eMusic::Mine
-    d_byte MineNorth,       eMusic::Mine
-    d_byte MinePit,         eMusic::Mine
-    d_byte MineSouth,       eMusic::Mine
-    d_byte MineTunnel,      eMusic::Mine
-    d_byte MineWest,        eMusic::Mine
-    d_byte PrisonCell,      bRoomMusic::Prison
-    d_byte PrisonCrossroad, bRoomMusic::Prison
-    d_byte PrisonEast,      bRoomMusic::Prison
-    d_byte PrisonEscape,    bRoomMusic::Prison
-    d_byte PrisonFlower,    bRoomMusic::Prison
-    d_byte PrisonLower,     bRoomMusic::Prison
-    d_byte PrisonUpper,     bRoomMusic::Prison
-    d_byte SewerAscent,     eMusic::Silence
-    d_byte SewerBasin,      eMusic::Silence
-    d_byte SewerEast,       eMusic::Silence
-    d_byte SewerFaucet,     eMusic::Silence
-    d_byte SewerFlower,     eMusic::Silence
-    d_byte SewerNorth,      eMusic::Silence
-    d_byte SewerPipe,       eMusic::Silence
-    d_byte SewerPool,       eMusic::Silence
-    d_byte SewerSouth,      eMusic::Silence
-    d_byte SewerTrap,       eMusic::Silence
-    d_byte SewerWest,       eMusic::Silence
-    d_byte ShadowDepths,    eMusic::Silence
-    d_byte ShadowDescent,   eMusic::Silence
-    d_byte ShadowDrill,     eMusic::Silence
-    d_byte ShadowEntry,     eMusic::Silence
-    d_byte ShadowFlower,    eMusic::Silence
-    d_byte ShadowGate,      eMusic::Silence
-    d_byte ShadowHall,      eMusic::Silence
-    d_byte ShadowHeart,     eMusic::Silence
-    d_byte ShadowOffice,    eMusic::Silence
-    d_byte ShadowTeleport,  eMusic::Silence
-    d_byte ShadowTrap,      eMusic::Silence
-    d_byte TempleAltar,     eMusic::Temple
-    d_byte TempleApse,      eMusic::Temple
-    d_byte TempleChevet,    eMusic::Temple
-    d_byte TempleEntry,     eMusic::Temple
-    d_byte TempleFlower,    eMusic::Temple
-    d_byte TempleFoyer,     eMusic::Temple
-    d_byte TempleNave,      eMusic::Temple
-    d_byte TemplePit,       eMusic::Temple
-    d_byte TempleSpire,     eMusic::Temple
-    d_byte TempleWest,      eMusic::Temple
-    d_byte TownHouse1,      eMusic::Town
-    d_byte TownHouse2,      eMusic::Town
-    d_byte TownHouse3,      eMusic::Town
-    d_byte TownHouse4,      eMusic::Town
-    d_byte TownHouse5,      eMusic::Town
-    d_byte TownHouse6,      eMusic::Town
-    d_byte TownOutdoors,    eMusic::Town
-    D_END
-.ENDPROC
-
-;;; If the specified music is different than what's currently playing, disables
-;;; the audio system (processing an extra frame to do so), then sets up
-;;; Zp_Next_sAudioCtrl to re-enable the audio system and play the new music
-;;; next frame.
-;;; @prereq Rendering is disabled.
-;;; @param Y The eMusic value for the music to play in the new room.
-;;; @preserve X
-.PROC FuncA_Room_ChangeMusicIfNeeded
-    cpy Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
-    beq @done
-    lda #0
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
-    sty T1  ; eMusic to play
-    stx T0
-    jsr Func_ProcessFrame  ; preserves T0+
-    ldx T0
-    lda #bAudio::Enable
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
-    lda T1  ; eMusic to play
-    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
-    @done:
-    rts
-.ENDPROC
 
 ;;; Loads and initializes data for the specified room.
 ;;; @prereq Zp_Current_eRoom and Zp_Current_sRoom are initialized.
