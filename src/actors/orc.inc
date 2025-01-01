@@ -47,8 +47,10 @@
 
 ;;; State bytes for orc NPCs:
 ;;;   * Param: The initial eNpcOrc value to use.
-;;;   * Flags: The bObj::FlipH bit is set if the orc is facing left, or cleared
-;;;     if they are facing right.
+;;;   * Flags: The FlipH bit is set if the NPC is facing left, or cleared if
+;;;     they are facing right.  However, if State2 is false ($00), then this
+;;;     bit is ignored and instead the NPC automatically faces toward the
+;;;     player avatar.
 ;;;   * State1: The eNpcOrc value for the orc's current pose.
 ;;;   * State2: Boolean; If true ($ff), the NPC uses Ram_ActorFlags_bObj_arr
 ;;;     unchanged; if false ($00), the NPC is automatically drawn facing the

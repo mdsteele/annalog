@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "adult.inc"
 .INCLUDE "ghost.inc"
@@ -46,9 +47,12 @@
 .IMPORT Func_SignedMult
 .IMPORT Func_Sine
 .IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorPosX_i16_0_arr
+.IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState4_byte_arr
+.IMPORTZP Zp_AvatarPosX_i16
 
 ;;;=========================================================================;;;
 
@@ -70,7 +74,20 @@ kBadGhostOrcAttackFrames = 70
 .PROC FuncA_Room_MakeNpcGhostDisappear
     lda #eBadGhost::Disappearing  ; param: eBadGhost value
     jsr Func_InitActorWithState1  ; preserves X
-    ;; TODO: Make the ghost baddie face the player avatar.
+_FaceAvatar:
+    ;; Make the ghost baddie face the player avatar.  (We can't just save and
+    ;; restore the NPC actor's previous bObj flags, because the NPC might have
+    ;; just had flags of 0, and be using State2 = 0 to automatically be drawn
+    ;; facing the avatar.)
+    lda Zp_AvatarPosX_i16 + 0
+    cmp Ram_ActorPosX_i16_0_arr, x
+    lda Zp_AvatarPosX_i16 + 1
+    sbc Ram_ActorPosX_i16_1_arr, x
+    bpl @done  ; actor should face right, which is the default
+    lda #bObj::FlipH  ; make actor face left
+    sta Ram_ActorFlags_bObj_arr, x
+    @done:
+_PlaySound:
     ;; TODO: Play a sound for the ghost disappearing
     rts
 .ENDPROC
