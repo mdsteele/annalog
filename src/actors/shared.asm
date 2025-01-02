@@ -387,6 +387,7 @@ _OffScreen:
 ;;; @param X The actor index.
 ;;; @return A The new bObj value that was set for the actor.
 ;;; @preserve X, Y, T0+
+.EXPORT FuncA_Actor_FaceTowardsN
 .PROC FuncA_Actor_FaceTowardsN
     bpl @faceRight
     @faceLeft:

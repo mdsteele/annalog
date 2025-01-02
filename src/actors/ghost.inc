@@ -24,22 +24,36 @@
 ;;;   * State1: The eBadGhost value for the ghost's current behavior mode.
 ;;;   * State2: A timer for the current mode that increments or decrements each
 ;;;     frame, depending on the mode.
-;;;   * State3: Unused.
+;;;   * State3: A mode-specific counter (e.g. how many more times to move, or
+;;;     how many more fireballs to shoot).
 ;;;   * State4: Unused.
 
 ;;;=========================================================================;;;
 
 ;;; Possible values for a ghost baddie actor's State1 byte.
 .ENUM eBadGhost
-    Absent        ; invisible, waiting for a new mode to be set
-    Idle          ; visible, waiting for a new mode to be set
-    Disappearing  ; disappearing
-    Reappearing   ; reappearing
-    Attacking     ; running attack cycle
+    Absent           ; invisible, waiting for a new mode to be set
+    ;; Appearing/disappearing modes (ghost flickers, and cannot be injured):
+    AttackAppearing  ; reappearing; will become AttackMoving or AttackShooting
+    Disappearing     ; disappearing; will become Absent
+    ;; Injured modes (ghost flashes, and cannot be injured):
+    Injured          ; flashing red; will become Disappearing
+    ;; Vulnerable modes (ghost is solid gray, and can be injured):
+    AttackMoving     ; moving; will become AttackShooting or Disappearing
+    AttackShooting   ; shooting fire; will become AttackMoving or Disappearing
     NUM_VALUES
 .ENDENUM
 
 ;;; How many frames it takes a ghost baddie actor to appear or disappear.
 kBadGhostAppearFrames = 45
+
+;;; eBadGhost values less this represent states where the ghost is absent,
+;;; disappearing, or reappearing, and should thus be drawn flickering (if at
+;;; all).
+kBadGhostFirstSolid = eBadGhost::Injured
+
+;;; eBadGhost values less than this represent states where the ghost is
+;;; invincible and cannot be injured.
+kBadGhostFirstVulnerable = eBadGhost::AttackMoving
 
 ;;;=========================================================================;;;

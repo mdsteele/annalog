@@ -58,14 +58,12 @@
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
-.IMPORT Func_DivMod
 .IMPORT Func_GetRandomByte
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineEmitterReadReg
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
-.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Func_WriteToLowerAttributeTable
@@ -77,8 +75,6 @@
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_FrameCounter_u8
-.IMPORTZP Zp_PointX_i16
-.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 
@@ -135,32 +131,6 @@ kGhostOrcActorIndex     = 1
     NUM_VALUES
 .ENDENUM
 
-;;; Modes that the mermaid subboss can be in.
-.ENUM eBossMermaidMode
-    Defeated
-    Disappearing
-    Injured
-    AttackAppearing
-    AttackSpraying
-    AttackDodging
-    GravityAppearing
-    GravityChanging
-    NUM_VALUES
-.ENDENUM
-
-;;; Modes that the orc subboss can be in.
-.ENUM eBossOrcMode
-    Defeated
-    Disappearing
-    Injured
-    AttackAppearing
-    AttackMoving
-    AttackSpraying
-    LavaAppearing
-    LavaDiving
-    NUM_VALUES
-.ENDENUM
-
 ;;; The first eBossMode for which the final ghost is not visible.
 kFirstNonFinalGhostMode = eBossMode::LavaRising
 
@@ -203,9 +173,6 @@ kPaletteObjFinalGhostHurt   = 1
     ;; True ($ff) if the mermaid ghost is the next to attack; false ($00) if
     ;; the orc ghost is the next to attack.
     IsMermaidNext_bool .byte
-    ;; What mode each of the subbosses is in.
-    Current_eBossMermaidMode .byte
-    Current_eBossOrcMode     .byte
     ;; Timers that tick down each frame when nonzero, indexed by ghost actor
     ;; index.  Used to time transitions between subboss modes.
     GhostCooldown_u8_arr .byte 2
@@ -530,42 +497,20 @@ _BossMode_SingleAttackPending:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
-    ;; Chose a random point for the ghost to appear at.
-    jsr Func_GetRandomByte  ; returns A
-    ldy #10  ; param: divisor
-    jsr Func_DivMod  ; returns remainder in A
-    mul #kBlockWidthPx
-    adc #kForcefieldMinPlatformLeft + kTileWidthPx  ; carry is already clear
-    sta Zp_PointX_i16 + 0
-    jsr Func_GetRandomByte  ; returns A
-    ldy #7  ; param: divisor
-    jsr Func_DivMod  ; returns remainder in A
-    mul #kBlockHeightPx
-    adc #kForcefieldMinPlatformTop + kTileHeightPx  ; carry is already clear
-    sta Zp_PointY_i16 + 0
-    lda #0
-    sta Zp_PointX_i16 + 1
-    sta Zp_PointY_i16 + 1
     ;; Get the actor index for the ghost that should attack this time (and
-    ;; toggle it for the next time), and also set the subboss mode for that
-    ;; ghost.
+    ;; toggle it for the next time).
     lda Zp_RoomState + sState::IsMermaidNext_bool
     bmi @mermaidIsNext
     @orcIsNext:
-    ldy #eBossOrcMode::AttackAppearing
-    sty Zp_RoomState + sState::Current_eBossOrcMode
     ldx #kGhostOrcActorIndex
     bpl @actorIndexChosen  ; unconditional
     @mermaidIsNext:
-    ldy #eBossMermaidMode::AttackAppearing
-    sty Zp_RoomState + sState::Current_eBossMermaidMode
     ldx #kGhostMermaidActorIndex
     @actorIndexChosen:
     eor #$ff
     sta Zp_RoomState + sState::IsMermaidNext_bool
-    ;; Make the ghost appear at the chosen point.
-    jsr Func_SetActorCenterToPoint  ; preserves X
-    lda #eBadGhost::Reappearing
+    ;; Make the ghost appear.
+    lda #eBadGhost::AttackAppearing
     sta Ram_ActorState1_byte_arr, x  ; eBadGhost mode
     lda #kBadGhostAppearFrames
     sta Ram_ActorState2_byte_arr, x  ; mode timer
@@ -620,13 +565,13 @@ _SetUpIrq:
     add Zp_RoomScrollY_u8
     rsub Zp_Buffered_sIrq + sIrq::Latch_u8
     blt @done  ; window top is above lava top
-    sta <(Zp_Buffered_sIrq + sIrq::Param4_byte)  ; window latch
+    sta Zp_Buffered_sIrq + sIrq::Param4_byte  ; window latch
     ;; Set up our own sIrq struct to handle lava movement.
     lda T0  ; lava terrain top (in room pixels)
     sub Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_BossShadowLavaIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
     @done:
 _Forcefield:
     ldx #kEmitterForcefieldPlatformIndex  ; param: platform index
@@ -700,78 +645,6 @@ _CoolDown:
     beq @done
     dec Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostMermaidActorIndex
     @done:
-_CheckMode:
-    ;; Branch based on the current mermaid subboss mode.
-    ldy Zp_RoomState + sState::Current_eBossMermaidMode
-    lda _JumpTable_ptr_0_arr, y
-    sta T0
-    lda _JumpTable_ptr_1_arr, y
-    sta T1
-    jmp (T1T0)
-.REPEAT 2, table
-    D_TABLE_LO table, _JumpTable_ptr_0_arr
-    D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE .enum, eBossMermaidMode
-    d_entry table, Defeated,         Func_Noop
-    d_entry table, Disappearing,     Func_Noop
-    d_entry table, Injured,          _BossMermaidMode_Injured
-    d_entry table, AttackAppearing,  _BossMermaidMode_AttackAppearing
-    d_entry table, AttackSpraying,   _BossMermaidMode_AttackSpraying
-    d_entry table, AttackDodging,    _BossMermaidMode_AttackDodging
-    d_entry table, GravityAppearing, Func_Noop  ; TODO
-    d_entry table, GravityChanging,  Func_Noop  ; TODO
-    D_END
-.ENDREPEAT
-_BossMermaidMode_Injured:
-    ;; Wait for the cooldown to expire.
-    lda Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostMermaidActorIndex
-    bne @done
-    ;; Disappear.
-    lda #eBossMermaidMode::Disappearing
-    sta Zp_RoomState + sState::Current_eBossMermaidMode
-    lda #eBadGhost::Disappearing
-    sta Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
-    @done:
-    rts
-_BossMermaidMode_AttackAppearing:
-    ;; Wait for the cooldown to expire.
-    lda Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostMermaidActorIndex
-    bne @done
-    ;; Start shooting projectiles.
-    lda #eBossMermaidMode::AttackSpraying
-    sta Zp_RoomState + sState::Current_eBossMermaidMode
-    lda #120
-    sta Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostMermaidActorIndex
-    lda #eBadGhost::Attacking
-    sta Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
-    @done:
-    rts
-_BossMermaidMode_AttackSpraying:
-    ;; Wait for the ghost to be idle, then start dodging.
-    lda Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
-    cmp #eBadGhost::Idle
-    beq _StartAttackDodging
-    rts
-_StartAttackDodging:
-    ;; TODO pick destination
-    ;; TODO set velocity
-    lda #eBossMermaidMode::AttackDodging
-    sta Zp_RoomState + sState::Current_eBossMermaidMode
-    ;; TODO set cooldown
-    rts
-_BossMermaidMode_AttackDodging:
-    ;; Wait for the cooldown to expire.
-    lda Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostMermaidActorIndex
-    bne @done
-    ;; 50% of the time, dodge again.
-    jsr Func_GetRandomByte  ; returns N
-    bmi _StartAttackDodging
-    ;; Disappear.
-    lda #eBossMermaidMode::Disappearing
-    sta Zp_RoomState + sState::Current_eBossMermaidMode
-    lda #eBadGhost::Disappearing
-    sta Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
-    @done:
     rts
 .ENDPROC
 
@@ -782,77 +655,6 @@ _CoolDown:
     lda Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostOrcActorIndex
     beq @done
     dec Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostOrcActorIndex
-    @done:
-_CheckMode:
-    ;; Branch based on the current orc subboss mode.
-    ldy Zp_RoomState + sState::Current_eBossOrcMode
-    lda _JumpTable_ptr_0_arr, y
-    sta T0
-    lda _JumpTable_ptr_1_arr, y
-    sta T1
-    jmp (T1T0)
-.REPEAT 2, table
-    D_TABLE_LO table, _JumpTable_ptr_0_arr
-    D_TABLE_HI table, _JumpTable_ptr_1_arr
-    D_TABLE .enum, eBossOrcMode
-    d_entry table, Defeated,        Func_Noop
-    d_entry table, Disappearing,    Func_Noop
-    d_entry table, Injured,         _BossOrcMode_Injured
-    d_entry table, AttackAppearing, _BossOrcMode_AttackAppearing
-    d_entry table, AttackMoving,    _BossOrcMode_AttackMoving
-    d_entry table, AttackSpraying,  _BossOrcMode_AttackSpraying
-    d_entry table, LavaAppearing,   _BossOrcMode_LavaAppearing
-    d_entry table, LavaDiving,      Func_Noop  ; TODO
-    D_END
-.ENDREPEAT
-_BossOrcMode_AttackAppearing:
-    ;; Wait for the cooldown to expire.
-    lda Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostOrcActorIndex
-    beq _StartAttackMoving
-    rts
-_StartAttackMoving:
-    ;; TODO pick destination
-    ;; TODO set velocity
-    lda #eBossOrcMode::AttackMoving
-    sta Zp_RoomState + sState::Current_eBossOrcMode
-    ;; TODO set cooldown
-    rts
-_BossOrcMode_AttackMoving:
-    ;; Wait for the cooldown to expire.
-    lda Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostOrcActorIndex
-    bne @done
-    ;; 50% of the time, move again.
-    jsr Func_GetRandomByte  ; returns N
-    bmi _StartAttackMoving
-    ;; Start attack pattern.
-    lda #eBossOrcMode::AttackSpraying
-    sta Zp_RoomState + sState::Current_eBossOrcMode
-    lda #eBadGhost::Attacking
-    sta Ram_ActorState1_byte_arr + kGhostOrcActorIndex  ; eBadGhost mode
-    @done:
-    rts
-_BossOrcMode_AttackSpraying:
-    ;; Wait for the ghost to be idle, then disappear.
-    lda Ram_ActorState1_byte_arr + kGhostOrcActorIndex  ; eBadGhost mode
-    cmp #eBadGhost::Idle
-    beq _Disappear
-_Return:
-    rts
-_BossOrcMode_Injured:
-    ;; Wait for the cooldown to expire, then disappear.
-    lda Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostOrcActorIndex
-    bne _Return
-_Disappear:
-    lda #eBossOrcMode::Disappearing
-    sta Zp_RoomState + sState::Current_eBossOrcMode
-    lda #eBadGhost::Disappearing
-    sta Ram_ActorState1_byte_arr + kGhostOrcActorIndex  ; eBadGhost mode
-    rts
-_BossOrcMode_LavaAppearing:
-    ;; Wait for the cooldown to expire.
-    lda Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostOrcActorIndex
-    bne @done
-    ;; TODO
     @done:
     rts
 .ENDPROC

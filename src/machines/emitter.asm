@@ -183,6 +183,7 @@ kPaletteObjEmitterGlow = 1
     ldy Zp_MachineIndex_u8
     lda #kEmitterBeamDuration
     sta Ram_MachineSlowdown_u8_arr, y
+    ;; TODO: play a sound for an emitter beam firing
     ;; Remove any existing forcefield.
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kEmitterForcefieldPlatformIndex
@@ -205,6 +206,7 @@ kPaletteObjEmitterGlow = 1
     sta Ram_PlatformType_ePlatform_arr + kEmitterForcefieldPlatformIndex
     jsr FuncA_Machine_PushAvatarOutOfEmitterForcefield
     jsr FuncA_Machine_KillGooWithEmitterForcefield
+    ;; TODO: play a sound for a forcefield forming
 _Finish:
     ;; Make the emitter machine wait to cool down.
     lda #kEmitterActCooldown  ; param: num frames to wait
