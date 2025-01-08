@@ -175,11 +175,14 @@ kPaletteObjEmitterGlow = 1
 .ENDPROC
 
 ;;; TryAct implementation for emitter machines.
+;;; @return C Set if the forcefield platform is now solid, cleared otherwise.
 .EXPORT FuncA_Machine_EmitterTryAct
 .PROC FuncA_Machine_EmitterTryAct
     ldy #kEmitterRegionPlatformIndex  ; param: platform index
     jsr Func_SetPointToPlatformTopLeft
     ;; Start this emitter machine's beam firing.
+    lda #kEmitterActCooldown  ; param: num frames to wait
+    jsr FuncA_Machine_StartWaiting
     ldy Zp_MachineIndex_u8
     lda #kEmitterBeamDuration
     sta Ram_MachineSlowdown_u8_arr, y
@@ -189,9 +192,10 @@ kPaletteObjEmitterGlow = 1
     sta Ram_PlatformType_ePlatform_arr + kEmitterForcefieldPlatformIndex
     ;; Only make a new forcefield if both emitters are firing at once.
     lda Ram_MachineSlowdown_u8_arr + kEmitterXMachineIndex
-    beq _Finish
+    beq _NoForcefield
     lda Ram_MachineSlowdown_u8_arr + kEmitterYMachineIndex
-    beq _Finish
+    beq _NoForcefield
+_CreateForcefield:
     ;; Reposition the forcefield platform.
     lda Ram_MachineGoalHorz_u8_arr + kEmitterXMachineIndex  ; beam col
     mul #kBlockWidthPx
@@ -207,10 +211,11 @@ kPaletteObjEmitterGlow = 1
     jsr FuncA_Machine_PushAvatarOutOfEmitterForcefield
     jsr FuncA_Machine_KillGooWithEmitterForcefield
     ;; TODO: play a sound for a forcefield forming
-_Finish:
-    ;; Make the emitter machine wait to cool down.
-    lda #kEmitterActCooldown  ; param: num frames to wait
-    jmp FuncA_Machine_StartWaiting
+    sec  ; set C to indicate that a forcefield was created
+    rts
+_NoForcefield:
+    clc  ; clear C to indicate that no forcefield was created
+    rts
 .ENDPROC
 
 ;;; If the player avatar is colliding with the emitter forcefield's new

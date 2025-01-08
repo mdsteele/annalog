@@ -42,6 +42,7 @@
 .IMPORT FuncA_Machine_EmitterXWriteReg
 .IMPORT FuncA_Machine_EmitterYWriteReg
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_InjureBadGhost
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_AnimateLavaTerrain
 .IMPORT FuncA_Objects_BobActorShapePosUpAndDown
@@ -64,6 +65,7 @@
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Func_WriteToLowerAttributeTable
@@ -72,7 +74,6 @@
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomScrollY_u8
@@ -232,7 +233,7 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, Func_MachineEmitterReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_EmitterXWriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
-    d_addr TryAct_func_ptr, FuncA_Machine_EmitterTryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_BossShadowEmitter_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
     d_addr Draw_func_ptr, FuncA_Objects_BossShadowEmitterX_Draw
     d_addr Reset_func_ptr, FuncA_Room_BossShadowEmitterX_InitReset
@@ -251,7 +252,7 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, Func_MachineEmitterReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_EmitterYWriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
-    d_addr TryAct_func_ptr, FuncA_Machine_EmitterTryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_BossShadowEmitter_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
     d_addr Draw_func_ptr, FuncA_Objects_BossShadowEmitterY_Draw
     d_addr Reset_func_ptr, FuncA_Room_BossShadowEmitterY_InitReset
@@ -399,7 +400,7 @@ _CheckMode:
     D_TABLE .enum, eBossMode
     d_entry table, Dead,                Func_Noop
     d_entry table, FinalGhostDying,     _BossMode_FinalGhostDying
-    d_entry table, FinalGhostWaiting,   _BossMode_FinalGhostWaiting
+    d_entry table, FinalGhostWaiting,   Func_Noop
     d_entry table, LavaRising,          _BossMode_LavaRising
     d_entry table, LavaFalling,         _BossMode_LavaFalling
     d_entry table, SingleAttackPending, _BossMode_SingleAttackPending
@@ -425,23 +426,6 @@ _BossMode_FinalGhostDying:
     ;; Kill the final ghost.
     lda #eBossMode::Dead
     sta Zp_RoomState + sState::Current_eBossMode
-    @done:
-    rts
-_BossMode_FinalGhostWaiting:
-    ;; Check if the forcefield is hitting the final ghost.
-    lda Ram_PlatformType_ePlatform_arr + kEmitterForcefieldPlatformIndex
-    cmp #kFirstSolidPlatformType
-    blt @done  ; forcefield platform is not solid
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter
-    ldy #kEmitterForcefieldPlatformIndex  ; param: platform index
-    jsr Func_IsPointInPlatform  ; returns C
-    bcc @done  ; forcefield isn't hitting the final ghost
-    ;; Mortally wound the final ghost.
-    lda #eBossMode::FinalGhostDying
-    sta Zp_RoomState + sState::Current_eBossMode
-    lda #120
-    sta Zp_RoomState + sState::BossCooldown_u8
     @done:
     rts
 _BossMode_LavaRising:
@@ -529,6 +513,7 @@ _BossMode_SingleAttackActive:
     beq _BeginNextAttackWave
     rts
 _BeginNextAttackWave:
+    ;; TODO: If boss health is zero, make final ghost appear.
     ;; If there are no more attack waves left in this group, perform a special
     ;; attack.
     lda Zp_RoomState + sState::AttackWavesRemaining_u8
@@ -547,7 +532,7 @@ _BeginNextAttackWave:
     sta Zp_RoomState + sState::BossCooldown_u8
     rts
 _BeginSpecialAttack:
-    ;; TODO decide whether to use lava or gravity attack
+    ;; TODO: Decide whether to use lava or gravity attack
     rts
 .ENDPROC
 
@@ -667,6 +652,58 @@ _CoolDown:
 .PROC FuncA_Room_BossShadowEmitterY_InitReset
     lda #kEmitterYInitRegY  ; param: X register value
     jmp FuncA_Room_MachineEmitterYInitReset
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_BossShadowEmitter_TryAct
+    jsr FuncA_Machine_EmitterTryAct  ; returns C
+    bcc _Return  ; no forcefield was created
+_MaybeHarmOrcAndMermaidGhosts:
+    ;; Check the mermaid and orc ghosts to see if they should be injured by the
+    ;; new forcefield.
+    .assert kGhostMermaidActorIndex = 0, error
+    .assert kGhostOrcActorIndex = 1, error
+    ldx #1
+    @loop:
+    ;; Check if the ghost is vulnerable.
+    lda Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
+    cmp #kBadGhostFirstVulnerable
+    blt @continue  ; ghost is not currently vulnerable
+    ;; Check if the forcefield is hitting the ghost.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    ldy #kEmitterForcefieldPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; preserves X, returns C
+    bcc @continue  ; forcefield isn't hitting the ghost
+    ;; Injure the ghost and decrement boss health.
+    jsr FuncA_Machine_InjureBadGhost  ; preserves X
+    lda Zp_RoomState + sState::BossHealth_u8
+    beq @continue
+    dec Zp_RoomState + sState::BossHealth_u8
+    @continue:
+    dex
+    bpl @loop
+_MaybeHarmFinalGhost:
+    ;; Check if the final ghost is vulnerable.
+    lda Zp_RoomState + sState::Current_eBossMode
+    cmp #eBossMode::FinalGhostWaiting
+    bne @done
+    ;; Check if the forcefield is hitting the final ghost.
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter
+    ldy #kEmitterForcefieldPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; returns C
+    bcc @done  ; forcefield isn't hitting the final ghost
+    ;; Mortally wound the final ghost.
+    lda #eBossMode::FinalGhostDying
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #120
+    sta Zp_RoomState + sState::BossCooldown_u8
+    @done:
+_Return:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

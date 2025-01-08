@@ -128,6 +128,23 @@ _PlaySound:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Machine"
+
+;;; Injures a ghost baddie.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Machine_InjureBadGhost
+.PROC FuncA_Machine_InjureBadGhost
+    lda #eBadGhost::Injured
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
+    lda #0
+    sta Ram_ActorState2_byte_arr, x  ; mode timer
+    ;; TODO: set goal pos to current position plus offset towards room center
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Actor"
 
 ;;; Performs per-frame updates for an orc ghost baddie actor.
