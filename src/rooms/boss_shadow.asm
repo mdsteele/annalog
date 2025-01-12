@@ -57,6 +57,8 @@
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineEmitterXInitReset
 .IMPORT FuncA_Room_MachineEmitterYInitReset
+.IMPORT FuncA_Room_MakeBadGhostAppear
+.IMPORT FuncA_Room_MakeBadGhostAppearForAttack
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
@@ -72,7 +74,6 @@
 .IMPORT Func_WriteToLowerAttributeTable
 .IMPORT Ppu_ChrObjShadow1
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORTZP Zp_AvatarFlags_bObj
@@ -133,9 +134,9 @@ kGhostOrcActorIndex     = 1
     LavaRising           ; lava is currently rising
     LavaFalling          ; lava is currently falling
     SingleAttackPending  ; waiting to begin next attack (one ghost at a time)
-    SingleAttackActive   ; single-ghost attack is in progress
     DoubleAttackPending  ; waiting to begin next attack (both ghosts at once)
-    DoubleAttackActive   ; double-ghost attack is in progress
+    DoubleAttackHalf     ; one half of the double-ghost attack is in progress
+    AttackActive         ; ghost attack wave is in progress
     NUM_VALUES
 .ENDENUM
 
@@ -406,9 +407,9 @@ _CheckMode:
     d_entry table, LavaRising,          _BossMode_LavaRising
     d_entry table, LavaFalling,         _BossMode_LavaFalling
     d_entry table, SingleAttackPending, _BossMode_SingleAttackPending
-    d_entry table, SingleAttackActive,  _BossMode_SingleAttackActive
-    d_entry table, DoubleAttackPending, Func_Noop  ; TODO
-    d_entry table, DoubleAttackActive,  Func_Noop  ; TODO
+    d_entry table, DoubleAttackPending, _BossMode_DoubleAttackPending
+    d_entry table, DoubleAttackHalf,    _BossMode_DoubleAttackHalf
+    d_entry table, AttackActive,        _BossMode_AttackActive
     D_END
 .ENDREPEAT
 _BossMode_FinalGhostDying:
@@ -435,10 +436,9 @@ _BossMode_GravityPending:
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
     ;; Make the mermaid ghost appear.
-    lda #eBadGhost::AppearForSpecial
-    sta Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
-    lda #kBadGhostAppearFrames
-    sta Ram_ActorState2_byte_arr + kGhostMermaidActorIndex  ; mode timer
+    ldx #kGhostMermaidActorIndex  ; param: actor index
+    lda #eBadGhost::AppearForSpecial  ; param: eBadGhost::AppearFor* value
+    jsr FuncA_Room_MakeBadGhostAppear
     ;; Switch main boss mode to wait for the attack to complete.
     .assert eBossMode::GravityPending + 1 = eBossMode::GravityActive, error
     inc Zp_RoomState + sState::Current_eBossMode
@@ -464,10 +464,9 @@ _BossMode_LavaPending:
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
     ;; Make the orc ghost appear.
-    lda #eBadGhost::AppearForSpecial
-    sta Ram_ActorState1_byte_arr + kGhostOrcActorIndex  ; eBadGhost mode
-    lda #kBadGhostAppearFrames
-    sta Ram_ActorState2_byte_arr + kGhostOrcActorIndex  ; mode timer
+    ldx #kGhostOrcActorIndex  ; param: actor index
+    lda #eBadGhost::AppearForSpecial  ; param: eBadGhost::AppearFor* value
+    jsr FuncA_Room_MakeBadGhostAppear
     ;; Switch main boss mode to wait for the attack to complete.
     .assert eBossMode::LavaPending + 1 = eBossMode::LavaActive, error
     inc Zp_RoomState + sState::Current_eBossMode
@@ -530,33 +529,48 @@ _BossMode_LavaFalling:
     jmp _BeginNewAttackWaves
     @done:
     rts
+_BossMode_DoubleAttackPending:
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; Make the first ghost appear.
+    jsr FuncA_Room_BossShadow_GetNextGhostIndex  ; returns X
+    jsr FuncA_Room_MakeBadGhostAppearForAttack
+    ;; Switch main boss mode to wait until the other ghost should appear.
+    lda #eBossMode::DoubleAttackHalf
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #60
+    sta Zp_RoomState + sState::BossCooldown_u8
+    @done:
+    rts
+_BossMode_DoubleAttackHalf:
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; Make the second ghost appear.
+    jsr FuncA_Room_BossShadow_GetNextGhostIndex  ; returns X
+    jsr FuncA_Room_MakeBadGhostAppearForAttack
+    ;; Toggle the next-ghost flag once more, so that for the next double-attack
+    ;; wave, the ghosts will appear in the opposite order.
+    jsr FuncA_Room_BossShadow_GetNextGhostIndex
+    ;; Switch main boss mode to wait for the attack to complete.
+    lda #eBossMode::AttackActive
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
 _BossMode_SingleAttackPending:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
-    ;; Get the actor index for the ghost that should attack this time (and
-    ;; toggle it for the next time).
-    lda Zp_RoomState + sState::IsMermaidNext_bool
-    bmi @mermaidIsNext
-    @orcIsNext:
-    ldx #kGhostOrcActorIndex
-    bpl @actorIndexChosen  ; unconditional
-    @mermaidIsNext:
-    ldx #kGhostMermaidActorIndex
-    @actorIndexChosen:
-    eor #$ff
-    sta Zp_RoomState + sState::IsMermaidNext_bool
-    ;; Make the ghost appear.
-    lda #eBadGhost::AppearForAttack
-    sta Ram_ActorState1_byte_arr, x  ; eBadGhost mode
-    lda #kBadGhostAppearFrames
-    sta Ram_ActorState2_byte_arr, x  ; mode timer
+    ;; Make the next ghost appear.
+    jsr FuncA_Room_BossShadow_GetNextGhostIndex  ; returns X
+    jsr FuncA_Room_MakeBadGhostAppearForAttack
     ;; Switch main boss mode to wait for the attack to complete.
-    lda #eBossMode::SingleAttackActive
+    lda #eBossMode::AttackActive
     sta Zp_RoomState + sState::Current_eBossMode
     @done:
     rts
-_BossMode_SingleAttackActive:
+_BossMode_AttackActive:
     ;; Wait for ghosts to disappear, then begin the next attack wave.
     .assert eBadGhost::Absent = 0, error
     lda Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
@@ -699,6 +713,23 @@ _BossIsDead:
     .assert eBossMode::Dead = 0, error
     lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
     jmp FuncA_Room_TickBoss
+.ENDPROC
+
+;;; Returns the actor index for the ghost (mermaid or orc) that should attack
+;;; next, and toggles it for the next time.
+;;; @return X The actor index for the ghost that should attack next.
+;;; @preserve T0+
+.PROC FuncA_Room_BossShadow_GetNextGhostIndex
+    ldx #kGhostMermaidActorIndex
+    lda Zp_RoomState + sState::IsMermaidNext_bool
+    eor #$ff
+    sta Zp_RoomState + sState::IsMermaidNext_bool
+    bpl @mermaidWasNext
+    @orcWasNext:
+    .assert kGhostMermaidActorIndex + 1 = kGhostOrcActorIndex, error
+    inx
+    @mermaidWasNext:
+    rts
 .ENDPROC
 
 .PROC FuncA_Room_BossShadowEmitterX_InitReset

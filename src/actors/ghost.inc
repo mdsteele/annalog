@@ -47,9 +47,6 @@
     NUM_VALUES
 .ENDENUM
 
-;;; How many frames it takes a ghost baddie actor to appear or disappear.
-kBadGhostAppearFrames = 45
-
 ;;; eBadGhost values less this represent states where the ghost is absent,
 ;;; disappearing, or reappearing, and should thus be drawn flickering (if at
 ;;; all).

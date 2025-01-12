@@ -80,6 +80,8 @@ kBadGhostMaxMoveSpeed = 2
 ;;; per frame per frame.
 kBadGhostSpecialMovingAccel = 50
 
+;;; How many frames it takes a ghost baddie actor to appear or disappear.
+kBadGhostAppearFrames = 45
 ;;; How long a ghost baddie is stunned for before disappearing when it is
 ;;; injured, in frames.
 kBadGhostInjuredFrames = 120
@@ -131,6 +133,29 @@ _FaceAvatar:
     @done:
 _PlaySound:
     ;; TODO: Play a sound for the ghost disappearing
+    rts
+.ENDPROC
+
+;;; Makes a mermaid/orc ghost baddie appear and begin attacking.
+;;; @prereq The ghost is in eBadGhost::Absent mode.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Room_MakeBadGhostAppearForAttack
+.PROC FuncA_Room_MakeBadGhostAppearForAttack
+    lda #eBadGhost::AppearForAttack  ; param: eBadGhost::AppearFor* value
+    fall FuncA_Room_MakeBadGhostAppear  ; preserves X
+.ENDPROC
+
+;;; Makes a mermaid/orc ghost baddie appear in the specified mode.
+;;; @prereq The ghost is in eBadGhost::Absent mode.
+;;; @param A The eBadGhost::AppearFor* mode to set.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Room_MakeBadGhostAppear
+.PROC FuncA_Room_MakeBadGhostAppear
+    sta Ram_ActorState1_byte_arr, x  ; eBadGhost mode
+    lda #kBadGhostAppearFrames
+    sta Ram_ActorState2_byte_arr, x  ; mode timer
     rts
 .ENDPROC
 
