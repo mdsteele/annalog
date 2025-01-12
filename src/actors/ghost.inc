@@ -32,15 +32,18 @@
 
 ;;; Possible values for a ghost baddie actor's State1 byte.
 .ENUM eBadGhost
-    Absent           ; invisible, waiting for a new mode to be set
+    Absent            ; invisible, waiting for a new mode to be set
     ;; Appearing/disappearing modes (ghost flickers, and cannot be injured):
-    AttackAppearing  ; reappearing; will become AttackMoving or AttackShooting
-    Disappearing     ; disappearing; will become Absent
+    AppearForAttack   ; reappearing; will become AttackShooting
+    AppearForSpecial  ; reappearing; will become SpecialMoving
+    Disappearing      ; disappearing; will become Absent
     ;; Injured modes (ghost flashes, and cannot be injured):
-    Injured          ; flashing red; will become Disappearing
+    Injured           ; flashing red; will become Disappearing
     ;; Vulnerable modes (ghost is solid gray, and can be injured):
-    AttackMoving     ; moving; will become AttackShooting or Disappearing
-    AttackShooting   ; shooting fire; will become AttackMoving or Disappearing
+    AttackMoving      ; moving; will become Disappearing
+    AttackShooting    ; shooting fire; will become AttackMoving
+    SpecialMoving     ; moving offscreen as part of a special attack
+    SpecialWaiting    ; a short delay between appearing and a special attack
     NUM_VALUES
 .ENDENUM
 

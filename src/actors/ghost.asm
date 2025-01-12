@@ -28,6 +28,7 @@
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_FaceTowardsN
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
+.IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_BobActorShapePosUpAndDown
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_Draw2x3TownsfolkShape
@@ -53,10 +54,13 @@
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorState4_byte_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PointX_i16
@@ -72,18 +76,22 @@
 ;;; frame.
 kBadGhostMaxMoveSpeed = 2
 
+;;; The acceleration rate of a ghost baddie in SpecialMoving mode, in subpixels
+;;; per frame per frame.
+kBadGhostSpecialMovingAccel = 50
+
 ;;; How long a ghost baddie is stunned for before disappearing when it is
 ;;; injured, in frames.
 kBadGhostInjuredFrames = 120
-
 ;;; How long between a ghost baddie's movement cycles, in frames.
 kBadGhostMoveFrames = 120
-
 ;;; How long a mermaid ghost attack salvo lasts, in frames.
 kBadGhostMermaidAttackFrames = 100
-
 ;;; How long an orc ghost poses after attacking, in frames.
 kBadGhostOrcAttackFrames = 70
+;;; How long a ghost baddie pauses between appearing and executing its special
+;;; attack, in frames.
+kBadGhostSpecialWaitingFrames = 90
 
 ;;; Bounds for the room block cols/rows that can be set as goal positions for a
 ;;; ghost baddie.
@@ -162,12 +170,15 @@ _PlaySound:
     D_TABLE_LO t, _JumpTable_ptr_0_arr
     D_TABLE_HI t, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBadGhost
-    d_entry t, Absent,          Func_Noop
-    d_entry t, AttackAppearing, FuncA_Actor_TickBadGhost_AttackAppearing
-    d_entry t, Disappearing,    FuncA_Actor_TickBadGhost_Disappearing
-    d_entry t, Injured,         FuncA_Actor_TickBadGhost_Injured
-    d_entry t, AttackMoving,    FuncA_Actor_TickBadGhost_AttackMoving
-    d_entry t, AttackShooting,  FuncA_Actor_TickBadGhostMermaid_AttackShooting
+    d_entry t, Absent,           Func_Noop
+    d_entry t, AppearForAttack,  FuncA_Actor_TickBadGhost_AppearForAttack
+    d_entry t, AppearForSpecial, FuncA_Actor_TickBadGhost_AppearForSpecial
+    d_entry t, Disappearing,     FuncA_Actor_TickBadGhost_Disappearing
+    d_entry t, Injured,          FuncA_Actor_TickBadGhost_Injured
+    d_entry t, AttackMoving,     FuncA_Actor_TickBadGhost_AttackMoving
+    d_entry t, AttackShooting,   FuncA_Actor_TickBadGhostMermaid_AttackShooting
+    d_entry t, SpecialMoving,    FuncA_Actor_TickBadGhostMermaid_SpecialMoving
+    d_entry t, SpecialWaiting,   FuncA_Actor_TickBadGhost_SpecialWaiting
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -187,12 +198,15 @@ _PlaySound:
     D_TABLE_LO t, _JumpTable_ptr_0_arr
     D_TABLE_HI t, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBadGhost
-    d_entry t, Absent,          Func_Noop
-    d_entry t, AttackAppearing, FuncA_Actor_TickBadGhost_AttackAppearing
-    d_entry t, Disappearing,    FuncA_Actor_TickBadGhost_Disappearing
-    d_entry t, Injured,         FuncA_Actor_TickBadGhost_Injured
-    d_entry t, AttackMoving,    FuncA_Actor_TickBadGhost_AttackMoving
-    d_entry t, AttackShooting,  FuncA_Actor_TickBadGhostOrc_AttackShooting
+    d_entry t, Absent,           Func_Noop
+    d_entry t, AppearForAttack,  FuncA_Actor_TickBadGhost_AppearForAttack
+    d_entry t, AppearForSpecial, FuncA_Actor_TickBadGhost_AppearForSpecial
+    d_entry t, Disappearing,     FuncA_Actor_TickBadGhost_Disappearing
+    d_entry t, Injured,          FuncA_Actor_TickBadGhost_Injured
+    d_entry t, AttackMoving,     FuncA_Actor_TickBadGhost_AttackMoving
+    d_entry t, AttackShooting,   FuncA_Actor_TickBadGhostOrc_AttackShooting
+    d_entry t, SpecialMoving,    FuncA_Actor_TickBadGhostOrc_SpecialMoving
+    d_entry t, SpecialWaiting,   FuncA_Actor_TickBadGhost_SpecialWaiting
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -374,14 +388,40 @@ _IncrementTimer:
 .ENDPROC
 
 ;;; Performs per-frame updates for a mermaid/orc ghost baddie actor that's in
-;;; AttackAppearing mode.
+;;; AppearForAttack mode.
 ;;;   * When initializing this mode, set the State2 timer to
 ;;;     kBadGhostAppearFrames.  The State3 counter is ignored.
 ;;;   * The State2 timer decrements each frame from kBadGhostAppearFrames to
 ;;;     zero, at which point the mermaid ghost switches to AttackShooting mode.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC FuncA_Actor_TickBadGhost_AttackAppearing
+.PROC FuncA_Actor_TickBadGhost_AppearForAttack
+    lda #eBadGhost::AttackShooting  ; param: mode to switch to
+    .assert eBadGhost::AttackShooting > 0, error
+    bne FuncA_Actor_TickBadGhost_AppearThenChangeModes  ; unconditional
+.ENDPROC
+
+;;; Performs per-frame updates for a mermaid/orc ghost baddie actor that's in
+;;; AppearForSpecial mode.
+;;;   * When initializing this mode, set the State2 timer to
+;;;     kBadGhostAppearFrames.  The State3 counter is ignored.
+;;;   * The State2 timer decrements each frame from kBadGhostAppearFrames to
+;;;     zero, at which point the mermaid ghost switches to SpecialWaiting mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGhost_AppearForSpecial
+    lda #eBadGhost::SpecialWaiting  ; param: mode to switch to
+    fall FuncA_Actor_TickBadGhost_AppearThenChangeModes  ; preserves X
+.ENDPROC
+
+;;; Performs per-frame updates for a mermaid/orc ghost baddie actor that's in
+;;; an AppearFor* mode.  Once the ghost has fully appeared, switches to the
+;;; specified mode, with the State2 timer set to zero.
+;;; @param A The eBadGhost mode to switch to once the ghost appears.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGhost_AppearThenChangeModes
+    pha  ; mode to switch to
 _InitialTeleport:
     lda Ram_ActorState2_byte_arr, x  ; mode timer
     cmp #kBadGhostAppearFrames
@@ -389,11 +429,11 @@ _InitialTeleport:
     jsr FuncA_Actor_TickBadGhost_SetCenterToRandomGoalPos  ; preserves X
     @done:
 _DecrementTimer:
+    pla  ; mode to switch to
     ;; Decrement timer until it reaches zero.
     dec Ram_ActorState2_byte_arr, x  ; mode timer
     bne @done
-    ;; Switch to AttackShooting mode.  The timer is already at zero.
-    lda #eBadGhost::AttackShooting
+    ;; Switch modes.  The timer is already at zero.
     sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
     @done:
     rts
@@ -471,26 +511,9 @@ _ShootProjectile:
     ldx T4  ; mermaid ghost actor index
     @done:
 _IncrementTimer:
-    ;; Increment timer until it reaches its end value.
-    inc Ram_ActorState2_byte_arr, x  ; mode timer
-    lda Ram_ActorState2_byte_arr, x  ; mode timer
-    cmp #kBadGhostMermaidAttackFrames
-    blt @done
-    ;; When the timer finishes, make the ghost start moving around.
-    lda #eBadGhost::AttackMoving
-    sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
-    lda #0
-    sta Ram_ActorState2_byte_arr, x  ; mode timer
-    ;; Dodge 0-2 times before disappearing.
-    jsr Func_GetRandomByte  ; preserves X, returns A
-    mod #4
-    tay
-    lda _Times_u8_arr4, y
-    sta Ram_ActorState3_byte_arr, x  ; mode counter
-    @done:
-    rts
-_Times_u8_arr4:
-    .byte 0, 1, 1, 2
+    lda #kBadGhostMermaidAttackFrames  ; param: total attack frames
+    .assert kBadGhostMermaidAttackFrames > 0, error
+    bne FuncA_Actor_TickBadGhost_IncrementAttackTimer  ; unconditional
 .ENDPROC
 
 ;;; Performs per-frame updates for an orc ghost baddie actor that's in
@@ -535,11 +558,21 @@ _ShootProjectiles:
     jsr Func_PlaySfxShootFire  ; preserves X
     @done:
 _IncrementTimer:
+    lda #kBadGhostOrcAttackFrames  ; param: total attack frames
+    fall FuncA_Actor_TickBadGhost_IncrementAttackTimer  ; preserves X
+.ENDPROC
+
+;;; Helper function for the FuncA_Actor_TickBadGhost*_AttackShooting functions
+;;; above.  Increments the State2 timer, and when the timer reaches the
+;;; specified value, switches to AttackMoving mode.
+;;; @param A The total attack duration, in frames.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGhost_IncrementAttackTimer
     ;; Increment timer until it reaches its end value.
     inc Ram_ActorState2_byte_arr, x  ; mode timer
-    lda Ram_ActorState2_byte_arr, x  ; mode timer
-    cmp #kBadGhostMermaidAttackFrames
-    blt @done
+    cmp Ram_ActorState2_byte_arr, x  ; mode timer
+    bne @done
     ;; When the timer finishes, make the ghost start moving around.
     lda #eBadGhost::AttackMoving
     sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
@@ -547,9 +580,85 @@ _IncrementTimer:
     sta Ram_ActorState2_byte_arr, x  ; mode timer
     ;; Dodge 0-2 times before disappearing.
     jsr Func_GetRandomByte  ; preserves X, returns A
-    ldy #3  ; param: divisor
-    jsr Func_DivMod  ; preserves X, returns remainder in A
+    mod #4
+    tay
+    lda _Times_u8_arr4, y
     sta Ram_ActorState3_byte_arr, x  ; mode counter
+    @done:
+    rts
+_Times_u8_arr4:
+    .byte 0, 1, 1, 2
+.ENDPROC
+
+;;; Performs per-frame updates for a mermaid ghost baddie actor that's in
+;;; SpecialMoving mode.
+;;;   * When initializing this mode, the State2 timer and State3 counter are
+;;;     ignored.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGhostMermaid_SpecialMoving
+    ;; Accelerate upwards.
+    lda Ram_ActorVelY_i16_0_arr, x
+    sub #kBadGhostSpecialMovingAccel
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda Ram_ActorVelY_i16_1_arr, x
+    sbc #0
+    sta Ram_ActorVelY_i16_1_arr, x
+    ;; Once the mermaid ghost is off the top of the screen, switch to Absent
+    ;; mode and zero its velocity.
+    lda Ram_ActorPosY_i16_1_arr, x
+    bpl @done  ; ghost is on-screen or below the bottom of the screen
+    lda #eBadGhost::Absent
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
+    jmp FuncA_Actor_ZeroVelY  ; preserves X
+    @done:
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for an orc ghost baddie actor that's in
+;;; SpecialMoving mode.
+;;;   * When initializing this mode, the State2 timer and State3 counter are
+;;;     ignored.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGhostOrc_SpecialMoving
+    ;; Accelerate downwards.
+    lda Ram_ActorVelY_i16_0_arr, x
+    add #kBadGhostSpecialMovingAccel
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda Ram_ActorVelY_i16_1_arr, x
+    adc #0
+    sta Ram_ActorVelY_i16_1_arr, x
+    ;; Once the orc ghost is off the bottom of the screen, switch to Absent
+    ;; mode and zero its velocity.
+    lda Ram_ActorPosY_i16_1_arr, x
+    bmi @done  ; ghost is above the top of the screen
+    beq @done  ; ghost is on-screen
+    lda #eBadGhost::Absent
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
+    jmp FuncA_Actor_ZeroVelY  ; preserves X
+    @done:
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for a mermaid/orc ghost baddie actor that's in
+;;; AppearForAttack mode.
+;;;   * When initializing this mode, set the State2 timer to zero.  The State3
+;;;     counter is ignored.
+;;;   * The State2 timer increments each frame from zero to
+;;;     kBadGhostSpecialWaitingFrames, at which point the ghost switches to
+;;;     SpecialMoving mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGhost_SpecialWaiting
+    ;; Increment timer until it reaches its end value.
+    inc Ram_ActorState2_byte_arr, x  ; mode timer
+    lda Ram_ActorState2_byte_arr, x  ; mode timer
+    cmp #kBadGhostSpecialWaitingFrames
+    blt @done
+    ;; When the timer finishes, switch to SpecialMoving mode.
+    .assert eBadGhost::SpecialWaiting - 1 = eBadGhost::SpecialMoving, error
+    dec Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
     @done:
     rts
 .ENDPROC
@@ -570,12 +679,15 @@ _IncrementTimer:
     jmp FuncA_Objects_Draw2x3TownsfolkShape  ; preserves X
 _FirstTileId_u8_arr:
     D_ARRAY .enum, eBadGhost
-    d_byte Absent,          kTileIdObjMermaidGhostFirst + 0
-    d_byte AttackAppearing, kTileIdObjMermaidGhostFirst + 0
-    d_byte Disappearing,    kTileIdObjMermaidGhostFirst + 0
-    d_byte Injured,         kTileIdObjMermaidGhostFirst + 6
-    d_byte AttackMoving,    kTileIdObjMermaidGhostFirst + 0
-    d_byte AttackShooting,  kTileIdObjMermaidGhostFirst + 6
+    d_byte Absent,           kTileIdObjMermaidGhostFirst + 0
+    d_byte AppearForAttack,  kTileIdObjMermaidGhostFirst + 0
+    d_byte AppearForSpecial, kTileIdObjMermaidGhostFirst + 0
+    d_byte Disappearing,     kTileIdObjMermaidGhostFirst + 0
+    d_byte Injured,          kTileIdObjMermaidGhostFirst + 6
+    d_byte AttackMoving,     kTileIdObjMermaidGhostFirst + 0
+    d_byte AttackShooting,   kTileIdObjMermaidGhostFirst + 6
+    d_byte SpecialMoving,    kTileIdObjMermaidGhostFirst + 6
+    d_byte SpecialWaiting,   kTileIdObjMermaidGhostFirst + 0
     D_END
 .ENDPROC
 
@@ -606,12 +718,15 @@ _DrawPart:
     jmp FuncA_Objects_Draw2x2Shape  ; preserves X
 _FirstTileId_u8_arr:
     D_ARRAY .enum, eBadGhost
-    d_byte Absent,          kTileIdObjOrcGhostFirst + 4
-    d_byte AttackAppearing, kTileIdObjOrcGhostFirst + 4
-    d_byte Disappearing,    kTileIdObjOrcGhostFirst + 4
-    d_byte Injured,         kTileIdObjOrcGhostFirst + 8
-    d_byte AttackMoving,    kTileIdObjOrcGhostFirst + 4
-    d_byte AttackShooting,  kTileIdObjOrcGhostFirst + 8
+    d_byte Absent,           kTileIdObjOrcGhostFirst + 4
+    d_byte AppearForAttack,  kTileIdObjOrcGhostFirst + 4
+    d_byte AppearForSpecial, kTileIdObjOrcGhostFirst + 4
+    d_byte Disappearing,     kTileIdObjOrcGhostFirst + 4
+    d_byte Injured,          kTileIdObjOrcGhostFirst + 8
+    d_byte AttackMoving,     kTileIdObjOrcGhostFirst + 4
+    d_byte AttackShooting,   kTileIdObjOrcGhostFirst + 8
+    d_byte SpecialMoving,    kTileIdObjOrcGhostFirst + 8
+    d_byte SpecialWaiting,   kTileIdObjOrcGhostFirst + 4
     D_END
 .ENDPROC
 

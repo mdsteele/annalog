@@ -22,6 +22,7 @@
 .INCLUDE "../avatar.inc"
 .INCLUDE "../boss.inc"
 .INCLUDE "../charmap.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../irq.inc"
@@ -74,6 +75,7 @@
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomScrollY_u8
@@ -123,6 +125,11 @@ kGhostOrcActorIndex     = 1
     Dead
     FinalGhostDying      ; final ghost has been hit and is about to die
     FinalGhostWaiting    ; final ghost has appeared and is waiting to be hit
+    Intro                ; start of the fight
+    GravityPending       ; waiting to begin a special gravity attack
+    GravityActive        ; mermaid ghost is starting a special gravity attack
+    LavaPending          ; waiting to begin a special lava attack
+    LavaActive           ; orc ghost is starting a special lava attack
     LavaRising           ; lava is currently rising
     LavaFalling          ; lava is currently falling
     SingleAttackPending  ; waiting to begin next attack (one ghost at a time)
@@ -133,7 +140,7 @@ kGhostOrcActorIndex     = 1
 .ENDENUM
 
 ;;; The first eBossMode for which the final ghost is not visible.
-kFirstNonFinalGhostMode = eBossMode::LavaRising
+kFirstNonFinalGhostMode = eBossMode::Intro
 
 ;;; How many forcefield hits are needed to defeat the boss.
 kBossInitHealth = 8
@@ -174,16 +181,8 @@ kPaletteObjFinalGhostHurt   = 1
     ;; True ($ff) if the mermaid ghost is the next to attack; false ($00) if
     ;; the orc ghost is the next to attack.
     IsMermaidNext_bool .byte
-    ;; Timers that tick down each frame when nonzero, indexed by ghost actor
-    ;; index.  Used to time transitions between subboss modes.
-    GhostCooldown_u8_arr .byte 2
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
-
-;;; Assert that sState::GhostCooldown_u8_arr above is large enough to index
-;;; the ghosts by actor index.
-.ASSERT kGhostMermaidActorIndex = 0, error
-.ASSERT kGhostOrcActorIndex = 1, error
 
 ;;;=========================================================================;;;
 
@@ -379,8 +378,6 @@ _Devices_sDevice_arr:
 ;;; Performs per-frame upates for the boss in this room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Shadow_TickBoss
-    jsr FuncA_Room_BossShadow_TickMermaid
-    jsr FuncA_Room_BossShadow_TickOrc
 _CoolDown:
     lda Zp_RoomState + sState::BossCooldown_u8
     beq @done
@@ -401,6 +398,11 @@ _CheckMode:
     d_entry table, Dead,                Func_Noop
     d_entry table, FinalGhostDying,     _BossMode_FinalGhostDying
     d_entry table, FinalGhostWaiting,   Func_Noop
+    d_entry table, Intro,               _BossMode_Intro
+    d_entry table, GravityPending,      _BossMode_GravityPending
+    d_entry table, GravityActive,       _BossMode_GravityActive
+    d_entry table, LavaPending,         _BossMode_LavaPending
+    d_entry table, LavaActive,          _BossMode_LavaActive
     d_entry table, LavaRising,          _BossMode_LavaRising
     d_entry table, LavaFalling,         _BossMode_LavaFalling
     d_entry table, SingleAttackPending, _BossMode_SingleAttackPending
@@ -426,6 +428,61 @@ _BossMode_FinalGhostDying:
     ;; Kill the final ghost.
     lda #eBossMode::Dead
     sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+_BossMode_GravityPending:
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; Make the mermaid ghost appear.
+    lda #eBadGhost::AppearForSpecial
+    sta Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
+    lda #kBadGhostAppearFrames
+    sta Ram_ActorState2_byte_arr + kGhostMermaidActorIndex  ; mode timer
+    ;; Switch main boss mode to wait for the attack to complete.
+    .assert eBossMode::GravityPending + 1 = eBossMode::GravityActive, error
+    inc Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+_BossMode_GravityActive:
+    ;; TODO: If the ghost gets injured, cancel the special and begin a new set
+    ;;   of attack waves.
+    ;; Wait for the mermaid ghost to disappear.
+    .assert eBadGhost::Absent = 0, error
+    lda Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
+    bne @done
+    ;; Reverse gravity.
+    lda Zp_AvatarFlags_bObj
+    eor #bObj::FlipV
+    sta Zp_AvatarFlags_bObj
+    ;; Begin a new set of attack waves.
+    jmp _BeginNewAttackWaves
+    @done:
+    rts
+_BossMode_LavaPending:
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; Make the orc ghost appear.
+    lda #eBadGhost::AppearForSpecial
+    sta Ram_ActorState1_byte_arr + kGhostOrcActorIndex  ; eBadGhost mode
+    lda #kBadGhostAppearFrames
+    sta Ram_ActorState2_byte_arr + kGhostOrcActorIndex  ; mode timer
+    ;; Switch main boss mode to wait for the attack to complete.
+    .assert eBossMode::LavaPending + 1 = eBossMode::LavaActive, error
+    inc Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+_BossMode_LavaActive:
+    ;; TODO: If the ghost gets injured, cancel the special and begin a new set
+    ;;   of attack waves.
+    ;; Wait for the orc ghost to disappear, then make the lava start rising.
+    .assert eBadGhost::Absent = 0, error
+    lda Ram_ActorState1_byte_arr + kGhostOrcActorIndex  ; eBadGhost mode
+    bne @done
+    ;; Switch main boss mode to make the lava start rising.
+    .assert eBossMode::LavaActive + 1 = eBossMode::LavaRising, error
+    inc Zp_RoomState + sState::Current_eBossMode
     @done:
     rts
 _BossMode_LavaRising:
@@ -468,13 +525,9 @@ _BossMode_LavaFalling:
     lda #kLavaFallSlowdown  ; param: num frames
     sta Zp_RoomState + sState::BossCooldown_u8
     jmp Func_ShakeRoom
-    ;; Once the lava is fully lowered, begin a new set of 4-7 attack waves.
+    ;; Once the lava is fully lowered, begin a new set of attack waves.
     @lavaFullyLowered:
-    jsr Func_GetRandomByte  ; returns A
-    mod #4
-    ora #4
-    sta Zp_RoomState + sState::AttackWavesRemaining_u8
-    bne _BeginNextAttackWave  ; unconditional
+    jmp _BeginNewAttackWaves
     @done:
     rts
 _BossMode_SingleAttackPending:
@@ -494,12 +547,10 @@ _BossMode_SingleAttackPending:
     eor #$ff
     sta Zp_RoomState + sState::IsMermaidNext_bool
     ;; Make the ghost appear.
-    lda #eBadGhost::AttackAppearing
+    lda #eBadGhost::AppearForAttack
     sta Ram_ActorState1_byte_arr, x  ; eBadGhost mode
     lda #kBadGhostAppearFrames
     sta Ram_ActorState2_byte_arr, x  ; mode timer
-    lda #kBadGhostAppearFrames + 60
-    sta Zp_RoomState + sState::GhostCooldown_u8_arr, x
     ;; Switch main boss mode to wait for the attack to complete.
     lda #eBossMode::SingleAttackActive
     sta Zp_RoomState + sState::Current_eBossMode
@@ -512,12 +563,23 @@ _BossMode_SingleAttackActive:
     ora Ram_ActorState1_byte_arr + kGhostOrcActorIndex      ; eBadGhost mode
     beq _BeginNextAttackWave
     rts
+_BossMode_Intro:
+    ;; Wait for the cooldown to expire, then begin a new set of attack waves.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    beq _BeginNewAttackWaves
+    rts
+_BeginNewAttackWaves:
+    ;; Begin a new set of 4-7 attack waves.
+    jsr Func_GetRandomByte  ; returns A
+    mod #4
+    ora #4
+    sta Zp_RoomState + sState::AttackWavesRemaining_u8
 _BeginNextAttackWave:
     ;; TODO: If boss health is zero, make final ghost appear.
     ;; If there are no more attack waves left in this group, perform a special
     ;; attack.
     lda Zp_RoomState + sState::AttackWavesRemaining_u8
-    ;; TODO: beq _BeginSpecialAttack
+    beq _BeginSpecialAttack
     dec Zp_RoomState + sState::AttackWavesRemaining_u8
     ;; If boss health is at half or below, perform double-attack waves.
     ;; Otherwise, perform single-attack waves.
@@ -532,7 +594,24 @@ _BeginNextAttackWave:
     sta Zp_RoomState + sState::BossCooldown_u8
     rts
 _BeginSpecialAttack:
-    ;; TODO: Decide whether to use lava or gravity attack
+    ;; If gravity is currently reversed, begin a gravity attack.
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bmi _BeginSpecialGravityAttack
+    ;; Otherwise, choose a special attack randomly.
+    jsr Func_GetRandomByte  ; returns N
+    bmi _BeginSpecialGravityAttack
+_BeginSpecialLavaAttack:
+    lda #eBossMode::LavaPending
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #30
+    sta Zp_RoomState + sState::BossCooldown_u8
+    rts
+_BeginSpecialGravityAttack:
+    lda #eBossMode::GravityPending
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #30
+    sta Zp_RoomState + sState::BossCooldown_u8
     rts
 .ENDPROC
 
@@ -610,7 +689,7 @@ _BossIsAlive:
     sta Zp_RoomState + sState::BossHealth_u8
     lda #kBossInitCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
-    lda #eBossMode::SingleAttackPending
+    lda #eBossMode::Intro
     sta Zp_RoomState + sState::Current_eBossMode
 _BossIsDead:
     rts
@@ -620,28 +699,6 @@ _BossIsDead:
     .assert eBossMode::Dead = 0, error
     lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
     jmp FuncA_Room_TickBoss
-.ENDPROC
-
-;;; Performs per-frame upates for the mermaid subboss in this room.
-.PROC FuncA_Room_BossShadow_TickMermaid
-    ;; TODO: If the mermaid ghost is in the forcefield platform, damage it.
-_CoolDown:
-    lda Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostMermaidActorIndex
-    beq @done
-    dec Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostMermaidActorIndex
-    @done:
-    rts
-.ENDPROC
-
-;;; Performs per-frame upates for the orc subboss in this room.
-.PROC FuncA_Room_BossShadow_TickOrc
-    ;; TODO: If the orc ghost is in the forcefield platform, damage it.
-_CoolDown:
-    lda Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostOrcActorIndex
-    beq @done
-    dec Zp_RoomState + sState::GhostCooldown_u8_arr + kGhostOrcActorIndex
-    @done:
-    rts
 .ENDPROC
 
 .PROC FuncA_Room_BossShadowEmitterX_InitReset
@@ -749,11 +806,16 @@ _WriteLavaTileRow:
 .SEGMENT "PRGA_Objects"
 
 .PROC FuncA_Objects_BossShadowEmitterX_Draw
-    ldx Ram_MachineGoalHorz_u8_arr + kEmitterXMachineIndex
-    ldy _BeamLength_u8_arr, x  ; param: beam length in tiles
+    ;; The beam length is 18 for GoalHorz=0 or GoalHorz=9, and 20 otherwise.
+    ldy #18  ; param: beam length in tiles
+    lda Ram_MachineGoalHorz_u8_arr + kEmitterXMachineIndex
+    beq @draw
+    cmp #9
+    beq @draw
+    iny
+    iny  ; param: beam length in tiles
+    @draw:
     jmp FuncA_Objects_DrawEmitterXMachine
-_BeamLength_u8_arr:
-    .byte 18, 20, 20, 20, 20, 20, 20, 20, 20, 18
 .ENDPROC
 
 .PROC FuncA_Objects_BossShadowEmitterY_Draw
