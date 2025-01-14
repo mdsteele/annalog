@@ -197,6 +197,7 @@ _PlaySound:
     D_TABLE .enum, eBadGhost
     d_entry t, Absent,           Func_Noop
     d_entry t, AppearForAttack,  FuncA_Actor_TickBadGhost_AppearForAttack
+    d_entry t, AppearForMerge,   FuncA_Actor_TickBadGhost_AppearForMerge
     d_entry t, AppearForSpecial, FuncA_Actor_TickBadGhost_AppearForSpecial
     d_entry t, Disappearing,     FuncA_Actor_TickBadGhost_Disappearing
     d_entry t, Injured,          FuncA_Actor_TickBadGhost_Injured
@@ -225,6 +226,7 @@ _PlaySound:
     D_TABLE .enum, eBadGhost
     d_entry t, Absent,           Func_Noop
     d_entry t, AppearForAttack,  FuncA_Actor_TickBadGhost_AppearForAttack
+    d_entry t, AppearForMerge,   FuncA_Actor_TickBadGhost_AppearForMerge
     d_entry t, AppearForSpecial, FuncA_Actor_TickBadGhost_AppearForSpecial
     d_entry t, Disappearing,     FuncA_Actor_TickBadGhost_Disappearing
     d_entry t, Injured,          FuncA_Actor_TickBadGhost_Injured
@@ -408,6 +410,29 @@ _IncrementTimer:
     sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
     lda #0
     sta Ram_ActorState2_byte_arr, x  ; mode timer
+    @done:
+    rts
+.ENDPROC
+
+;;; Performs per-frame updates for a mermaid/orc ghost baddie actor that's in
+;;; AppearForMerge mode.
+;;;   * When initializing this mode, set the State2 timer to
+;;;     kBadGhostAppearFrames.  The State3 counter is ignored.
+;;;   * The State2 timer decrements each frame from kBadGhostAppearFrames to
+;;;     zero, at which point the mermaid ghost switches to Absent mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGhost_AppearForMerge
+    lda #$64  ; room block row 4, column 6
+    sta Ram_ActorState4_byte_arr, x  ; goal position
+    jsr FuncA_Actor_TickBadGhost_SetPointToGoalPos  ; preserves X
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    ;; Decrement timer until it reaches zero.
+    dec Ram_ActorState2_byte_arr, x  ; mode timer
+    bne @done
+    ;; Switch modes.  The timer is already at zero.
+    lda #eBadGhost::Absent
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
     @done:
     rts
 .ENDPROC
@@ -706,6 +731,7 @@ _FirstTileId_u8_arr:
     D_ARRAY .enum, eBadGhost
     d_byte Absent,           kTileIdObjMermaidGhostFirst + 0
     d_byte AppearForAttack,  kTileIdObjMermaidGhostFirst + 0
+    d_byte AppearForMerge,   kTileIdObjMermaidGhostFirst + 0
     d_byte AppearForSpecial, kTileIdObjMermaidGhostFirst + 0
     d_byte Disappearing,     kTileIdObjMermaidGhostFirst + 0
     d_byte Injured,          kTileIdObjMermaidGhostFirst + 6
@@ -745,6 +771,7 @@ _FirstTileId_u8_arr:
     D_ARRAY .enum, eBadGhost
     d_byte Absent,           kTileIdObjOrcGhostFirst + 4
     d_byte AppearForAttack,  kTileIdObjOrcGhostFirst + 4
+    d_byte AppearForMerge,   kTileIdObjOrcGhostFirst + 4
     d_byte AppearForSpecial, kTileIdObjOrcGhostFirst + 4
     d_byte Disappearing,     kTileIdObjOrcGhostFirst + 4
     d_byte Injured,          kTileIdObjOrcGhostFirst + 8

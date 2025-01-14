@@ -35,6 +35,7 @@
     Absent            ; invisible, waiting for a new mode to be set
     ;; Appearing/disappearing modes (ghost flickers, and cannot be injured):
     AppearForAttack   ; reappearing; will become AttackShooting
+    AppearForMerge    ; reappearing; will become Absent
     AppearForSpecial  ; reappearing; will become SpecialMoving
     Disappearing      ; disappearing; will become Absent
     ;; Injured modes (ghost flashes, and cannot be injured):

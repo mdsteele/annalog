@@ -135,6 +135,7 @@ kPaletteObjEmitterGlow = 1
 .ENDPROC
 
 ;;; Removes the forcefield (if any) created by the emitter machines.
+.EXPORT FuncA_Room_RemoveEmitterForcefield
 .PROC FuncA_Room_RemoveEmitterForcefield
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kEmitterForcefieldPlatformIndex

@@ -59,6 +59,7 @@
 .IMPORT FuncA_Room_MachineEmitterYInitReset
 .IMPORT FuncA_Room_MakeBadGhostAppear
 .IMPORT FuncA_Room_MakeBadGhostAppearForAttack
+.IMPORT FuncA_Room_RemoveEmitterForcefield
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
@@ -74,6 +75,7 @@
 .IMPORT Func_WriteToLowerAttributeTable
 .IMPORT Ppu_ChrObjShadow1
 .IMPORT Ram_ActorState1_byte_arr
+.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORTZP Zp_AvatarFlags_bObj
@@ -108,7 +110,7 @@ kLavaPlatformIndex = 5
 kMaxLavaOffset = $27
 
 ;;; How many frames it takes for the lava to rise/fall by one pixel.
-kLavaRiseSlowdown = 6
+kLavaRiseSlowdown = 7
 kLavaFallSlowdown = 4
 
 ;;; How many frames to wait between when the lava is fully raised and when it
@@ -137,10 +139,14 @@ kGhostOrcActorIndex     = 1
     DoubleAttackPending  ; waiting to begin next attack (both ghosts at once)
     DoubleAttackHalf     ; one half of the double-ghost attack is in progress
     AttackActive         ; ghost attack wave is in progress
+    MergePending         ; waiting to begin merging into the final ghost
+    MergeActive          ; waiting to finish merging into the final ghost
     NUM_VALUES
 .ENDENUM
 
-;;; The first eBossMode for which the final ghost is not visible.
+;;; The first eBossMode for which the final ghost is not visible.  Note that
+;;; the final ghost must be visible for eBossNode::Dead so that it will be
+;;; visible when exploding at the end of the fight.
 kFirstNonFinalGhostMode = eBossMode::Intro
 
 ;;; How many forcefield hits are needed to defeat the boss.
@@ -410,8 +416,49 @@ _CheckMode:
     d_entry table, DoubleAttackPending, _BossMode_DoubleAttackPending
     d_entry table, DoubleAttackHalf,    _BossMode_DoubleAttackHalf
     d_entry table, AttackActive,        _BossMode_AttackActive
+    d_entry table, MergePending,        _BossMode_MergePending
+    d_entry table, MergeActive,         _BossMode_MergeActive
     D_END
 .ENDREPEAT
+_BossMode_MergePending:
+    ;; Wait for the cooldown to expire.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
+    ;; Make both ghosts appear.
+    .assert kGhostOrcActorIndex = 1, error
+    .assert kGhostMermaidActorIndex = 0, error
+    ldx #1
+    @loop:
+    lda #eBadGhost::AppearForMerge  ; param: eBadGhost::AppearFor* value
+    jsr FuncA_Room_MakeBadGhostAppear  ; preserves X
+    lda _MergeDelay_u8_arr, x
+    sta Ram_ActorState2_byte_arr, x  ; mode timer
+    dex
+    bpl @loop
+    ;; Switch main boss mode to wait for the merge to complete.
+    lda #eBossMode::MergeActive
+    sta Zp_RoomState + sState::Current_eBossMode
+    @done:
+    rts
+_MergeDelay_u8_arr:
+    .byte 75, 86
+_BossMode_MergeActive:
+    ;; Wait for ghosts to disappear.
+    .assert eBadGhost::Absent = 0, error
+    lda Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
+    ora Ram_ActorState1_byte_arr + kGhostOrcActorIndex      ; eBadGhost mode
+    bne @done
+    ;; Make the final ghost appear.
+    lda #eBossMode::FinalGhostWaiting
+    sta Zp_RoomState + sState::Current_eBossMode
+    jsr FuncA_Room_RemoveEmitterForcefield
+    ;; TODO: Flash the screen white
+    ;; Switch gravity back to normal if it was reversed.
+    lda Zp_AvatarFlags_bObj
+    and #<~bObj::FlipV
+    sta Zp_AvatarFlags_bObj
+    @done:
+    rts
 _BossMode_FinalGhostDying:
     ;; Adjust the ghost towards the center of the room.
     lda #$70 + (kFinalGhostSlowdown - 1)
@@ -571,6 +618,7 @@ _BossMode_SingleAttackPending:
     @done:
     rts
 _BossMode_AttackActive:
+    ;; TODO: If boss health is zero, make ghosts teleport out earlier.
     ;; Wait for ghosts to disappear, then begin the next attack wave.
     .assert eBadGhost::Absent = 0, error
     lda Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
@@ -589,7 +637,9 @@ _BeginNewAttackWaves:
     ora #4
     sta Zp_RoomState + sState::AttackWavesRemaining_u8
 _BeginNextAttackWave:
-    ;; TODO: If boss health is zero, make final ghost appear.
+    ;; If boss health is zero, make final ghost appear.
+    lda Zp_RoomState + sState::BossHealth_u8
+    beq _BeginMerge
     ;; If there are no more attack waves left in this group, perform a special
     ;; attack.
     lda Zp_RoomState + sState::AttackWavesRemaining_u8
@@ -607,8 +657,16 @@ _BeginNextAttackWave:
     lda #30
     sta Zp_RoomState + sState::BossCooldown_u8
     rts
+_BeginMerge:
+    lda #eBossMode::MergePending
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #60
+    sta Zp_RoomState + sState::BossCooldown_u8
+    rts
 _BeginSpecialAttack:
-    ;; If gravity is currently reversed, begin a gravity attack.
+    ;; If gravity is currently reversed, begin another gravity attack (to
+    ;; change gravity back to normal).  After all, there's no point in a lava
+    ;; attack if the avatar is on the ceiling.
     bit Zp_AvatarFlags_bObj
     .assert bObj::FlipV = bProc::Negative, error
     bmi _BeginSpecialGravityAttack
@@ -764,6 +822,7 @@ _MaybeHarmOrcAndMermaidGhosts:
     jsr Func_SetPointToActorCenter  ; preserves X
     ldy #kEmitterForcefieldPlatformIndex  ; param: platform index
     jsr Func_IsPointInPlatform  ; preserves X, returns C
+    ;; TODO: Also allow hitting the ghost's head.
     bcc @continue  ; forcefield isn't hitting the ghost
     ;; Injure the ghost and decrement boss health.
     jsr FuncA_Machine_InjureBadGhost  ; preserves X
