@@ -28,6 +28,7 @@
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_FaceTowardsN
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
+.IMPORT FuncA_Actor_ZeroVel
 .IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_BobActorShapePosUpAndDown
 .IMPORT FuncA_Objects_Draw2x2Shape
@@ -384,7 +385,7 @@ _DivideAndClamp:
     .assert eBadGhost::Absent = 0, error
     sta Ram_ActorState2_byte_arr, x  ; mode timer
     @done:
-    rts
+    jmp FuncA_Actor_ZeroVel  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for a mermaid/orc ghost baddie actor that's in
@@ -434,7 +435,7 @@ _IncrementTimer:
     lda #eBadGhost::Absent
     sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
     @done:
-    rts
+    jmp FuncA_Actor_ZeroVel  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for a mermaid/orc ghost baddie actor that's in
@@ -486,7 +487,7 @@ _DecrementTimer:
     ;; Switch modes.  The timer is already at zero.
     sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
     @done:
-    rts
+    jmp FuncA_Actor_ZeroVel  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for a mermaid ghost baddie actor that's in

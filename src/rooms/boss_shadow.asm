@@ -68,6 +68,7 @@
 .IMPORT Func_MachineEmitterReadReg
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformVert
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
@@ -822,9 +823,13 @@ _MaybeHarmOrcAndMermaidGhosts:
     jsr Func_SetPointToActorCenter  ; preserves X
     ldy #kEmitterForcefieldPlatformIndex  ; param: platform index
     jsr Func_IsPointInPlatform  ; preserves X, returns C
-    ;; TODO: Also allow hitting the ghost's head.
-    bcc @continue  ; forcefield isn't hitting the ghost
+    bcs @injure  ; the forcefield is hitting the ghost's body
+    lda #$10  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves X
+    jsr Func_IsPointInPlatform  ; preserves X, returns C
+    bcc @continue  ; forcefield isn't hitting the ghost's head
     ;; Injure the ghost and decrement boss health.
+    @injure:
     jsr FuncA_Machine_InjureBadGhost  ; preserves X
     lda Zp_RoomState + sState::BossHealth_u8
     beq @continue
