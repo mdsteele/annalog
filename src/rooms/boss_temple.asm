@@ -446,7 +446,7 @@ _Devices_sDevice_arr:
     blt _TickEyes
 _CheckForHits:
     jsr FuncA_Room_BossTemple_CheckForBulletHit
-    jsr FuncC_Boss_Temple_CheckForBreakballHit
+    jsr FuncA_Room_BossTemple_CheckForBreakballHit
 _TickAnimation:
     cmp #eBossMode::Stunned
     bne @normalAnim
@@ -465,7 +465,7 @@ _TickAnimation:
 _TickEyes:
     ldx #eBossEye::NUM_VALUES - 1
     @loop:
-    jsr FuncC_Boss_Temple_TickBossEye  ; preserves X
+    jsr FuncA_Room_BossTemple_TickBossEye  ; preserves X
     dex
     bpl @loop
 _CoolDown:
@@ -509,7 +509,7 @@ _BossPaused:
     ;; Switch modes to fire a breakball.
     lda #eBossMode::ShootBreak
     sta Zp_RoomState + sState::Current_eBossMode
-    jmp FuncC_Boss_Temple_ChooseActiveEye
+    jmp FuncA_Room_BossTemple_ChooseActiveEye
 _BossWaiting:
     ;; Wait for all boss projetiles to expire.
     ldx #kMaxActors - 1
@@ -550,97 +550,17 @@ _BossShootBreak:
     ldy Zp_RoomState + sState::Active_eBossEye  ; param: platform index
     lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, y
     cmp #kBossEyeOpenFrames
-    blt @done
-    ;; Spawn a breakball projetile.
+    blt _Return  ; eye is not yet fully open
+    ;; Spawn a breakball projetile and switch to waiting mode.
     jsr Func_SetPointToPlatformCenter
     jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
-    bcs @done
+    bcs _Return  ; couldn't spawn breakball yet
+    lda #eBossMode::Waiting
+    sta Zp_RoomState + sState::Current_eBossMode
     jsr Func_SetActorCenterToPoint  ; preserves X
     jsr Func_GetRandomByte  ; preserves X, returns A
     and #bObj::FlipH  ; param: horz direction
-    jsr FuncA_Room_InitActorProjBreakball
-    ;; Switch to waiting mode.
-    lda #eBossMode::Waiting
-    sta Zp_RoomState + sState::Current_eBossMode
-    @done:
-    rts
-.ENDPROC
-
-;;; Sets Active_eBossEye to a random eBossEye value.
-.PROC FuncC_Boss_Temple_ChooseActiveEye
-    jsr Func_GetRandomByte  ; returns A (param: dividend)
-    ldy #eBossEye::NUM_VALUES  ; param: divisor
-    jsr Func_DivMod  ; returns remainder in A
-    sta Zp_RoomState + sState::Active_eBossEye
-    rts
-.ENDPROC
-
-;;; Performs per-frame upates for one of the boss's eyes.
-;;; @param X The eBossEye value for the eye.
-.PROC FuncC_Boss_Temple_TickBossEye
-_CheckIfOpenOrClosed:
-    lda Zp_RoomState + sState::Current_eBossMode
-    cmp #kFirstHealthyBossMode
-    blt _Open
-    cmp #kFirstBossModeWithOpenEye
-    blt _Close
-    cpx Zp_RoomState + sState::Active_eBossEye
-    bne _Close
-_Open:
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
-    cmp #kBossEyeOpenFrames
-    bge @done
-    inc Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
-    @done:
-    rts
-_Close:
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
-    beq @done
-    dec Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
-    @done:
-    rts
-.ENDPROC
-
-;;; Checks if a breakball has hit the boss's body; if so, expires the breakball
-;;; and stuns the boss.
-;;; @prereq PRGA_Room is loaded.
-.PROC FuncC_Boss_Temple_CheckForBreakballHit
-    ;; Find the breakball actor (if any).
-    ldx #kMaxActors - 1
-    @loop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjBreakball
-    beq _FoundBreakball
-    dex
-    bpl @loop
-_Done:
-    rts
-_FoundBreakball:
-    ;; Ignore the breakball if it's moving downward.
-    lda Ram_ActorVelY_i16_1_arr, x
-    bpl _Done
-    ;; Check if the breakball has hit the boss's body.
-    jsr Func_SetPointToActorCenter  ; preserves X
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_IsPointInPlatform  ; preserves X, returns C
-    bcc _Done
-_StunBoss:
-    ;; Expire the breakball.
-    jsr Func_InitActorSmokeExplosion
-    ;; Stun the boss.
-    lda #eBossMode::Stunned
-    sta Zp_RoomState + sState::Current_eBossMode
-    lda #kBossStunCyclesPerHit
-    sta Zp_RoomState + sState::BossStunCycles_u8
-    lda #0
-    sta Zp_RoomState + sState::BossCooldown_u8
-    lda #kBossStunAnimFrames
-    sta Zp_RoomState + sState::BossStunAnimTimer_u8
-    ldx Zp_RoomState + sState::Active_eBossEye
-    lda #kBossEyeOpenFrames / 2
-    sta Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
-    lda #eSample::BossHurtE  ; param: eSample to play
-    jmp Func_PlaySfxSample
+    jmp FuncA_Room_InitActorProjBreakball
 .ENDPROC
 
 ;;; Draw function for the BossTemple room.
@@ -844,6 +764,83 @@ _Boss:
     jsr FuncA_Room_ResetLever
     ldx #kLeverRightDeviceIndex  ; param: device index
     jmp FuncA_Room_ResetLever
+.ENDPROC
+
+;;; Sets Active_eBossEye to a random eBossEye value.
+.PROC FuncA_Room_BossTemple_ChooseActiveEye
+    jsr Func_GetRandomByte  ; returns A (param: dividend)
+    ldy #eBossEye::NUM_VALUES  ; param: divisor
+    jsr Func_DivMod  ; returns remainder in A
+    sta Zp_RoomState + sState::Active_eBossEye
+    rts
+.ENDPROC
+
+;;; Performs per-frame upates for one of the boss's eyes.
+;;; @param X The eBossEye value for the eye.
+;;; @preserve X
+.PROC FuncA_Room_BossTemple_TickBossEye
+_CheckIfOpenOrClosed:
+    lda Zp_RoomState + sState::Current_eBossMode
+    cmp #kFirstHealthyBossMode
+    blt _Open
+    cmp #kFirstBossModeWithOpenEye
+    blt _Close
+    cpx Zp_RoomState + sState::Active_eBossEye
+    bne _Close
+_Open:
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    cmp #kBossEyeOpenFrames
+    bge @done
+    inc Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    @done:
+    rts
+_Close:
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    beq @done
+    dec Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    @done:
+    rts
+.ENDPROC
+
+;;; Checks if a breakball has hit the boss's body; if so, expires the breakball
+;;; and stuns the boss.
+.PROC FuncA_Room_BossTemple_CheckForBreakballHit
+    ;; Find the breakball actor (if any).
+    ldx #kMaxActors - 1
+    @loop:
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjBreakball
+    beq _FoundBreakball
+    dex
+    bpl @loop
+_Done:
+    rts
+_FoundBreakball:
+    ;; Ignore the breakball if it's moving downward.
+    lda Ram_ActorVelY_i16_1_arr, x
+    bpl _Done
+    ;; Check if the breakball has hit the boss's body.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; preserves X, returns C
+    bcc _Done
+_StunBoss:
+    ;; Expire the breakball.
+    jsr Func_InitActorSmokeExplosion
+    ;; Stun the boss.
+    lda #eBossMode::Stunned
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossStunCyclesPerHit
+    sta Zp_RoomState + sState::BossStunCycles_u8
+    lda #0
+    sta Zp_RoomState + sState::BossCooldown_u8
+    lda #kBossStunAnimFrames
+    sta Zp_RoomState + sState::BossStunAnimTimer_u8
+    ldx Zp_RoomState + sState::Active_eBossEye
+    lda #kBossEyeOpenFrames / 2
+    sta Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    lda #eSample::BossHurtE  ; param: eSample to play
+    jmp Func_PlaySfxSample
 .ENDPROC
 
 ;;; Checks if a bullet has hit a boss eye; if so, expires the bullet and makes
