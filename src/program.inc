@@ -102,6 +102,7 @@
 ;;; of these programs, although in a few cases, multiple machines may share the
 ;;; same program (e.g. jet machines).
 .ENUM eProgram
+    ;; TODO: Sort these alphabetically once it won't disrupt playtesting.
     BossCityAmmoRack
     BossCityLauncher
     BossCityReloader
@@ -156,7 +157,7 @@
     LavaEastBlaster
     LavaEastLowerBoiler
     LavaEastUpperBoiler
-    LavaFlowerBoiler
+    LavaTunnelBoiler
     LavaStationBoiler
     LavaTeleportField
     LavaVentLift
@@ -202,7 +203,6 @@
     TempleFoyerCarriage
     TempleNaveLowerCarriage
     TempleNaveUpperCarriage
-    ;; TODO: Sort these in alphabetically once it won't disrupt playtesting.
     MineNorthHoist
     NUM_VALUES
 .ENDENUM

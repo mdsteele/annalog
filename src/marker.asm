@@ -201,6 +201,12 @@
     d_byte Not_eFlag, eFlag::UpgradeOpCopy
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 12
+    d_byte Col_u8, 19  ; room: LavaFlower
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::FlowerLava
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 13
     d_byte Col_u8, 0  ; room: BossCrypt
     d_byte If_eFlag, 0
@@ -229,12 +235,6 @@
     d_byte Col_u8, 9  ; room: BossShadow
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::BreakerShadow
-    D_END
-    D_STRUCT sMarker
-    d_byte Row_u8, 14
-    d_byte Col_u8, 16  ; room: LavaFlower
-    d_byte If_eFlag, 0
-    d_byte Not_eFlag, eFlag::FlowerLava
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 14

@@ -311,7 +311,7 @@ _Passages_sPassage_arr:
     D_END
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 1
-    d_byte Destination_eRoom, eRoom::LavaFlower
+    d_byte Destination_eRoom, eRoom::LavaTunnel
     d_byte SpawnBlock_u8, 15
     d_byte SpawnAdjust_byte, 0
     D_END
