@@ -67,35 +67,35 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, $30
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0090
+    d_word Left_i16,  $0040
     d_word Top_i16,   $001a
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, $0e
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0071
+    d_word Left_i16,  $0081
     d_word Top_i16,   $003e
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0f
+    d_word WidthPx_u16, $0e
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0030
+    d_word Left_i16,  $00c1
     d_word Top_i16,   $004e
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, $0e
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0071
+    d_word Left_i16,  $0081
     d_word Top_i16,   $009a
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
     d_word WidthPx_u16, $b0
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0020
+    d_word Left_i16,  $0030
     d_word Top_i16,   $00de
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
@@ -103,8 +103,8 @@ _Platforms_sPlatform_arr:
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Paper
-    d_byte BlockRow_u8, 4
-    d_byte BlockCol_u8, 2
+    d_byte BlockRow_u8, 9
+    d_byte BlockCol_u8, 1
     d_byte Target_byte, eFlag::PaperJerome27
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
@@ -113,7 +113,7 @@ _Passages_sPassage_arr:
 :   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::LavaVent
-    d_byte SpawnBlock_u8, 7
+    d_byte SpawnBlock_u8, 5
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error

@@ -267,6 +267,7 @@ _Alex:
     act_SetCutsceneFlags bCutscene::TickAllActors
     act_RepeatFunc 20, _ApplyAlexGravity
     act_SetCutsceneFlags 0
+    ;; TODO: play a splash sound for Alex landing in the water
     act_SetActorVelX kAlexActorIndex, 0
     act_SetActorVelY kAlexActorIndex, 0
     act_SetActorPosY kAlexActorIndex, $00c4
