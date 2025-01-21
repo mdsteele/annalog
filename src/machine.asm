@@ -142,33 +142,6 @@ _MachineOffsets_u8_arr:
     .endrepeat
 .ENDPROC
 
-;;; Sets Zp_Current_sProgram_ptr to point to the current machine's program in
-;;; SRAM.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.EXPORT Func_GetMachineProgram
-.PROC Func_GetMachineProgram
-    ;; Store the machine's program number in A.
-    ldy #sMachine::Code_eProgram
-    lda (Zp_Current_sMachine_ptr), y
-    ;; Calculate the 16-bit byte offset into Sram_Programs_sProgram_arr,
-    ;; putting the lo byte in A and the hi byte in T0.
-    .assert sMachine::Code_eProgram = 0, error
-    sty T0  ; Y is currently zero
-    .assert .sizeof(sProgram) = 1 << 5, error
-    .repeat 5
-    asl a
-    rol T0
-    .endrepeat
-    ;; Calculate a pointer to the start of the sProgram in SRAM and store it in
-    ;; Zp_Current_sProgram_ptr.
-    adc #<Sram_Programs_sProgram_arr  ; carry is already clear
-    sta Zp_Current_sProgram_ptr + 0
-    lda T0  ; byte offset (hi)
-    adc #>Sram_Programs_sProgram_arr
-    sta Zp_Current_sProgram_ptr + 1
-    rts
-.ENDPROC
-
 ;;; Reads an immediate or register value for the current machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param A The 4-bit immediate (0-9) or register ($a-$f) value.
@@ -340,6 +313,33 @@ _ReadRegB:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
+
+;;; Sets Zp_Current_sProgram_ptr to point to the current machine's program in
+;;; SRAM.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Machine_GetProgram
+.PROC FuncA_Machine_GetProgram
+    ;; Store the machine's program number in A.
+    ldy #sMachine::Code_eProgram
+    lda (Zp_Current_sMachine_ptr), y
+    ;; Calculate the 16-bit byte offset into Sram_Programs_sProgram_arr,
+    ;; putting the lo byte in A and the hi byte in T0.
+    .assert sMachine::Code_eProgram = 0, error
+    sty T0  ; Y is currently zero
+    .assert .sizeof(sProgram) = 1 << 5, error
+    .repeat 5
+    asl a
+    rol T0
+    .endrepeat
+    ;; Calculate a pointer to the start of the sProgram in SRAM and store it in
+    ;; Zp_Current_sProgram_ptr.
+    adc #<Sram_Programs_sProgram_arr  ; carry is already clear
+    sta Zp_Current_sProgram_ptr + 0
+    lda T0  ; byte offset (hi)
+    adc #>Sram_Programs_sProgram_arr
+    sta Zp_Current_sProgram_ptr + 1
+    rts
+.ENDPROC
 
 ;;; Marks the current machine as having an error.  This should be called
 ;;; from a machine's TryMove or TryAct function when one of those operations
@@ -804,7 +804,7 @@ _CallTickFunction:
     ldx #0
     @loop:
     jsr Func_SetMachineIndex
-    jsr Func_GetMachineProgram
+    jsr FuncA_Machine_GetProgram
     jsr FuncA_Machine_Tick
     ldx Zp_MachineIndex_u8
     inx
@@ -826,7 +826,7 @@ _Execute:
     ldx #0
     @loop:
     jsr Func_SetMachineIndex
-    jsr Func_GetMachineProgram
+    jsr FuncA_Machine_GetProgram
     jsr FuncA_Machine_ExecuteNext
     jsr FuncA_Machine_Tick
     ldx Zp_MachineIndex_u8
@@ -853,7 +853,7 @@ _UnblockSync:
     lda #eMachine::Running
     sta Ram_MachineStatus_eMachine_arr, x
     jsr Func_SetMachineIndex
-    jsr Func_GetMachineProgram
+    jsr FuncA_Machine_GetProgram
     jsr FuncA_Machine_IncrementPc  ; returns current machine index in X
     inx
     cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)

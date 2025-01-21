@@ -42,6 +42,7 @@
 .IMPORT FuncA_Console_WriteDiagramTransferDataForCurrentMachine
 .IMPORT FuncA_Console_WriteNeedsPowerTransferData
 .IMPORT FuncA_Machine_ExecuteAll
+.IMPORT FuncA_Machine_GetProgram
 .IMPORT FuncA_Machine_TickAll
 .IMPORT FuncA_Objects_DrawHudInWindow
 .IMPORT FuncA_Objects_DrawObjectsForRoom
@@ -51,7 +52,6 @@
 .IMPORT FuncM_ScrollTowardsAvatar
 .IMPORT FuncM_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOamAndProcessFrame
-.IMPORT Func_GetMachineProgram
 .IMPORT Func_IsFlagSet
 .IMPORT Func_PlaySfxWindowClose
 .IMPORT Func_PlaySfxWindowOpen
@@ -162,6 +162,7 @@ Ram_ConsoleRegNames_u8_arr6: .res 6
 .EXPORT Main_Console_UseDevice
 .PROC Main_Console_UseDevice
     jsr_prga FuncA_Room_BeginUsingConsoleDevice
+    jsr_prga FuncA_Machine_LoadConsoleProgram
     jsr_prga FuncA_Console_Init
 _GameLoop:
     jsr_prga FuncA_Objects_DrawHudInWindowAndObjectsForRoom
@@ -312,6 +313,23 @@ _MaybeResetMachine:
 
 .SEGMENT "PRGA_Machine"
 
+;;; Makes Zp_ConsoleSram_sProgram_ptr point to the current machine's program in
+;;; SRAM, then loads the program from SRAM into Ram_Console_sProgram.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.PROC FuncA_Machine_LoadConsoleProgram
+    jsr FuncA_Machine_GetProgram
+    ldax Zp_Current_sProgram_ptr
+    stax Zp_ConsoleSram_sProgram_ptr
+    ;; Initialize Ram_Console_sProgram from SRAM.
+    ldy #.sizeof(sProgram) - 1
+    @loop:
+    lda (Zp_ConsoleSram_sProgram_ptr), y
+    sta Ram_Console_sProgram, y
+    dey
+    bpl @loop
+    rts
+.ENDPROC
+
 ;;; If the console machine is in Syncing mode (which can only be true when
 ;;; using the debugger), executes all machines; otherwise, ticks all machines
 ;;; without executing.
@@ -332,7 +350,6 @@ _MaybeResetMachine:
 ;;; @prereq Explore mode is initialized.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .PROC FuncA_Console_Init
-    jsr FuncA_Console_LoadProgram
     lda Zp_MachineMaxInstructions_u8
     div #2
     sta Zp_ConsoleNumInstRows_u8
@@ -407,23 +424,6 @@ _InitWindow:
     rsub #kScreenHeightPx - (kTileHeightPx * 2 + kWindowMarginBottomPx)
     sta Zp_WindowTopGoal_u8
     jmp Func_PlaySfxWindowOpen
-.ENDPROC
-
-;;; Makes Zp_ConsoleSram_sProgram_ptr point to the current machine's program in
-;;; SRAM, then loads the program from SRAM into Ram_Console_sProgram.
-;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
-.PROC FuncA_Console_LoadProgram
-    jsr Func_GetMachineProgram
-    ldax Zp_Current_sProgram_ptr
-    stax Zp_ConsoleSram_sProgram_ptr
-    ;; Initialize Ram_Console_sProgram from SRAM.
-    ldy #.sizeof(sProgram) - 1
-    @loop:
-    lda (Zp_ConsoleSram_sProgram_ptr), y
-    sta Ram_Console_sProgram, y
-    dey
-    bpl @loop
-    rts
 .ENDPROC
 
 ;;; Saves Ram_Console_sProgram back to SRAM.
