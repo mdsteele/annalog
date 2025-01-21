@@ -154,18 +154,12 @@ _CheckPlatformLeft:
     cmp Ram_PlatformLeft_i16_0_arr, y
     lda Zp_PointX_i16 + 1
     sbc Ram_PlatformLeft_i16_1_arr, y
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
     bmi Func_ClearCForPointOutsidePlatform  ; preserves X, Y, T0+; returns C
 _CheckPlatformRight:
     lda Zp_PointX_i16 + 0
     cmp Ram_PlatformRight_i16_0_arr, y
     lda Zp_PointX_i16 + 1
     sbc Ram_PlatformRight_i16_1_arr, y
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
     bpl Func_ClearCForPointOutsidePlatform  ; preserves X, Y, T0+; returns C
 _Inside:
     sec
@@ -184,18 +178,12 @@ _CheckPlatformTop:
     cmp Ram_PlatformTop_i16_0_arr, y
     lda Zp_PointY_i16 + 1
     sbc Ram_PlatformTop_i16_1_arr, y
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
     bmi Func_ClearCForPointOutsidePlatform  ; preserves X, Y, T0+; returns C
 _CheckPlatformBottom:
     lda Zp_PointY_i16 + 0
     cmp Ram_PlatformBottom_i16_0_arr, y
     lda Zp_PointY_i16 + 1
     sbc Ram_PlatformBottom_i16_1_arr, y
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
     bpl Func_ClearCForPointOutsidePlatform  ; preserves X, Y, T0+; returns C
 _Inside:
     sec

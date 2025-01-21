@@ -119,9 +119,6 @@ _IsJumping:
     cmp Ram_ActorPosY_i16_0_arr, x
     tya     ; starting Y-position (hi)
     sbc Ram_ActorPosY_i16_1_arr, x
-    bvc @noOverflow  ; N eor V
-    eor #$80
-    @noOverflow:
     bmi _StopJumping
 _ContinueJumping:
     jsr FuncA_Actor_ApplyGravity  ; preserves X
