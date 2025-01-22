@@ -127,7 +127,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::SewerBasinMultiplexer
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::WriteC
-    d_byte Status_eDiagram, eDiagram::Multiplexer
+    d_byte Status_eDiagram, eDiagram::MultiplexerPlatform
     d_word ScrollGoalX_u16, $0110
     d_byte ScrollGoalY_u8, $30
     d_byte RegNames_u8_arr4, "J", 0, 0, "Y"

@@ -54,7 +54,8 @@ kMachineRegNameB = $61  ; 'B'
     MinigunLeft
     MinigunRight
     MinigunUp
-    Multiplexer
+    MultiplexerPlatform
+    MultiplexerValve
     Organ
     Pump
     Reloader

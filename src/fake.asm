@@ -177,7 +177,7 @@ _Chr0cBank_u8_arr:
     d_byte CoreDump,         <.bank(Ppu_ChrObjBoss1)      + 1  ; second half
     d_byte Corrupted,        <.bank(Ppu_ChrObjAnnaNormal) + 0  ; first half
     d_byte EndThis,          kChrBankDiagramCarriage
-    d_byte InsufficientData, kChrBankDiagramMultiplexer
+    d_byte InsufficientData, kChrBankDiagramMultiplexerPlatform
     d_byte IsThisEthical,    kChrBankDiagramField
     d_byte NoPower,          kChrBankDiagramLift
     d_byte NoResponse,       kChrBankDiagramSemaphoreComm
@@ -242,7 +242,7 @@ _Fake_eDiagram:
     d_byte CoreDump,         kDiagramCoreDump
     d_byte Corrupted,        kDiagramCorrupted
     d_byte EndThis,          eDiagram::Carriage
-    d_byte InsufficientData, eDiagram::Multiplexer
+    d_byte InsufficientData, eDiagram::MultiplexerPlatform
     d_byte IsThisEthical,    eDiagram::Field
     d_byte NoPower,          eDiagram::Lift
     d_byte NoResponse,       eDiagram::SemaphoreComm

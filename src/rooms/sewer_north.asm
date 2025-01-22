@@ -143,7 +143,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::SewerNorthMultiplexer
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::WriteCDEF
-    d_byte Status_eDiagram, eDiagram::Multiplexer  ; TODO
+    d_byte Status_eDiagram, eDiagram::MultiplexerValve
     d_word ScrollGoalX_u16, $0010
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "L", "R", "J", "V"

@@ -889,8 +889,7 @@ _chr_begin:
     chr_inc "portrait_man_rest", kTileIdBgPortraitManFirst
     .assert .bank(*) = kChrBankDiagramWinch, error
     chr_inc "diagram_winch", kTileIdBgDiagramWinchFirst
-    .assert .bank(*) = kChrBankDiagramMultiplexer, error
-    chr_inc "diagram_multiplexer", kTileIdBgDiagramMultiplexerFirst
+    chr_res $10
     END_CHR_BANK
 .ENDPROC
 
@@ -983,6 +982,23 @@ _chr_begin:
     .assert .bank(*) = kChrBankDiagramEmitterY, error
     chr_inc "diagram_emitter_y", kTileIdBgDiagramEmitterYFirst
     END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait14"
+
+.PROC Ppu_ChrBgPortrait14
+    .linecont +
+    CHR1_BANK $c0
+    chr_res $20
+    .assert .bank(*) = kChrBankDiagramMultiplexerPlatform, error
+    chr_inc "diagram_multiplexer_platform", \
+            kTileIdBgDiagramMultiplexerPlatformFirst
+    .assert .bank(*) = kChrBankDiagramMultiplexerValve, error
+    chr_inc "diagram_multiplexer_valve", kTileIdBgDiagramMultiplexerValveFirst
+    END_CHR_BANK
+    .linecont -
 .ENDPROC
 
 ;;;=========================================================================;;;

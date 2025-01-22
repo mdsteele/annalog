@@ -22,11 +22,13 @@
 ;;;   * State2: The platform index of the selected platform.
 ;;;   * State3: Unused.
 
-;;; The CHR bank number containing the diagram for multiplexer machines.
-kChrBankDiagramMultiplexer = $0d
+;;; The CHR bank numbers containing the diagrams for multiplexer machines.
+kChrBankDiagramMultiplexerPlatform = $14
+kChrBankDiagramMultiplexerValve    = $14
 
 ;;; BG tile IDs for multiplexer machine diagrams.
-kTileIdBgDiagramMultiplexerFirst = $f0
+kTileIdBgDiagramMultiplexerPlatformFirst = $e0
+kTileIdBgDiagramMultiplexerValveFirst    = $f0
 
 ;;; Various OBJ tile IDs used for drawing multiplexer machines.
 kTileIdObjMultiplexerFirst = $82
