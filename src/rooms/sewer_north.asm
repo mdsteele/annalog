@@ -22,6 +22,7 @@
 .INCLUDE "../device.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/boiler.inc"
+.INCLUDE "../machines/pump.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -53,7 +54,8 @@
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorState4_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
-.IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState3_byte_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomState
@@ -319,13 +321,13 @@ _WaterTileIds_u8_arr4:
     cmp #$e
     beq _ReadJ
 _ReadV:
-    ldx Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    ldx Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
     lda Zp_RoomState + sState::ValveAngle_u8_arr, x
     add #kBoilerValveAnimSlowdown / 2
     div #kBoilerValveAnimSlowdown
     rts
 _ReadJ:
-    lda Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    lda Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
     rts
 _ReadL:
     lda Zp_RoomState + sState::LeverLeft_u8
@@ -401,7 +403,6 @@ _RaiseWater:
     lda Ram_PlatformTop_i16_0_arr, y
     cmp #$95
     blt @done
-    ;; TODO: raise water level more slowly
     sbc #1  ; carry is already set
     sta Ram_PlatformTop_i16_0_arr, y
     dec Ram_ActorState2_byte_arr, x  ; waterfall height in pixels
@@ -411,7 +412,6 @@ _LowerWater:
     lda Ram_PlatformTop_i16_0_arr, y
     cmp #$c4
     bge @done
-    ;; TODO: lower water level more slowly
     adc #1  ; carry is already clear
     sta Ram_PlatformTop_i16_0_arr, y
     @done:
@@ -419,10 +419,17 @@ _LowerWater:
 .ENDPROC
 
 .PROC FuncA_Room_SewerNorth_TickRoom
+    inc Ram_MachineState3_byte_arr + kMultiplexerMachineIndex  ; wqter slowdown
+    lda Ram_MachineState3_byte_arr + kMultiplexerMachineIndex  ; water slowdown
+    cmp #kPumpWaterSlowdown
+    blt @done
+    lda #0
+    sta Ram_MachineState3_byte_arr + kMultiplexerMachineIndex  ; water slowdown
     ldy #kWestWaterPlatformIndex  ; param: water platform index
     jsr FuncA_Room_SewerNorth_RaiseOrLowerWaterLevel
     ldy #kEastWaterPlatformIndex  ; param: water platform index
     jsr FuncA_Room_SewerNorth_RaiseOrLowerWaterLevel
+    @done:
 _UpdatePipe:
     ldx #0
     ;; Valve 0:
@@ -521,7 +528,7 @@ _Return:
 
 .PROC FuncA_Room_SewerNorthMultiplexer_Reset
     lda #0
-    sta Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    sta Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
     ldx #kNumValves - 1
     @loop:
     sta Zp_RoomState + sState::ValveGoal_u8_arr, x
@@ -545,13 +552,13 @@ _Return:
     cpx #$e
     beq _WriteJ
 _WriteV:
-    ldx Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    ldx Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
     cmp Zp_RoomState + sState::ValveGoal_u8_arr, x
     beq _Return
     sta Zp_RoomState + sState::ValveGoal_u8_arr, x
     jmp FuncA_Machine_StartWorking
 _WriteJ:
-    sta Ram_MachineGoalHorz_u8_arr + kMultiplexerMachineIndex  ; J register
+    sta Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
 _Return:
     rts
 _WriteL:
