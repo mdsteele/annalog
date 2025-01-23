@@ -292,10 +292,10 @@ _Passages_sPassage_arr:
     sta T2  ; water tile ID
     ;; Draw the water.
     ldx #kWestWaterPlatformIndex  ; param: platform index
-    jsr _DrawWaterSurface
+    jsr _DrawWaterSurface  ; preserves T2+
     ldx #kEastWaterPlatformIndex  ; param: platform index
 _DrawWaterSurface:
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X and T0+
     ;; Draw the water objects.
     ;; TODO: Don't draw water on top of solid terrain.
     ldx #4
