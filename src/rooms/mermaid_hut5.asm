@@ -33,7 +33,9 @@
 .IMPORT DataA_Text1_MermaidHut5Marie_AfterCity3_u8_arr
 .IMPORT DataA_Text1_MermaidHut5Marie_AfterCrypt1_u8_arr
 .IMPORT DataA_Text1_MermaidHut5Marie_AfterCrypt2_u8_arr
-.IMPORT DataA_Text1_MermaidHut5Marie_AfterMine_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Marie_AfterMine1_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Marie_AfterMine2_u8_arr
+.IMPORT DataA_Text1_MermaidHut5Marie_AfterMine3_u8_arr
 .IMPORT DataA_Text1_MermaidHut5Marie_AfterRescue1_u8_arr
 .IMPORT DataA_Text1_MermaidHut5Marie_AfterRescue2_u8_arr
 .IMPORT DataA_Text1_MermaidHut5Nora_AfterCity1_u8_arr
@@ -202,7 +204,9 @@ _AfterCrypt_sDialog:
     dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterCrypt2_u8_arr
     dlg_Done
 _AfterMine_sDialog:
-    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterMine_u8_arr
+    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterMine1_u8_arr
+    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterMine2_u8_arr
+    dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterMine3_u8_arr
     dlg_Done
 _AfterCity_sDialog:
     dlg_Text ChildMarie, DataA_Text1_MermaidHut5Marie_AfterCity1_u8_arr

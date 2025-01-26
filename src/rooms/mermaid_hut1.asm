@@ -55,7 +55,8 @@
 .IMPORT DataA_Text0_MermaidHut1Queen_AfterCity5_u8_arr
 .IMPORT DataA_Text0_MermaidHut1Queen_AfterCrypt1_u8_arr
 .IMPORT DataA_Text0_MermaidHut1Queen_AfterCrypt2_u8_arr
-.IMPORT DataA_Text0_MermaidHut1Queen_AfterMine_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_AfterMine1_u8_arr
+.IMPORT DataA_Text0_MermaidHut1Queen_AfterMine2_u8_arr
 .IMPORT DataA_Text0_MermaidHut1Queen_FindYourFriends_u8_arr
 .IMPORT DataA_Text0_MermaidHut1Queen_FirstMeeting1_u8_arr
 .IMPORT DataA_Text0_MermaidHut1Queen_FirstMeeting2_u8_arr
@@ -437,7 +438,8 @@ _AfterCrypt_sDialog:
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterCrypt2_u8_arr
     dlg_Done
 _AfterMine_sDialog:
-    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterMine_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterMine1_u8_arr
+    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterMine2_u8_arr
     dlg_Done
 _AfterCity_sDialog:
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_AfterCity1_u8_arr

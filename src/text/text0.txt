@@ -428,8 +428,17 @@ that you will consider
 well the benefits of
 our way of life.#
 
-@MermaidHut1Queen_AfterMine
-TODO#
+@MermaidHut1Queen_AfterMine1
+I am worried for your
+people, child. Your
+brother's delving into
+things he shouldn't.#
+
+@MermaidHut1Queen_AfterMine2
+The orcs are, too. I
+wish no harm on either
+of you, despite our
+differences.#
 
 @MermaidHut1Queen_AfterCity1
 Anna, please. You must

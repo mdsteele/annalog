@@ -433,7 +433,7 @@ ruins before now.#
 @MermaidHut4Florist_Nine2
 Perhaps the orcs of
 centuries past simply
-didn't want to?#
+didn't wish to?#
 
 @MermaidHut4Florist_Nine3
 Unlike the orcs of
@@ -542,8 +542,22 @@ planning...just make
 sure you stay safe, OK
 Anna?#
 
-@MermaidHut5Marie_AfterMine
-TODO#
+@MermaidHut5Marie_AfterMine1
+Alex keeps talking
+about all these weird
+ideas he has. About
+our ancient ancestors.#
+
+@MermaidHut5Marie_AfterMine2
+Meanwhile, the Queen
+seems more unsettled
+lately. Something's
+bothering her.#
+
+@MermaidHut5Marie_AfterMine3
+We need to find a way
+home before she kicks
+us all out of here.#
 
 @MermaidHut5Marie_AfterCity1
 Anna, I think Alex has
