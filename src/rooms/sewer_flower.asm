@@ -38,6 +38,7 @@
 .IMPORT FuncA_Machine_PumpTick
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawPumpMachine
+.IMPORT FuncA_Objects_GetWaterObjTileId
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -47,7 +48,6 @@
 .IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
 
@@ -196,6 +196,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Sewer_FlowerPump_Draw
     jsr FuncA_Objects_DrawPumpMachine
 _WaterLeft:
@@ -209,11 +210,7 @@ _WaterLeft:
     lda _WaterOffsetL_u8_arr, y  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA  ; preserves Y
     ;; Determine the water tile ID.
-    lda Zp_FrameCounter_u8
-    div #8
-    mod #4
-    tax
-    lda _WaterTileIds_u8_arr4, x
+    jsr FuncA_Objects_GetWaterObjTileId  ; returns A
     sta T2  ; water tile ID
     ;; Determine the width of the left side of the water in tiles, and draw
     ;; that many objects.
@@ -236,11 +233,6 @@ _DrawWaterObjects:
     dex
     bne @loop
     rts
-_WaterTileIds_u8_arr4:
-    .byte kTileIdObjPlatformWaterFirst + 0
-    .byte kTileIdObjPlatformWaterFirst + 1
-    .byte kTileIdObjPlatformWaterFirst + 2
-    .byte kTileIdObjPlatformWaterFirst + 1
 _WaterOffsetL_u8_arr:
     .byte $10, $00, $00, $00, $10, $10, $10
 _WaterWidthL_u8_arr:

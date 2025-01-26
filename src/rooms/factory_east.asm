@@ -40,6 +40,7 @@
 .IMPORT DataA_Text0_FactoryEastCorra_Question_u8_arr
 .IMPORT DataA_Text0_FactoryEastCorra_Yes_u8_arr
 .IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_GetWaterObjTileId
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_MoveShapeUpHalfTile
@@ -280,14 +281,9 @@ _DrawWaterfall:
 _DrawWaterSurface:
     ldx #kMovableWaterPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
-    ;; Determine the water tile ID.
-    lda Zp_FrameCounter_u8
-    div #8
-    and #$03
-    tax
-    lda _WaterTileIds_u8_arr4, x
-    sta T2  ; water tile ID
     ;; Draw the water objects.
+    jsr FuncA_Objects_GetWaterObjTileId  ; returns A
+    sta T2  ; water tile ID
     ldx #6
     @loop:
     ldy #kPaletteObjWater | bObj::Pri  ; param: object flags
@@ -297,11 +293,6 @@ _DrawWaterSurface:
     dex
     bne @loop
     rts
-_WaterTileIds_u8_arr4:
-    .byte kTileIdObjPlatformWaterFirst + 0
-    .byte kTileIdObjPlatformWaterFirst + 1
-    .byte kTileIdObjPlatformWaterFirst + 2
-    .byte kTileIdObjPlatformWaterFirst + 1
 .ENDPROC
 
 ;;;=========================================================================;;;

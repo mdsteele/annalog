@@ -27,6 +27,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/water.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 
@@ -39,6 +40,7 @@
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawMultiplexerMachineMainPlatform
 .IMPORT FuncA_Objects_DrawValveShape
+.IMPORT FuncA_Objects_GetWaterObjTileId
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -57,7 +59,6 @@
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_MachineState3_byte_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -85,6 +86,10 @@ kPipe5PlatformIndex = 6
 kWestWaterPlatformIndex   = 7
 kCenterWaterPlatformIndex = 8
 kEastWaterPlatformIndex   = 9
+
+;;; When the east or west water surface is at this room pixel Y-position or
+;;; higher, the water should be drawn wide instead of narrow.
+kWideWaterTop = $b0
 
 ;;;=========================================================================;;;
 
@@ -282,23 +287,32 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Sewer_North_DrawRoom
-    ;; Determine the water tile ID.
-    lda Zp_FrameCounter_u8
-    div #8
-    and #$03
-    tax
-    lda _WaterTileIds_u8_arr4, x
+    jsr FuncA_Objects_GetWaterObjTileId  ; returns A
     sta T2  ; water tile ID
-    ;; Draw the water.
+_DrawWestWaterSurface:
     ldx #kWestWaterPlatformIndex  ; param: platform index
-    jsr _DrawWaterSurface  ; preserves T2+
-    ldx #kEastWaterPlatformIndex  ; param: platform index
-_DrawWaterSurface:
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X and T0+
-    ;; Draw the water objects.
-    ;; TODO: Don't draw water on top of solid terrain.
-    ldx #4
+    jsr _DrawWaterTilePair  ; preserves T0+
+    lda Ram_PlatformTop_i16_0_arr + kWestWaterPlatformIndex
+    cmp #kWideWaterTop
+    bge @done
+    jsr _DrawWaterTilePair  ; preserves T0+
+    @done:
+_DrawEastWaterSurface:
+    ldx #kEastWaterPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves T0+
+    lda Ram_PlatformTop_i16_0_arr + kEastWaterPlatformIndex
+    cmp #kWideWaterTop
+    bge @skip
+    jsr _DrawWaterTilePair  ; preserves T0+
+    jmp _DrawWaterTilePair
+    @skip:
+    lda #kTileWidthPx * 2
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves T0+
+_DrawWaterTilePair:
+    ldx #2
     @loop:
     ldy #kPaletteObjWater  ; param: object flags
     lda T2  ; param: water tile ID
@@ -307,11 +321,6 @@ _DrawWaterSurface:
     dex
     bne @loop
     rts
-_WaterTileIds_u8_arr4:
-    .byte kTileIdObjPlatformWaterFirst + 0
-    .byte kTileIdObjPlatformWaterFirst + 1
-    .byte kTileIdObjPlatformWaterFirst + 2
-    .byte kTileIdObjPlatformWaterFirst + 1
 .ENDPROC
 
 .PROC FuncC_Sewer_NorthMultiplexer_ReadReg
@@ -405,6 +414,11 @@ _RaiseWater:
     blt @done
     sbc #1  ; carry is already set
     sta Ram_PlatformTop_i16_0_arr, y
+    ;; The water surface went up one pixel, so reduce the height of the
+    ;; waterfall that's hitting the water surface by one (unless it was already
+    ;; zero, in which case don't wrap around).
+    lda Ram_ActorState2_byte_arr, x  ; waterfall height in pixels
+    beq @done
     dec Ram_ActorState2_byte_arr, x  ; waterfall height in pixels
     @done:
     rts
