@@ -221,7 +221,7 @@ kBossMinCenterX = $28
 kBossMaxCenterX = $90
 
 ;;; The room pixel Y-positions past which the boss cannot open its shell.
-kBossMinCenterOpenY = kBossZoneTopY + kBossBodyHeightPx / 2 + 2
+kBossMinCenterOpenY = kBossZoneTopY    + kBossBodyHeightPx / 2 + 2
 kBossMaxCenterOpenY = kBossZoneBottomY - kBossBodyHeightPx / 2 - 2
 
 ;;; The amplitude of the boss's horizontal and vertical sinusoidal movement, in
@@ -236,8 +236,8 @@ kBossVertAmplitude = \
 .ENUM eBossMode
     Dead
     Hurt
-    Open   ; TODO: replace this with a real mode
-    Close  ; TODO: replace this with a real mode
+    Open
+    Close
     ShootSpines
     Weaving
     NUM_VALUES
@@ -251,6 +251,10 @@ kBossInitHealth = 8
 kBossInitCooldown = 120
 ;;; How many frames to wait in place when hurt.
 kBossHurtCooldown = 45
+
+;;; The delay duration between individual spines when shooting spines, in
+;;; frames.
+.DEFINE kBossSpineSlowdown 2
 
 ;;; Platform indices for various parts of the boss.
 kBossBodyPlatformIndex       = 0
@@ -508,14 +512,14 @@ _Devices_sDevice_arr:
     .assert * - :- = kLeverLeftDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
-    d_byte BlockRow_u8, 10
+    d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 6
     d_byte Target_byte, sState::LeverLeft_u8
     D_END
     .assert * - :- = kLeverRightDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
-    d_byte BlockRow_u8, 10
+    d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 8
     d_byte Target_byte, sState::LeverRight_u8
     D_END
@@ -653,6 +657,8 @@ _BossOpen:
     @startShootingSpines:
     lda #eBossMode::ShootSpines
     sta Zp_RoomState + sState::Current_eBossMode
+    lda #30
+    sta Zp_RoomState + sState::BossCooldown_u8
     @done:
     rts
 _ShootBreakbombs:
@@ -695,7 +701,6 @@ _BossWeaving:
     jsr FuncC_Boss_City_CloseShell
     jsr FuncC_Boss_City_MoveBossHorz
     jsr FuncC_Boss_City_MoveBossVert
-    ;; TODO: Move vertically, sinusoidally.
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
@@ -716,14 +721,16 @@ _BossWeaving:
 _BossShootSpines:
     jsr FuncC_Boss_City_CloseShell
     ;; Wait for the shell to be fully closed.
-    lda Zp_RoomState + sState::BossShellOpen_u8
+    lda Zp_RoomState + sState::BossCooldown_u8
+    cmp #kBossSpineSlowdown * 5
+    bge @done
+    mod #kBossSpineSlowdown
     bne @done
-    ;; Fire spines.
-    lda #4
+    lda Zp_RoomState + sState::BossCooldown_u8
+    div #kBossSpineSlowdown
     sta T3  ; spine index
-    @spineLoop:
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
-    bcs @doneSpines
+    bcs @doneSpine
     jsr FuncC_Boss_City_SetPointToBossCenter  ; preserves X and T0+
     ldy T3  ; spine index
     lda _SpineOffsetX_i8_arr5, y
@@ -733,9 +740,9 @@ _BossShootSpines:
     jsr Func_SetActorCenterToPoint  ; preserves X, Y, and T0+
     lda _SpineAngle_u8_arr5, y  ; param: spine angle
     jsr FuncA_Room_InitActorProjSpine  ; preserves X and T3+
-    dec T3  ; spine index
-    bpl @spineLoop
-    @doneSpines:
+    @doneSpine:
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne @done
     ;; Chamge modes to stay closed for a bit.
     lda #eBossMode::Close
     sta Zp_RoomState + sState::Current_eBossMode
@@ -744,9 +751,9 @@ _BossShootSpines:
     @done:
     rts
 _SpineOffsetX_i8_arr5:
-    .byte <-21, <-11, 0, 11, 21
+    .byte 0, <-11, 11, <-21, 21
 _SpineAngle_u8_arr5:
-    .byte $60, $57, $40, $29, $20
+    .byte $40, $57, $29, $60, $20
 .ENDPROC
 
 .PROC FuncC_Boss_City_DrawRoom
