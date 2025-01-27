@@ -42,6 +42,7 @@
 .IMPORT FuncA_Room_MachineFieldReset
 .IMPORT Func_MachineFieldReadRegP
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjLava
 
@@ -86,7 +87,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Shadow_Teleport_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_ShadowTeleport_FadeInRoom
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
@@ -171,6 +172,11 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Shadow_Teleport_EnterRoom
+    ldx #eFlag::ShadowTeleportEnteredLab  ; param: flag
+    jmp Func_SetFlag
 .ENDPROC
 
 ;;;=========================================================================;;;

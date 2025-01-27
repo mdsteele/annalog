@@ -644,7 +644,7 @@ _BossHurt:
     sta Zp_RoomState + sState::Current_eBossMode
     jmp FuncA_Room_BossCity_DesolidifyBossPlatforms
     @resume:
-    lda #eBossMode::Open
+    lda #eBossMode::Close
     sta Zp_RoomState + sState::Current_eBossMode
     @done:
     rts
