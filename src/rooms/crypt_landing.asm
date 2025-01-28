@@ -63,7 +63,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_CryptLanding_EnterRoom
+    d_addr Enter_func_ptr, FuncC_Crypt_Landing_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_CryptLanding_FadeInRoom
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
@@ -119,12 +119,8 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
 ;;; @param A The bSpawn value for where the avatar is entering the room.
-.PROC FuncA_Room_CryptLanding_EnterRoom
+.PROC FuncC_Crypt_Landing_EnterRoom
     ;; If the player avatar didn't enter from the vertical shaft at the top, do
     ;; nothing.
     cmp #bSpawn::Passage | kShaftPassageIndex

@@ -162,9 +162,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_CryptTomb_EnterRoom
+    d_addr Enter_func_ptr, FuncC_Crypt_Tomb_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_CryptTomb_FadeInRoom
-    d_addr Tick_func_ptr, FuncA_Room_CryptTomb_TickRoom
+    d_addr Tick_func_ptr, FuncC_Crypt_Tomb_TickRoom
     d_addr Draw_func_ptr, FuncC_Crypt_Tomb_DrawRoom
     D_END
 _TerrainData:
@@ -184,8 +184,8 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Crypt_TombWinch_Init
     d_addr ReadReg_func_ptr, FuncC_Crypt_TombWinch_ReadReg
     d_addr WriteReg_func_ptr, FuncC_Crypt_TombWinch_WriteReg
-    d_addr TryMove_func_ptr, FuncC_Crypt_TombWinch_TryMove
-    d_addr TryAct_func_ptr, FuncC_Crypt_TombWinch_TryAct
+    d_addr TryMove_func_ptr, FuncA_Machine_CryptTombWinch_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_CryptTombWinch_TryAct
     d_addr Tick_func_ptr, FuncC_Crypt_TombWinch_Tick
     d_addr Draw_func_ptr, FuncC_Crypt_TombWinch_Draw
     d_addr Reset_func_ptr, FuncC_Crypt_TombWinch_Reset
@@ -308,6 +308,43 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;; Enter function for the CryptTomb room.
+;;; @param A The bSpawn value for where the avatar is entering the room.
+.PROC FuncC_Crypt_Tomb_EnterRoom
+    ;; If the player avatar enters the room from the doorway, remove the
+    ;; breakable floors (to ensure they aren't stuck down there).
+    cmp #bSpawn::Device | kCryptTombDoorDeviceIndex
+    beq _RemoveBreakableFloors
+    ;; If the weak floors have already been broken, remove them platforms.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombBrokeFloors
+    bne _RemoveBreakableFloors
+    ;; Otherwise, initialize the floors' HP.
+    lda #kNumWinchHitsToBreakFloor
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    rts
+_RemoveBreakableFloors:
+    lda #0
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    .assert ePlatform::None = 0, error
+    sta Ram_PlatformType_ePlatform_arr + kWeakFloor0PlatformIndex
+    sta Ram_PlatformType_ePlatform_arr + kWeakFloor1PlatformIndex
+    rts
+.ENDPROC
+
+.PROC FuncC_Crypt_Tomb_TickRoom
+    lda Zp_RoomState + sState::WeakFloorBlink_u8
+    beq @done
+    dec Zp_RoomState + sState::WeakFloorBlink_u8
+    bne @done
+    lda #kNumWinchHitsToBreakFloor
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
+    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
+    @done:
+    rts
+.ENDPROC
+
 ;;; Draw function for the CryptTomb room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Crypt_Tomb_DrawRoom
@@ -363,53 +400,6 @@ _WriteR:
     jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
-.PROC FuncC_Crypt_TombWinch_TryMove
-    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
-    .assert eDir::Up = 0, error
-    txa
-    beq _MoveUp
-    cpx #eDir::Down
-    beq _MoveDown
-_MoveHorz:
-    cpx #eDir::Left
-    beq @moveLeft
-    @moveRight:
-    cpy #kWinchMaxGoalX
-    bge _Error
-    iny
-    bne @checkFloor  ; unconditional
-    @moveLeft:
-    tya
-    beq _Error
-    dey
-    @checkFloor:
-    jsr FuncC_Crypt_GetTombFloorZ  ; returns A
-    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    blt _Error
-    sty Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
-    jmp FuncA_Machine_StartWorking
-_MoveUp:
-    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    beq _Error
-    dec Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp FuncA_Machine_StartWorking
-_MoveDown:
-    jsr FuncC_Crypt_GetTombFloorZ  ; returns A
-    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    beq _Error
-    inc Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp FuncA_Machine_StartWorking
-_Error:
-    jmp FuncA_Machine_Error
-.ENDPROC
-
-;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Crypt_TombWinch_TryAct
-    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex  ; param: goal X
-    jsr FuncC_Crypt_GetTombFloorZ  ; returns A (param: new Z-goal)
-    jmp FuncA_Machine_WinchStartFalling
-.ENDPROC
-
 ;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Crypt_TombWinch_Tick
 _MoveVert:
@@ -440,7 +430,7 @@ _MoveVert:
     jsr FuncA_Machine_IsWinchFallingFast  ; sets C if falling fast
     bcc @stopFalling  ; not falling fast enough
     ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex  ; param: goal X
-    jsr FuncC_Crypt_GetTombWeakFloorIndex  ; returns C and X
+    jsr FuncA_Machine_CryptTomb_GetWeakFloorIndex  ; returns C and X
     bcs @stopFalling  ; not over a breakable floor
     lda Zp_RoomState + sState::WeakFloorHp_u8_arr2, x
     beq @stopFalling  ; floor was already broken
@@ -465,7 +455,7 @@ _MoveVert:
     @notBothBroken:
     ;; Keep falling past where the breakable floor was.
     ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex  ; param: goal X
-    jsr FuncC_Crypt_GetTombFloorZ  ; returns A
+    jsr FuncA_Machine_CryptTomb_GetFloorZ  ; returns A
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     rts
     @stopFalling:
@@ -551,12 +541,62 @@ _Inner:
     jmp FuncA_Objects_DrawWinchMachineWithSpikeball
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_CryptTombWinch_TryMove
+    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    .assert eDir::Up = 0, error
+    txa
+    beq _MoveUp
+    cpx #eDir::Down
+    beq _MoveDown
+_MoveHorz:
+    cpx #eDir::Left
+    beq @moveLeft
+    @moveRight:
+    cpy #kWinchMaxGoalX
+    bge _Error
+    iny
+    bne @checkFloor  ; unconditional
+    @moveLeft:
+    tya
+    beq _Error
+    dey
+    @checkFloor:
+    jsr FuncA_Machine_CryptTomb_GetFloorZ  ; returns A
+    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    blt _Error
+    sty Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    jmp FuncA_Machine_StartWorking
+_MoveUp:
+    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    beq _Error
+    dec Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    jmp FuncA_Machine_StartWorking
+_MoveDown:
+    jsr FuncA_Machine_CryptTomb_GetFloorZ  ; returns A
+    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    beq _Error
+    inc Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    jmp FuncA_Machine_StartWorking
+_Error:
+    jmp FuncA_Machine_Error
+.ENDPROC
+
+.PROC FuncA_Machine_CryptTombWinch_TryAct
+    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex  ; param: goal X
+    jsr FuncA_Machine_CryptTomb_GetFloorZ  ; returns A (param: new Z-goal)
+    jmp FuncA_Machine_WinchStartFalling
+.ENDPROC
+
 ;;; Returns the CryptTombWinch machine's goal Z value for resting on the floor
 ;;; for a given goal X, taking the breakable floors into account.
 ;;; @param Y The goal X value.
 ;;; @return A The goal Z for the floor.
-.PROC FuncC_Crypt_GetTombFloorZ
-    jsr FuncC_Crypt_GetTombWeakFloorIndex  ; preserves Y, returns C and X
+.PROC FuncA_Machine_CryptTomb_GetFloorZ
+    jsr FuncA_Machine_CryptTomb_GetWeakFloorIndex  ; preserves Y; returns C, X
     bcs @solidFloor
     lda Zp_RoomState + sState::WeakFloorHp_u8_arr2, x
     beq @solidFloor
@@ -577,7 +617,7 @@ _SolidFloorZ_u8_arr:
 ;;; @return C Cleared if over a weak floor, set otherwise.
 ;;; @return X The weak floor index (0-1), if over a weak floor.
 ;;; @preserve Y
-.PROC FuncC_Crypt_GetTombWeakFloorIndex
+.PROC FuncA_Machine_CryptTomb_GetWeakFloorIndex
     cpy #kWeakFloor0GoalX
     beq @weakFloor0
     cpy #kWeakFloor1GoalX
@@ -592,51 +632,6 @@ _SolidFloorZ_u8_arr:
     @weakFloor1:
     ldx #1
     clc
-    rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; Enter function for the CryptTomb room.
-;;; @param A The bSpawn value for where the avatar is entering the room.
-.PROC FuncA_Room_CryptTomb_EnterRoom
-    ;; If the player avatar enters the room from the doorway, remove the
-    ;; breakable floors (to ensure they aren't stuck down there).
-    cmp #bSpawn::Device | kCryptTombDoorDeviceIndex
-    beq FuncA_Room_CryptTomb_RemoveBreakableFloors
-    ;; If the weak floors have already been broken, remove them platforms.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombBrokeFloors
-    bne FuncA_Room_CryptTomb_RemoveBreakableFloors
-    ;; Otherwise, initialize the floors' HP.
-    lda #kNumWinchHitsToBreakFloor
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
-    rts
-.ENDPROC
-
-;;; Helper function for this room's Init and Enter functions; removes the two
-;;; breakable floors from this room.
-.PROC FuncA_Room_CryptTomb_RemoveBreakableFloors
-    lda #0
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
-    .assert ePlatform::None = 0, error
-    sta Ram_PlatformType_ePlatform_arr + kWeakFloor0PlatformIndex
-    sta Ram_PlatformType_ePlatform_arr + kWeakFloor1PlatformIndex
-    rts
-.ENDPROC
-
-.PROC FuncA_Room_CryptTomb_TickRoom
-    lda Zp_RoomState + sState::WeakFloorBlink_u8
-    beq @done
-    dec Zp_RoomState + sState::WeakFloorBlink_u8
-    bne @done
-    lda #kNumWinchHitsToBreakFloor
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 0
-    sta Zp_RoomState + sState::WeakFloorHp_u8_arr2 + 1
-    @done:
     rts
 .ENDPROC
 

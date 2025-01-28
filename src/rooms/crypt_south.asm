@@ -163,9 +163,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_CryptSouth_EnterRoom
+    d_addr Enter_func_ptr, FuncC_Crypt_South_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_CryptSouth_FadeInRoom
-    d_addr Tick_func_ptr, FuncA_Room_CryptSouth_TickRoom
+    d_addr Tick_func_ptr, FuncC_Crypt_South_TickRoom
     d_addr Draw_func_ptr, FuncC_Crypt_South_DrawRoom
     D_END
 _TerrainData:
@@ -185,8 +185,8 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Crypt_SouthWinch_Init
     d_addr ReadReg_func_ptr, FuncC_Crypt_SouthWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Crypt_SouthWinch_TryMove
-    d_addr TryAct_func_ptr, FuncC_Crypt_SouthWinch_TryAct
+    d_addr TryMove_func_ptr, FuncA_Machine_CryptSouthWinch_TryMove
+    d_addr TryAct_func_ptr, FuncA_Machine_CryptSouthWinch_TryAct
     d_addr Tick_func_ptr, FuncC_Crypt_SouthWinch_Tick
     d_addr Draw_func_ptr, FuncC_Crypt_SouthWinch_Draw
     d_addr Reset_func_ptr, FuncC_Crypt_SouthWinch_Reset
@@ -288,6 +288,53 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;; Called when the player avatar enters the CryptSouth room.
+;;; @param A The bSpawn value for where the avatar is entering the room.
+.PROC FuncC_Crypt_South_EnterRoom
+_Scrolling:
+    ;; If entering from the lower passage or spawning at the lower console,
+    ;; don't lock scrolling (although normally that shouldn't be possible
+    ;; before the weak floor has been broken).
+    cmp #bSpawn::Passage | kLowerPassageIndex
+    beq @done
+    cmp #bSpawn::Device | kLowerConsoleDeviceIndex
+    beq @done
+    ;; If the weak floor has already been broken, don't lock scrolling.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthBrokeFloor
+    bne @done
+    ;; Otherwise, lock scrolling to the top half of the room.
+    @lockScrolling:
+    lda #bScroll::LockVert
+    sta Zp_Camera_bScroll
+    lda #0
+    sta Zp_RoomScrollY_u8
+    @done:
+_WeakFloor:
+    ;; If the weak floor hasn't been broken yet, initialize its HP.  Otherwise,
+    ;; remove its platform.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthBrokeFloor
+    bne @floorBroken
+    @floorSolid:
+    lda #kNumWinchHitsToBreakFloor
+    sta Zp_RoomState + sState::WeakFloorHp_u8
+    rts
+    @floorBroken:
+    lda #ePlatform::None
+    sta Ram_PlatformType_ePlatform_arr + kWeakFloorPlatformIndex
+    rts
+.ENDPROC
+
+.PROC FuncC_Crypt_South_TickRoom
+    lda Zp_RoomState + sState::WeakFloorBlink_u8
+    beq @done
+    dec Zp_RoomState + sState::WeakFloorBlink_u8
+    bne @done
+    lda #kNumWinchHitsToBreakFloor
+    sta Zp_RoomState + sState::WeakFloorHp_u8
+    @done:
+    rts
+.ENDPROC
+
 ;;; Draw function for the CryptSouth room.
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Crypt_South_DrawRoom
@@ -335,53 +382,6 @@ _ReadZ:
     lda #9
     @done:
     rts
-.ENDPROC
-
-.PROC FuncC_Crypt_SouthWinch_TryMove
-    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
-    .assert eDir::Up = 0, error
-    txa
-    beq _MoveUp
-    cpx #eDir::Down
-    beq _MoveDown
-_MoveHorz:
-    cpx #eDir::Left
-    beq @moveLeft
-    @moveRight:
-    cpy #kWinchMaxGoalX
-    bge _Error
-    iny
-    bne @checkFloor  ; unconditional
-    @moveLeft:
-    tya
-    beq _Error
-    dey
-    @checkFloor:
-    jsr FuncC_Crypt_GetSouthFloorZ  ; returns A
-    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    blt _Error
-    sty Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
-    jmp FuncA_Machine_StartWorking
-_MoveUp:
-    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    beq _Error
-    dec Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp FuncA_Machine_StartWorking
-_MoveDown:
-    jsr FuncC_Crypt_GetSouthFloorZ  ; returns A
-    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    beq _Error
-    inc Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
-    jmp FuncA_Machine_StartWorking
-_Error:
-    jmp FuncA_Machine_Error
-.ENDPROC
-
-;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Crypt_SouthWinch_TryAct
-    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex  ; param: goal X
-    jsr FuncC_Crypt_GetSouthFloorZ  ; returns A (param: new Z-goal)
-    jmp FuncA_Machine_WinchStartFalling
 .ENDPROC
 
 ;;; @prereq PRGA_Machine is loaded.
@@ -437,7 +437,7 @@ _MoveVert:
     sta Zp_Camera_bScroll
     ;; Keep falling past where the breakable floor was.
     ldy #kWeakFloorGoalX  ; param: goal X
-    jsr FuncC_Crypt_GetSouthFloorZ  ; returns A
+    jsr FuncA_Machine_CryptSouth_GetFloorZ  ; returns A
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     rts
     @stopFalling:
@@ -522,11 +522,61 @@ _ResetMachine:
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_CryptSouthWinch_TryMove
+    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    .assert eDir::Up = 0, error
+    txa
+    beq _MoveUp
+    cpx #eDir::Down
+    beq _MoveDown
+_MoveHorz:
+    cpx #eDir::Left
+    beq @moveLeft
+    @moveRight:
+    cpy #kWinchMaxGoalX
+    bge _Error
+    iny
+    bne @checkFloor  ; unconditional
+    @moveLeft:
+    tya
+    beq _Error
+    dey
+    @checkFloor:
+    jsr FuncA_Machine_CryptSouth_GetFloorZ  ; returns A
+    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    blt _Error
+    sty Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
+    jmp FuncA_Machine_StartWorking
+_MoveUp:
+    lda Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    beq _Error
+    dec Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    jmp FuncA_Machine_StartWorking
+_MoveDown:
+    jsr FuncA_Machine_CryptSouth_GetFloorZ  ; returns A
+    cmp Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    beq _Error
+    inc Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
+    jmp FuncA_Machine_StartWorking
+_Error:
+    jmp FuncA_Machine_Error
+.ENDPROC
+
+.PROC FuncA_Machine_CryptSouthWinch_TryAct
+    ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex  ; param: goal X
+    jsr FuncA_Machine_CryptSouth_GetFloorZ  ; returns A (param: new Z-goal)
+    jmp FuncA_Machine_WinchStartFalling
+.ENDPROC
+
 ;;; Returns the CryptSouthWinch machine's goal Z value for resting on the floor
 ;;; for a given goal X, taking the breakable floor into account.
 ;;; @param Y The goal X value.
 ;;; @return A The goal Z for the floor.
-.PROC FuncC_Crypt_GetSouthFloorZ
+.PROC FuncA_Machine_CryptSouth_GetFloorZ
     cpy #kWeakFloorGoalX
     bne @solidFloor
     lda Zp_RoomState + sState::WeakFloorHp_u8
@@ -538,57 +588,6 @@ _ResetMachine:
     rts
 _SolidFloor_u8_arr:
     .byte 6, 2, 6, 4, 6, 3, 6, 5, 17, 3
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; Called when the player avatar enters the CryptSouth room.
-;;; @param A The bSpawn value for where the avatar is entering the room.
-.PROC FuncA_Room_CryptSouth_EnterRoom
-_Scrolling:
-    ;; If entering from the lower passage or spawning at the lower console,
-    ;; don't lock scrolling (although normally that shouldn't be possible
-    ;; before the weak floor has been broken).
-    cmp #bSpawn::Passage | kLowerPassageIndex
-    beq @done
-    cmp #bSpawn::Device | kLowerConsoleDeviceIndex
-    beq @done
-    ;; If the weak floor has already been broken, don't lock scrolling.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthBrokeFloor
-    bne @done
-    ;; Otherwise, lock scrolling to the top half of the room.
-    @lockScrolling:
-    lda #bScroll::LockVert
-    sta Zp_Camera_bScroll
-    lda #0
-    sta Zp_RoomScrollY_u8
-    @done:
-_WeakFloor:
-    ;; If the weak floor hasn't been broken yet, initialize its HP.  Otherwise,
-    ;; remove its platform.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthBrokeFloor
-    bne @floorBroken
-    @floorSolid:
-    lda #kNumWinchHitsToBreakFloor
-    sta Zp_RoomState + sState::WeakFloorHp_u8
-    rts
-    @floorBroken:
-    lda #ePlatform::None
-    sta Ram_PlatformType_ePlatform_arr + kWeakFloorPlatformIndex
-    rts
-.ENDPROC
-
-.PROC FuncA_Room_CryptSouth_TickRoom
-    lda Zp_RoomState + sState::WeakFloorBlink_u8
-    beq @done
-    dec Zp_RoomState + sState::WeakFloorBlink_u8
-    bne @done
-    lda #kNumWinchHitsToBreakFloor
-    sta Zp_RoomState + sState::WeakFloorHp_u8
-    @done:
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -122,7 +122,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_CryptGallery_EnterRoom
+    d_addr Enter_func_ptr, FuncC_Crypt_Gallery_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_CryptGallery_FadeInRoom
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
@@ -141,14 +141,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, "W", "X", "Z"
     d_byte MainPlatform_u8, kWinchPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_CryptGalleryWinch_InitReset
+    d_addr Init_func_ptr, FuncC_Crypt_GalleryWinch_InitReset
     d_addr ReadReg_func_ptr, FuncC_Crypt_GalleryWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_CryptGalleryWinch_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_CryptGalleryWinch_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_CryptGalleryWinch_Tick
     d_addr Draw_func_ptr, FuncC_Crypt_GalleryWinch_Draw
-    d_addr Reset_func_ptr, FuncA_Room_CryptGalleryWinch_InitReset
+    d_addr Reset_func_ptr, FuncC_Crypt_GalleryWinch_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -248,6 +248,15 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+.PROC FuncC_Crypt_Gallery_EnterRoom
+    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
+    beq @done
+    lda #eDevice::None
+    sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
+    @done:
+    rts
+.ENDPROC
+
 .PROC FuncC_Crypt_GalleryWinch_ReadReg
     cmp #$f
     beq _ReadZ
@@ -286,20 +295,7 @@ _Chain:
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_CryptGallery_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
-    beq @done
-    lda #eDevice::None
-    sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex
-    @done:
-    rts
-.ENDPROC
-
-.PROC FuncA_Room_CryptGalleryWinch_InitReset
+.PROC FuncC_Crypt_GalleryWinch_InitReset
     lda #kWinchInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex
     lda #kWinchInitGoalZ

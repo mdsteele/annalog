@@ -590,7 +590,7 @@ _BossHurt:
 _BossWaiting:
     ;; Pick a new random vertical goal position.
     jsr Func_GetRandomByte  ; returns A
-    and #$03
+    mod #4
     tax
     lda _GoalPosY_u8_arr4, x
     sta Zp_RoomState + sState::BossGoalPosY_u8
@@ -624,7 +624,7 @@ _BossWaiting:
     @doNotStrafe:
     ;; Pick a new random horizontal goal position.
     jsr Func_GetRandomByte  ; returns A
-    and #$07
+    mod #8
     tax
     ;; TODO: Avoid picking a goal that would run the boss into the spikeball.
     lda _GoalPosX_u8_arr8, x

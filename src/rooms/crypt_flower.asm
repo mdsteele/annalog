@@ -121,14 +121,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, "W", 0, "Z"
     d_byte MainPlatform_u8, kWinchPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_CryptFlowerWinch_InitReset
+    d_addr Init_func_ptr, FuncC_Crypt_FlowerWinch_InitReset
     d_addr ReadReg_func_ptr, FuncC_Crypt_FlowerWinch_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_CryptFlowerWinch_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_CryptFlowerWinch_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_CryptFlowerWinch_Tick
     d_addr Draw_func_ptr, FuncC_Crypt_FlowerWinch_Draw
-    d_addr Reset_func_ptr, FuncA_Room_CryptFlowerWinch_InitReset
+    d_addr Reset_func_ptr, FuncC_Crypt_FlowerWinch_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -268,11 +268,7 @@ _ReadZ:
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_CryptFlowerWinch_InitReset
+.PROC FuncC_Crypt_FlowerWinch_InitReset
     lda #kWinchInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kWinchMachineIndex
     jmp Func_ResetWinchMachineState
