@@ -167,14 +167,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "D", 0, 0, "Z"
     d_byte MainPlatform_u8, kCranePlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_MineWestCrane_InitReset
+    d_addr Init_func_ptr, FuncC_Mine_WestCrane_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_WestCrane_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_MineWestCrane_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_MineWestCrane_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_MineWestCrane_Tick
     d_addr Draw_func_ptr, FuncC_Mine_WestCrane_Draw
-    d_addr Reset_func_ptr, FuncA_Room_MineWestCrane_InitReset
+    d_addr Reset_func_ptr, FuncC_Mine_WestCrane_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -310,11 +310,7 @@ _ReadZ:
     jmp FuncA_Objects_DrawCranePulleyAndRope
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_MineWestCrane_InitReset
+.PROC FuncC_Mine_WestCrane_InitReset
     lda #0
     sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
     sta Zp_RoomState + sState::CageIsGrasped_bool

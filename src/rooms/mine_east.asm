@@ -138,14 +138,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
     d_byte MainPlatform_u8, kHoistPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_MineEastHoist_InitReset
+    d_addr Init_func_ptr, FuncC_Mine_EastHoist_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_EastHoist_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_MineEastHoist_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_MineEastHoist_Tick
     d_addr Draw_func_ptr, FuncC_Mine_EastHoist_Draw
-    d_addr Reset_func_ptr, FuncA_Room_MineEastHoist_InitReset
+    d_addr Reset_func_ptr, FuncC_Mine_EastHoist_InitReset
     D_END
     .assert * - :- = kLiftMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -157,14 +157,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $50
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_MineEastLift_InitReset
+    d_addr Init_func_ptr, FuncC_Mine_EastLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_EastLift_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_MineEastLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_MineEastLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncA_Room_MineEastLift_InitReset
+    d_addr Reset_func_ptr, FuncC_Mine_EastLift_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -314,17 +314,13 @@ _Hoist:
     jmp FuncA_Objects_DrawHoistMachine
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_MineEastHoist_InitReset
+.PROC FuncC_Mine_EastHoist_InitReset
     lda #kHoistInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kHoistMachineIndex
     rts
 .ENDPROC
 
-.PROC FuncA_Room_MineEastLift_InitReset
+.PROC FuncC_Mine_EastLift_InitReset
     lda #kLiftInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
     rts

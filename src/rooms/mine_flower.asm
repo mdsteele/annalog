@@ -151,14 +151,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
     d_byte MainPlatform_u8, kHoistWestPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_MineFlowerHoistWest_InitReset
+    d_addr Init_func_ptr, FuncC_Mine_FlowerHoistWest_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_FlowerHoistWest_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_MineFlowerHoistWest_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_MineFlowerHoistWest_Tick
     d_addr Draw_func_ptr, FuncC_Mine_FlowerHoistWest_Draw
-    d_addr Reset_func_ptr, FuncA_Room_MineFlowerHoistWest_InitReset
+    d_addr Reset_func_ptr, FuncC_Mine_FlowerHoistWest_InitReset
     D_END
     .assert * - :- = kHoistEastMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -170,14 +170,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, 0, 0, 0, "Z"
     d_byte MainPlatform_u8, kHoistEastPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_MineFlowerHoistEast_InitReset
+    d_addr Init_func_ptr, FuncC_Mine_FlowerHoistEast_InitReset
     d_addr ReadReg_func_ptr, FuncC_Mine_FlowerHoistEast_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_MineFlowerHoistEast_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_MineFlowerHoistEast_Tick
     d_addr Draw_func_ptr, FuncC_Mine_FlowerHoistEast_Draw
-    d_addr Reset_func_ptr, FuncA_Room_MineFlowerHoistEast_InitReset
+    d_addr Reset_func_ptr, FuncC_Mine_FlowerHoistEast_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -370,17 +370,13 @@ _DrawRope:
     jmp FuncA_Objects_MoveShapeUpOneTile
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_MineFlowerHoistWest_InitReset
+.PROC FuncC_Mine_FlowerHoistWest_InitReset
     lda #kHoistWestInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kHoistWestMachineIndex
     rts
 .ENDPROC
 
-.PROC FuncA_Room_MineFlowerHoistEast_InitReset
+.PROC FuncC_Mine_FlowerHoistEast_InitReset
     lda #kHoistEastInitGoalZ
     sta Ram_MachineGoalVert_u8_arr + kHoistEastMachineIndex
     rts
