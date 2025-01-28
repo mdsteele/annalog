@@ -198,6 +198,7 @@ kBossHurtMoveDistPx = 60
 ;;; Modes that the boss in this room can be in.
 .ENUM eBossMode
     Dead
+    Waiting   ; pausing before choosing a new goal position
     Firing    ; moving to goal position, shooting fireballs
     Strafing  ; moving from one side of the room to the other, dropping embers
     Hurt      ; just got hit, moving away and eye flashing
@@ -515,6 +516,7 @@ _CheckMode:
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBossMode
     d_entry table, Dead,     Func_Noop
+    d_entry table, Waiting,  _BossWaiting
     d_entry table, Firing,   _BossFiring
     d_entry table, Strafing, _BossStrafing
     d_entry table, Hurt,     _BossHurt
@@ -523,42 +525,45 @@ _CheckMode:
 _BossFiring:
     ;; If the boss is still cooling down, we're done.
     lda Zp_RoomState + sState::BossCooldown_u8
-    bne @done
-    ;; If the boss has already fired all its fireballs for now, then pick a new
-    ;; goal position.
+    bne _Return
+    ;; If the boss has already fired all its fireballs for now, start waiting.
     lda Zp_RoomState + sState::BossFireCount_u8
-    beq _PickNewGoal
+    bne @shootFireball
+    lda #220  ; param: wait frames
+    bne _StartWaiting  ; unconditional
+    @shootFireball:
     ;; Otherwise, shoot some fireballs.
     jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @done
+    bcs _Return
     ldy #kBossBodyPlatformIndex  ; param: platform index
     jsr Func_SetPointToPlatformCenter  ; preserves X
     jsr Func_SetActorCenterToPoint  ; preserves X
     jsr Func_GetAngleFromPointToAvatar  ; preserves X, returns A (param: angle)
     jsr Func_InitActorProjFireball
     dec Zp_RoomState + sState::BossFireCount_u8
-    beq @longWait
-    @shortWait:
     lda #30
-    bne @setCooldown  ; unconditional
-    @longWait:
-    lda #240
-    @setCooldown:
     sta Zp_RoomState + sState::BossCooldown_u8
     jmp Func_PlaySfxShootFire
-    @done:
+_StartWaiting:
+    sta Zp_RoomState + sState::BossCooldown_u8
+    lda #eBossMode::Waiting
+    sta Zp_RoomState + sState::Current_eBossMode
+_Return:
     rts
 _BossStrafing:
     ;; If the boss is still cooling down, we're done.
     lda Zp_RoomState + sState::BossCooldown_u8
-    bne @done
+    bne _Return
     ;; If the boss has already dropped all its embers for this strafing run,
-    ;; then pick a new goal position.
+    ;; start waiting.
     lda Zp_RoomState + sState::BossFireCount_u8
-    beq _PickNewGoal
+    bne @dropEmber
+    lda #120  ; param: wait frames
+    bne _StartWaiting  ; unconditional
+    @dropEmber:
     ;; Otherwise, drop an ember.
     jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @done
+    bcs _Return
     ldy #kBossBodyPlatformIndex  ; param: platform index
     jsr Func_SetPointToPlatformCenter  ; preserves X
     jsr Func_SetActorCenterToPoint  ; preserves X
@@ -566,29 +571,60 @@ _BossStrafing:
     lda #15  ; 0.25 seconds
     sta Zp_RoomState + sState::BossCooldown_u8
     dec Zp_RoomState + sState::BossFireCount_u8
-    @done:
-    rts
+    jmp Func_PlaySfxShootFire
 _BossHurt:
     ;; If the boss is still cooling down, we're done.
     lda Zp_RoomState + sState::BossCooldown_u8
-    bne @done
+    bne _Return
     ;; If the boss is at zero health, it dies.  Otherwise, get ready to pick a
     ;; new goal position.
     lda Zp_RoomState + sState::BossHealth_u8
-    bne @moveSoon
+    bne @startWaiting
     .assert eBossMode::Dead = 0, error
     sta Zp_RoomState + sState::Current_eBossMode
-    beq @done  ; unconditional
-    @moveSoon:
-    lda #0
-    sta Zp_RoomState + sState::BossFireCount_u8
-    lda #60
-    sta Zp_RoomState + sState::BossCooldown_u8
-    lda #eBossMode::Firing
-    sta Zp_RoomState + sState::Current_eBossMode
-    @done:
     rts
+    @startWaiting:
+    lda #60  ; param: wait frames
+    bne _StartWaiting  ; unconditional
+_BossWaiting:
+    ;; Pick a new goal once the cooldown expires.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne _Return
 _PickNewGoal:
+    ;; Pick a new random vertical goal position.
+    jsr Func_GetRandomByte  ; returns A
+    and #$03
+    tax
+    lda _GoalPosY_u8_arr4, x
+    sta Zp_RoomState + sState::BossGoalPosY_u8
+    ;; If the boss isn't near the room's edge, definitely don't start strafing.
+    lda Zp_RoomState + sState::BossGoalPosX_u8
+    cmp #$50
+    blt @maybeStrafe
+    cmp #$b0
+    blt @doNotStrafe
+    ;; If the boss is near the room's edge, start strafing 50% of the time.
+    @maybeStrafe:
+    jsr Func_GetRandomByte  ; returns N
+    bmi @doNotStrafe
+    ;; When strafing, pick a goal on the far edge of the room.
+    @doStrafe:
+    lda Zp_RoomState + sState::BossGoalPosX_u8
+    bpl @strafeToTheRight
+    @strafeToTheLeft:
+    lda #$48
+    bne @setStrafeGoal  ; unconditional
+    @strafeToTheRight:
+    lda #$b8
+    @setStrafeGoal:
+    sta Zp_RoomState + sState::BossGoalPosX_u8
+    ;; Start strafing.
+    lda #eBossMode::Strafing
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #6
+    sta Zp_RoomState + sState::BossFireCount_u8
+    rts
+    @doNotStrafe:
     ;; TODO: if at edge of room, 50% chance to start strafing
     ;; Pick a new random horizontal goal position.
     jsr Func_GetRandomByte  ; returns A
@@ -597,12 +633,6 @@ _PickNewGoal:
     ;; TODO: Avoid picking a goal that would run the boss into the spikeball.
     lda _GoalPosX_u8_arr8, x
     sta Zp_RoomState + sState::BossGoalPosX_u8
-    ;; Pick a new random vertical goal position.
-    jsr Func_GetRandomByte  ; returns A
-    and #$03
-    tax
-    lda _GoalPosY_u8_arr4, x
-    sta Zp_RoomState + sState::BossGoalPosY_u8
     ;; Commence firing.
     lda #eBossMode::Firing
     sta Zp_RoomState + sState::Current_eBossMode
@@ -834,24 +864,24 @@ _SetEyeShapePosition:
 _SetUpIrq:
     ;; Compute the IRQ latch value to set between the bottom of the boss's zone
     ;; and the top of the window (if any), and set that as Param4_byte.
-    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    lda Zp_Buffered_sIrq + sIrq::Latch_u8
     sub #kBossZoneBottomY
     add Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Param4_byte)  ; window latch
+    sta Zp_Buffered_sIrq + sIrq::Param4_byte  ; window latch
     ;; Set up our own sIrq struct to handle boss movement.
     lda #kBossZoneTopY - 1
     sub Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_BossCryptZoneTopIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
     ;; Compute PPU scroll values for the boss zone.
     lda #kBossStartCol * kTileWidthPx + kBossWidthPx / 2
     sub Zp_ShapePosX_i16 + 0
-    sta <(Zp_Buffered_sIrq + sIrq::Param1_byte)  ; boss scroll-X
+    sta Zp_Buffered_sIrq + sIrq::Param1_byte  ; boss scroll-X
     lda #kBossStartRow * kTileHeightPx + kBossHeightPx / 2 + kBossZoneTopY
     sub Zp_ShapePosY_i16 + 0
     sub Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
+    sta Zp_Buffered_sIrq + sIrq::Param2_byte  ; boss scroll-Y
 _CalculateBossEyeLean:
     ldx Zp_RoomState + sState::BossVelX_i16 + 0
     lda Zp_RoomState + sState::BossVelX_i16 + 1
@@ -971,7 +1001,7 @@ _InitBoss:
 _BossIsDead:
     rts
 _BossIsAlive:
-    lda #eBossMode::Firing
+    lda #eBossMode::Waiting
     sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossInitHealth
     sta Zp_RoomState + sState::BossHealth_u8
@@ -1198,12 +1228,12 @@ _Return:
     ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
     lda #3 << 2  ; nametable number << 2
     sta Hw_PpuAddr_w2
-    lda <(Zp_Active_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
+    lda Zp_Active_sIrq + sIrq::Param2_byte  ; boss scroll-Y
     sta Hw_PpuScroll_w2
     and #$38
     mul #4
     sta Zp_IrqTmp_byte  ; ((Y & $38) << 2)
-    lda <(Zp_Active_sIrq + sIrq::Param1_byte)  ; boss scroll-X
+    lda Zp_Active_sIrq + sIrq::Param1_byte  ; boss scroll-X
     tax  ; new scroll-X value
     div #8
     ora Zp_IrqTmp_byte
