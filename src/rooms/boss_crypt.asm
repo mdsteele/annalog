@@ -503,6 +503,7 @@ _CoolDown:
     lda Zp_RoomState + sState::BossCooldown_u8
     beq _CheckMode
     dec Zp_RoomState + sState::BossCooldown_u8
+    rts
 _CheckMode:
     ;; Branch based on the current boss mode.
     ldy Zp_RoomState + sState::Current_eBossMode
@@ -523,9 +524,6 @@ _CheckMode:
     D_END
 .ENDREPEAT
 _BossFiring:
-    ;; If the boss is still cooling down, we're done.
-    lda Zp_RoomState + sState::BossCooldown_u8
-    bne _Return
     ;; If the boss has already fired all its fireballs for now, start waiting.
     lda Zp_RoomState + sState::BossFireCount_u8
     bne @shootFireball
@@ -551,17 +549,10 @@ _StartWaiting:
 _Return:
     rts
 _BossStrafing:
-    ;; If the boss is still cooling down, we're done.
-    lda Zp_RoomState + sState::BossCooldown_u8
-    bne _Return
-    ;; If the boss has already dropped all its embers for this strafing run,
-    ;; start waiting.
+    ;; If the boss has more embers to drop for this strafing run, drop another
+    ;; ember.
     lda Zp_RoomState + sState::BossFireCount_u8
-    bne @dropEmber
-    lda #120  ; param: wait frames
-    bne _StartWaiting  ; unconditional
-    @dropEmber:
-    ;; Otherwise, drop an ember.
+    beq @noMoreEmbers
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs _Return
     ldy #kBossBodyPlatformIndex  ; param: platform index
@@ -572,10 +563,20 @@ _BossStrafing:
     sta Zp_RoomState + sState::BossCooldown_u8
     dec Zp_RoomState + sState::BossFireCount_u8
     jmp Func_PlaySfxShootFire
+    @noMoreEmbers:
+    ;; Otherwise, hide under the nearby platform and start waiting.
+    lda Zp_RoomState + sState::BossGoalPosX_u8
+    bmi @rightSide
+    @leftSide:
+    lda #$58
+    bne @setHideGoal  ; unconditional
+    @rightSide:
+    lda #$a8
+    @setHideGoal:
+    sta Zp_RoomState + sState::BossGoalPosX_u8
+    lda #170  ; param: wait frames
+    bne _StartWaiting  ; unconditional
 _BossHurt:
-    ;; If the boss is still cooling down, we're done.
-    lda Zp_RoomState + sState::BossCooldown_u8
-    bne _Return
     ;; If the boss is at zero health, it dies.  Otherwise, get ready to pick a
     ;; new goal position.
     lda Zp_RoomState + sState::BossHealth_u8
@@ -587,10 +588,6 @@ _BossHurt:
     lda #60  ; param: wait frames
     bne _StartWaiting  ; unconditional
 _BossWaiting:
-    ;; Pick a new goal once the cooldown expires.
-    lda Zp_RoomState + sState::BossCooldown_u8
-    bne _Return
-_PickNewGoal:
     ;; Pick a new random vertical goal position.
     jsr Func_GetRandomByte  ; returns A
     and #$03
@@ -625,7 +622,6 @@ _PickNewGoal:
     sta Zp_RoomState + sState::BossFireCount_u8
     rts
     @doNotStrafe:
-    ;; TODO: if at edge of room, 50% chance to start strafing
     ;; Pick a new random horizontal goal position.
     jsr Func_GetRandomByte  ; returns A
     and #$07
@@ -645,7 +641,7 @@ _PickNewGoal:
     sta Zp_RoomState + sState::BossFireCount_u8
     rts
 _GoalPosX_u8_arr8:
-    .byte $48, $58, $68, $78, $88, $98, $a8, $b8
+    .byte $48, $68, $68, $78, $88, $98, $98, $b8
 _GoalPosY_u8_arr4:
     .byte $74, $77, $7a, $7c
 .ENDPROC
