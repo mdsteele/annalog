@@ -615,7 +615,7 @@ _CheckMode:
     D_END
 .ENDREPEAT
 _BossHurt:
-    jsr FuncC_Boss_City_OpenShell
+    jsr FuncA_Room_BossCity_OpenShell
     ;; Blink the boss core.
     lda Zp_RoomState + sState::BossCooldown_u8
     and #$02
@@ -649,7 +649,7 @@ _BossHurt:
     @done:
     rts
 _BossOpen:
-    jsr FuncC_Boss_City_OpenShell
+    jsr FuncA_Room_BossCity_OpenShell
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
     jsr Func_GetRandomByte  ; returns N
@@ -663,7 +663,7 @@ _BossOpen:
     rts
 _ShootBreakbombs:
     ;; Shoot a pair of breakbombs.
-    jsr FuncC_Boss_City_SetPointToBossCenter
+    jsr FuncA_Room_BossCity_SetPointToBossCenter
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs @doneBreakbombs
     jsr Func_SetActorCenterToPoint  ; preserves X
@@ -683,7 +683,7 @@ _ShootBreakbombs:
     @done:
     rts
 _BossClose:
-    jsr FuncC_Boss_City_CloseShell
+    jsr FuncA_Room_BossCity_CloseShell
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
@@ -698,14 +698,14 @@ _BossClose:
     @done:
     rts
 _BossWeaving:
-    jsr FuncC_Boss_City_CloseShell
-    jsr FuncC_Boss_City_MoveBossHorz
-    jsr FuncC_Boss_City_MoveBossVert
+    jsr FuncA_Room_BossCity_CloseShell
+    jsr FuncA_Room_BossCity_MoveBossHorz
+    jsr FuncA_Room_BossCity_MoveBossVert
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
     ;; Wait for the boss's vertical position to be valid for opening its shell.
-    jsr FuncC_Boss_City_SetPointToBossCenter
+    jsr FuncA_Room_BossCity_SetPointToBossCenter
     lda Zp_PointY_i16 + 0
     cmp #kBossMinCenterOpenY
     blt @done
@@ -719,7 +719,7 @@ _BossWeaving:
     @done:
     rts
 _BossShootSpines:
-    jsr FuncC_Boss_City_CloseShell
+    jsr FuncA_Room_BossCity_CloseShell
     ;; Wait for the shell to be fully closed.
     lda Zp_RoomState + sState::BossCooldown_u8
     cmp #kBossSpineSlowdown * 5
@@ -731,7 +731,7 @@ _BossShootSpines:
     sta T3  ; spine index
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @doneSpine
-    jsr FuncC_Boss_City_SetPointToBossCenter  ; preserves X and T0+
+    jsr FuncA_Room_BossCity_SetPointToBossCenter  ; preserves X and T0+
     ldy T3  ; spine index
     lda _SpineOffsetX_i8_arr5, y
     jsr Func_MovePointHorz  ; preserves X, Y, and T0+
@@ -853,118 +853,6 @@ _DrawBackgroundTerrainObjects:
     rts
 .ENDPROC
 
-;;; Opens the boss's shell by one step.
-.PROC FuncC_Boss_City_OpenShell
-    lda Zp_RoomState + sState::BossShellOpen_u8
-    cmp #.sizeof(DataC_Boss_City_ShellOffset_u8_arr) - 1
-    bge @done
-    inc Zp_RoomState + sState::BossShellOpen_u8
-    bne FuncC_Boss_City_AdjustShellPlatformsVert  ; unconditional
-    @done:
-    rts
-.ENDPROC
-
-;;; Closes the boss's shell by one step.
-.PROC FuncC_Boss_City_CloseShell
-    lda Zp_RoomState + sState::BossShellOpen_u8
-    bne @open
-    rts
-    @open:
-    dec Zp_RoomState + sState::BossShellOpen_u8
-    fall FuncC_Boss_City_AdjustShellPlatformsVert
-.ENDPROC
-
-;;; Adjusts the boss's two shell platforms to their correct vertical position,
-;;; based on the boss's vertical position and on BossShellOpen_u8.
-.PROC FuncC_Boss_City_AdjustShellPlatformsVert
-    jsr FuncC_Boss_City_SetPointToBossCenter
-    ldx Zp_RoomState + sState::BossShellOpen_u8
-    lda DataC_Boss_City_ShellOffset_u8_arr, x  ; param: offset
-    pha  ; shell offset
-    jsr Func_MovePointDownByA
-    ldx #kBossShellLowerPlatformIndex  ; param: platform index
-    lda #127  ; param: max move by
-    jsr Func_MovePlatformTopTowardPointY
-    pla  ; shell offset
-    mul #2  ; clears carry bit
-    adc #kBossShellHeightPx
-    jsr Func_MovePointUpByA
-    ldx #kBossShellUpperPlatformIndex  ; param: platform index
-    lda #127  ; param: max move by
-    jmp Func_MovePlatformTopTowardPointY
-.ENDPROC
-
-;;; Moves the boss horizontally, with sinusoidal motion.
-.PROC FuncC_Boss_City_MoveBossHorz
-    inc Zp_RoomState + sState::BossHorzTheta_u8
-    ;; Store the horizontal goal position for the left of the boss's body
-    ;; platform in Zp_PointX_i16.
-    lda Zp_RoomState + sState::BossHorzTheta_u8
-    jsr Func_Sine  ; returns A (param: signed multiplicand)
-    ldy #kBossHorzAmplitude  ; param: unsigned multiplier
-    jsr Func_SignedMult  ; returns YA
-    tya
-    add #kBossInitCenterX - kBossBodyWidthPx / 2
-    sta Zp_PointX_i16 + 0
-    lda #0
-    sta Zp_PointX_i16 + 1
-_MovePlatforms:
-    ldx #kBossBodyPlatformIndex  ; param: platform index
-    lda #127  ; param: max move by
-    jsr Func_MovePlatformLeftTowardPointX  ; returns A
-    pha  ; move delta
-    ldx #kBossCorePlatformIndex  ; param: platform index
-    jsr Func_MovePlatformHorz
-    pla  ; param: move delta
-    pha  ; move delta
-    ldx #kBossShellUpperPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformHorz
-    pla  ; param: move delta
-    ldx #kBossShellLowerPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformHorz
-.ENDPROC
-
-;;; Moves the boss vertically, with sinusoidal motion.
-.PROC FuncC_Boss_City_MoveBossVert
-    ;; Increase vertical speed as the boss takes damage.
-    lda #kBossInitHealth + 4
-    sub Zp_RoomState + sState::BossHealth_u8
-    div #2
-    add Zp_RoomState + sState::BossVertTheta_u8
-    sta Zp_RoomState + sState::BossVertTheta_u8
-    ;; Store the vertical goal position for the top of the boss's body platform
-    ;; in Zp_PointY_i16.
-    jsr Func_Sine  ; returns A (param: signed multiplicand)
-    ldy #kBossVertAmplitude  ; param: unsigned multiplier
-    jsr Func_SignedMult  ; returns YA
-    tya
-    add #kBossInitCenterY - kBossBodyHeightPx / 2
-    sta Zp_PointY_i16 + 0
-    lda #0
-    sta Zp_PointY_i16 + 1
-_MovePlatforms:
-    ldx #kBossBodyPlatformIndex  ; param: platform index
-    lda #127  ; param: max move by
-    jsr Func_MovePlatformTopTowardPointY  ; returns A
-    pha  ; move delta
-    ldx #kBossCorePlatformIndex  ; param: platform index
-    jsr Func_MovePlatformVert
-    pla  ; param: move delta
-    pha  ; move delta
-    ldx #kBossShellUpperPlatformIndex  ; param: platform index
-    jsr Func_MovePlatformVert
-    pla  ; param: move delta
-    ldx #kBossShellLowerPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformVert
-.ENDPROC
-
-;;; Stores the room pixel position of the center of the boss in Zp_Point*_i16.
-;;; @preserve X, T0+
-.PROC FuncC_Boss_City_SetPointToBossCenter
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jmp Func_SetPointToPlatformCenter  ; preserves X and T0+
-.ENDPROC
-
 .PROC FuncC_Boss_CityLauncher_ReadReg
     cmp #$f
     bne FuncC_Boss_City_ReadRegLR
@@ -1076,6 +964,121 @@ _TickBoss:
     sta Ram_PlatformType_ePlatform_arr + kBossShellUpperPlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kBossShellLowerPlatformIndex
     rts
+.ENDPROC
+
+;;; Opens the boss's shell by one step.
+;;; @prereq PRGC_Boss is loaded.
+.PROC FuncA_Room_BossCity_OpenShell
+    lda Zp_RoomState + sState::BossShellOpen_u8
+    cmp #.sizeof(DataC_Boss_City_ShellOffset_u8_arr) - 1
+    bge @done
+    inc Zp_RoomState + sState::BossShellOpen_u8
+    bne FuncA_Room_BossCity_AdjustShellPlatformsVert  ; unconditional
+    @done:
+    rts
+.ENDPROC
+
+;;; Closes the boss's shell by one step.
+;;; @prereq PRGC_Boss is loaded.
+.PROC FuncA_Room_BossCity_CloseShell
+    lda Zp_RoomState + sState::BossShellOpen_u8
+    bne @open
+    rts
+    @open:
+    dec Zp_RoomState + sState::BossShellOpen_u8
+    fall FuncA_Room_BossCity_AdjustShellPlatformsVert
+.ENDPROC
+
+;;; Adjusts the boss's two shell platforms to their correct vertical position,
+;;; based on the boss's vertical position and on BossShellOpen_u8.
+;;; @prereq PRGC_Boss is loaded.
+.PROC FuncA_Room_BossCity_AdjustShellPlatformsVert
+    jsr FuncA_Room_BossCity_SetPointToBossCenter
+    ldx Zp_RoomState + sState::BossShellOpen_u8
+    lda DataC_Boss_City_ShellOffset_u8_arr, x  ; param: offset
+    pha  ; shell offset
+    jsr Func_MovePointDownByA
+    ldx #kBossShellLowerPlatformIndex  ; param: platform index
+    lda #127  ; param: max move by
+    jsr Func_MovePlatformTopTowardPointY
+    pla  ; shell offset
+    mul #2  ; clears carry bit
+    adc #kBossShellHeightPx
+    jsr Func_MovePointUpByA
+    ldx #kBossShellUpperPlatformIndex  ; param: platform index
+    lda #127  ; param: max move by
+    jmp Func_MovePlatformTopTowardPointY
+.ENDPROC
+
+;;; Stores the room pixel position of the center of the boss in Zp_Point*_i16.
+;;; @preserve X, T0+
+.PROC FuncA_Room_BossCity_SetPointToBossCenter
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jmp Func_SetPointToPlatformCenter  ; preserves X and T0+
+.ENDPROC
+
+;;; Moves the boss horizontally, with sinusoidal motion.
+.PROC FuncA_Room_BossCity_MoveBossHorz
+    inc Zp_RoomState + sState::BossHorzTheta_u8
+    ;; Store the horizontal goal position for the left of the boss's body
+    ;; platform in Zp_PointX_i16.
+    lda Zp_RoomState + sState::BossHorzTheta_u8
+    jsr Func_Sine  ; returns A (param: signed multiplicand)
+    ldy #kBossHorzAmplitude  ; param: unsigned multiplier
+    jsr Func_SignedMult  ; returns YA
+    tya
+    add #kBossInitCenterX - kBossBodyWidthPx / 2
+    sta Zp_PointX_i16 + 0
+    lda #0
+    sta Zp_PointX_i16 + 1
+_MovePlatforms:
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    lda #127  ; param: max move by
+    jsr Func_MovePlatformLeftTowardPointX  ; returns A
+    pha  ; move delta
+    ldx #kBossCorePlatformIndex  ; param: platform index
+    jsr Func_MovePlatformHorz
+    pla  ; param: move delta
+    pha  ; move delta
+    ldx #kBossShellUpperPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformHorz
+    pla  ; param: move delta
+    ldx #kBossShellLowerPlatformIndex  ; param: platform index
+    jmp Func_MovePlatformHorz
+.ENDPROC
+
+;;; Moves the boss vertically, with sinusoidal motion.
+.PROC FuncA_Room_BossCity_MoveBossVert
+    ;; Increase vertical speed as the boss takes damage.
+    lda #kBossInitHealth + 4
+    sub Zp_RoomState + sState::BossHealth_u8
+    div #2
+    add Zp_RoomState + sState::BossVertTheta_u8
+    sta Zp_RoomState + sState::BossVertTheta_u8
+    ;; Store the vertical goal position for the top of the boss's body platform
+    ;; in Zp_PointY_i16.
+    jsr Func_Sine  ; returns A (param: signed multiplicand)
+    ldy #kBossVertAmplitude  ; param: unsigned multiplier
+    jsr Func_SignedMult  ; returns YA
+    tya
+    add #kBossInitCenterY - kBossBodyHeightPx / 2
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointY_i16 + 1
+_MovePlatforms:
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    lda #127  ; param: max move by
+    jsr Func_MovePlatformTopTowardPointY  ; returns A
+    pha  ; move delta
+    ldx #kBossCorePlatformIndex  ; param: platform index
+    jsr Func_MovePlatformVert
+    pla  ; param: move delta
+    pha  ; move delta
+    ldx #kBossShellUpperPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformVert
+    pla  ; param: move delta
+    ldx #kBossShellLowerPlatformIndex  ; param: platform index
+    jmp Func_MovePlatformVert
 .ENDPROC
 
 .PROC FuncA_Room_BossCityLauncher_InitReset

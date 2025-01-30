@@ -497,7 +497,7 @@ _Inner:
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Crypt_TickBoss
     jsr FuncC_Boss_Crypt_CheckForSpikeballHit
-    jsr FuncC_Boss_Crypt_MoveBossTowardGoal
+    jsr FuncA_Room_BossCrypt_MoveBossTowardGoal
     jsr FuncA_Room_BossCrypt_SetBossEyeDir
 _CoolDown:
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -683,143 +683,6 @@ _GoalPosY_u8_arr4:
     @setGoal:
     sta Zp_RoomState + sState::BossGoalPosX_u8
     @done:
-    rts
-.ENDPROC
-
-;;; Moves the center of the boss closer to the boss's goal position by one
-;;; frame tick.
-.PROC FuncC_Boss_Crypt_MoveBossTowardGoal
-    ldx #kBossBodyPlatformIndex  ; param: platform index
-_ApplyVelocityX:
-    lda Zp_RoomState + sState::BossSubX_u8
-    add Zp_RoomState + sState::BossVelX_i16 + 0
-    sta Zp_RoomState + sState::BossSubX_u8
-    lda Ram_PlatformLeft_i16_0_arr + kBossBodyPlatformIndex
-    adc Zp_RoomState + sState::BossVelX_i16 + 1
-    sta Zp_PointX_i16 + 0
-    lda #0
-    sta Zp_PointX_i16 + 1
-    lda #127  ; param: max move by
-    jsr Func_MovePlatformLeftTowardPointX  ; preserves X
-_ApplyVelocityY:
-    lda Zp_RoomState + sState::BossSubY_u8
-    add Zp_RoomState + sState::BossVelY_i16 + 0
-    sta Zp_RoomState + sState::BossSubY_u8
-    lda Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
-    adc Zp_RoomState + sState::BossVelY_i16 + 1
-    sta Zp_PointY_i16 + 0
-    lda #0
-    sta Zp_PointY_i16 + 1
-    lda #127  ; param: max move by
-    jsr Func_MovePlatformTopTowardPointY
-_AccelerateTowardGoalX:
-    ;; Compute the (signed) delta from the boss's current X-position to its
-    ;; goal X-position, in pixels, storing it in YA.
-    ldy #0
-    lda Zp_RoomState + sState::BossGoalPosX_u8
-    sub #kBossWidthPx / 2
-    sub Ram_PlatformLeft_i16_0_arr + kBossBodyPlatformIndex
-    bge @nonneg
-    dey  ; now Y is $ff
-    @nonneg:
-    ;; Use the position delta in pixels as an acceleration in subpixels per
-    ;; frame, adding it to the boss's current velocity, storing the updated
-    ;; velocity in T1X.
-    add Zp_RoomState + sState::BossVelX_i16 + 0
-    tax     ; new X-velocity (lo)
-    tya     ; acceleration (hi)
-    adc Zp_RoomState + sState::BossVelX_i16 + 1
-    sta T1  ; new X-velocity (hi)
-_ApplyDragX:
-    ;; Divide the updated velocity by 16 to get a (negative) drag force,
-    ;; storing it in YA.  We do this signed division by multiplying by 16, then
-    ;; chopping off the last byte to divide by 256.
-    ldy #0
-    stx T0  ; new X-velocity (lo)
-    .repeat 4
-    asl T0
-    rol a
-    .endrepeat
-    bpl @nonneg
-    dey  ; now Y is $ff
-    @nonneg:
-    ;; Subtract the (negative) drag force in YA from the new velocity in T1X,
-    ;; storing the resulting velocity in AX.
-    sta T0   ; negative drag force (lo)
-    txa      ; new X-velocity (lo)
-    sub T0   ; negative drag force (lo)
-    tax      ; new X-velocity (lo)
-    tya      ; negative drag force (hi)
-    rsbc T1  ; new X-velocity (hi)
-    ;; Clamp the new velocity to +/- kBossMaxSpeedX.
-    bpl @movingRight
-    @movingLeft:
-    cmp #<-kBossMaxSpeedX
-    bge @setVelToAX
-    lda #<-kBossMaxSpeedX
-    ldx #0
-    beq @setVelToAX  ; unconditional
-    @movingRight:
-    cmp #kBossMaxSpeedX
-    blt @setVelToAX
-    lda #kBossMaxSpeedX
-    ldx #0
-    @setVelToAX:
-    stax Zp_RoomState + sState::BossVelX_i16
-_AccelerateTowardGoalY:
-    ;; Compute the (signed) delta from the boss's current Y-position to its
-    ;; goal Y-position, in pixels, storing it in YA.
-    ldy #0
-    lda Zp_RoomState + sState::BossGoalPosY_u8
-    sub #kBossHeightPx / 2
-    sub Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
-    bge @nonneg
-    dey  ; now Y is $ff
-    @nonneg:
-    ;; Use the position delta in pixels as an acceleration in subpixels per
-    ;; frame, adding it to the boss's current velocity, storing the updated
-    ;; velocity in T1X.
-    add Zp_RoomState + sState::BossVelY_i16 + 0
-    tax     ; new Y-velocity (lo)
-    tya     ; acceleration (hi)
-    adc Zp_RoomState + sState::BossVelY_i16 + 1
-    sta T1  ; new Y-velocity (hi)
-_ApplyDragY:
-    ;; Divide the updated velocity by 64 to get a (negative) drag force,
-    ;; storing it in YA.  We do this signed division by multiplying by 4, then
-    ;; chopping off the last byte to divide by 256.
-    ldy #0
-    stx T0  ; new Y-velocity (lo)
-    .repeat 2
-    asl T0
-    rol a
-    .endrepeat
-    bpl @nonneg
-    dey  ; now Y is $ff
-    @nonneg:
-    ;; Subtract the (negative) drag force in YA from the new velocity in T1X,
-    ;; storing the resulting velocity in AX.
-    sta T0   ; negative drag force (lo)
-    txa      ; new Y-velocity (lo)
-    sub T0   ; negative drag force (lo)
-    tax      ; new Y-velocity (lo)
-    tya      ; negative drag force (hi)
-    rsbc T1  ; new Y-velocity (hi)
-    ;; Clamp the new velocity to +/- kBossMaxSpeedY.
-    bpl @movingDown
-    @movingUp:
-    cmp #<-kBossMaxSpeedY
-    bge @setVelToAX
-    lda #<-kBossMaxSpeedY
-    ldx #0
-    beq @setVelToAX  ; unconditional
-    @movingDown:
-    cmp #kBossMaxSpeedY
-    blt @setVelToAX
-    lda #kBossMaxSpeedY
-    ldx #0
-    @setVelToAX:
-    stax Zp_RoomState + sState::BossVelY_i16
     rts
 .ENDPROC
 
@@ -1033,6 +896,143 @@ _Dir_eEyeDir_arr8:
     .assert eBossMode::Dead = 0, error
     lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
     jmp FuncA_Room_TickBoss
+.ENDPROC
+
+;;; Moves the center of the boss closer to the boss's goal position by one
+;;; frame tick.
+.PROC FuncA_Room_BossCrypt_MoveBossTowardGoal
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+_ApplyVelocityX:
+    lda Zp_RoomState + sState::BossSubX_u8
+    add Zp_RoomState + sState::BossVelX_i16 + 0
+    sta Zp_RoomState + sState::BossSubX_u8
+    lda Ram_PlatformLeft_i16_0_arr + kBossBodyPlatformIndex
+    adc Zp_RoomState + sState::BossVelX_i16 + 1
+    sta Zp_PointX_i16 + 0
+    lda #0
+    sta Zp_PointX_i16 + 1
+    lda #127  ; param: max move by
+    jsr Func_MovePlatformLeftTowardPointX  ; preserves X
+_ApplyVelocityY:
+    lda Zp_RoomState + sState::BossSubY_u8
+    add Zp_RoomState + sState::BossVelY_i16 + 0
+    sta Zp_RoomState + sState::BossSubY_u8
+    lda Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
+    adc Zp_RoomState + sState::BossVelY_i16 + 1
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointY_i16 + 1
+    lda #127  ; param: max move by
+    jsr Func_MovePlatformTopTowardPointY
+_AccelerateTowardGoalX:
+    ;; Compute the (signed) delta from the boss's current X-position to its
+    ;; goal X-position, in pixels, storing it in YA.
+    ldy #0
+    lda Zp_RoomState + sState::BossGoalPosX_u8
+    sub #kBossWidthPx / 2
+    sub Ram_PlatformLeft_i16_0_arr + kBossBodyPlatformIndex
+    bge @nonneg
+    dey  ; now Y is $ff
+    @nonneg:
+    ;; Use the position delta in pixels as an acceleration in subpixels per
+    ;; frame, adding it to the boss's current velocity, storing the updated
+    ;; velocity in T1X.
+    add Zp_RoomState + sState::BossVelX_i16 + 0
+    tax     ; new X-velocity (lo)
+    tya     ; acceleration (hi)
+    adc Zp_RoomState + sState::BossVelX_i16 + 1
+    sta T1  ; new X-velocity (hi)
+_ApplyDragX:
+    ;; Divide the updated velocity by 16 to get a (negative) drag force,
+    ;; storing it in YA.  We do this signed division by multiplying by 16, then
+    ;; chopping off the last byte to divide by 256.
+    ldy #0
+    stx T0  ; new X-velocity (lo)
+    .repeat 4
+    asl T0
+    rol a
+    .endrepeat
+    bpl @nonneg
+    dey  ; now Y is $ff
+    @nonneg:
+    ;; Subtract the (negative) drag force in YA from the new velocity in T1X,
+    ;; storing the resulting velocity in AX.
+    sta T0   ; negative drag force (lo)
+    txa      ; new X-velocity (lo)
+    sub T0   ; negative drag force (lo)
+    tax      ; new X-velocity (lo)
+    tya      ; negative drag force (hi)
+    rsbc T1  ; new X-velocity (hi)
+    ;; Clamp the new velocity to +/- kBossMaxSpeedX.
+    bpl @movingRight
+    @movingLeft:
+    cmp #<-kBossMaxSpeedX
+    bge @setVelToAX
+    lda #<-kBossMaxSpeedX
+    ldx #0
+    beq @setVelToAX  ; unconditional
+    @movingRight:
+    cmp #kBossMaxSpeedX
+    blt @setVelToAX
+    lda #kBossMaxSpeedX
+    ldx #0
+    @setVelToAX:
+    stax Zp_RoomState + sState::BossVelX_i16
+_AccelerateTowardGoalY:
+    ;; Compute the (signed) delta from the boss's current Y-position to its
+    ;; goal Y-position, in pixels, storing it in YA.
+    ldy #0
+    lda Zp_RoomState + sState::BossGoalPosY_u8
+    sub #kBossHeightPx / 2
+    sub Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
+    bge @nonneg
+    dey  ; now Y is $ff
+    @nonneg:
+    ;; Use the position delta in pixels as an acceleration in subpixels per
+    ;; frame, adding it to the boss's current velocity, storing the updated
+    ;; velocity in T1X.
+    add Zp_RoomState + sState::BossVelY_i16 + 0
+    tax     ; new Y-velocity (lo)
+    tya     ; acceleration (hi)
+    adc Zp_RoomState + sState::BossVelY_i16 + 1
+    sta T1  ; new Y-velocity (hi)
+_ApplyDragY:
+    ;; Divide the updated velocity by 64 to get a (negative) drag force,
+    ;; storing it in YA.  We do this signed division by multiplying by 4, then
+    ;; chopping off the last byte to divide by 256.
+    ldy #0
+    stx T0  ; new Y-velocity (lo)
+    .repeat 2
+    asl T0
+    rol a
+    .endrepeat
+    bpl @nonneg
+    dey  ; now Y is $ff
+    @nonneg:
+    ;; Subtract the (negative) drag force in YA from the new velocity in T1X,
+    ;; storing the resulting velocity in AX.
+    sta T0   ; negative drag force (lo)
+    txa      ; new Y-velocity (lo)
+    sub T0   ; negative drag force (lo)
+    tax      ; new Y-velocity (lo)
+    tya      ; negative drag force (hi)
+    rsbc T1  ; new Y-velocity (hi)
+    ;; Clamp the new velocity to +/- kBossMaxSpeedY.
+    bpl @movingDown
+    @movingUp:
+    cmp #<-kBossMaxSpeedY
+    bge @setVelToAX
+    lda #<-kBossMaxSpeedY
+    ldx #0
+    beq @setVelToAX  ; unconditional
+    @movingDown:
+    cmp #kBossMaxSpeedY
+    blt @setVelToAX
+    lda #kBossMaxSpeedY
+    ldx #0
+    @setVelToAX:
+    stax Zp_RoomState + sState::BossVelY_i16
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
