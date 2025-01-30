@@ -61,6 +61,9 @@ IRQ_CHR_BANK_SWITCH_PATTERN = re.compile(
 JUMP_PATTERN = re.compile(
     r'^ *([jb](?:mp|sr|cc|cs|eq|ne|mi|pl|vc|vs|le|lt|ge|gt)) +'
     r'([A-Za-z0-9_]+)')
+READ_PATTERN = re.compile(
+    r'^ *(ad[cd]|and|cmp|cp[xy]|eor|ld[axy]+|ora|r?sbc|r?sub) +'
+    r'([A-Za-z0-9_]+)')
 DIALOG_TEXT_LINE_PATTERN = re.compile(r'^ *\.byte *(.*)\n$')
 
 LOCAL_PROC_NAME = re.compile(r'^_[a-zA-Z0-9_]+$')  # e.g. _Foobar
@@ -111,28 +114,26 @@ def is_valid_proc_name_for_segment(proc, segment):
         return False
     return True
 
-def is_valid_jump_dest(dest, segment, loaded_prereqs, top_proc):
+def is_valid_access(dest, segment, loaded_prereqs, top_proc):
     if LOCAL_PROC_NAME.match(dest):
         return True
     match = PRGA_PROC_NAME.match(dest)
     if match:
         if top_proc.startswith('Func_'):
             return False
-        if segment.startswith('PRGA_') and match.group(1) != segment[5:]:
-            return False
-        if segment.startswith('PRGC_') and (
-                'PRGA_' + match.group(1) not in loaded_prereqs):
-            return False
+        if segment.startswith('PRGA_'):
+            return match.group(1) == segment[5:]
+        if segment.startswith('PRGC_'):
+            return f'PRGA_{match.group(1)}' in loaded_prereqs
+        return True
     match = PRGC_PROC_NAME.match(dest)
     if match:
         if top_proc.startswith('Func_'):
             return False
-        if top_proc.startswith('DataA_Cutscene_' + match.group(1)):
-            return True
         if segment.startswith('PRGA_'):
-            return False
-        if segment.startswith('PRGC_') and match.group(1) != segment[5:]:
-            return False
+            return f'PRGC_{match.group(1)}' in loaded_prereqs
+        if segment.startswith('PRGC_'):
+            return match.group(1) == segment[5:]
     return True
 
 #=============================================================================#
@@ -243,10 +244,17 @@ def run_tests():
                             fail('call to a Main')
                         if not proc_stack[0].startswith('Main'):
                             fail('jump to a Main outside of a Main')
-                    if not is_valid_jump_dest(dest, segment, loaded_prereqs,
-                                              proc_stack[0]):
+                    if not is_valid_access(dest, segment, loaded_prereqs,
+                                           proc_stack[0]):
                         fail('invalid {} from {}'.format(
                             opcode, proc_stack[0]))
+                # Check that procs don't read incorrectly from other procs.
+                match = READ_PATTERN.match(line)
+                if match:
+                    source = match.group(2)
+                    if not is_valid_access(source, segment, loaded_prereqs,
+                                           proc_stack[0]):
+                        fail('invalid access in {}'.format(proc_stack[0]))
                 # Check that dialog text is well-formed.
                 if segment.startswith('PRGA_Text'):
                     match = DIALOG_TEXT_LINE_PATTERN.match(line)

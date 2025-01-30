@@ -567,6 +567,7 @@ _ApplyMarieGravity:
     rts
 .ENDPROC
 
+;;; @prereq PRGC_Prison is loaded.
 .EXPORT DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
 .PROC DataA_Cutscene_PrisonUpperFreeAlex_sCutscene
     act_SetAvatarPose eAvatar::Standing

@@ -806,6 +806,7 @@ _ParticleAngle_u8_arr:
 
 .SEGMENT "PRGA_Cutscene"
 
+;;; @prereq PRGC_Prison is loaded.
 .EXPORT DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
 .PROC DataA_Cutscene_PrisonCellGetThrownIn_sCutscene
     act_WaitFrames 60
