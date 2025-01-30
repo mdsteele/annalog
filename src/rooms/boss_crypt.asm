@@ -842,6 +842,7 @@ _EyeOffsetY_u8_arr:
     D_END
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_CryptWinch_Draw
     ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
     jmp FuncA_Objects_DrawWinchMachineWithSpikeball

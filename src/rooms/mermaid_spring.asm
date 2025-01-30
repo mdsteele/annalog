@@ -291,6 +291,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mermaid_Spring_DrawRoom
     ldx #kRocksPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawRocksPlatformHorz
@@ -307,6 +308,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mermaid_SpringPump_Draw
     jsr FuncA_Objects_DrawPumpMachine
 _Water:

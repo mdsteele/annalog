@@ -648,6 +648,7 @@ _SetUpIrq:
 .ENDPROC
 
 ;;; Draws two claws on one side of the temple boss.
+;;; @prereq PRGA_Objects is loaded.
 ;;; @prereq The shape position is set to the top left of the claw pair.
 ;;; @param A Either 0 for eastern claws, or bObj::FlipH for western claws.
 .PROC FuncC_Boss_Temple_DrawClawPair
@@ -677,6 +678,7 @@ _Offset_u8_arr2:
 .ENDPROC
 
 ;;; Draws one eye for the temple boss.
+;;; @prereq PRGA_Objects is loaded.
 ;;; @param X The eBossEye value for the eye to draw.
 ;;; @preserve X
 .PROC FuncC_Boss_Temple_DrawEye

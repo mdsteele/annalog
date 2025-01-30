@@ -183,7 +183,7 @@ _Machines_sMachine_arr:
     d_byte MainPlatform_u8, kWinchPlatformIndex
     d_addr Init_func_ptr, FuncC_Crypt_TombWinch_Init
     d_addr ReadReg_func_ptr, FuncC_Crypt_TombWinch_ReadReg
-    d_addr WriteReg_func_ptr, FuncC_Crypt_TombWinch_WriteReg
+    d_addr WriteReg_func_ptr, FuncA_Machine_CryptTombWinch_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_CryptTombWinch_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_CryptTombWinch_TryAct
     d_addr Tick_func_ptr, FuncC_Crypt_TombWinch_Tick
@@ -389,17 +389,6 @@ _ReadR:
     rts
 .ENDPROC
 
-.PROC FuncC_Crypt_TombWinch_WriteReg
-    cpx #$d
-    beq _WriteR
-_WriteL:
-    ldx #kLeverLeftDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-_WriteR:
-    ldx #kLeverRightDeviceIndex  ; param: device index
-    jmp FuncA_Machine_WriteToLever
-.ENDPROC
-
 ;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Crypt_TombWinch_Tick
 _MoveVert:
@@ -483,6 +472,7 @@ _Finished:
     jmp FuncA_Machine_WinchReachedGoal
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Crypt_TombWinch_Reset
     ldx #kLeverLeftDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
@@ -536,6 +526,7 @@ _Inner:
 .ENDPROC
 
 ;;; Draws the CryptTombWinch machine.
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Crypt_TombWinch_Draw
     ldx #kSpikeballPlatformIndex  ; param: spikeball platform index
     jmp FuncA_Objects_DrawWinchMachineWithSpikeball
@@ -544,6 +535,17 @@ _Inner:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_CryptTombWinch_WriteReg
+    cpx #$d
+    beq _WriteR
+_WriteL:
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+_WriteR:
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jmp FuncA_Machine_WriteToLever
+.ENDPROC
 
 .PROC FuncA_Machine_CryptTombWinch_TryMove
     ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex

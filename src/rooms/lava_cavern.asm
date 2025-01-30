@@ -261,6 +261,7 @@ _ReadD:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Lava_Cavern_DrawRoom
 _AnimateCircuit:
     ldx #eFlag::BreakerLava  ; param: breaker flag
@@ -269,6 +270,7 @@ _SetUpIrq:
     jmp FuncA_Objects_SetUpLavaAnimationIrq
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Lava_CavernBoiler_Draw
     jsr FuncA_Objects_DrawBoilerMachine
     ldx #kValvePlatformIndex  ; param: platform index

@@ -309,11 +309,13 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Shadow_Heart_DrawRoom
     ldx #kEmitterForcefieldPlatformIndex  ; param: platform index
     jmp FuncA_Objects_DrawForcefieldPlatform
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Shadow_HeartEmitterX_Draw
     ldx Ram_MachineGoalHorz_u8_arr + kEmitterXMachineIndex
     ldy _BeamLength_u8_arr, x  ; param: beam length in tiles
@@ -322,6 +324,7 @@ _BeamLength_u8_arr:
     .byte 18, 20, 20, 20, 16, 20, 20, 20, 20, 18
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Shadow_HeartEmitterY_Draw
     ldy #24  ; param: beam length in tiles
     jmp FuncA_Objects_DrawEmitterYMachine

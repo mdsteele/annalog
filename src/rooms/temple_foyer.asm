@@ -154,7 +154,7 @@ _Machines_sMachine_arr:
     d_addr Init_func_ptr, FuncC_Temple_FoyerCarriage_Init
     d_addr ReadReg_func_ptr, FuncC_Temple_FoyerCarriage_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
-    d_addr TryMove_func_ptr, FuncC_Temple_FoyerCarriage_TryMove
+    d_addr TryMove_func_ptr, FuncA_Machine_TempleFoyerCarriage_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncC_Temple_FoyerCarriage_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawCarriageMachine
@@ -264,12 +264,7 @@ _ReadY:
     rts
 .ENDPROC
 
-.PROC FuncC_Temple_FoyerCarriage_TryMove
-    lda #kCarriageMaxGoalX  ; param: max goal horz
-    ldy #kCarriageMaxGoalY  ; param: max goal vert
-    jmp FuncA_Machine_CarriageTryMove
-.ENDPROC
-
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Temple_FoyerCarriage_Tick
 _MoveVert:
     ldax #kCarriageMaxPlatformTop  ; param: max platform top
@@ -319,6 +314,16 @@ _MoveToBottomRight:
     lda #kCarriageInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kCarriageMachineIndex
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_TempleFoyerCarriage_TryMove
+    lda #kCarriageMaxGoalX  ; param: max goal horz
+    ldy #kCarriageMaxGoalY  ; param: max goal vert
+    jmp FuncA_Machine_CarriageTryMove
 .ENDPROC
 
 ;;;=========================================================================;;;

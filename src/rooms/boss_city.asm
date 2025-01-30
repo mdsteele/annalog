@@ -756,6 +756,7 @@ _SpineAngle_u8_arr5:
     .byte $40, $57, $29, $60, $20
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_City_DrawRoom
     jsr FuncA_Objects_DrawBoss
     ldx #kLeftWallPlatformIndex  ; param: platform index
@@ -767,6 +768,7 @@ _SpineAngle_u8_arr5:
 ;;; Draws one of the side walls in this room, using the given damage pattern.
 ;;; If bit N of Y is set, that means that the Nth block down (starting from
 ;;; zero) has been damaged.
+;;; @prereq PRGA_Objects is loaded.
 ;;; @param A The first tile ID to use.
 ;;; @param X The platform index for the side wall.
 ;;; @param Y The bit pattern to use for wall damage.

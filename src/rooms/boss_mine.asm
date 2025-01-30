@@ -963,6 +963,7 @@ _RegR:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Boss_MineCrane_TryAct
     lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
     eor #$ff
@@ -989,6 +990,7 @@ _StartWaiting:
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_MineCrane_Draw
     jsr FuncA_Objects_DrawCraneMachine
     ldx #kTrolleyPlatformIndex  ; param: pulley platform index

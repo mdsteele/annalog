@@ -460,6 +460,7 @@ _RemoveAlex:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Temple_Nave_DrawRoom
     ldx #kCratePlatformIndex
     jmp FuncA_Objects_DrawCratePlatform
@@ -492,6 +493,7 @@ _ReadY:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Temple_NaveLowerCarriage_Tick
 _MoveVert:
     ldax #kLowerCarriageMaxPlatformTop  ; param: max platform top
@@ -579,6 +581,7 @@ _ReadY:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Temple_NaveUpperCarriage_Tick
 _MoveVert:
     ldax #kUpperCarriageMaxPlatformTop  ; param: max platform top

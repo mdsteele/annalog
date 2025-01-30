@@ -481,6 +481,7 @@ _ReadL:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Lava_EastBlaster_Draw
 _Mirrors:
     ldx #kMirror3PlatformIndex
@@ -494,6 +495,7 @@ _Blaster:
     jmp FuncA_Objects_DrawBlasterMachine
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Lava_EastUpperBoiler_Draw
     jsr FuncA_Objects_DrawBoilerMachine
     ldx #kUpperValvePlatformIndex  ; param: platform index

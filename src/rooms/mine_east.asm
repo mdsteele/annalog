@@ -286,6 +286,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_EastHoist_Draw
 _Pulley:
     ldx #kPulleyPlatformIndex  ; param: platform index

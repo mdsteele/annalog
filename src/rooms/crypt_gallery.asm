@@ -283,6 +283,7 @@ _ReadZ:
 .ENDPROC
 
 ;;; Draws the CryptGalleryWinch machine.
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Crypt_GalleryWinch_Draw
     lda Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex  ; param: chain
     jsr FuncA_Objects_DrawWinchMachine

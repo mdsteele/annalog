@@ -374,6 +374,7 @@ _RegL:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Mine_NorthConveyor_Reset
     lda #0
     sta Ram_MachineGoalHorz_u8_arr + kConveyorMachineIndex  ; conveyor gear
@@ -396,6 +397,7 @@ _RegL:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_NorthHoist_Draw
     ldx #kHoistPulleyPlatformIndex  ; param: platform index
     ldy Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex  ; param: rope

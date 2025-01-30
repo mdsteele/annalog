@@ -228,6 +228,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Shadow_Depths_DrawRoom
 _AnimateCircuit:
     ldx #eFlag::BreakerShadow  ; param: breaker flag

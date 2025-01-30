@@ -278,6 +278,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_PitHoistWest_Draw
     ldx #kPulleyWestPlatformIndex  ; param: platform index
     ldy Ram_PlatformTop_i16_0_arr + kGirderWestPlatformIndex  ; param: rope
@@ -290,6 +291,7 @@ _Passages_sPassage_arr:
     jmp FuncA_Objects_DrawHoistMachine
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_PitHoistEast_Draw
     ldx #kPulleyEastPlatformIndex  ; param: platform index
     ldy Ram_PlatformTop_i16_0_arr + kGirderEastPlatformIndex  ; param: rope

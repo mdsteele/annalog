@@ -259,6 +259,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_West_DrawRoom
     ldx #kCageUpperPlatformIndex
     jsr FuncA_Objects_DrawGirderPlatform
@@ -304,6 +305,7 @@ _ReadZ:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_WestCrane_Draw
     jsr FuncA_Objects_DrawCraneMachine
     ldx #kPulleyPlatformIndex  ; param: platform index

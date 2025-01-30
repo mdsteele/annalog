@@ -315,6 +315,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_FlowerHoistWest_Draw
     ldx #kPulleyWestPlatformIndex  ; param: platform index
     ldy Ram_PlatformTop_i16_0_arr + kCageWestUpperPlatformIndex  ; param: rope
@@ -327,6 +328,7 @@ _Passages_sPassage_arr:
     jmp FuncA_Objects_DrawHoistMachine
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_FlowerHoistEast_Draw
     ldx #kPulleyEastPlatformIndex  ; param: platform index
     ldy Ram_PlatformTop_i16_0_arr + kCageEastUpperPlatformIndex  ; param: rope
@@ -342,6 +344,7 @@ _Passages_sPassage_arr:
 ;;; Draws the girder platforms, connecting rope, and spikes for one of the
 ;;; cages in this room, and leaves the shape position ready to feed into
 ;;; FuncA_Objects_DrawHoistRopeToPulley.
+;;; @prereq PRGA_Objects is loaded.
 ;;; @param X The platform index for the lower platform of the cage.
 .PROC FuncC_Mine_Flower_DrawCage
     ;; Draw lower girder:

@@ -461,6 +461,7 @@ _ParticleAngle_u8_arr4:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Temple_AltarUpperMinigun_InitReset
     lda #kUpperMinigunInitGoalX
     sta Ram_MachineGoalHorz_u8_arr + kUpperMinigunMachineIndex
@@ -503,6 +504,7 @@ _ReadY:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Temple_AltarLowerMinigun_Tick
     jsr FuncA_Machine_MinigunRotateBarrel
 _MoveVert:

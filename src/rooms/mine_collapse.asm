@@ -213,6 +213,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_Collapse_DrawRoom
     ldx #eFlag::BreakerMine  ; param: breaker flag
     jmp FuncA_Objects_AnimateCircuitIfBreakerActive
@@ -269,6 +270,7 @@ _RegZ:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Mine_CollapseCrane_TryAct
     lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex
     eor #$ff
@@ -277,6 +279,7 @@ _RegZ:
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_MineCollapseCrane_Draw
     jsr FuncA_Objects_DrawCraneMachine
     ldx #kTrolleyPlatformIndex  ; param: pulley platform index

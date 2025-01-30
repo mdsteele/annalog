@@ -247,6 +247,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_ShaftBridge_Init
     ldx Zp_MachineIndex_u8
     lda #kBridgeMaxAngle
@@ -254,6 +255,7 @@ _Passages_sPassage_arr:
     fall FuncC_Garden_ShaftBridge_Reset
 .ENDPROC
 
+;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Garden_ShaftBridge_Reset
     ldx Zp_MachineIndex_u8
     lda #1
@@ -261,11 +263,13 @@ _Passages_sPassage_arr:
     jmp FuncA_Room_ResetLever
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Garden_ShaftLowerBridge_Draw
     ldx #kLowerBridgePivotPlatformIndex + kNumMovableLowerBridgeSegments
     jmp FuncA_Objects_DrawBridgeMachine
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Garden_ShaftUpperBridge_Draw
     ldx #kUpperBridgePivotPlatformIndex + kNumMovableUpperBridgeSegments
     jmp FuncA_Objects_DrawBridgeMachine

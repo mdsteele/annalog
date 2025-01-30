@@ -48,6 +48,8 @@ BAD_CODE_PATTERNS = [
         r'(Zp_[A-Za-z0-9_]+_ptr|T[0-9]T[0-9]), *[yY]')),
 ]
 
+LOADED_PREREQ_PATTERN = re.compile(
+    '^;;; @prereq (PRG[AC]_[A-Za-z0-9]+) is loaded.')
 SEGMENT_DECL_PATTERN = re.compile(r'^\.SEGMENT +"([a-zA-Z0-9_]*)"')
 PROC_DECL_PATTERN = re.compile(r'^\.PROC +([a-zA-Z0-9_]+)')
 PRG_BANK_SWITCH_PATTERN = re.compile(
@@ -109,7 +111,7 @@ def is_valid_proc_name_for_segment(proc, segment):
         return False
     return True
 
-def is_valid_jump_dest(dest, top_proc, segment):
+def is_valid_jump_dest(dest, segment, loaded_prereqs, top_proc):
     if LOCAL_PROC_NAME.match(dest):
         return True
     match = PRGA_PROC_NAME.match(dest)
@@ -117,6 +119,9 @@ def is_valid_jump_dest(dest, top_proc, segment):
         if top_proc.startswith('Func_'):
             return False
         if segment.startswith('PRGA_') and match.group(1) != segment[5:]:
+            return False
+        if segment.startswith('PRGC_') and (
+                'PRGA_' + match.group(1) not in loaded_prereqs):
             return False
     match = PRGC_PROC_NAME.match(dest)
     if match:
@@ -164,6 +169,7 @@ def run_tests():
         segment = ''
         proc_stack = []
         dialog_text_lines = []
+        loaded_prereqs = set()
         for (line_number, line) in enumerate(open(filepath)):
             def fail(message):
                 print('LINT: {}:{}: found {}'.format(
@@ -178,6 +184,10 @@ def run_tests():
             match = SEGMENT_DECL_PATTERN.match(line)
             if match:
                 segment = match.group(1)
+            # Keep track of prereqs for loaded banks.
+            match = LOADED_PREREQ_PATTERN.match(line)
+            if match:
+                loaded_prereqs.add(match.group(1))
             # Check proc definitions.
             match = PROC_DECL_PATTERN.match(line)
             if match:
@@ -191,11 +201,13 @@ def run_tests():
                 proc_stack.append(proc)
             if line.startswith('.ENDPROC'):
                 proc_stack.pop()
-                if not proc_stack and segment.startswith('PRGA_Text'):
-                    if not dialog_text_lines:
-                        fail('empty dialog text block')
-                    elif not is_end_of_dialog_text(dialog_text_lines[-1]):
-                        fail('unterminated dialog text block')
+                if not proc_stack:
+                    if segment.startswith('PRGA_Text'):
+                        if not dialog_text_lines:
+                            fail('empty dialog text block')
+                        elif not is_end_of_dialog_text(dialog_text_lines[-1]):
+                            fail('unterminated dialog text block')
+                    loaded_prereqs.clear()
             if proc_stack:
                 # Check that PRG bank-switches only happen in Main or FuncM
                 # procs.
@@ -231,7 +243,8 @@ def run_tests():
                             fail('call to a Main')
                         if not proc_stack[0].startswith('Main'):
                             fail('jump to a Main outside of a Main')
-                    if not is_valid_jump_dest(dest, proc_stack[0], segment):
+                    if not is_valid_jump_dest(dest, segment, loaded_prereqs,
+                                              proc_stack[0]):
                         fail('invalid {} from {}'.format(
                             opcode, proc_stack[0]))
                 # Check that dialog text is well-formed.

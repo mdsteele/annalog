@@ -105,7 +105,7 @@ _Machines_sMachine_arr:
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_RotorTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Factory_AccessRotor_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_FactoryAccessRotor_Tick
     d_addr Draw_func_ptr, FuncC_Factory_AccessRotor_Draw
     d_addr Reset_func_ptr, FuncA_Room_MachineRotorReset
     D_END
@@ -197,16 +197,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Factory_AccessRotor_Tick
-    jsr FuncA_Machine_RotorTick
-_MoveCarriage:
-    lda Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
-    add #$40  ; param: carriage angle
-    ldx #kLargeWheelCenterPlatformIndex  ; param: center platform index
-    ldy #kRotorCarriagePlatformIndex  ; param: carriage platform index
-    jmp FuncA_Machine_RotorMoveCarriage
-.ENDPROC
-
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Factory_AccessRotor_Draw
     jsr FuncA_Objects_DrawRotorMachine
@@ -224,6 +214,20 @@ _SmallWheel:
     add #$40  ; param: rotation angle
     ldx #kSmallWheelCenterPlatformIndex  ; param: center platform index
     jmp FuncA_Objects_DrawRotorWheelSmall
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_FactoryAccessRotor_Tick
+    jsr FuncA_Machine_RotorTick
+_MoveCarriage:
+    lda Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
+    add #$40  ; param: carriage angle
+    ldx #kLargeWheelCenterPlatformIndex  ; param: center platform index
+    ldy #kRotorCarriagePlatformIndex  ; param: carriage platform index
+    jmp FuncA_Machine_RotorMoveCarriage
 .ENDPROC
 
 ;;;=========================================================================;;;

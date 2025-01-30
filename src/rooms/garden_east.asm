@@ -352,6 +352,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Garden_EastBridge_Draw
     ldx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments  ; param: last
     jmp FuncA_Objects_DrawBridgeMachine
@@ -422,13 +423,11 @@ _Done:
 
 .SEGMENT "PRGA_Machine"
 
-;;; @prereq PRGA_Machine is loaded.
 .PROC FuncA_Machine_GardenEastBridge_WriteReg
     ldx #kLeverBridgeDeviceIndex  ; param: device index
     jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
-;;; @prereq PRGA_Machine is loaded.
 .PROC FuncA_Machine_GardenEastBridge_Tick
     lda #kBridgePivotPlatformIndex  ; param: fixed segment platform index
     ldx #kBridgePivotPlatformIndex + kNumMovableBridgeSegments  ; param: last

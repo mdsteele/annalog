@@ -149,6 +149,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_City_Sinkhole_DrawRoom
     ldx #eFlag::BreakerCity  ; param: breaker flag
     jmp FuncA_Objects_AnimateCircuitIfBreakerActive

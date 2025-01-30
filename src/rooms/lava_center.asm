@@ -355,6 +355,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Lava_Center_DrawRoom
 _Crates:
     ldx #kCrate1PlatformIndex  ; param: platform index
@@ -435,6 +436,7 @@ _ReadX:
 .ENDPROC
 
 ;;; Draws the LavaCenterBlaster machine.
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Lava_CenterBlaster_Draw
 _Mirrors:
     ldx #kMirror3PlatformIndex

@@ -107,7 +107,7 @@ _Machines_sMachine_arr:
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_RotorTryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
-    d_addr Tick_func_ptr, FuncC_Factory_UpperRotor_Tick
+    d_addr Tick_func_ptr, FuncA_Machine_FactoryUpperRotor_Tick
     d_addr Draw_func_ptr, FuncC_Factory_UpperRotor_Draw
     d_addr Reset_func_ptr, FuncA_Room_MachineRotorReset
     D_END
@@ -235,22 +235,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Factory_UpperRotor_Tick
-    jsr FuncA_Machine_RotorTick
-_MoveUpperCarriage:
-    lda Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
-    add #$c0  ; param: carriage angle
-    ldx #kTopLgWheelCenterPlatformIndex  ; param: center platform index
-    ldy #kTopRotorCarriagePlatformIndex  ; param: carriage platform index
-    jsr FuncA_Machine_RotorMoveCarriage
-_MoveLowerCarriage:
-    lda #$80
-    sub Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
-    ldx #kBotLgWheelCenterPlatformIndex  ; param: center platform index
-    ldy #kBotRotorCarriagePlatformIndex  ; param: carriage platform index
-    jmp FuncA_Machine_RotorMoveCarriage
-.ENDPROC
-
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Factory_UpperRotor_Draw
     jsr FuncA_Objects_DrawRotorMachine
@@ -281,6 +265,26 @@ _BottomSmallWheel:
     mul #2  ; param: rotation angle
     ldx #kBotSmWheelCenterPlatformIndex  ; param: center platform index
     jmp FuncA_Objects_DrawRotorWheelSmall
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Machine"
+
+.PROC FuncA_Machine_FactoryUpperRotor_Tick
+    jsr FuncA_Machine_RotorTick
+_MoveUpperCarriage:
+    lda Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
+    add #$c0  ; param: carriage angle
+    ldx #kTopLgWheelCenterPlatformIndex  ; param: center platform index
+    ldy #kTopRotorCarriagePlatformIndex  ; param: carriage platform index
+    jsr FuncA_Machine_RotorMoveCarriage
+_MoveLowerCarriage:
+    lda #$80
+    sub Ram_MachineState1_byte_arr + kRotorMachineIndex  ; rotor angle (0-255)
+    ldx #kBotLgWheelCenterPlatformIndex  ; param: center platform index
+    ldy #kBotRotorCarriagePlatformIndex  ; param: carriage platform index
+    jmp FuncA_Machine_RotorMoveCarriage
 .ENDPROC
 
 ;;;=========================================================================;;;

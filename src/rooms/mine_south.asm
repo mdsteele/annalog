@@ -310,6 +310,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_SouthTrolley_Draw
     jsr FuncA_Objects_DrawTrolleyMachine
     ldx #5  ; param: num rope tiles
@@ -318,6 +319,7 @@ _Passages_sPassage_arr:
     jmp FuncA_Objects_DrawTrolleyGirder
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_SouthHoist_Draw
     ldx #kHoistPulleyPlatformIndex  ; param: platform index
     ldy Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex  ; param: rope

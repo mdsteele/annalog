@@ -541,6 +541,7 @@ _ResetMachine:
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for this room.
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Garden_Tower_DrawRoom
 _AnimateThorns:
     flag_bit Sram_ProgressFlags_arr, eFlag::BossGarden
@@ -638,6 +639,7 @@ _Brick3TileId_u8:
 
 ;;; Draws one brick in the breakable tower wall, at the current shape position,
 ;;; then moves the shape position down by one tile.
+;;; @prereq PRGA_Objects is loaded.
 ;;; @param A The tile ID.
 ;;; @preserve X, T2+
 .PROC FuncC_Garden_DrawTowerBrick

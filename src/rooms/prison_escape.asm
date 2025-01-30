@@ -205,6 +205,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Prison_EscapeTrolley_Draw
     jsr FuncA_Objects_DrawTrolleyMachine
     ldx #7  ; param: num rope tiles

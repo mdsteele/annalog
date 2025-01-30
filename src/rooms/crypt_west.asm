@@ -245,6 +245,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Crypt_WestWinch_Draw
     lda Ram_PlatformTop_i16_0_arr + kSpikeball1PlatformIndex  ; param: chain
     jsr FuncA_Objects_DrawWinchMachine

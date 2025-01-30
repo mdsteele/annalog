@@ -226,6 +226,7 @@ _ReadZ:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Factory_WestCrane_Draw
     jsr FuncA_Objects_DrawCraneMachine
     ldx #kPulleyPlatformIndex  ; param: platform index

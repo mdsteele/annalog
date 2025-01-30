@@ -298,6 +298,7 @@ _ReadY:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Machine is loaded.
 .PROC FuncC_Shadow_HallMinigun_Tick
     jsr FuncA_Machine_MinigunRotateBarrel
 _MoveHorz:

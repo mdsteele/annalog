@@ -250,6 +250,7 @@ _ReadZ:
 .ENDPROC
 
 ;;; Draws the CryptFlowerWinch machine.
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Crypt_FlowerWinch_Draw
     ;; Draw the winch itself.
     lda Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex  ; param: chain

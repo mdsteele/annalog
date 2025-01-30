@@ -639,6 +639,7 @@ _ReadR:
 .ENDPROC
 
 ;;; Draws the boss.
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Boss_Garden_DrawBoss
 _AnimateThorns:
     lda Zp_RoomState + sState::BossThornCounter_u8
@@ -703,6 +704,7 @@ _RightMiniEyeVertShift_i8_arr4:
 .ENDPROC
 
 ;;; Draws a single mini-eye for the garden boss.
+;;; @prereq PRGA_Objects is loaded.
 ;;; @prereq Zp_ShapePos*_i16 is set to the top-left corner of the mini-eye.
 ;;; @param C Set if the eye is potentially open.
 ;;; @param X The index of the mini eye.
@@ -751,6 +753,7 @@ _OpenEyeTileId_u8_arr16:
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for one of the boss's eyes.
+;;; @prereq PRGA_Objects is loaded.
 ;;; @param X Which eEye to draw.
 ;;; @preserve X
 .PROC FuncC_Boss_Garden_DrawEye

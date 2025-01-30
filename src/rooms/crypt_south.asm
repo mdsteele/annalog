@@ -509,6 +509,7 @@ _ResetMachine:
 .ENDPROC
 
 ;;; Draws the CryptSouthWinch machine.
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Crypt_SouthWinch_Draw
     ;; Draw winch:
     lda Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex  ; param: chain

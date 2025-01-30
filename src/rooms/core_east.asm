@@ -102,6 +102,7 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Core_East_DrawRoom
     ldx #eFlag::BreakerMine  ; param: breaker flag
     jmp FuncA_Objects_AnimateCircuitIfBreakerActive

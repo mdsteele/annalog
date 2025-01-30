@@ -346,6 +346,7 @@ _ReadR:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Sewer_NorthMultiplexer_Draw
     ldx #kValvesPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft

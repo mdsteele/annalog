@@ -224,6 +224,7 @@ _ReadX:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Sewer_WestMultiplexer_Draw
     ldx #kMultiplexerNumPlatforms  ; param: num platforms
     jmp FuncA_Objects_DrawMultiplexerMachine
