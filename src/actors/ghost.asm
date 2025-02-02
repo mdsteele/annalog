@@ -25,8 +25,9 @@
 .INCLUDE "orc.inc"
 
 .IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT FuncA_Actor_ClampVelX
+.IMPORT FuncA_Actor_ClampVelY
 .IMPORT FuncA_Actor_FaceTowardsAvatar
-.IMPORT FuncA_Actor_FaceTowardsN
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_ZeroVel
 .IMPORT FuncA_Actor_ZeroVelY
@@ -60,6 +61,8 @@
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorState4_byte_arr
+.IMPORT Ram_ActorVelX_i16_0_arr
+.IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORTZP Zp_AvatarPosX_i16
@@ -68,10 +71,6 @@
 .IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
-
-;;; The higher the number, the more slowly a ghost baddie tracks towards its
-;;; goal position.
-.DEFINE kBadGhostMoveSlowdown 3
 
 ;;; The maximum speed that a ghost baddie is allowed to move, in pixels per
 ;;; frame.
@@ -87,7 +86,7 @@ kBadGhostAppearFrames = 45
 ;;; injured, in frames.
 kBadGhostInjuredFrames = 120
 ;;; How long between a ghost baddie's movement cycles, in frames.
-kBadGhostMoveFrames = 120
+kBadGhostMoveFrames = 180
 ;;; How long a mermaid ghost attack salvo lasts, in frames.
 kBadGhostMermaidAttackFrames = 100
 ;;; How long an orc ghost poses after attacking, in frames.
@@ -311,57 +310,86 @@ _PlaySound:
 .PROC FuncA_Actor_TickBadGhost_MoveTowardsGoalPos
     jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
     jsr FuncA_Actor_TickBadGhost_SetPointToGoalPos  ; preserves X
-_TrackXTowardsGoalPos:
+_AccelerateTowardGoalX:
+    ;; Compute the (signed) delta from the boss's current X-position to its
+    ;; goal X-position, in pixels, and store double its value in T1T0.
     lda Zp_PointX_i16 + 0
     sub Ram_ActorPosX_i16_0_arr, x
-    beq @done  ; delta is zero, so no need to move horizontally
-    pha  ; delta
-    jsr FuncA_Actor_FaceTowardsN  ; preserves X
-    pla  ; delta
-    jsr _DivideAndClamp
-    add Ram_ActorPosX_i16_0_arr, x
-    sta Ram_ActorPosX_i16_0_arr, x
-    @done:
-_TrackYTowardsGoalPos:
+    sta T0  ; delta (lo)
+    lda Zp_PointX_i16 + 1
+    sbc Ram_ActorPosX_i16_1_arr, x
+    asl T0  ; 2x delta (lo)
+    rol a
+    sta T1  ; 2x delta (hi)
+    ;; Use the doubled position delta in pixels as an acceleration in subpixels
+    ;; per frame, adding it to the ghost's current velocity, storing the
+    ;; accelerated velocity in both T1T0 and AT2.
+    lda T0  ; acceleration (lo)
+    add Ram_ActorVelX_i16_0_arr, x
+    sta T0  ; accelerated X-velocity (lo)
+    sta T2  ; accelerated X-velocity (lo)
+    lda T1  ; acceleration (hi)
+    adc Ram_ActorVelX_i16_1_arr, x
+    sta T1  ; accelerated X-velocity (hi)
+    ;; Divide the acceleration velocity in AT2 by 8 to get a (negative) drag
+    ;; force, storing it in T3T2.
+    .repeat 3
+    cmp #$80  ; copy bit 7 into C
+    ror a   ; accelerated X-velocity (hi)
+    ror T2  ; accelerated X-velocity (lo)
+    .endrepeat
+    sta T3  ; drag force (hi)
+    ;; Subtract the (negative) drag force in T3T2 from the acceleration
+    ;; velocity in T1T0 to get the dragged velocity.
+    lda T0  ; accelerated X-velocity (lo)
+    sub T2  ; drag force (lo)
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda T1  ; accelerated X-velocity (hi)
+    sbc T3  ; drag force (hi)
+    sta Ram_ActorVelX_i16_1_arr, x
+    ;; Clamp the dragged velocity to get the final new velocity for this frame.
+    ldya #kBadGhostMaxMoveSpeed * $100  ; param: max speed
+    jsr FuncA_Actor_ClampVelX  ; preserves X
+_AccelerateTowardGoalY:
+    ;; Compute the (signed) delta from the boss's current X-position to its
+    ;; goal X-position, in pixels, and store double its value in T1T0.
     lda Zp_PointY_i16 + 0
     sub Ram_ActorPosY_i16_0_arr, x
-    beq @done  ; delta is zero, so no need to move vertically
-    jsr _DivideAndClamp
-    add Ram_ActorPosY_i16_0_arr, x
-    sta Ram_ActorPosY_i16_0_arr, x
-    @done:
-    rts
-_DivideAndClamp:
-    blt @goalLessThanCurr
-    ;; For a positive delta, divide by (1 << kBadGhostMoveSlowdown) to get the
-    ;; amount the ghost should move by this frame, but cap it at a maximum of
-    ;; kBadGhostMaxMoveSpeed and a minimum of 1.
-    @goalMoreThanCurr:
-    .repeat kBadGhostMoveSlowdown
-    lsr a
+    sta T0  ; delta (lo)
+    lda Zp_PointY_i16 + 1
+    sbc Ram_ActorPosY_i16_1_arr, x
+    asl T0  ; 2x delta (lo)
+    rol a
+    sta T1  ; 2x delta (hi)
+    ;; Use the doubled position delta in pixels as an acceleration in subpixels
+    ;; per frame, adding it to the ghost's current velocity, storing the
+    ;; accelerated velocity in both T1T0 and AT2.
+    lda T0  ; acceleration (lo)
+    add Ram_ActorVelY_i16_0_arr, x
+    sta T0  ; accelerated Y-velocity (lo)
+    sta T2  ; accelerated Y-velocity (lo)
+    lda T1  ; acceleration (hi)
+    adc Ram_ActorVelY_i16_1_arr, x
+    sta T1  ; accelerated Y-velocity (hi)
+    ;; Divide the acceleration velocity in AT2 by 8 to get a (negative) drag
+    ;; force, storing it in T3T2.
+    .repeat 3
+    cmp #$80  ; copy bit 7 into C
+    ror a   ; accelerated Y-velocity (hi)
+    ror T2  ; accelerated Y-velocity (lo)
     .endrepeat
-    bne @clampPositive
-    lda #1
-    bne @moveByA  ; unconditional
-    @clampPositive:
-    cmp #kBadGhostMaxMoveSpeed
-    blt @moveByA
-    lda #kBadGhostMaxMoveSpeed
-    bne @moveByA  ; unconditional
-    ;; For a negative delta, divide by (1 << kBadGhostMoveSlowdown), roughly,
-    ;; to get the amount the ghost should move by this frame, but cap it at a
-    ;; minimum of -kBadGhostMaxMoveSpeed.  (Because of how we do the division,
-    ;; we will always move by a nonzero amount here.)
-    @goalLessThanCurr:
-    .repeat kBadGhostMoveSlowdown
-    sec
-    ror a
-    .endrepeat
-    cmp #<-kBadGhostMaxMoveSpeed
-    bge @moveByA
-    lda #<-kBadGhostMaxMoveSpeed
-    @moveByA:
-    rts
+    sta T3  ; drag force (hi)
+    ;; Subtract the (negative) drag force in T3T2 from the acceleration
+    ;; velocity in T1T0 to get the dragged velocity.
+    lda T0  ; accelerated Y-velocity (lo)
+    sub T2  ; drag force (lo)
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda T1  ; accelerated Y-velocity (hi)
+    sbc T3  ; drag force (hi)
+    sta Ram_ActorVelY_i16_1_arr, x
+    ;; Clamp the dragged velocity to get the final new velocity for this frame.
+    ldya #kBadGhostMaxMoveSpeed * $100  ; param: max speed
+    jmp FuncA_Actor_ClampVelY  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for a mermaid/orc ghost baddie actor that's in

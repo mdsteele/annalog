@@ -387,7 +387,6 @@ _OffScreen:
 ;;; @param X The actor index.
 ;;; @return A The new bObj value that was set for the actor.
 ;;; @preserve X, Y, T0+
-.EXPORT FuncA_Actor_FaceTowardsN
 .PROC FuncA_Actor_FaceTowardsN
     bpl @faceRight
     @faceLeft:
@@ -581,44 +580,6 @@ _OffScreen:
     rts
 .ENDPROC
 
-;;; Clamps the actor's horizontal speed (whether to the left or to the right)
-;;; to the specified maximum value.
-;;; @param YA The maximum speed to clamp to (unsigned), in subpixels per frame.
-;;; @param X The actor index.
-;;; @preserve X
-.EXPORT FuncA_Actor_ClampVelX
-.PROC FuncA_Actor_ClampVelX
-    stya T1T0  ; max speed
-    lda Ram_ActorVelX_i16_1_arr, x
-    bpl _Positive
-_Negative:
-    lda Ram_ActorVelX_i16_0_arr, x
-    add T0  ; max speed (lo)
-    lda Ram_ActorVelX_i16_1_arr, x
-    adc T1  ; max speed (hi)
-    bge @done
-    lda #0
-    sub T0  ; max speed (lo)
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #0
-    sbc T1  ; max speed (hi)
-    sta Ram_ActorVelX_i16_1_arr, x
-    @done:
-    rts
-_Positive:
-    lda Ram_ActorVelX_i16_0_arr, x
-    cmp T0  ; max speed (lo)
-    lda Ram_ActorVelX_i16_1_arr, x
-    sbc T1  ; max speed (hi)
-    blt @done
-    lda T0  ; max speed (lo)
-    sta Ram_ActorVelX_i16_0_arr, x
-    tya     ; max speed (hi)
-    sta Ram_ActorVelX_i16_1_arr, x
-    @done:
-    rts
-.ENDPROC
-
 ;;; If the actor is facing down, sets its Y-velocity to the given speed; if the
 ;;; actor is facing up, sets it to the negative of that speed.
 ;;; @param YA The speed to set (signed), in subpixels per frame.
@@ -662,6 +623,82 @@ _Positive:
     lda #0
     sbc Ram_ActorVelY_i16_1_arr, x
     sta Ram_ActorVelY_i16_1_arr, x
+    rts
+.ENDPROC
+
+;;; Clamps the actor's horizontal speed (whether to the left or to the right)
+;;; to the specified maximum value.
+;;; @param YA The maximum speed to clamp to (unsigned), in subpixels per frame.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_ClampVelX
+.PROC FuncA_Actor_ClampVelX
+    stya T1T0  ; max speed
+    lda Ram_ActorVelX_i16_1_arr, x
+    bpl _Positive
+_Negative:
+    lda Ram_ActorVelX_i16_0_arr, x
+    add T0  ; max speed (lo)
+    lda Ram_ActorVelX_i16_1_arr, x
+    adc T1  ; max speed (hi)
+    bge @done
+    lda #0
+    sub T0  ; max speed (lo)
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda #0
+    sbc T1  ; max speed (hi)
+    sta Ram_ActorVelX_i16_1_arr, x
+    @done:
+    rts
+_Positive:
+    lda Ram_ActorVelX_i16_0_arr, x
+    cmp T0  ; max speed (lo)
+    lda Ram_ActorVelX_i16_1_arr, x
+    sbc T1  ; max speed (hi)
+    blt @done
+    lda T0  ; max speed (lo)
+    sta Ram_ActorVelX_i16_0_arr, x
+    tya     ; max speed (hi)
+    sta Ram_ActorVelX_i16_1_arr, x
+    @done:
+    rts
+.ENDPROC
+
+;;; Clamps the actor's vertical speed (whether up or down) to the specified
+;;; maximum value.
+;;; @param YA The maximum speed to clamp to (unsigned), in subpixels per frame.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_ClampVelY
+.PROC FuncA_Actor_ClampVelY
+    stya T1T0  ; max speed
+    lda Ram_ActorVelY_i16_1_arr, x
+    bpl _Positive
+_Negative:
+    lda Ram_ActorVelY_i16_0_arr, x
+    add T0  ; max speed (lo)
+    lda Ram_ActorVelY_i16_1_arr, x
+    adc T1  ; max speed (hi)
+    bge @done
+    lda #0
+    sub T0  ; max speed (lo)
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda #0
+    sbc T1  ; max speed (hi)
+    sta Ram_ActorVelY_i16_1_arr, x
+    @done:
+    rts
+_Positive:
+    lda Ram_ActorVelY_i16_0_arr, x
+    cmp T0  ; max speed (lo)
+    lda Ram_ActorVelY_i16_1_arr, x
+    sbc T1  ; max speed (hi)
+    blt @done
+    lda T0  ; max speed (lo)
+    sta Ram_ActorVelY_i16_0_arr, x
+    tya     ; max speed (hi)
+    sta Ram_ActorVelY_i16_1_arr, x
+    @done:
     rts
 .ENDPROC
 
