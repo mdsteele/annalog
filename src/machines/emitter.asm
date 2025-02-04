@@ -27,6 +27,8 @@
 .INCLUDE "emitter.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_PlaySfxEmitterBeam
+.IMPORT FuncA_Machine_PlaySfxEmitterForcefield
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
@@ -187,7 +189,7 @@ kPaletteObjEmitterGlow = 1
     ldy Zp_MachineIndex_u8
     lda #kEmitterBeamDuration
     sta Ram_MachineSlowdown_u8_arr, y
-    ;; TODO: play a sound for an emitter beam firing
+    jsr FuncA_Machine_PlaySfxEmitterBeam
     ;; Remove any existing forcefield.
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kEmitterForcefieldPlatformIndex
@@ -209,9 +211,9 @@ _CreateForcefield:
     ;; Make the forcefield platform solid.
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kEmitterForcefieldPlatformIndex
+    jsr FuncA_Machine_PlaySfxEmitterForcefield
     jsr FuncA_Machine_PushAvatarOutOfEmitterForcefield
     jsr FuncA_Machine_KillGooWithEmitterForcefield
-    ;; TODO: play a sound for a forcefield forming
     sec  ; set C to indicate that a forcefield was created
     rts
 _NoForcefield:
