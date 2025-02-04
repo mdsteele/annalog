@@ -22,32 +22,37 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxOnPulse2Channel
+.IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; SFX data for the "shoot bullet" sound effect.
-.PROC Data_ShootBullet_sSfx
-    .linecont +
-    sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | 3), \
-               (pulse_sweep +5, 0), $008c
-    sfx_Wait 8
+;;; SFX data for the "drip" sound effect.
+.PROC Data_Drip_sSfx
+    sfx_SetEnv $ff
+    sfx_Func _SetTimer
     sfx_End
-    .linecont -
+_SetTimer:
+    cpy #3
+    bge @done
+    lda _TimerLo_u8_arr3, y
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
+    lda #0
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
+    @done:
+    rts
+_TimerLo_u8_arr3:
+    .byte $38, $80, $a0
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Machine"
-
-;;; Starts playing the sound for when a minigun machine shoots a bullet.
-;;; @preserve T0+
-.EXPORT FuncA_Machine_PlaySfxShootBullet
-.PROC FuncA_Machine_PlaySfxShootBullet
-    ldya #Data_ShootBullet_sSfx
-    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
+;;; Starts playing the sound for dripping acid.
+;;; @preserve X, T0+
+.EXPORT Func_PlaySfxDrip
+.PROC Func_PlaySfxDrip
+    ldya #Data_Drip_sSfx
+    stya Zp_Next_sChanSfx_arr + eChan::Triangle + sChanSfx::NextOp_sSfx_ptr
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

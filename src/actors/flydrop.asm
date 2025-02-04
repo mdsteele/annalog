@@ -35,6 +35,7 @@
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorWithFlags
 .IMPORT Func_MovePointDownByA
+.IMPORT Func_PlaySfxDrip
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Ram_ActorState1_byte_arr
@@ -118,6 +119,7 @@ _DropAcid:
     bcs @noAcid
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     jsr FuncA_Actor_InitActorProjAcid  ; preserves X and T0+
+    jsr Func_PlaySfxDrip  ; preserves X and T0+
     ;; Give the acid projectile a random X-velocity from -0.5 to +0.5 pixels
     ;; per frame.
     ldy #0

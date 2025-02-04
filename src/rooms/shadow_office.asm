@@ -49,6 +49,7 @@
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxDrip
 .IMPORT Func_PlaySfxPoof
 .IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
@@ -368,7 +369,7 @@ _Acid:
     jsr Func_SetActorCenterToPoint  ; preserves X
     ldy #eActor::ProjAcid  ; param: actor type
     jsr Func_InitActorDefault
-    ;; TODO: play a sound for dripping acid
+    jsr Func_PlaySfxDrip
     @done:
 _CoolDownFireball:
     lda Zp_RoomState + sState::FireballCooldown_u8

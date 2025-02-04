@@ -77,14 +77,12 @@
 ;;; @return YA The negation of the value.
 ;;; @preserve X, T0+
 .PROC Func_NegateYA
-    eor #$ff
-    add #1
-    pha  ; signed product (lo)
+    rsub #0
+    pha  ; negated value (lo)
     tya
-    eor #$ff
-    adc #0
-    tay  ; signed product (hi)
-    pla  ; signed product (lo)
+    rsbc #0
+    tay  ; negated value (hi)
+    pla  ; negated value (lo)
     rts
 .ENDPROC
 
