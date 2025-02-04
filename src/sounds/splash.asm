@@ -78,14 +78,10 @@ _EnvUp:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Avatar"
-
 ;;; Starts playing the sound for when the player avatar splashes into water.
 ;;; @preserve X, T0+
-.EXPORT FuncA_Avatar_PlaySfxSplash
-.PROC FuncA_Avatar_PlaySfxSplash
+.EXPORT Func_PlaySfxSplash
+.PROC Func_PlaySfxSplash
     ldya #Data_Splash_sSfx
     jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
 .ENDPROC

@@ -29,12 +29,12 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsActorNearlyOnScreenHorz
 .IMPORT FuncA_Actor_LandOnTerrain
-.IMPORT FuncA_Actor_PlaySfxToadJump
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorWithFlags
+.IMPORT Func_PlaySfxBaddieJump
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
@@ -122,7 +122,7 @@ _StartJump:
     ;; nearly so).
     jsr FuncA_Actor_IsActorNearlyOnScreenHorz  ; preserves X, returns C
     bcc _Return
-    jmp FuncA_Actor_PlaySfxToadJump  ; preserves X
+    jmp Func_PlaySfxBaddieJump  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

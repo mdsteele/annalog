@@ -40,8 +40,8 @@
     .linecont -
 .ENDPROC
 
-;;; SFX data for the "toad jump" sound effect.
-.PROC Data_ToadJump_sSfx
+;;; SFX data for the "baddie jump" sound effect.
+.PROC Data_BaddieJump_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | 5), \
                (pulse_sweep -2, 0), $03e0
@@ -58,15 +58,11 @@
     jmp Func_PlaySfxOnPulse1Channel  ; preserves X and T0+
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Actor"
-
-;;; Starts playing the sound for when an actor jumps.
+;;; Starts playing the sound for when a baddie or NPC jumps.
 ;;; @preserve X, T0+
-.EXPORT FuncA_Actor_PlaySfxToadJump
-.PROC FuncA_Actor_PlaySfxToadJump
-    ldya #Data_ToadJump_sSfx
+.EXPORT Func_PlaySfxBaddieJump
+.PROC Func_PlaySfxBaddieJump
+    ldya #Data_BaddieJump_sSfx
     jmp Func_PlaySfxOnPulse2Channel  ; preserves X and T0+
 .ENDPROC
 

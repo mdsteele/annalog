@@ -66,6 +66,7 @@
 .IMPORT FuncA_Room_UnlockDoorDevice
 .IMPORT Func_GetRandomByte
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxBaddieJump
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
@@ -736,7 +737,7 @@ _WriteRegLock:
     act_SetActorPosX kAlexActorIndex, $0304
     act_SetActorPosY kAlexActorIndex, $00f8
     ;; Make Alex jump from offscreen onto the building roof.
-    ;; TODO: play a sound for Alex jumping
+    act_CallFunc Func_PlaySfxBaddieJump
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexWalking1
     act_SetActorVelX kAlexActorIndex, $180
     act_SetActorVelY kAlexActorIndex, -$200
@@ -785,7 +786,7 @@ _WriteRegLock:
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_WaitFrames 2
     ;; Make Alex jump offscreen toward the next building to the west.
-    ;; TODO: play a sound for Alex jumping
+    act_CallFunc Func_PlaySfxBaddieJump
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexWalking1
     act_SetActorVelX kAlexActorIndex, -$180
     act_SetActorVelY kAlexActorIndex, -$200

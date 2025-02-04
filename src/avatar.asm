@@ -28,11 +28,11 @@
 .INCLUDE "room.inc"
 .INCLUDE "sample.inc"
 
-.IMPORT FuncA_Avatar_PlaySfxSplash
 .IMPORT FuncA_Avatar_UpdateWaterDepth
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_PlaySfxSplash
 .IMPORT Func_SignedAtan2
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_TryPushAvatarVert
@@ -224,7 +224,7 @@ _ApplyGravity:
     lda Zp_AvatarVelY_i16 + 1
     bmi @noSplash  ; avatar is moving upward
     beq @noSplash  ; avatar is, at most, moving downward slowly
-    jsr FuncA_Avatar_PlaySfxSplash
+    jsr Func_PlaySfxSplash
     @noSplash:
     jsr FuncA_Avatar_ApplyGravity
 _SetAvatarPose:
@@ -630,7 +630,7 @@ _Grounded:
     bit Zp_AvatarState_bAvatar
     .assert bAvatar::Swimming = bProc::Overflow, error
     bvc @noSplash
-    jsr FuncA_Avatar_PlaySfxSplash
+    jsr Func_PlaySfxSplash
     @noSplash:
     ;; The avatar is now jumping.
     lda #bAvatar::Airborne | bAvatar::Jumping

@@ -32,6 +32,7 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../portrait.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 
 .IMPORT DataA_Room_Hut_sTileset
 .IMPORT DataA_Text0_MermaidHut1AlexPetition_Part1_u8_arr
@@ -77,7 +78,9 @@
 .IMPORT DataA_Text0_MermaidHut1Queen_TempleEntry_u8_arr
 .IMPORT DataA_Text0_MermaidHut1Queen_TempleProblem_u8_arr
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxBaddieJump
 .IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_PlaySfxSplash
 .IMPORT Func_SetFlag
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjVillage
@@ -261,14 +264,14 @@ _Alex:
     act_ForkStart 1, _MoveAvatarSwim_sCutscene
     act_WaitFrames 6
     ;; Make Alex jump into the water.
-    ;; TODO: play a sound for Alex jumping
+    act_CallFunc Func_PlaySfxBaddieJump
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexWalking1
     act_SetActorVelX kAlexActorIndex, -$100
     act_SetActorVelY kAlexActorIndex, -$100
     act_SetCutsceneFlags bCutscene::TickAllActors
     act_RepeatFunc 20, _ApplyAlexGravity
     act_SetCutsceneFlags 0
-    ;; TODO: play a splash sound for Alex landing in the water
+    act_CallFunc Func_PlaySfxSplash
     act_SetActorVelX kAlexActorIndex, 0
     act_SetActorVelY kAlexActorIndex, 0
     act_SetActorPosY kAlexActorIndex, $00c4
