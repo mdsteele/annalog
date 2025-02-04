@@ -52,6 +52,7 @@
 .IMPORT Func_MachineLaserReadRegC
 .IMPORT Func_MarkRoomSafe
 .IMPORT Func_MovePlatformTopTowardPointY
+.IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
@@ -350,6 +351,7 @@ _CheckIfBaddiesZapped:
     ldx T2  ; actor index
     bcc @continue
     jsr Func_InitActorSmokeExplosion  ; preserves X and T0+
+    jsr Func_PlaySfxBaddieDeath  ; preserves X and T0+
     @continue:
     dex
     .assert kMaxActors <= $80, error
