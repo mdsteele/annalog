@@ -564,6 +564,60 @@ For example:
   :MOVE {kTileIdBgArrowRight}
   :TIL X{kTileIdBgCmpGe}5#
 
+@TownOutdoorsFinaleReactivate3
+What going on!?#
+
+@TownSkyFinaleJeromeRecorded
+My name is Jerome.
+This is a recorded
+memory of me from
+before my death.#
+
+@TownSkyFinaleReactivate4_Part2
+It seems that humans
+have reactivated the
+complex.#
+
+@TownOutdoorsFinaleReactivate5
+No!! I am Thurg, son
+of Gurg! I will not
+stand by as humans
+take away what ours!#
+
+@TownSkyFinaleReactivate6_Part1
+The people who built
+this place were very
+smart. But I can't say
+we were very wise.#
+
+@TownSkyFinaleReactivate6_Part2
+We used the tools we
+created for foolish
+ends. To serve our
+foolish desires.#
+
+@TownSkyFinaleReactivate6_Part3
+In doing so, we tore
+our own civilization
+apart.#
+
+@TownSkyFinaleReactivate6_Part4
+After the end, but
+before I passed, I
+locked everything
+away.#
+
+@TownSkyFinaleReactivate6_Part5
+But now...all those
+tools will serve human
+desires once again.#
+
+@TownSkyFinaleReactivate6_Part6
+Well...
+
+...maybe this time
+will be different.#
+
 @UpgradeRam
      PROGRAM RAM
 Increases max program

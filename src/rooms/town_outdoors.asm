@@ -57,15 +57,22 @@
 .IMPORT DataA_Text0_TownOutdoorsSandra_Part1_u8_arr
 .IMPORT DataA_Text0_TownOutdoorsSandra_Part2_u8_arr
 .IMPORT DataA_Text0_TownOutdoorsSign_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleReactivate3_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleReactivate5_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
+.IMPORT FuncA_Cutscene_InitActorSmokeBeam
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
+.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorNpcOrc
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxFlopDown
+.IMPORT Func_SetActorCenterToPoint
+.IMPORT Main_Finale_StartNextStep
 .IMPORT Main_LoadPrisonCellAndStartCutscene
+.IMPORT Ppu_ChrObjFinale
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -86,9 +93,12 @@
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Camera_bScroll
+.IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_Next_sAudioCtrl
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
@@ -279,6 +289,22 @@ _Devices_sDevice_arr:
 .PROC FuncC_Town_Outdoors_EnterRoom
     lda #$ff
     sta Ram_ActorState2_byte_arr + kIvanActorIndex
+_SetUpFinaleCutscene:
+    ;; Check if a cutscene is playing as the room is entered.  If so, it's for
+    ;; the finale.
+    lda Zp_Next_eCutscene
+    .assert eCutscene::None = 0, error
+    beq _Return
+    ;; Remove the townsfolk actors for the finale.
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kAlexActorIndex
+    sta Ram_ActorType_eActor_arr + kIvanActorIndex
+    sta Ram_ActorType_eActor_arr + kSandraActorIndex
+    ;; Change the room's CHR18 bank so that different OBJ tiles can be used for
+    ;; the finale than are used normally for this room.
+    lda #<.bank(Ppu_ChrObjFinale)
+    sta Zp_Current_sRoom + sRoom::Chr18Bank_u8
+_Return:
     rts
 .ENDPROC
 
@@ -497,6 +523,22 @@ _SetFace:
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_TownOutdoorsFinaleReactivate3_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleReactivate3_sDialog
+    dlg_Text OrcMaleShout, DataA_Text2_TownOutdoorsFinaleReactivate3_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownOutdoorsFinaleReactivate5_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleReactivate5_sDialog
+    dlg_Text OrcMaleShout, DataA_Text2_TownOutdoorsFinaleReactivate5_u8_arr
+    dlg_Done
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Cutscene"
 
 .EXPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
@@ -629,11 +671,42 @@ _InitThurgAndGrunt:
     act_ForkStart 0, DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
 .ENDPROC
 
-.EXPORT DataA_Cutscene_TownOutdoorsReactivate_sCutscene
-.PROC DataA_Cutscene_TownOutdoorsReactivate_sCutscene
-    ;; TODO: Implement TownOutdoorsReactivate cutscene.
+.EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate1_sCutscene
+.PROC DataA_Cutscene_TownOutdoorsFinaleReactivate1_sCutscene
     act_WaitFrames 60
-    act_ForkStart 0, DataA_Cutscene_TownOutdoorsReactivate_sCutscene
+    ;; TODO: animate the ground opening and the core tower rising out
+    act_JumpToMain Main_Finale_StartNextStep
+.ENDPROC
+
+.EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
+.PROC DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
+    act_WaitFrames 60
+    ;; TODO: animate Thurg coming out of the town hall
+    act_RunDialog eDialog::TownOutdoorsFinaleReactivate3
+    act_WaitFrames 60
+    act_JumpToMain Main_Finale_StartNextStep
+.ENDPROC
+
+.EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene
+.PROC DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene
+    act_WaitFrames 60
+    act_RunDialog eDialog::TownOutdoorsFinaleReactivate5
+    act_WaitFrames 60
+    act_CallFunc _ShootBeamAtThurg
+    act_WaitFrames 60
+    act_JumpToMain Main_Finale_StartNextStep
+_ShootBeamAtThurg:
+    ldax #$0284
+    stax Zp_PointX_i16
+    ldax #$00c8
+    stax Zp_PointY_i16
+_ShootBeamAtPoint:
+    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
+    bcs @done  ; no more actor slots available
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    jmp FuncA_Cutscene_InitActorSmokeBeam
+    @done:
+    rts
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownOutdoorsYearsLater_sCutscene

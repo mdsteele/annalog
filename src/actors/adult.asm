@@ -76,6 +76,7 @@ _FirstTileId_u8_arr:
     d_byte HumanSmith2,        kTileIdObjAdultSmithFirst        + 6
     d_byte HumanWoman,         kTileIdObjAdultWomanFirst        + 0
     d_byte MermaidFlorist,     kTileIdObjMermaidFloristFirst    + 0
+    d_byte GhostJerome,        kTileIdObjAdultJeromeFirst       + 0
     d_byte GhostMan,           kTileIdObjAdultGhostFirst        + 6
     d_byte GhostWoman,         kTileIdObjAdultGhostFirst        + 0
     d_byte MermaidCorra,       kTileIdObjMermaidCorraFirst      + 0

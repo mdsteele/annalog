@@ -183,6 +183,7 @@ kMaxPassages = 8
     TownHouse5
     TownHouse6
     TownOutdoors
+    TownSky
     NUM_VALUES
 .ENDENUM
 

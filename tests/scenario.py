@@ -72,6 +72,7 @@ ROOM_PARENTS = {
     'TownHouse4': 'TownOutdoors',
     'TownHouse5': 'TownOutdoors',
     'TownHouse6': 'TownOutdoors',
+    'TownSky': 'TownOutdoors',
 }
 
 PASSAGE_SIDE_OPPOSITES = {

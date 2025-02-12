@@ -138,9 +138,6 @@ Zp_BreakerBeingActivated_eFlag: .res 1
 .EXPORT Main_Breaker_FadeBackToBreakerRoom
 .PROC Main_Breaker_FadeBackToBreakerRoom
     jsr Func_FadeOutToBlack
-    ldx Zp_BreakerBeingActivated_eFlag  ; param: eFlag value
-    jsr Func_SetFlag
-    ;; Reload the room that the breaker was in.
     ldx Zp_Breaker_eRoom  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
     jmp_prga MainA_Avatar_EnterBossRoomAfterBreaker
@@ -338,8 +335,8 @@ _BlinkCircuit:
     jmp Main_Explore_EnterRoom
 .ENDPROC
 
-;;; Sets up the cutscene pointer and returns the room that the cutscene takes
-;;; place in.
+;;; Sets Zp_Next_eCutscene for the breaker being activated, and returns the
+;;; room that the cutscene takes place in and the music to play in that room.
 ;;; @return X The eRoom value for the cutscene room.
 ;;; @return Y The eMusic value for the music to play in the cutscene room.
 .PROC FuncA_Cutscene_GetBreakerCutsceneRoomAndMusic
@@ -454,6 +451,10 @@ _AvatarPosY_i16_1_arr:
 ;;; @prereq Rendering is disabled.
 ;;; @prereq Static room data is loaded.
 .PROC MainA_Avatar_EnterBossRoomAfterBreaker
+    ldx Zp_BreakerBeingActivated_eFlag  ; param: eFlag value
+    jsr Func_SetFlag
+    lda #0
+    sta Zp_BreakerBeingActivated_eFlag
     ;; Position the player avatar at the breaker device.
     ldx #kBossBreakerDeviceIndex  ; param: device index
     jsr FuncA_Avatar_SpawnAtDevice

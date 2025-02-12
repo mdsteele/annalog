@@ -73,8 +73,13 @@ kMaxForks = 4
     TownOutdoorsGaveRemote
     TownOutdoorsGetCaught
     TownOutdoorsOrcAttack
-    TownOutdoorsReactivate
+    TownOutdoorsFinaleReactivate1
+    TownOutdoorsFinaleReactivate3
+    TownOutdoorsFinaleReactivate5
     TownOutdoorsYearsLater
+    TownSkyFinaleReactivate2
+    TownSkyFinaleReactivate4
+    TownSkyFinaleReactivate6
     NUM_VALUES
 .ENDENUM
 
@@ -113,7 +118,8 @@ kMaxForks = 4
     ;; action.
     ForkStop           ; args: fork index (or $ff for current fork)
     ;; Ends the cutscene immediately, jumping to the specified main, even if
-    ;; other cutscene forks are still executing.
+    ;; other cutscene forks are still executing.  The main is permitted to be
+    ;; in PRGA_Cutscene.
     JumpToMain         ; args: main ptr (2 bytes)
     ;; Causes the player avatar to run/swim/walk to the specified room pixel
     ;; X-position.  Suspends the current cutscene fork until the avatar reaches

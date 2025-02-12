@@ -347,10 +347,10 @@ _LaserBeam:
     .endrepeat
     ldx T0  ; param: beam length in tiles
     @loop:
-    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
+    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
     ldy T3  ; param: beam object flags
     lda T2  ; param: beam tile ID
-    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
     dex
     bne @loop
     @done:

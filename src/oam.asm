@@ -115,7 +115,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeRightHalfTile
 .PROC FuncA_Objects_MoveShapeRightHalfTile
-    lda #kTileWidthPx / 2
+    lda #kTileWidthPx / 2  ; param: offset
     bne FuncA_Objects_MoveShapeRightByA  ; unconditional
 .ENDPROC
 
@@ -131,7 +131,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeRightOneTile
 .PROC FuncA_Objects_MoveShapeRightOneTile
-    lda #kTileWidthPx
+    lda #kTileWidthPx  ; param: offset
     fall FuncA_Objects_MoveShapeRightByA
 .ENDPROC
 
@@ -152,7 +152,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeLeftHalfTile
 .PROC FuncA_Objects_MoveShapeLeftHalfTile
-    lda #kTileWidthPx / 2
+    lda #kTileWidthPx / 2  ; param: offset
     bne FuncA_Objects_MoveShapeLeftByA  ; unconditional
 .ENDPROC
 
@@ -160,7 +160,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeLeftOneTile
 .PROC FuncA_Objects_MoveShapeLeftOneTile
-    lda #kTileWidthPx
+    lda #kTileWidthPx  ; param: offset
     fall FuncA_Objects_MoveShapeLeftByA
 .ENDPROC
 
@@ -204,7 +204,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeDownOneTile
 .PROC FuncA_Objects_MoveShapeDownOneTile
-    lda #kTileHeightPx
+    lda #kTileHeightPx  ; param: offset
     fall FuncA_Objects_MoveShapeDownByA
 .ENDPROC
 
@@ -225,7 +225,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeUpHalfTile
 .PROC FuncA_Objects_MoveShapeUpHalfTile
-    lda #kTileHeightPx / 2
+    lda #kTileHeightPx / 2  ; param: offset
     bne FuncA_Objects_MoveShapeUpByA  ; unconditional
 .ENDPROC
 
@@ -233,7 +233,7 @@ Ram_Oam_sObj_arr64: .res .sizeof(sObj) * kNumOamSlots
 ;;; @preserve X, Y, T0+
 .EXPORT FuncA_Objects_MoveShapeUpOneTile
 .PROC FuncA_Objects_MoveShapeUpOneTile
-    lda #kTileHeightPx
+    lda #kTileHeightPx  ; param: offset
     fall FuncA_Objects_MoveShapeUpByA
 .ENDPROC
 

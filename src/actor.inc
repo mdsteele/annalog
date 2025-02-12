@@ -81,6 +81,7 @@ kMaxActors = 16
     ProjSteamHorz    ; emitted horizontally from boiler machine pipes
     ProjSteamUp      ; emitted vertically from boiler machine pipes
     SmokeAxe         ; an axe thrown by Gronta in a cutscene
+    SmokeBeam        ; a core beam in one of the finale cutscenes
     SmokeBlood       ; a glob of blood from the temple boss
     SmokeDirt        ; a clump of dirt from the mine boss
     SmokeExplosion   ; a puff of smoke for when something explodes
@@ -93,7 +94,7 @@ kMaxActors = 16
     NUM_VALUES
 .ENDENUM
 
-;;; eActor values less than this can be staticly initialized by a room's
+;;; eActor values less than this can be statically initialized by a room's
 ;;; sRoomExt::Actors_sActor_arr_ptr array.  eActor values greater than or equal
 ;;; to this can only be initialized dynamically, by calling some appropriate
 ;;; initialization function, which may well be in a different PRGA bank than

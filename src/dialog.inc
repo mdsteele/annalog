@@ -70,6 +70,7 @@ kDialogTextYesNo   = $ff
 ;;; Animated dialog portraits for various NPCs and devices.
 .ENUM ePortrait
     AdultElder
+    AdultJerome
     AdultMan
     AdultSmith
     AdultWoman
@@ -244,10 +245,14 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     TownOutdoorsAlex1
     TownOutdoorsAlex2
     TownOutdoorsAlex3
+    TownOutdoorsFinaleReactivate3
+    TownOutdoorsFinaleReactivate5
     TownOutdoorsGronta
     TownOutdoorsIvan
     TownOutdoorsSandra
     TownOutdoorsSign
+    TownSkyFinaleReactivate4
+    TownSkyFinaleReactivate6
     NUM_VALUES
 .ENDENUM
 

@@ -59,11 +59,16 @@
 .IMPORT DataA_Cutscene_TempleNaveAlexBoosting_sCutscene
 .IMPORT DataA_Cutscene_TownHouse2WakeUp_sCutscene
 .IMPORT DataA_Cutscene_TownHouse4BreakerLava_sCutscene
+.IMPORT DataA_Cutscene_TownOutdoorsFinaleReactivate1_sCutscene
+.IMPORT DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
+.IMPORT DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
-.IMPORT DataA_Cutscene_TownOutdoorsReactivate_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
+.IMPORT DataA_Cutscene_TownSkyFinaleReactivate2_sCutscene
+.IMPORT DataA_Cutscene_TownSkyFinaleReactivate4_sCutscene
+.IMPORT DataA_Cutscene_TownSkyFinaleReactivate6_sCutscene
 .IMPORT FuncA_Actor_TickAllDevicesAndActors
 .IMPORT FuncA_Actor_TickAllDevicesAndSmokeActors
 .IMPORT FuncA_Avatar_RagdollMove
@@ -172,6 +177,8 @@ _MaybeAvatarRagdoll:
     @noRagdoll:
     jmp _GameLoop
 _Finish:
+    ;; At this point, PRGA_Cutscene is still loaded, so act_JumpToMain is
+    ;; permitted to jump to a MainA_Cutscene_* if desired.
     jmp (T1T0)
 .ENDPROC
 
@@ -274,10 +281,20 @@ _Finish:
             DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
     d_entry table, TownOutdoorsOrcAttack, \
             DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
-    d_entry table, TownOutdoorsReactivate, \
-            DataA_Cutscene_TownOutdoorsReactivate_sCutscene
+    d_entry table, TownOutdoorsFinaleReactivate1, \
+            DataA_Cutscene_TownOutdoorsFinaleReactivate1_sCutscene
+    d_entry table, TownOutdoorsFinaleReactivate3, \
+            DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
+    d_entry table, TownOutdoorsFinaleReactivate5, \
+            DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene
     d_entry table, TownOutdoorsYearsLater, \
             DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
+    d_entry table, TownSkyFinaleReactivate2, \
+            DataA_Cutscene_TownSkyFinaleReactivate2_sCutscene
+    d_entry table, TownSkyFinaleReactivate4, \
+            DataA_Cutscene_TownSkyFinaleReactivate4_sCutscene
+    d_entry table, TownSkyFinaleReactivate6, \
+            DataA_Cutscene_TownSkyFinaleReactivate6_sCutscene
     D_END
 .ENDREPEAT
 .LINECONT -

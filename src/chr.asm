@@ -21,6 +21,7 @@
 .INCLUDE "actors/adult.inc"
 .INCLUDE "actors/axe.inc"
 .INCLUDE "actors/bat.inc"
+.INCLUDE "actors/beam.inc"
 .INCLUDE "actors/bird.inc"
 .INCLUDE "actors/breakball.inc"
 .INCLUDE "actors/breakbomb.inc"
@@ -1299,6 +1300,30 @@ _chr_begin:
     chr_inc "crane",          kTileIdObjCraneFirst
     chr_res $10
     chr_inc "child_stand",    kTileIdObjChildStandFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_ObjFinale"
+
+.EXPORT Ppu_ChrObjFinale
+.PROC Ppu_ChrObjFinale
+    CHR2_BANK $80
+    chr_inc "adult_jerome", kTileIdObjAdultJeromeFirst
+    chr_res $02
+    chr_inc "orc_grunt_standing",  kTileIdObjOrcGruntStandingFirst
+    chr_inc "smoke_beam",          kTileIdObjSmokeBeamFirst
+    chr_res $01
+    chr_inc "orc_grunt_kneeling",  kTileIdObjOrcGruntKneelingFirst
+    chr_res $08
+    chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
+    chr_inc "orc_grunt_running",   kTileIdObjOrcGruntRunningFirst
+    chr_inc "orc_grunt_throwing",  kTileIdObjOrcGruntThrowingFirst
+    chr_inc "adult_woman",         kTileIdObjAdultWomanFirst
+    chr_inc "adult_man",           kTileIdObjAdultManFirst
+    chr_inc "orc_grunt_sleeping",  kTileIdObjOrcGruntSleepingFirst
+    chr_res $20
     END_CHR_BANK
 .ENDPROC
 

@@ -43,6 +43,7 @@
     HumanWoman
     MermaidFlorist
     ;; NPCs that float, bobbing up and down in the water/air:
+    GhostJerome
     GhostMan
     GhostWoman
     MermaidCorra
@@ -61,18 +62,19 @@
 .ENDENUM
 
 ;;; eNpcAdult values greater than or equal to this are for NPCs that float.
-kFirstFloatingNpcAdult = eNpcAdult::GhostMan
+kFirstFloatingNpcAdult = eNpcAdult::GhostJerome
 
 ;;; eNpcAdult values greater than or equal to this are drawn with 2x4 tiles,
 ;;; instead of 2x3.
 kFirst2x4NpcAdult = eNpcAdult::CorraSwimmingUp1
 
 ;;; The first tile IDs for various human adults.
-kTileIdObjAdultElderFirst = $c4
-kTileIdObjAdultGhostFirst = $e4
-kTileIdObjAdultManFirst   = $d6
-kTileIdObjAdultSmithFirst = $b8
-kTileIdObjAdultWomanFirst = $d0
+kTileIdObjAdultElderFirst  = $c4
+kTileIdObjAdultGhostFirst  = $e4
+kTileIdObjAdultJeromeFirst = $80
+kTileIdObjAdultManFirst    = $d6
+kTileIdObjAdultSmithFirst  = $b8
+kTileIdObjAdultWomanFirst  = $d0
 
 ;;; The first tile IDs for various mermaids.
 kTileIdObjCorraSwimmingDownFirst = $e0

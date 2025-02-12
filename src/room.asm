@@ -173,6 +173,7 @@
 .IMPORT DataC_Town_House5_sRoom
 .IMPORT DataC_Town_House6_sRoom
 .IMPORT DataC_Town_Outdoors_sRoom
+.IMPORT DataC_Town_Sky_sRoom
 .IMPORT Data_PowersOfTwo_u8_arr8
 .IMPORT FuncA_Room_InitActor
 .IMPORT Func_IsFlagSet
@@ -487,6 +488,7 @@ _PrisonMusic:
     d_byte TownHouse5,      eMusic::Town
     d_byte TownHouse6,      eMusic::Town
     d_byte TownOutdoors,    eMusic::Town
+    d_byte TownSky,         eMusic::Silence
     D_END
 .ENDPROC
 
@@ -668,6 +670,7 @@ _PrisonMusic:
     d_entry table, TownHouse5,      DataC_Town_House5_sRoom
     d_entry table, TownHouse6,      DataC_Town_House6_sRoom
     d_entry table, TownOutdoors,    DataC_Town_Outdoors_sRoom
+    d_entry table, TownSky,         DataC_Town_Sky_sRoom
     D_END
 .ENDREPEAT
 

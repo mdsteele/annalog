@@ -48,6 +48,29 @@
 
 ;;;=========================================================================;;;
 
+;;; Various steps of the three finales.  Each step represents a particular
+;;; cutscene in a particular room.
+.ENUM eFinale
+    GaveRemote1Outdoors
+    Reactivate1Outdoors  ; ground splits open, Anna emerges riding the core
+    Reactivate2Sky       ; Anna rides the core into the sky
+    Reactivate3Outdoors  ; Thurg comes out of the town hall and sees the core
+    Reactivate4Sky       ; Jerome's recorded message begins to play
+    Reactivate5Outdoors  ; Thurg and the other orc protest, but get laser-ed
+    Reactivate6Sky       ; Jerome's recorded message concludes
+    YearsLater1Outdoors
+    NUM_VALUES
+.ENDENUM
+
+;;;=========================================================================;;;
+
+.ZEROPAGE
+
+;;; The current step of the finale.
+Zp_Current_eFinale: .res 1
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRG8"
 
 ;;; Mode for transitioning to the cutscene that plays in TownOutdoors after
@@ -56,10 +79,9 @@
 .EXPORT Main_Finale_GaveRemote
 .PROC Main_Finale_GaveRemote
     jsr Func_FadeOutToBlackSlowly
-    ldx #eRoom::TownOutdoors  ; param: room to load
-    ldy #eMusic::Silence  ; param: music to play
-    jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
-    jmp_prga MainA_Death_EnterFinaleGaveRemoteCutsceneRoom
+    ldy #eFinale::GaveRemote1Outdoors  ; param: finale step to run
+    .assert eFinale::GaveRemote1Outdoors < $80, error
+    bpl Main_Finale_SetAndStartStep  ; unconditional
 .ENDPROC
 
 ;;; Mode for transitioning to the cutscene that plays in TownOutdoors after
@@ -68,10 +90,9 @@
 .EXPORT Main_Finale_Reactivate
 .PROC Main_Finale_Reactivate
     jsr Func_FadeOutToBlackSlowly
-    ldx #eRoom::TownOutdoors  ; param: room to load
-    ldy #eMusic::Silence  ; param: music to play
-    jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
-    jmp_prga MainA_Death_EnterFinaleReactivateCutsceneRoom
+    ldy #eFinale::Reactivate1Outdoors  ; param: finale step to run
+    .assert eFinale::Reactivate1Outdoors < $80, error
+    bpl Main_Finale_SetAndStartStep  ; unconditional
 .ENDPROC
 
 ;;; Mode for displaying the "years later" text as part of the self-destruct
@@ -80,9 +101,133 @@
 ;;; @prereq The current fade level is eFade::White.
 .EXPORT Main_Finale_YearsLater
 .PROC Main_Finale_YearsLater
-    jsr_prga FuncA_Death_FinaleYearsLater  ; returns X and Y (params)
+    jsr_prga FuncA_Death_FinaleYearsLater
+    ldy #eFinale::YearsLater1Outdoors  ; param: finale step to run
+    .assert eFinale::YearsLater1Outdoors < $80, error
+    bpl Main_Finale_SetAndStartStep  ; unconditional
+.ENDPROC
+
+;;; Fades out the screen, increments Zp_Current_eFinale, and begins the next
+;;; finale step, starting the next cutscene after loading and entering its
+;;; room.
+;;; @prereq Zp_Current_eFinale is initialized.
+;;; @prereq Rendering is enabled.
+.EXPORT Main_Finale_StartNextStep
+.PROC Main_Finale_StartNextStep
+    jsr Func_FadeOutToBlack
+    ldy Zp_Current_eFinale
+    iny  ; param: finale step to start
+    fall Main_Finale_SetAndStartStep
+.ENDPROC
+
+;;; Sets Zp_Current_eFinale to the specified step and begins that finale step,
+;;; starting its cutscene after loading and entering its room.
+;;; @prereq Rendering is disabled.
+;;; @param Y The eFinale value for the finale step to run.
+.PROC Main_Finale_SetAndStartStep
+    sty Zp_Current_eFinale
+    jsr_prga FuncA_Cutscene_GetFinaleCutsceneRoomAndMusic  ; returns X and Y
     jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
-    jmp_prga MainA_Death_EnterFinaleYearsLaterCutsceneRoom
+    jmp_prga MainA_Cutscene_EnterFinaleCutsceneRoom
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+;;; Sets Zp_Next_eCutscene for the specified finale step, and returns the room
+;;; that the cutscene takes place in and the music to play in that room.
+;;; @param Y The eFinale value for the finale step.
+;;; @return X The eRoom value for the cutscene room.
+;;; @return Y The eMusic value for the music to play in the cutscene room.
+.PROC FuncA_Cutscene_GetFinaleCutsceneRoomAndMusic
+    ;; Set up the cutscene.
+    lda _Finale_eCutscene_arr, y
+    sta Zp_Next_eCutscene
+    ;; Return the eRoom value for the room the cutscene takes place in.
+    ldx _Finale_eRoom_arr, y
+    ldy #eMusic::Silence
+    rts
+_Finale_eCutscene_arr:
+    D_ARRAY .enum, eFinale
+    d_byte GaveRemote1Outdoors, eCutscene::TownOutdoorsGaveRemote
+    d_byte Reactivate1Outdoors, eCutscene::TownOutdoorsFinaleReactivate1
+    d_byte Reactivate2Sky,      eCutscene::TownSkyFinaleReactivate2
+    d_byte Reactivate3Outdoors, eCutscene::TownOutdoorsFinaleReactivate3
+    d_byte Reactivate4Sky,      eCutscene::TownSkyFinaleReactivate4
+    d_byte Reactivate5Outdoors, eCutscene::TownOutdoorsFinaleReactivate5
+    d_byte Reactivate6Sky,      eCutscene::TownSkyFinaleReactivate6
+    d_byte YearsLater1Outdoors, eCutscene::TownOutdoorsYearsLater
+    D_END
+_Finale_eRoom_arr:
+    D_ARRAY .enum, eFinale
+    d_byte GaveRemote1Outdoors, eRoom::TownOutdoors
+    d_byte Reactivate1Outdoors, eRoom::TownOutdoors
+    d_byte Reactivate2Sky,      eRoom::TownSky
+    d_byte Reactivate3Outdoors, eRoom::TownOutdoors
+    d_byte Reactivate4Sky,      eRoom::TownSky
+    d_byte Reactivate5Outdoors, eRoom::TownOutdoors
+    d_byte Reactivate6Sky,      eRoom::TownSky
+    d_byte YearsLater1Outdoors, eRoom::TownOutdoors
+    D_END
+.ENDPROC
+
+;;; Sets up the avatar and room scrolling for the current finale step's
+;;; cutscene, then jumps to Main_Explore_EnterRoom.
+;;; @prereq Zp_Current_eFinale is initialized.
+;;; @prereq Rendering is disabled.
+;;; @prereq Static room data is loaded.
+.PROC MainA_Cutscene_EnterFinaleCutsceneRoom
+    ;; Position the (hidden) player avatar so as to make the room scroll
+    ;; position be what we want.  (We don't want to do this by locking
+    ;; scrolling, because we want e.g. the vertical scroll to be able to shift
+    ;; while the dialog window is open.)
+    ldy Zp_Current_eFinale
+    lda _AvatarPosX_i16_0_arr, y
+    sta Zp_AvatarPosX_i16 + 0
+    lda _AvatarPosX_i16_1_arr, y
+    sta Zp_AvatarPosX_i16 + 1
+    lda _AvatarPosY_i16_0_arr, y
+    sta Zp_AvatarPosY_i16 + 0
+    lda #0
+    sta Zp_AvatarPosY_i16 + 1
+    ;; Hide the player avatar.
+    .assert eAvatar::Hidden = 0, error
+    sta Zp_AvatarPose_eAvatar
+    jmp Main_Explore_EnterRoom
+_AvatarPosX_i16_0_arr:
+    D_ARRAY .enum, eFinale
+    d_byte GaveRemote1Outdoors, $18
+    d_byte Reactivate1Outdoors, $18
+    d_byte Reactivate2Sky,      $80
+    d_byte Reactivate3Outdoors, $80
+    d_byte Reactivate4Sky,      $80
+    d_byte Reactivate5Outdoors, $80
+    d_byte Reactivate6Sky,      $80
+    d_byte YearsLater1Outdoors, $18
+    D_END
+_AvatarPosX_i16_1_arr:
+    D_ARRAY .enum, eFinale
+    d_byte GaveRemote1Outdoors, $03
+    d_byte Reactivate1Outdoors, $03
+    d_byte Reactivate2Sky,      $00
+    d_byte Reactivate3Outdoors, $02
+    d_byte Reactivate4Sky,      $00
+    d_byte Reactivate5Outdoors, $02
+    d_byte Reactivate6Sky,      $00
+    d_byte YearsLater1Outdoors, $03
+    D_END
+_AvatarPosY_i16_0_arr:
+    D_ARRAY .enum, eFinale
+    d_byte GaveRemote1Outdoors, $c8
+    d_byte Reactivate1Outdoors, $c8
+    d_byte Reactivate2Sky,      $78
+    d_byte Reactivate3Outdoors, $c8
+    d_byte Reactivate4Sky,      $78
+    d_byte Reactivate5Outdoors, $c8
+    d_byte Reactivate6Sky,      $78
+    d_byte YearsLater1Outdoors, $c8
+    D_END
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -105,8 +250,6 @@
 ;;; Displays the "years later" text, then fades out the screen.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq The current fade level is eFade::White.
-;;; @return X The eRoom value for the cutscene room.
-;;; @return Y The eMusic value for the music to play in the cutscene room.
 .PROC FuncA_Death_FinaleYearsLater
 _BlankOutBg:
     ldy #kScreenWidthTiles - 1
@@ -141,78 +284,7 @@ _FadeInText:
 _FadeOutText:
     ldx #150  ; param: num frames
     jsr Func_WaitXFrames
-    jsr Func_FadeOutToBlack
-_ReturnRoomAndMusic:
-    ;; Return the cutscene room and music to load.
-    ldx #eRoom::TownOutdoors
-    ldy #eMusic::Silence
-    rts
-.ENDPROC
-
-;;; Sets up the avatar, room scrolling, and next cutscene for the "years later"
-;;; cutscene, then jumps to Main_Explore_EnterRoom.
-;;; @prereq Rendering is disabled.
-;;; @prereq Static room data is loaded.
-.PROC MainA_Death_EnterFinaleYearsLaterCutsceneRoom
-    ;; Hide the player avatar.
-    lda #eAvatar::Hidden
-    sta Zp_AvatarPose_eAvatar
-    ;; Position the (hidden) player avatar so as to make the room scroll
-    ;; position be what we want.  (We don't want to do this by locking
-    ;; scrolling, because we want e.g. the vertical scroll to be able to shift
-    ;; while the dialog window is open.)
-    ldax #$0560
-    stax Zp_AvatarPosX_i16
-    ldax #$00c8
-    stax Zp_AvatarPosY_i16
-    ;; Enter the room and start the cutscene.
-    lda #eCutscene::TownOutdoorsYearsLater
-    sta Zp_Next_eCutscene
-    jmp Main_Explore_EnterRoom
-.ENDPROC
-
-;;; Sets up the avatar, room scrolling, and next cutscene for the "gave remote"
-;;; cutscene, then jumps to Main_Explore_EnterRoom.
-;;; @prereq Rendering is disabled.
-;;; @prereq Static room data is loaded.
-.PROC MainA_Death_EnterFinaleGaveRemoteCutsceneRoom
-    ;; Hide the player avatar.
-    lda #eAvatar::Hidden
-    sta Zp_AvatarPose_eAvatar
-    ;; Position the (hidden) player avatar so as to make the room scroll
-    ;; position be what we want.  (We don't want to do this by locking
-    ;; scrolling, because we want e.g. the vertical scroll to be able to shift
-    ;; while the dialog window is open.)
-    ldax #$02c4
-    stax Zp_AvatarPosX_i16
-    ldax #$00c8
-    stax Zp_AvatarPosY_i16
-    ;; Enter the room and start the cutscene.
-    lda #eCutscene::TownOutdoorsGaveRemote
-    sta Zp_Next_eCutscene
-    jmp Main_Explore_EnterRoom
-.ENDPROC
-
-;;; Sets up the avatar, room scrolling, and next cutscene for the "reactivate"
-;;; cutscene, then jumps to Main_Explore_EnterRoom.
-;;; @prereq Rendering is disabled.
-;;; @prereq Static room data is loaded.
-.PROC MainA_Death_EnterFinaleReactivateCutsceneRoom
-    ;; Hide the player avatar.
-    lda #eAvatar::Hidden
-    sta Zp_AvatarPose_eAvatar
-    ;; Position the (hidden) player avatar so as to make the room scroll
-    ;; position be what we want.  (We don't want to do this by locking
-    ;; scrolling, because we want e.g. the vertical scroll to be able to shift
-    ;; while the dialog window is open.)
-    ldax #$02c4
-    stax Zp_AvatarPosX_i16
-    ldax #$00c8
-    stax Zp_AvatarPosY_i16
-    ;; Enter the room and start the cutscene.
-    lda #eCutscene::TownOutdoorsReactivate
-    sta Zp_Next_eCutscene
-    jmp Main_Explore_EnterRoom
+    jmp Func_FadeOutToBlack
 .ENDPROC
 
 ;;;=========================================================================;;;

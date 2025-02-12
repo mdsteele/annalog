@@ -18,9 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
-.INCLUDE "../device.inc"
 .INCLUDE "../macros.inc"
-.INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Garden_sTileset

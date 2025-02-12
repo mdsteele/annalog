@@ -166,6 +166,10 @@
 .IMPORT DataA_Dialog_TownHouse5Bruno_sDialog
 .IMPORT DataA_Dialog_TownHouse5Marie_sDialog
 .IMPORT DataA_Dialog_TownHouse6Elder_sDialog
+.IMPORT DataA_Dialog_TownOutdoorsFinaleReactivate3_sDialog
+.IMPORT DataA_Dialog_TownOutdoorsFinaleReactivate5_sDialog
+.IMPORT DataA_Dialog_TownSkyFinaleReactivate4_sDialog
+.IMPORT DataA_Dialog_TownSkyFinaleReactivate6_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex1_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex2_sDialog
 .IMPORT DataC_Town_TownOutdoorsAlex3_sDialog
@@ -598,10 +602,18 @@ _Finish:
     d_entry t, TownOutdoorsAlex1,    DataC_Town_TownOutdoorsAlex1_sDialog
     d_entry t, TownOutdoorsAlex2,    DataC_Town_TownOutdoorsAlex2_sDialog
     d_entry t, TownOutdoorsAlex3,    DataC_Town_TownOutdoorsAlex3_sDialog
+    d_entry t, TownOutdoorsFinaleReactivate3, \
+            DataA_Dialog_TownOutdoorsFinaleReactivate3_sDialog
+    d_entry t, TownOutdoorsFinaleReactivate5, \
+            DataA_Dialog_TownOutdoorsFinaleReactivate5_sDialog
     d_entry t, TownOutdoorsGronta,   DataC_Town_TownOutdoorsGronta_sDialog
     d_entry t, TownOutdoorsIvan,     DataC_Town_TownOutdoorsIvan_sDialog
     d_entry t, TownOutdoorsSandra,   DataC_Town_TownOutdoorsSandra_sDialog
     d_entry t, TownOutdoorsSign,     DataC_Town_TownOutdoorsSign_sDialog
+    d_entry t, TownSkyFinaleReactivate4, \
+            DataA_Dialog_TownSkyFinaleReactivate4_sDialog
+    d_entry t, TownSkyFinaleReactivate6, \
+            DataA_Dialog_TownSkyFinaleReactivate6_sDialog
     D_END
 .ENDREPEAT
 .LINECONT -
