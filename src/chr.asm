@@ -919,7 +919,8 @@ _chr_begin:
     CHR1_BANK $c0
     .assert .bank(*) = kChrBankPortraitElderRest, error
     chr_inc "portrait_elder_rest", kTileIdBgPortraitElderFirst
-    chr_res $10
+    .assert .bank(*) = kChrBankPortraitFarmerRest, error
+    chr_inc "portrait_farmer_rest", kTileIdBgPortraitFarmerFirst
     .assert .bank(*) = kChrBankDiagramRotor, error
     chr_inc "diagram_rotor", kTileIdBgDiagramRotorFirst
     .assert .bank(*) = kChrBankDiagramConveyor, error
@@ -935,7 +936,8 @@ _chr_begin:
     CHR1_BANK $c0
     .assert .bank(*) = kChrBankPortraitElderTalk, error
     chr_inc "portrait_elder_talk", kTileIdBgPortraitElderFirst
-    chr_res $10
+    .assert .bank(*) = kChrBankPortraitFarmerTalk, error
+    chr_inc "portrait_farmer_talk", kTileIdBgPortraitFarmerFirst
     .assert .bank(*) = kChrBankDiagramAmmoRack, error
     chr_inc "diagram_ammo_rack", kTileIdBgDiagramAmmoRackFirst
     .assert .bank(*) = kChrBankDiagramReloader, error

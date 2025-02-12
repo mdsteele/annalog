@@ -117,12 +117,12 @@ _Devices_sDevice_arr:
 .PROC DataA_Dialog_MermaidHut2Guard_sDialog
     dlg_IfSet CityCenterEnteredCity, _Impressed_sDialog
 _WatchOut_sDialog:
-    dlg_Text AdultMan, DataA_Text1_MermaidHut2Guard_WatchOut1_u8_arr
-    dlg_Text AdultMan, DataA_Text1_MermaidHut2Guard_WatchOut2_u8_arr
+    dlg_Text MermaidGuardM, DataA_Text1_MermaidHut2Guard_WatchOut1_u8_arr
+    dlg_Text MermaidGuardM, DataA_Text1_MermaidHut2Guard_WatchOut2_u8_arr
     dlg_Done
 _Impressed_sDialog:
-    dlg_Text AdultMan, DataA_Text1_MermaidHut2Guard_Impressed1_u8_arr
-    dlg_Text AdultMan, DataA_Text1_MermaidHut2Guard_Impressed2_u8_arr
+    dlg_Text MermaidGuardM, DataA_Text1_MermaidHut2Guard_Impressed1_u8_arr
+    dlg_Text MermaidGuardM, DataA_Text1_MermaidHut2Guard_Impressed2_u8_arr
     dlg_Done
 .ENDPROC
 

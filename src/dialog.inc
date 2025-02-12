@@ -87,6 +87,7 @@ kDialogTextYesNo   = $ff
     MermaidFarmer
     MermaidFlorist
     MermaidGuardF
+    MermaidGuardM
     MermaidPhoebe
     OrcGronta
     OrcGrontaShout

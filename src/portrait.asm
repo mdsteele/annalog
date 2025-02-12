@@ -45,9 +45,10 @@
     d_byte MermaidCorra,       kChrBankPortraitCorraRest
     d_byte MermaidEirene,      kChrBankPortraitEireneRest
     d_byte MermaidEireneShout, kChrBankPortraitEireneTalk
-    d_byte MermaidFarmer,      kChrBankPortraitManRest
+    d_byte MermaidFarmer,      kChrBankPortraitFarmerRest
     d_byte MermaidFlorist,     kChrBankPortraitFloristRest
     d_byte MermaidGuardF,      kChrBankPortraitMermaidRest
+    d_byte MermaidGuardM,      kChrBankPortraitFarmerRest
     d_byte MermaidPhoebe,      kChrBankPortraitNoraRest
     d_byte OrcGronta,          kChrBankPortraitGrontaRest
     d_byte OrcGrontaShout,     kChrBankPortraitGrontaTalk
@@ -80,9 +81,10 @@
     d_byte MermaidCorra,       kChrBankPortraitCorraTalk
     d_byte MermaidEirene,      kChrBankPortraitEireneTalk
     d_byte MermaidEireneShout, kChrBankPortraitEireneRest
-    d_byte MermaidFarmer,      kChrBankPortraitManTalk
+    d_byte MermaidFarmer,      kChrBankPortraitFarmerTalk
     d_byte MermaidFlorist,     kChrBankPortraitFloristTalk
     d_byte MermaidGuardF,      kChrBankPortraitMermaidTalk
+    d_byte MermaidGuardM,      kChrBankPortraitFarmerTalk
     d_byte MermaidPhoebe,      kChrBankPortraitNoraTalk
     d_byte OrcGronta,          kChrBankPortraitGrontaTalk
     d_byte OrcGrontaShout,     kChrBankPortraitGrontaRest
@@ -114,9 +116,10 @@
     d_byte MermaidCorra,       kTileIdBgPortraitCorraFirst
     d_byte MermaidEirene,      kTileIdBgPortraitEireneFirst
     d_byte MermaidEireneShout, kTileIdBgPortraitEireneFirst
-    d_byte MermaidFarmer,      kTileIdBgPortraitManFirst
+    d_byte MermaidFarmer,      kTileIdBgPortraitFarmerFirst
     d_byte MermaidFlorist,     kTileIdBgPortraitFloristFirst
     d_byte MermaidGuardF,      kTileIdBgPortraitMermaidFirst
+    d_byte MermaidGuardM,      kTileIdBgPortraitFarmerFirst
     d_byte MermaidPhoebe,      kTileIdBgPortraitNoraFirst
     d_byte OrcGronta,          kTileIdBgPortraitGrontaFirst
     d_byte OrcGrontaShout,     kTileIdBgPortraitGrontaFirst
