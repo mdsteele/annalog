@@ -951,7 +951,9 @@ _chr_begin:
 
 .PROC Ppu_ChrBgPortrait11
     CHR1_BANK $c0
-    chr_res $20
+    .assert .bank(*) = kChrBankPortraitJeromeRest, error
+    chr_inc "portrait_jerome_rest", kTileIdBgPortraitJeromeFirst
+    chr_res $10
     .assert .bank(*) = kChrBankDiagramBlaster, error
     chr_inc "diagram_blaster", kTileIdBgDiagramBlasterFirst
     .assert .bank(*) = kChrBankDiagramDrums, error
@@ -965,7 +967,9 @@ _chr_begin:
 
 .PROC Ppu_ChrBgPortrait12
     CHR1_BANK $c0
-    chr_res $20
+    .assert .bank(*) = kChrBankPortraitJeromeTalk, error
+    chr_inc "portrait_jerome_talk", kTileIdBgPortraitJeromeFirst
+    chr_res $10
     .assert .bank(*) = kChrBankDiagramOrgan, error
     chr_inc "diagram_organ", kTileIdBgDiagramOrganFirst
     .assert .bank(*) = kChrBankDiagramTrombone, error
