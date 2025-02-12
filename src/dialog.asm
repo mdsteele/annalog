@@ -188,6 +188,7 @@
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_IsFlagSet
+.IMPORT Func_PlaySfxMenuMove
 .IMPORT Func_SetFlag
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_Window_GetRowPpuAddr
@@ -766,15 +767,18 @@ _CheckDPad:
     and #bJoypad::Left
     beq @noLeft
     lda #$ff
-    sta Zp_DialogAnsweredYes_bool
-    bne @done  ; unconditional
+    bne @maybeMove  ; unconditional
     @noLeft:
     ;; If the player presses right, select "NO".
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Right
     beq @done
     lda #$00
+    @maybeMove:
+    cmp Zp_DialogAnsweredYes_bool
+    beq @done
     sta Zp_DialogAnsweredYes_bool
+    jsr Func_PlaySfxMenuMove
     @done:
 _CheckAButton:
     ;; Check if the player pressed the A button.
