@@ -46,9 +46,15 @@
 .IMPORTZP Zp_ConsoleNominalFieldOffset_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sProgram_ptr
+.IMPORTZP Zp_P1ButtonsHeld_bJoypad
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
 
 ;;;=========================================================================;;;
+
+;;; How long the A button must be initially held down, in frames, before the
+;;; debugger will begin repeatedly stepping through instructions for as long as
+;;; the button is still held.
+kDebugStepRepeatDelay = 30
 
 ;;; The PPU addresses (within the lower nametable) for the starts of the
 ;;; attribute bytes that cover the debug diagram.
@@ -59,6 +65,14 @@ Ppu_DebugAttrStart1 = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
 Ppu_DebugAttrStart2 = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
     ((kWindowStartRow + 5) / 4) * 8 + 5
 .LINECONT -
+
+;;;=========================================================================;;;
+
+.ZEROPAGE
+
+;;; How many frames the A button has been held down for in the debugger, up to
+;;; a maximum of kDebugStepRepeatDelay.
+Zp_DebugHoldAFrames_u8: .res 1
 
 ;;;=========================================================================;;;
 
@@ -92,11 +106,12 @@ _ResumeEditing:
 ;;; Responds to any joypad presses while in debugging mode.
 ;;; @return C Set if we should stop debugging.
 .PROC FuncA_Machine_DebuggerHandleJoypad
-_HandleStartButton:
+    ldx Zp_ConsoleMachineIndex_u8
+_HandleStartButtonPress:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
     bne _StopDebugging
-_HandleBButton:
+_HandleBButtonPress:
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::BButton = bProc::Overflow, error
     bvc @done
@@ -104,18 +119,16 @@ _HandleBButton:
     ;; particular so that a novice player can easily dismiss a machine error
     ;; report by mashing buttons).  Otherwise, ignore the B button (so that it
     ;; can be used to control the B-Remote during debugging).
-    ldx Zp_ConsoleMachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, x
     cmp #eMachine::Error
     beq _StopDebugging
     cmp #eMachine::Halted
     beq _StopDebugging
     @done:
-_HandleAButton:
+_HandleAButtonPress:
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::AButton = bProc::Negative, error
-    bpl _ContinueDebugging
-    ldx Zp_ConsoleMachineIndex_u8
+    bpl @done  ; A button was not pressed this frame
     ;; If the machine status is Running, execute the next instruction.
     lda Ram_MachineStatus_eMachine_arr, x
     .assert eMachine::Running = 0, error
@@ -126,10 +139,26 @@ _HandleAButton:
     cmp #eMachine::Halted
     beq _StopDebugging
     cmp #eMachine::Error
+    beq _StopDebugging
+    @done:
+_HandleAButtonHeld:
+    bit Zp_P1ButtonsHeld_bJoypad
+    .assert bJoypad::AButton = bProc::Negative, error
+    bmi @holdingA
+    @notHoldingA:
+    lda #0
+    sta Zp_DebugHoldAFrames_u8
+    beq _ContinueDebugging  ; unconditional
+    @holdingA:
+    lda Zp_DebugHoldAFrames_u8
+    cmp #kDebugStepRepeatDelay
+    bge _ExecuteNextIfRunning
+    inc Zp_DebugHoldAFrames_u8
+    bne _ContinueDebugging  ; unconditional
+_ExecuteNextIfRunning:
+    lda Ram_MachineStatus_eMachine_arr, x
+    .assert eMachine::Running = 0, error
     bne _ContinueDebugging
-_StopDebugging:
-    sec  ; set C to indicate that debugging should stop
-    rts
 _ExecuteNext:
     jsr Func_SetMachineIndex
     ldax #Ram_Console_sProgram
@@ -137,6 +166,9 @@ _ExecuteNext:
     jsr FuncA_Machine_ExecuteNext
 _ContinueDebugging:
     clc  ; clear C to indicate that debugging should continue
+    rts
+_StopDebugging:
+    sec  ; set C to indicate that debugging should stop
     rts
 .ENDPROC
 
@@ -184,6 +216,8 @@ _Row2:
 
 ;;; Initializes debug mode.
 .PROC FuncA_Console_InitDebugger
+    lda #0
+    sta Zp_DebugHoldAFrames_u8
     ;; If we started the debugger because the machine was already Halted or
     ;; Error when we opened the console, don't change the diagram (and there is
     ;; no need to save the program).
