@@ -396,14 +396,18 @@ _DetectAvatarDeath:
     rts
 .ENDPROC
 
-.EXPORT DataC_Town_TownOutdoorsAlex1_sDialog
-.PROC DataC_Town_TownOutdoorsAlex1_sDialog
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_TownOutdoorsAlex1_sDialog
+.PROC DataA_Dialog_TownOutdoorsAlex1_sDialog
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex1_u8_arr
     dlg_Cutscene eCutscene::TownOutdoorsOrcAttack
 .ENDPROC
 
-.EXPORT DataC_Town_TownOutdoorsAlex2_sDialog
-.PROC DataC_Town_TownOutdoorsAlex2_sDialog
+.EXPORT DataA_Dialog_TownOutdoorsAlex2_sDialog
+.PROC DataA_Dialog_TownOutdoorsAlex2_sDialog
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part1_u8_arr
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part2_u8_arr
     dlg_Call _AlexStanding
@@ -415,13 +419,14 @@ _AlexStanding:
     rts
 .ENDPROC
 
-.EXPORT DataC_Town_TownOutdoorsAlex3_sDialog
-.PROC DataC_Town_TownOutdoorsAlex3_sDialog
+;;; @prereq PRGC_Town is loaded.
+.EXPORT DataA_Dialog_TownOutdoorsAlex3_sDialog
+.PROC DataA_Dialog_TownOutdoorsAlex3_sDialog
     .assert kTileIdBgPortraitGrontaFirst = kTileIdBgPortraitAlexFirst, error
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_Explore1_u8_arr
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_Explore2_u8_arr
     dlg_Call _SilenceMusic
-    dlg_Call DataC_Town_OutdoorsScrollOrcsIntoView
+    dlg_Call FuncA_Dialog_OutdoorsScrollOrcsIntoView
     dlg_Text OrcGronta, DataA_Text0_TownOutdoorsAlex3_HandleThis_u8_arr
     dlg_Call _TurnKidsAround
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex3_WhaWhat_u8_arr
@@ -464,10 +469,10 @@ _MakeOrcGruntsJump:
     jmp FuncC_Town_Outdoors_MakeOrcJump
 .ENDPROC
 
-.EXPORT DataC_Town_TownOutdoorsGronta_sDialog
-.PROC DataC_Town_TownOutdoorsGronta_sDialog
+.EXPORT DataA_Dialog_TownOutdoorsGronta_sDialog
+.PROC DataA_Dialog_TownOutdoorsGronta_sDialog
     .assert kTileIdBgPortraitGrontaFirst = kTileIdBgPortraitOrcFirst, error
-    dlg_Call DataC_Town_OutdoorsScrollOrcsIntoView
+    dlg_Call FuncA_Dialog_OutdoorsScrollOrcsIntoView
     dlg_Text OrcGronta, DataA_Text0_TownOutdoorsGronta_Search1_u8_arr
     dlg_Text OrcGronta, DataA_Text0_TownOutdoorsGronta_Search2_u8_arr
     dlg_Call _MakeThurgSalute
@@ -484,8 +489,8 @@ _LockScrolling:
     rts
 .ENDPROC
 
-.EXPORT DataC_Town_TownOutdoorsIvan_sDialog
-.PROC DataC_Town_TownOutdoorsIvan_sDialog
+.EXPORT DataA_Dialog_TownOutdoorsIvan_sDialog
+.PROC DataA_Dialog_TownOutdoorsIvan_sDialog
     dlg_Text AdultMan, DataA_Text0_TownOutdoorsIvan_Part1_u8_arr
     dlg_Call _FaceAnna
     dlg_Text AdultMan, DataA_Text0_TownOutdoorsIvan_Part2_u8_arr
@@ -501,29 +506,25 @@ _SetFace:
     rts
 .ENDPROC
 
-.EXPORT DataC_Town_TownOutdoorsSandra_sDialog
-.PROC DataC_Town_TownOutdoorsSandra_sDialog
+.EXPORT DataA_Dialog_TownOutdoorsSandra_sDialog
+.PROC DataA_Dialog_TownOutdoorsSandra_sDialog
     dlg_Text AdultWoman, DataA_Text0_TownOutdoorsSandra_Part1_u8_arr
     dlg_Text AdultWoman, DataA_Text0_TownOutdoorsSandra_Part2_u8_arr
     dlg_Done
 .ENDPROC
 
-.EXPORT DataC_Town_TownOutdoorsSign_sDialog
-.PROC DataC_Town_TownOutdoorsSign_sDialog
+.EXPORT DataA_Dialog_TownOutdoorsSign_sDialog
+.PROC DataA_Dialog_TownOutdoorsSign_sDialog
     dlg_Text Sign, DataA_Text0_TownOutdoorsSign_u8_arr
     dlg_Done
 .ENDPROC
 
 ;;; Sets Zp_ScrollGoalX_u16 to make Gronta (and the orcs next to her) visible.
-.PROC DataC_Town_OutdoorsScrollOrcsIntoView
+.PROC FuncA_Dialog_OutdoorsScrollOrcsIntoView
     ldax #$0500
     stax Zp_ScrollGoalX_u16
     rts
 .ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Dialog"
 
 .EXPORT DataA_Dialog_TownOutdoorsFinaleReactivate3_sDialog
 .PROC DataA_Dialog_TownOutdoorsFinaleReactivate3_sDialog
