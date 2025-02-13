@@ -460,10 +460,8 @@ _chr_begin:
     CHR1_BANK $80
     chr_inc "core_pipes1"
     chr_inc "core_pipes2"
-    chr_res $04
     chr_inc "fullcore1"
     chr_inc "fullcore2"
-    chr_res $04
     END_CHR_BANK
 .ENDPROC
 
