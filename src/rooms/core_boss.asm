@@ -81,7 +81,7 @@
 .IMPORT FuncA_Objects_DrawBlasterMirror
 .IMPORT FuncA_Objects_DrawCannonMachine
 .IMPORT FuncA_Objects_DrawLaserMachine
-.IMPORT FuncA_Objects_DrawTerminalPlatform
+.IMPORT FuncA_Objects_DrawTerminalPlatformBehind
 .IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -1892,7 +1892,7 @@ _FinalTerminal:
     lda Zp_RoomState + sState::DrawFinalTerminal_bool
     bpl @done
     ldx #kFinalTerminalPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawTerminalPlatform
+    jsr FuncA_Objects_DrawTerminalPlatformBehind
     @done:
 _PassageBarrier:
     lda Ram_PlatformType_ePlatform_arr + kPassageBarrierPlatformIndex

@@ -130,9 +130,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncC_Core_South_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_CoreSouth_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, FuncC_Core_South_TickRoom
+    d_addr Tick_func_ptr, FuncA_Room_CoreSouth_TickRoom
     d_addr Draw_func_ptr, FuncC_Core_South_DrawRoom
     D_END
 _TerrainData:
@@ -276,86 +276,6 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Core_South_EnterRoom
-_CheckIfKidsAreFreedYet:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
-    beq @done
-    jsr _RemoveCorra
-    jmp _ReleaseCrates
-    @done:
-_CheckIfCratesHaveBeenReleased:
-    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
-    beq @done
-    jsr _ReleaseCrates
-    @done:
-_CheckIfCorraIsWaiting:
-    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
-    bne _Return
-_RemoveCorra:
-    lda #0
-    .assert eActor::None = 0, error
-    sta Ram_ActorType_eActor_arr + kCorraActorIndex
-    .assert eDevice::None = 0, error
-    sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexLeft
-    sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexRight
-_Return:
-    rts
-_ReleaseCrates:
-    ldx #eFlag::CoreSouthCorraHelped  ; param: flag
-    jsr Func_SetFlag
-    ldax #kCrate3FloatingPositionY
-    stax Zp_PointY_i16
-    ldy #kCrate3PlatformIndex  ; param: platform index
-    jmp Func_SetPlatformTopToPointY
-.ENDPROC
-
-.PROC FuncC_Core_South_TickRoom
-    inc Zp_RoomState + sState::WaterBobTimer_u8
-_TickCrate3:
-    ;; If Corra hasn't yet released the stacked crates from their anchor, then
-    ;; don't move them.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
-    beq @done
-    ldax #kCrate3FloatingPositionY
-    stax Zp_PointY_i16
-    ldx #kCrate3PlatformIndex
-    jsr FuncC_Core_South_TickCrate
-    @done:
-_TickCrate2:
-    ldax #kCrate2FloatingPositionY
-    stax Zp_PointY_i16
-    ldx #kCrate2PlatformIndex
-    jmp FuncC_Core_South_TickCrate
-.ENDPROC
-
-;;; Performs per-frame updates for a floating crate in this room.
-;;; @prereq Zp_PointY_i16 is set to the floating Y-position for the crate.
-;;; @param X The crate platform index.
-.PROC FuncC_Core_South_TickCrate
-_WeighDown:
-    ;; If the player avqtar is standing on the crate, shift the goal position
-    ;; downward.
-    cpx Zp_AvatarPlatformIndex_u8
-    bne @done
-    lda #7  ; param: offset
-    jsr Func_MovePointDownByA  ; preserves X
-    @done:
-_BobInWater:
-    ;; Make the crate bob up and down in the water.
-    txa  ; platform index
-    add Zp_RoomState + sState::WaterBobTimer_u8
-    div #8
-    mod #8
-    tay  ; water bob index
-    lda _WaterBobOffset_i8_arr8, y  ; param: signed offset
-    jsr Func_MovePointVert  ; preserves X
-_MoveCrate:
-    lda #1  ; param: max move by
-    jmp Func_MovePlatformTopTowardPointY
-_WaterBobOffset_i8_arr8:
-    .byte 1, 1, 0, <-1, <-1, <-1, 0, 1
-.ENDPROC
-
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Core_South_DrawRoom
 _Anchors:
@@ -401,6 +321,90 @@ _UpperCrates:
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     ;; Draw the crate(s).
     jmp FuncA_Objects_DrawCratePlatform
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CoreSouth_EnterRoom
+_CheckIfKidsAreFreedYet:
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    beq @done
+    jsr _RemoveCorra
+    jmp _ReleaseCrates
+    @done:
+_CheckIfCratesHaveBeenReleased:
+    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
+    beq @done
+    jsr _ReleaseCrates
+    @done:
+_CheckIfCorraIsWaiting:
+    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
+    bne _Return
+_RemoveCorra:
+    lda #0
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kCorraActorIndex
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexRight
+_Return:
+    rts
+_ReleaseCrates:
+    ldx #eFlag::CoreSouthCorraHelped  ; param: flag
+    jsr Func_SetFlag
+    ldax #kCrate3FloatingPositionY
+    stax Zp_PointY_i16
+    ldy #kCrate3PlatformIndex  ; param: platform index
+    jmp Func_SetPlatformTopToPointY
+.ENDPROC
+
+.PROC FuncA_Room_CoreSouth_TickRoom
+    inc Zp_RoomState + sState::WaterBobTimer_u8
+_TickCrate3:
+    ;; If Corra hasn't yet released the stacked crates from their anchor, then
+    ;; don't move them.
+    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
+    beq @done
+    ldax #kCrate3FloatingPositionY
+    stax Zp_PointY_i16
+    ldx #kCrate3PlatformIndex  ; param: crate platform index
+    jsr FuncA_Room_CoreSouth_TickCrate
+    @done:
+_TickCrate2:
+    ldax #kCrate2FloatingPositionY
+    stax Zp_PointY_i16
+    ldx #kCrate2PlatformIndex  ; param: crate platform index
+    fall FuncA_Room_CoreSouth_TickCrate
+.ENDPROC
+
+;;; Performs per-frame updates for a floating crate in this room.
+;;; @prereq Zp_PointY_i16 is set to the floating Y-position for the crate.
+;;; @param X The crate platform index.
+.PROC FuncA_Room_CoreSouth_TickCrate
+_WeighDown:
+    ;; If the player avqtar is standing on the crate, shift the goal position
+    ;; downward.
+    cpx Zp_AvatarPlatformIndex_u8
+    bne @done
+    lda #7  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves X
+    @done:
+_BobInWater:
+    ;; Make the crate bob up and down in the water.
+    txa  ; platform index
+    add Zp_RoomState + sState::WaterBobTimer_u8
+    div #8
+    mod #8
+    tay  ; water bob index
+    lda _WaterBobOffset_i8_arr8, y  ; param: signed offset
+    jsr Func_MovePointVert  ; preserves X
+_MoveCrate:
+    lda #1  ; param: max move by
+    jmp Func_MovePlatformTopTowardPointY
+_WaterBobOffset_i8_arr8:
+    .byte 1, 1, 0, <-1, <-1, <-1, 0, 1
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -71,7 +71,7 @@ kFirst2x4NpcAdult = eNpcAdult::CorraSwimmingUp1
 ;;; The first tile IDs for various human adults.
 kTileIdObjAdultElderFirst  = $c4
 kTileIdObjAdultGhostFirst  = $e4
-kTileIdObjAdultJeromeFirst = $80
+kTileIdObjAdultJeromeFirst = $98
 kTileIdObjAdultManFirst    = $d6
 kTileIdObjAdultSmithFirst  = $b8
 kTileIdObjAdultWomanFirst  = $d0

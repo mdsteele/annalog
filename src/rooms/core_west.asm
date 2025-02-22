@@ -73,9 +73,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncC_Core_West_EnterRoom
+    d_addr Enter_func_ptr, FuncA_Room_CoreWest_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, FuncC_Core_West_UpdateScrollLock
+    d_addr Tick_func_ptr, FuncA_Room_CoreWest_UpdateScrollLock
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -125,16 +125,20 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-.PROC FuncC_Core_West_EnterRoom
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+.PROC FuncA_Room_CoreWest_EnterRoom
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     beq @keepOrc
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kOrcActorIndex
     @keepOrc:
-    fall FuncC_Core_West_UpdateScrollLock
+    fall FuncA_Room_CoreWest_UpdateScrollLock
 .ENDPROC
 
-.PROC FuncC_Core_West_UpdateScrollLock
+.PROC FuncA_Room_CoreWest_UpdateScrollLock
     lda Zp_AvatarPosY_i16 + 0
     cmp #<kScrollCutoffPosY
     lda Zp_AvatarPosY_i16 + 1

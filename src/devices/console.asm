@@ -21,6 +21,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "console.inc"
 
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeDownByA
@@ -37,16 +38,6 @@
 ;;; consoles/screens.
 kFloorScreenOffset   = 0
 kCeilingScreenOffset = 5
-
-;;; OBJ tile IDs used for drawing console devices.
-kTileIdObjConsoleOk  = $08
-kTileIdObjConsoleErr = $09
-kTileIdObjScreen     = kTileIdObjConsoleOk
-
-;;; OBJ palette numbers used for drawing console/screen devices.
-kPaletteObjConsoleOk  = 2
-kPaletteObjConsoleErr = 1
-kPaletteObjScreen     = 1
 
 ;;;=========================================================================;;;
 

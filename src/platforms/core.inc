@@ -17,21 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The number of VBlank frames to animate a console that's powering up.
-kConsoleAnimCountdown = 31
-
-;;; The horizontal mod-16 offset within a console device's block that the
-;;; player avatar should be positioned at when using a console.
-kConsoleAvatarOffset = $06
-
-;;; OBJ tile IDs used for drawing console devices.
-kTileIdObjConsoleOk  = $08
-kTileIdObjConsoleErr = $09
-kTileIdObjScreen     = kTileIdObjConsoleOk
-
-;;; OBJ palette numbers used for drawing console/screen devices.
-kPaletteObjConsoleOk  = 2
-kPaletteObjConsoleErr = 1
-kPaletteObjScreen     = 1
+;;; OBJ tile IDs for drawing power core platforms.
+kTileIdObjPlatformCoreFirst = $80
 
 ;;;=========================================================================;;;

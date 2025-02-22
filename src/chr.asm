@@ -92,6 +92,7 @@
 .INCLUDE "platforms/barrier.inc"
 .INCLUDE "platforms/chex.inc"
 .INCLUDE "platforms/column.inc"
+.INCLUDE "platforms/core.inc"
 .INCLUDE "platforms/crate.inc"
 .INCLUDE "platforms/force.inc"
 .INCLUDE "platforms/gate.inc"
@@ -641,7 +642,7 @@ _chr_begin:
     chr_inc "house"
     chr_inc "tree"
     chr_inc "hill"
-    chr_res $08
+    chr_res $04
     END_CHR_BANK
 .ENDPROC
 
@@ -1217,7 +1218,8 @@ _chr_begin:
 .EXPORT Ppu_ChrObjBoss3
 .PROC Ppu_ChrObjBoss3
     CHR2_BANK $80
-    chr_res $08
+    chr_inc "platform_core",       kTileIdObjPlatformCoreFirst
+    chr_res $02
     chr_inc "cannon",              kTileIdObjCannonFirst
     chr_res $0a
     chr_inc "blaster",             kTileIdObjBlasterFirst
@@ -1314,20 +1316,22 @@ _chr_begin:
 .EXPORT Ppu_ChrObjFinale
 .PROC Ppu_ChrObjFinale
     CHR2_BANK $80
-    chr_inc "adult_jerome", kTileIdObjAdultJeromeFirst
+    chr_inc "platform_core",       kTileIdObjPlatformCoreFirst
     chr_res $02
     chr_inc "orc_grunt_standing",  kTileIdObjOrcGruntStandingFirst
     chr_inc "smoke_beam",          kTileIdObjSmokeBeamFirst
     chr_res $01
     chr_inc "orc_grunt_kneeling",  kTileIdObjOrcGruntKneelingFirst
-    chr_res $08
+    chr_inc "adult_jerome", kTileIdObjAdultJeromeFirst
+    chr_res $02
     chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
     chr_inc "orc_grunt_running",   kTileIdObjOrcGruntRunningFirst
     chr_inc "orc_grunt_throwing",  kTileIdObjOrcGruntThrowingFirst
     chr_inc "adult_woman",         kTileIdObjAdultWomanFirst
     chr_inc "adult_man",           kTileIdObjAdultManFirst
     chr_inc "orc_grunt_sleeping",  kTileIdObjOrcGruntSleepingFirst
-    chr_res $20
+    chr_res $1c
+    chr_inc "platform_terminal",   kTileIdObjPlatformTerminalFirst
     END_CHR_BANK
 .ENDPROC
 
