@@ -36,6 +36,7 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrBgAnimB0
@@ -77,10 +78,23 @@ Ppu_FactoryPassRocksRow1 = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 
 ;;;=========================================================================;;;
 
+;;; States that the falling rocks in this room can be in.
+;;; The
+.ENUM ePassRocks
+    PassBlocked
+    FallingFast
+    FallingSlow
+    DoneFalling
+    PassUnblocked
+    NUM_VALUES
+.ENDENUM
+
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; The current state of the lever next to the rocks.
-    Lever_u8      .byte
+    Lever_u8 .byte
+    ;; The current state of the falling rocks.
+    Current_ePassRocks .byte
     ;; A timer that counts down each frame when nonzero.
     DelayTimer_u8 .byte
 .ENDSTRUCT
@@ -207,6 +221,8 @@ _Passages_sPassage_arr:
 .PROC FuncC_Factory_Pass_EnterRoom
     flag_bit Sram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
     beq @done
+    lda #ePassRocks::PassUnblocked
+    sta Zp_RoomState + sState::Current_ePassRocks
     ldx #kRocksPlatformIndex  ; param: platform index
     .assert kRocksPlatformIndex = 1, error
     stx Zp_RoomState + sState::Lever_u8
@@ -217,32 +233,75 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Factory_Pass_TickRoom
-_SetFlagWhenLeverFlipped:
+    lda Zp_RoomState + sState::DelayTimer_u8
+    beq _CheckMode
+    dec Zp_RoomState + sState::DelayTimer_u8
+    rts
+_CheckMode:
+    ldy Zp_RoomState + sState::Current_ePassRocks
+    lda _JumpTable_ptr_0_arr, y
+    sta T0
+    lda _JumpTable_ptr_1_arr, y
+    sta T1
+    jmp (T1T0)
+.REPEAT 2, table
+    D_TABLE_LO table, _JumpTable_ptr_0_arr
+    D_TABLE_HI table, _JumpTable_ptr_1_arr
+    D_TABLE .enum, ePassRocks
+    d_entry table, PassBlocked,   _PassBlocked
+    d_entry table, FallingFast,   _RocksFallingFast
+    d_entry table, FallingSlow,   _RocksFallingSlow
+    d_entry table, DoneFalling,   _RocksDoneFalling
+    d_entry table, PassUnblocked, Func_Noop
+    D_END
+.ENDREPEAT
+_PassBlocked:
     lda Zp_RoomState + sState::Lever_u8
-    beq @done
-    ldx #eFlag::FactoryPassLoweredRocks
-    jsr Func_SetFlag  ; sets C if flag was already set
-    bcs @done
+    beq _Return
     lda #20  ; param: num frames
     jsr Func_ShakeRoom
     jsr Func_PlaySfxExplodeBig
+    .assert ePassRocks::PassBlocked + 1 = ePassRocks::FallingFast, error
+    inc Zp_RoomState + sState::Current_ePassRocks
+    ldx #eFlag::FactoryPassLoweredRocks
+    jsr Func_SetFlag
     lda #6
+_SetDelayTimerToA:
     sta Zp_RoomState + sState::DelayTimer_u8
-    @done:
-_LowerRocksIfFlagSetAndTimerZero:
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
-    beq @done
-    lda Zp_RoomState + sState::DelayTimer_u8
-    bne @decrementTimer
-    ldya #$00b0
+    rts
+_RocksFallingFast:
+    lda #$aa  ; param: Y-position
+    jsr _FallTowardsA  ; returns Z
+    bne @slowdown
+    .assert ePassRocks::FallingFast + 1 = ePassRocks::FallingSlow, error
+    inc Zp_RoomState + sState::Current_ePassRocks
+    lda #10
+    bne _SetDelayTimerToA  ; unconditional
+    @slowdown:
+    inc Zp_RoomState + sState::DelayTimer_u8
+_Return:
+    rts
+_RocksFallingSlow:
+    lda #$b0  ; param: Y-position
+    jsr _FallTowardsA  ; returns Z
+    bne @slowdown
+    .assert ePassRocks::FallingSlow + 1 = ePassRocks::DoneFalling, error
+    inc Zp_RoomState + sState::Current_ePassRocks
+    lda #20
+    bne _SetDelayTimerToA  ; unconditional
+    @slowdown:
+    lda #3
+    bne _SetDelayTimerToA  ; unconditional
+_RocksDoneFalling:
+    .assert ePassRocks::DoneFalling + 1 = ePassRocks::PassUnblocked, error
+    inc Zp_RoomState + sState::Current_ePassRocks
+    jmp Func_PlaySfxSecretUnlocked
+_FallTowardsA:
+    ldy #0
     stya Zp_PointY_i16
     ldx #kRocksPlatformIndex  ; param: platform index
     lda #2  ; param: max move by
-    jmp Func_MovePlatformTopTowardPointY
-    @decrementTimer:
-    dec Zp_RoomState + sState::DelayTimer_u8
-    @done:
-    rts
+    jmp Func_MovePlatformTopTowardPointY  ; returns Z
 .ENDPROC
 
 ;;; @prereq PRGA_Objects is loaded.

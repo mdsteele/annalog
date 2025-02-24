@@ -51,6 +51,7 @@
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_ShakeRoom
@@ -360,6 +361,7 @@ _MoveColumn:
     ldx #kColumnPlatformIndex  ; param: platform index
     jsr Func_MovePlatformTopTowardPointY  ; returns Z
     beq @done
+    ;; TODO: play a sound for the column moving
     lda #kColumnShakeFrames  ; param: num frames
     jmp Func_ShakeRoom
     @slowdown:
@@ -424,12 +426,14 @@ _NoPermission_sDialog:
     dlg_Text MermaidGuardF, DataA_Text1_TempleEntryGuard_NoPermission_u8_arr
     dlg_Done
 _Enter_sDialog:
-    dlg_Call _RaiseColumn
     dlg_Text MermaidGuardF, DataA_Text1_TempleEntryGuard_Enter_u8_arr
+    dlg_Call _RaiseColumn
     dlg_Done
 _RaiseColumn:
     ldx #eFlag::TempleEntryColumnRaised  ; param: flag
-    jmp Func_SetFlag
+    jsr Func_SetFlag  ; sets C if flag was already set
+    jcc Func_PlaySfxSecretUnlocked
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

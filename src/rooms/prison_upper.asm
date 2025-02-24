@@ -65,6 +65,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxMetallicDing
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_SetOrClearFlag
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
@@ -534,6 +535,8 @@ _Orc2Exit_sCutscene:
     act_SetActorState1 kMarieActorIndex, eNpcChild::MarieStanding
     act_SetActorVelY  kMarieActorIndex, 0
     act_SetActorPosY  kMarieActorIndex, $00b8
+    act_WaitFrames 15
+    act_CallFunc Func_PlaySfxSecretUnlocked
     act_WaitFrames 60
     ;; Animate Marie walking back to her starting place.
     act_MoveNpcMarieWalk kMarieActorIndex, kMarieCellPositionX

@@ -98,7 +98,7 @@ _Machines_sMachine_arr:
     d_byte Breaker_eFlag, eFlag::BreakerCity
     d_byte Flags_bMachine, bMachine::Act
     d_byte Status_eDiagram, eDiagram::Field
-    d_word ScrollGoalX_u16, $0
+    d_word ScrollGoalX_u16, $20
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, "P", 0, 0, 0
     d_byte MainPlatform_u8, kFieldPlatformIndex

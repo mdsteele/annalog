@@ -71,6 +71,7 @@
 .IMPORT Func_PlaySfxConsoleTurnOn
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_PlaySfxFlopDown
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetOrClearFlag
@@ -590,6 +591,7 @@ _RocketImpact:
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
     ldx #eFlag::PrisonCellBlastedRocks
     jsr Func_SetFlag
+    jsr Func_PlaySfxSecretUnlocked
     ;; Make orc #1 (on the left side) go flying and collapse.
     ldx #kOrc1ActorIndex  ; param: actor index
     lda #bObj::FlipH  ; param: actor flags

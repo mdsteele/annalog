@@ -260,6 +260,12 @@ _Actors_sActor_arr:
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGooGreen
+    d_word PosX_i16, $0038
+    d_word PosY_i16, $0018
+    d_byte Param_byte, bObj::FlipHV
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::BadGooGreen
     d_word PosX_i16, $00d8
     d_word PosY_i16, $0038
     d_byte Param_byte, 0
@@ -268,7 +274,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::BadGooGreen
     d_word PosX_i16, $00a8
     d_word PosY_i16, $0068
-    d_byte Param_byte, bObj::FlipHV
+    d_byte Param_byte, bObj::FlipH
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadGooGreen

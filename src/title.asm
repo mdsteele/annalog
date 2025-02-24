@@ -47,6 +47,7 @@
 .IMPORT Func_PlaySfxMenuCancel
 .IMPORT Func_PlaySfxMenuConfirm
 .IMPORT Func_PlaySfxMenuMove
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SignedDivFrac
 .IMPORT Func_Sine
 .IMPORT Func_Window_Disable
@@ -403,6 +404,7 @@ _ExitEraseMenu:
 ;;; Mode for using the New Game cheat code menu.
 ;;; @prereq Rendering is enabled.
 .PROC MainC_Title_CheatMenu
+    jsr Func_PlaySfxSecretUnlocked
     jsr Func_Window_Disable
     lda #eNewGame::Town
     sta Zp_Cheat_eNewGame

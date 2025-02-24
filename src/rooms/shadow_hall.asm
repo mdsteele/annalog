@@ -52,6 +52,7 @@
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
@@ -524,6 +525,7 @@ _Broken:
     bne @doneFlag  ; the other platform isn't broken yet
     ldx #eFlag::ShadowHallGlassBroken  ; param: flag
     jsr Func_SetFlag  ; preserves T0+
+    jsr Func_PlaySfxSecretUnlocked  ; preserves T0+
     @doneFlag:
     ;; Play a sound and add particles for the glass that just broke.
     jsr Func_PlaySfxExplodeFracture  ; preserves T0+

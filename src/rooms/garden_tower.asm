@@ -53,6 +53,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_PlaySfxExplodeSmall
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
@@ -386,6 +387,7 @@ _BreakableWall:
     ;; player won't be trapped.  (In normal gameplay, it should be impossible
     ;; to enter from that door if the wall is still there; this is just a
     ;; safety measure.)
+    lda T0  ; bSpawn value
     cmp #bSpawn::Device | kGardenTowerDoorDeviceIndex
     beq @removeWall
     ;; Check if the breakable wall has been broken already; if so, remove it.
@@ -496,6 +498,7 @@ _PartOfWallDestroyed:
     stx T0  ; grenade actor index
     ldx #eFlag::GardenTowerWallBroken  ; param: flag
     jsr Func_SetFlag  ; preserves T0+
+    jsr Func_PlaySfxSecretUnlocked  ; preserves T0+
     ldx T0  ; grenade actor index
     bpl _ExplodeGrenade  ; unconditional
 _WallDamaged:

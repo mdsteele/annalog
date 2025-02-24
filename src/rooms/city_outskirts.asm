@@ -55,6 +55,7 @@
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
@@ -315,6 +316,7 @@ _Rocks:
     lda #kRocketShakeFrames  ; param: shake frames
     jsr Func_ShakeRoom
     jsr Func_PlaySfxExplodeFracture
+    jsr Func_PlaySfxSecretUnlocked
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + kRockWallPlatformIndex
     ldx #eFlag::CityOutskirtsBlastedRocks

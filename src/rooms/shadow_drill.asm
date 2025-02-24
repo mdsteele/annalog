@@ -47,6 +47,7 @@
 .IMPORT FuncA_Room_MachineLaserReset
 .IMPORT Func_MachineLaserReadRegC
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_WriteToLowerAttributeTable
@@ -317,7 +318,9 @@ _SetFlagIfAllGooBaddiesAreDead:
     .assert kMaxActors <= $80, error
     bpl @loop
     ldx #eFlag::ShadowDrillClearedGoo  ; param: flag
-    jmp Func_SetFlag
+    jsr Func_SetFlag  ; sets C if flag was already set
+    bcs @done
+    jmp Func_PlaySfxSecretUnlocked
     @done:
     rts
 .ENDPROC

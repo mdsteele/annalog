@@ -40,7 +40,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_GetRandomByte
 .IMPORT Func_Noop
-.IMPORT Func_PlaySfxConsoleTurnOn
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCity
 .IMPORT Sram_ProgressFlags_arr
@@ -226,7 +226,7 @@ _ConnectKeygen:
     ldx #eFlag::CityCenterKeygenConnected  ; param: flag
     jsr Func_SetFlag  ; sets C if flag was already set
     bcs @done
-    jmp Func_PlaySfxConsoleTurnOn
+    jmp Func_PlaySfxSecretUnlocked
     @done:
     rts
 .ENDPROC

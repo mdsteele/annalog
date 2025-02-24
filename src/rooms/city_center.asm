@@ -68,6 +68,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxBaddieJump
 .IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
@@ -651,11 +652,12 @@ _SetFlag:
     dex
     bpl @loop
     ;; Combination is correct, so unlock the door.
-    ;; TODO: Play a sound for entering the correct combination.
-    ldx #eFlag::CityCenterDoorUnlocked  ; param: flag
-    jsr Func_SetFlag
     ldx #kLockedDoorDeviceIndex  ; param: device index
-    jmp FuncA_Room_UnlockDoorDevice
+    jsr FuncA_Room_UnlockDoorDevice
+    ldx #eFlag::CityCenterDoorUnlocked  ; param: flag
+    jsr Func_SetFlag  ; sets C if flag was already set
+    bcs @done
+    jmp Func_PlaySfxSecretUnlocked
     @done:
     rts
 .ENDPROC

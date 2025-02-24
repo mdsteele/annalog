@@ -48,6 +48,7 @@
 .IMPORT Func_MovePointVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxPoof
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPlatformTopToPointY
@@ -418,6 +419,7 @@ _WaterBobOffset_i8_arr8:
     act_RepeatFunc 123, _SwimDownFunc
     act_RepeatFunc 40, _AnimateSwimmingDownFunc
     act_CallFunc _ReleaseCratesFunc
+    act_ForkStart 1, _DelayedSecretJingle_sCutscene
     act_RepeatFunc 40, _AnimateSwimmingDownFunc
     act_SetActorFlags kCorraActorIndex, bObj::FlipH
     act_RepeatFunc 82, _SwimUpFunc
@@ -427,6 +429,10 @@ _WaterBobOffset_i8_arr8:
     act_WaitFrames 15
     act_RunDialog eDialog::CoreSouthCorra
     act_ContinueExploring
+_DelayedSecretJingle_sCutscene:
+    act_WaitFrames 70
+    act_CallFunc Func_PlaySfxSecretUnlocked
+    act_ForkStop $ff
 _SwimDownFunc:
     lda Ram_ActorSubY_u8_arr + kCorraActorIndex
     add #$80

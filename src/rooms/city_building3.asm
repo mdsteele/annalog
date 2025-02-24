@@ -61,6 +61,7 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
@@ -516,7 +517,9 @@ _SetFlagIfCratesDestroyed:
     ora Ram_PlatformType_ePlatform_arr + 5
     bne @done
     ldx #eFlag::CityBuilding3BlastedCrates  ; param: flag
-    jmp Func_SetFlag
+    jsr Func_SetFlag  ; sets C if flag was already set
+    bcs @done
+    jmp Func_PlaySfxSecretUnlocked
     @done:
     rts
 .ENDPROC

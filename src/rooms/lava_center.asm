@@ -61,6 +61,7 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_PlaySfxPoof
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ppu_ChrObjLava
@@ -614,6 +615,7 @@ _Mirrors:
     ldx T1  ; actor index
     jsr Func_InitActorSmokeExplosion  ; preserves X and T0+
     jsr Func_PlaySfxPoof  ; preserves X and T0+
+    jsr Func_PlaySfxSecretUnlocked  ; preserves X and T0+
     @continue:
     dex
     .assert kMaxActors <= $80, error

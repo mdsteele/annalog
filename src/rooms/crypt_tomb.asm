@@ -54,6 +54,7 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_PlaySfxExplodeFracture
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetFlag
 .IMPORT Func_WriteToLowerAttributeTable
@@ -441,6 +442,7 @@ _MoveVert:
     bne @notBothBroken
     ldx #eFlag::CryptTombBrokeFloors
     jsr Func_SetFlag
+    jsr Func_PlaySfxSecretUnlocked
     @notBothBroken:
     ;; Keep falling past where the breakable floor was.
     ldy Ram_MachineGoalHorz_u8_arr + kWinchMachineIndex  ; param: goal X

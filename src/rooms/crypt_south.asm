@@ -55,6 +55,7 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetFlag
 .IMPORT Func_WriteToLowerAttributeTable
@@ -429,6 +430,7 @@ _MoveVert:
     bne @stopFalling  ; floor isn't completely broken yet
     ;; The floor is now completely broken.
     jsr Func_PlaySfxExplodeFracture
+    jsr Func_PlaySfxSecretUnlocked
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + kWeakFloorPlatformIndex
     ldx #eFlag::CryptSouthBrokeFloor

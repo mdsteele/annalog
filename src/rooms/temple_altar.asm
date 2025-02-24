@@ -58,6 +58,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_PlaySfxExplodeFracture
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
@@ -422,6 +423,7 @@ _HitColumn:
     sta Ram_PlatformType_ePlatform_arr + kColumnPlatformIndex
     ldx #eFlag::TempleAltarColumnBroken  ; param: flag
     jsr Func_SetFlag
+    jsr Func_PlaySfxSecretUnlocked
     ;; Add smoke particles.
     ldy #kColumnPlatformIndex  ; param: platform index
     jsr Func_SetPointToPlatformCenter
@@ -526,6 +528,7 @@ _ReachedGoal:
 .ENDPROC
 
 .PROC FuncC_Temple_AltarLowerMinigun_Reset
+    ;; TODO: reset cracked column
     lda Ram_MachineGoalHorz_u8_arr + kLowerMinigunMachineIndex
     bne @onRightSide
     @onLeftSide:

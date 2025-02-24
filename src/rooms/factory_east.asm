@@ -47,6 +47,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -323,6 +324,8 @@ _SwimBackUp_sCutscene:
     act_SetActorState1 kCorraActorIndex, eNpcAdult::MermaidCorra
     act_WaitFrames 15
     act_SetActorState2 kCorraActorIndex, 0
+    act_WaitFrames 120
+    act_CallFunc Func_PlaySfxSecretUnlocked
     act_ForkStop $ff
 _SwimDownFunc:
     lda Ram_ActorSubY_u8_arr + kCorraActorIndex

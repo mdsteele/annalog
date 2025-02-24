@@ -89,6 +89,7 @@
 .IMPORT Func_DropFlower
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjVillage
 .IMPORT Ram_DeviceType_eDevice_arr
@@ -185,8 +186,6 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-;;;=========================================================================;;;
-
 .PROC FuncC_Mermaid_Hut4_EnterRoom
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut4OpenedCellar
     beq @done
@@ -200,8 +199,12 @@ _Devices_sDevice_arr:
 .PROC FuncC_Mermaid_Hut4_TickRoom
     flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut4OpenedCellar
     beq @done
+    lda Ram_DeviceType_eDevice_arr + kCellarDoorDeviceIndex
+    cmp #eDevice::Door1Unlocked
+    beq @done  ; door device is already unlocked
     ldx #kCellarDoorDeviceIndex  ; param: device index
     jsr FuncA_Room_UnlockDoorDevice
+    jmp Func_PlaySfxSecretUnlocked
     @done:
     rts
 .ENDPROC
@@ -391,25 +394,17 @@ _Eleven_sDialog:
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Eleven4_u8_arr
     dlg_Done
 _Twelve_sDialog:
-    dlg_Func @func
-    @func:
-    ldx #eFlag::MermaidHut4OpenedCellar  ; param: flag
-    jsr Func_SetFlag
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpBeep
-    bne @allDone
-    @openCellar:
-    ldya #_OpenCellar_sDialog
-    rts
-    @allDone:
-    ldya #_AllDone_sDialog
-    rts
-_OpenCellar_sDialog:
+    dlg_IfSet UpgradeOpBeep, _AllDone_sDialog
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Twelve1_u8_arr
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Twelve2_u8_arr
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_Twelve3_u8_arr
 _AllDone_sDialog:
     dlg_Text MermaidFlorist, DataA_Text1_MermaidHut4Florist_AllDone_u8_arr
+    dlg_Call _OpenCellar
     dlg_Done
+_OpenCellar:
+    ldx #eFlag::MermaidHut4OpenedCellar  ; param: flag
+    jmp Func_SetFlag
 .ENDPROC
 
 ;;;=========================================================================;;;
