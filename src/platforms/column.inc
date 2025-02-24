@@ -17,8 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; How many frames to blink a breakable column platform for when resetting it.
+kBreakableColumnBlinkFrames = 28
+
 ;;; OBJ tile IDs for drawing column platforms.
-kTileIdObjColumnFirst        = $92
-kTileIdObjColumnCrackedFirst = $b0
+kTileIdObjPlatformColumnFirst = $b0
 
 ;;;=========================================================================;;;

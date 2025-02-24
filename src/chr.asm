@@ -1541,22 +1541,21 @@ _chr_begin:
 .EXPORT Ppu_ChrObjTemple
 .PROC Ppu_ChrObjTemple
     CHR2_BANK $80
-    chr_inc "glass",          kTileIdObjGlassFirst
-    chr_inc "upgrade_optil",  kTileIdObjUpgradeOpTilFirst
+    chr_inc "glass",           kTileIdObjGlassFirst
+    chr_inc "upgrade_optil",   kTileIdObjUpgradeOpTilFirst
     chr_res $04
-    chr_inc "proj_bullet",    kTileIdObjProjBulletFirst
-    chr_inc "upgrade_opbeep", kTileIdObjUpgradeOpBeepFirst
-    chr_inc "column",         kTileIdObjColumnFirst
-    chr_res $0a
-    chr_inc "mermaid_guardf", kTileIdObjMermaidGuardFFirst
+    chr_inc "proj_bullet",     kTileIdObjProjBulletFirst
+    chr_inc "upgrade_opbeep",  kTileIdObjUpgradeOpBeepFirst
+    chr_res $0c
+    chr_inc "mermaid_guardf",  kTileIdObjMermaidGuardFFirst
     chr_res $06
-    chr_inc "mermaid_corra",  kTileIdObjMermaidCorraFirst
-    chr_inc "column_cracked", kTileIdObjColumnCrackedFirst
-    chr_inc "bad_toad",       kTileIdObjBadToadFirst
-    chr_inc "bad_beetle",     kTileIdObjBadBeetleFirst
-    chr_inc "minigun_horz",   kTileIdObjMinigunHorzFirst
-    chr_inc "minigun_vert",   kTileIdObjMinigunVertFirst
-    chr_inc "child_stand",    kTileIdObjChildStandFirst
+    chr_inc "mermaid_corra",   kTileIdObjMermaidCorraFirst
+    chr_inc "platform_column", kTileIdObjPlatformColumnFirst
+    chr_inc "bad_toad",        kTileIdObjBadToadFirst
+    chr_inc "bad_beetle",      kTileIdObjBadBeetleFirst
+    chr_inc "minigun_horz",    kTileIdObjMinigunHorzFirst
+    chr_inc "minigun_vert",    kTileIdObjMinigunVertFirst
+    chr_inc "child_stand",     kTileIdObjChildStandFirst
     END_CHR_BANK
 .ENDPROC
 

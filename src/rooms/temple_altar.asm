@@ -28,6 +28,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/column.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -85,7 +86,7 @@ kLastBeetleActorIndex = 2
 kColumnPlatformIndex = 2
 
 ;;; How many bullets must hit the breakable column to destroy it.
-kNumHitsToBreakColumn = 6
+kNumHitsToBreakColumn = 4
 
 ;;;=========================================================================;;;
 
@@ -157,6 +158,9 @@ kLowerMinigunInitPlatformTop = \
     LowerMinigun_eResetSeq .byte
     ;; How many times the breakable column has been hit.
     BreakableColumnHits_u8 .byte
+    ;; How many more frames to blink the breakable column for (while resetting
+    ;; it).
+    BreakableColumnBlink_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -373,6 +377,16 @@ _CheckForBulletHits:
     @continue:
     dex
     bpl @loop
+_BlinkBreakableColumn:
+    ;; If the breakable column blink timer is active, decrement it.
+    lda Zp_RoomState + sState::BreakableColumnBlink_u8
+    beq @done  ; column is not currently blinking for reset
+    dec Zp_RoomState + sState::BreakableColumnBlink_u8
+    bne @done  ; column is not yet done blinking for reset
+    ;; When the blink timer reaches zero, reset the column hits.
+    lda #0
+    sta Zp_RoomState + sState::BreakableColumnHits_u8
+    @done:
     rts
 .ENDPROC
 
@@ -457,7 +471,8 @@ _ParticleAngle_u8_arr4:
     .assert ePlatform::None = 0, error
     beq @columnBroken
     ldx #kColumnPlatformIndex  ; param: platform index
-    lda Zp_RoomState + sState::BreakableColumnHits_u8  ; param: num hits
+    ldy Zp_RoomState + sState::BreakableColumnHits_u8  ; param: num hits
+    lda Zp_RoomState + sState::BreakableColumnBlink_u8  ; param: blink timer
     jmp FuncC_Temple_DrawColumnCrackedPlatform
     @columnBroken:
     rts
@@ -528,7 +543,18 @@ _ReachedGoal:
 .ENDPROC
 
 .PROC FuncC_Temple_AltarLowerMinigun_Reset
-    ;; TODO: reset cracked column
+_ResetColumn:
+    lda Zp_RoomState + sState::BreakableColumnBlink_u8
+    bne @done  ; column is already blinking
+    lda Zp_RoomState + sState::BreakableColumnHits_u8
+    beq @done  ; column platform is undamaged
+    lda Ram_PlatformType_ePlatform_arr + kColumnPlatformIndex
+    .assert ePlatform::None = 0, error
+    beq @done  ; column platform is already broken
+    lda #kBreakableColumnBlinkFrames
+    sta Zp_RoomState + sState::BreakableColumnBlink_u8
+    @done:
+_ResetMachine:
     lda Ram_MachineGoalHorz_u8_arr + kLowerMinigunMachineIndex
     bne @onRightSide
     @onLeftSide:

@@ -35,12 +35,13 @@
 ;;;=========================================================================;;;
 
 ;;; Various OBJ tile IDs used for drawing cracked columns.
-kTileIdObjColumnCrackedTop    = kTileIdObjColumnCrackedFirst + 6
-kTileIdObjColumnCrackedBottom = kTileIdObjColumnCrackedFirst + 7
+kTileIdObjColumnCrackedMiddleFirst = kTileIdObjPlatformColumnFirst + 0
+kTileIdObjColumnCrackedTop         = kTileIdObjPlatformColumnFirst + 4
+kTileIdObjColumnCrackedBottom      = kTileIdObjPlatformColumnFirst + 5
 
 ;;; Various OBJ tile IDs used for drawing movable columns.
-kTileIdObjColumnCorner = kTileIdObjColumnFirst + 0
-kTileIdObjColumnSide   = kTileIdObjColumnFirst + 1
+kTileIdObjColumnCorner = kTileIdObjPlatformColumnFirst + 6
+kTileIdObjColumnSide   = kTileIdObjPlatformColumnFirst + 7
 
 ;;; The OBJ palette number to use for drawing columns.
 kPaletteObjColumn = 0
@@ -102,11 +103,20 @@ _Done:
 
 ;;; Draws a cracked column platform.
 ;;; @prereq PRGA_Objects is loaded.
-;;; @param A How many bullets have hit the column (0-5).
+;;; @param A The blink timer for the breakable floor.
+;;; @param Y How many bullets have hit the column (0-3).
 ;;; @param X The platform index.
 .EXPORT FuncC_Temple_DrawColumnCrackedPlatform
 .PROC FuncC_Temple_DrawColumnCrackedPlatform
-    add #kTileIdObjColumnCrackedFirst
+    ;; If the column platform is blinking for reset, alternate between drawing
+    ;; it as it is and drawing it at full health (no hits).
+    and #$04
+    beq @noBlink
+    ldy #0
+    @noBlink:
+    tya  ; num hits
+    .assert kTileIdObjColumnCrackedMiddleFirst .mod 4 = 0, error
+    ora #kTileIdObjColumnCrackedMiddleFirst
     pha  ; cracked tile ID
     ;; Top:
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
