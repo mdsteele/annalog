@@ -50,14 +50,18 @@
 .IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT FuncA_Objects_DrawLauncherMachineHorz
 .IMPORT FuncA_Objects_DrawRocksPlatformVert
+.IMPORT FuncA_Room_SpawnParticleAtPoint
 .IMPORT Func_FindActorWithType
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
+.IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_ActorState2_byte_arr
@@ -308,11 +312,25 @@ _Rocks:
     ;; already gone.)
     jsr Func_SetPointToActorCenter  ; preserves X
     ldy #kRockWallPlatformIndex  ; param: platform index
-    jsr Func_IsPointInPlatform  ; preserves X, returns C
+    jsr Func_IsPointInPlatform  ; preserves X and Y, returns C
     bcc @done
-    ;; Explode the rocket and break the floor.
+    ;; Explode the rocket.
+    jsr Func_SetPointToPlatformCenter  ; preserves X
     jsr Func_InitActorSmokeExplosion
-    ;; TODO: more smoke/particles
+    ;; Add particles for the breaking wall.
+    lda #kTileHeightPx * 3 + kTileHeightPx / 2  ; param: offset
+    jsr Func_MovePointUpByA
+    ldy #6 - 1
+    @loop:
+    lda #kTileHeightPx  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves Y
+    tya
+    mul #$10  ; also clears C for the ADC below
+    adc #$58  ; param: angle
+    jsr FuncA_Room_SpawnParticleAtPoint  ; preserves Y
+    dey
+    bpl @loop
+    ;; Shake the room and remove the wall.
     lda #kRocketShakeFrames  ; param: shake frames
     jsr Func_ShakeRoom
     jsr Func_PlaySfxExplodeFracture
@@ -320,7 +338,7 @@ _Rocks:
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + kRockWallPlatformIndex
     ldx #eFlag::CityOutskirtsBlastedRocks
-    jsr Func_SetFlag
+    jmp Func_SetFlag
     @done:
     rts
 .ENDPROC

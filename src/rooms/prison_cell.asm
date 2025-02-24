@@ -644,11 +644,11 @@ _TrapFloor:
     jsr Func_SetPointToPlatformCenter
     lda #kTileWidthPx * 2 + kTileWidthPx / 2  ; param: offset
     jsr Func_MovePointLeftByA
-    ldy #3
+    ldy #4 - 1
     @loop:
     lda #kTileWidthPx  ; param: offset
     jsr Func_MovePointRightByA  ; preserves Y
-    lda _ParticleAngle_u8_arr, y  ; param: angle
+    lda _ParticleAngle_u8_arr4, y  ; param: angle
     jsr FuncA_Room_SpawnParticleAtPoint  ; preserves Y
     dey
     bpl @loop
@@ -662,7 +662,7 @@ _Gate:
     ;; Move the gate based on the lever.
     ldy Zp_RoomState + sState::GateLever_u8  ; param: zero for shut
     jmp FuncC_Prison_Cell_TickGate
-_ParticleAngle_u8_arr:
+_ParticleAngle_u8_arr4:
     .byte 52, 65, 70, 76
 .ENDPROC
 
