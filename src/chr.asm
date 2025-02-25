@@ -474,9 +474,8 @@ _chr_begin:
 .PROC Ppu_ChrBgCrypt
     CHR1_BANK $80
     chr_inc "crypt"
-    chr_res $02
     chr_inc "cobweb"
-    chr_res $0c
+    chr_res $04
     chr_inc "boss_crypt_eye_white", kTileIdBgBossCryptEyeWhiteFirst
     chr_inc "arch"
     chr_inc "boss_crypt_eye_red",   kTileIdBgBossCryptEyeRedFirst

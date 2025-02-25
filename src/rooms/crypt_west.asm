@@ -72,8 +72,8 @@ kSpikeballPlatformLeft = kWinchPlatformLeft + 2
 
 ;;; The lengths of the chains between spikeballs, in tiles.
 kChain12Tiles = 7
-kChain23Tiles = 10
-kChain34Tiles = 5
+kChain23Tiles = 8
+kChain34Tiles = 7
 
 ;;; The minimum and initial room pixel positions for the top edges of the
 ;;; various spikeballs.
