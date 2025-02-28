@@ -39,9 +39,10 @@
 .IMPORT Func_GetRandomByte
 .IMPORT Func_IsActorWithinDistanceOfPoint
 .IMPORT Func_MovePointDownByA
-.IMPORT Func_MovePointRightByA
+.IMPORT Func_MovePointHorz
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetPointToDeviceCenter
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -52,12 +53,8 @@
 .IMPORT Ram_ActorSubY_u8_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
-.IMPORT Ram_DeviceBlockCol_u8_arr
-.IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORTZP Zp_PointX_i16
-.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
@@ -142,19 +139,19 @@ _TryEmerge:
     cmp #eDevice::Mousehole
     bne _StayHidden
     ;; Set the point to the center of the mousehole.
-    jsr FuncA_Actor_SetPointToDeviceTopLeft  ; preserves X and Y
-    lda #kTileHeightPx + kTileHeightPx / 2  ; param: offset
+    jsr Func_SetPointToDeviceCenter  ; preserves X and Y
+    lda #kTileHeightPx / 2  ; param: offset
     jsr Func_MovePointDownByA  ; preserves X and Y
     lda Ram_DeviceTarget_byte_arr, y  ; bMousehole value
     .assert bMousehole::OnRight = bProc::Negative, error
     bpl @onLeft
     @onRight:
-    lda #kTileWidthPx + kTileWidthPx / 2  ; param: offset
+    lda #kTileWidthPx / 2  ; param: offset
     bne @movePoint  ; unconditional
     @onLeft:
-    lda #kTileWidthPx / 2  ; param: offset
+    lda #<-(kTileWidthPx / 2)  ; param: offset
     @movePoint:
-    jsr Func_MovePointRightByA  ; preserves X and Y
+    jsr Func_MovePointHorz  ; preserves X and Y
     ;; Check if any other rodents are in the way.  If so, don't emerge this
     ;; frame.
     stx T1  ; this rodent's actor index
@@ -384,39 +381,6 @@ _AlignForCorner:
     and #$3f
     sta Ram_ActorState2_byte_arr, x  ; mode timer
     @done:
-    rts
-.ENDPROC
-
-;;; Populates Zp_PointX_i16 and Zp_PointY_i16 with the room pixel position of
-;;; the top-left corner of the specified device.
-;;; @param Y The device index.
-;;; @preserve X, Y, T0+
-.PROC FuncA_Actor_SetPointToDeviceTopLeft
-    lda #0
-    sta Zp_PointX_i16 + 1
-    sta Zp_PointY_i16 + 1
-    ;; Compute the room pixel Y-position of the top of the device, storing itf
-    ;; in Zp_PointY_i16.
-    lda Ram_DeviceBlockRow_u8_arr, y
-    .assert kBlockHeightPx = 1 << 4, error
-    .assert kTallRoomHeightBlocks <= $20, error
-    asl a  ; Since kTallRoomHeightBlocks <= $20, the device block row fits in
-    asl a  ; five bits, so the first three ASL's won't set the carry bit, so
-    asl a  ; we only need to ROL Zp_PointY_i16 + 1 after the fourth ASL.
-    asl a
-    rol Zp_PointY_i16 + 1
-    sta Zp_PointY_i16 + 0
-    ;; Compute the room pixel X-position of the left side of the device,
-    ;; storing it in Zp_PointX_i16.
-    lda Ram_DeviceBlockCol_u8_arr, y
-    .assert kBlockWidthPx = 1 << 4, error
-    .assert kMaxRoomWidthBlocks <= $80, error
-    asl a      ; Since kMaxRoomWidthBlocks <= $80, the device block col fits in
-    .repeat 3  ; seven bits, so the first ASL won't set the carry bit, so we
-    asl a      ; only need to ROL Zp_PointX_i16 + 1 after the second ASL.
-    rol Zp_PointX_i16 + 1
-    .endrepeat
-    sta Zp_PointX_i16 + 0
     rts
 .ENDPROC
 

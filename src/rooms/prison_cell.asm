@@ -726,7 +726,7 @@ _ParticleAngle_u8_arr4:
     ;; avatar initially hidden (until the cutscene makes it appear later).
     lda #bSpawn::Device | kCutsceneSpawnDeviceIndex  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint
-    ldx #kCutsceneSpawnDeviceIndex  ; param: device index
+    ldy #kCutsceneSpawnDeviceIndex  ; param: device index
     jsr_prga FuncA_Avatar_SpawnAtDevice
     lda #eAvatar::Hidden
     sta Zp_AvatarPose_eAvatar

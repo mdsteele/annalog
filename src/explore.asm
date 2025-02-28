@@ -258,7 +258,7 @@ _LoadNextRoom:
     ldx Ram_DeviceTarget_byte_arr, y  ; param: room to load
     jsr FuncM_SwitchPrgcAndLoadRoom
     pla  ; origin door device type
-    tay  ; param: origin door device type
+    tax  ; param: origin door device type
     jsr_prga FuncA_Avatar_EnterRoomViaDoor
 _FadeIn:
     jmp Main_Explore_EnterRoom

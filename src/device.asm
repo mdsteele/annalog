@@ -104,6 +104,38 @@ _Continue:
 
 .SEGMENT "PRG8"
 
+;;; Stores the room pixel position of the center of the device in
+;;; Zp_Point*_i16.
+;;; @param Y The device index.
+;;; @preserve X, Y, T0+
+.EXPORT Func_SetPointToDeviceCenter
+.PROC Func_SetPointToDeviceCenter
+    lda #0
+    sta Zp_PointX_i16 + 1
+    sta Zp_PointY_i16 + 1
+    ;; Set the point Y-position.
+    lda Ram_DeviceBlockRow_u8_arr, y
+    .assert kTallRoomHeightBlocks <= $20, error
+    asl a  ; Since kTallRoomHeightBlocks <= $20, the device block row fits in
+    asl a  ; five bits, so the first three ASL's won't set the carry bit, so
+    asl a  ; we only need to ROL the hi byte after the fourth ASL.
+    asl a
+    rol Zp_PointY_i16 + 1
+    ora #kTileHeightPx
+    sta Zp_PointY_i16 + 0
+    ;; Set the point X-position.
+    lda Ram_DeviceBlockCol_u8_arr, y
+    .assert kMaxRoomWidthBlocks <= $80, error
+    asl a      ; Since kMaxRoomWidthBlocks <= $80, the device block col fits in
+    .repeat 3  ; seven bits, so the first ASL won't set the carry bit, so we
+    asl a      ; only need to ROL the hi byte after the second ASL.
+    rol Zp_PointX_i16 + 1
+    .endrepeat
+    ora #kTileWidthPx
+    sta Zp_PointX_i16 + 0
+    rts
+.ENDPROC
+
 ;;; Returns the index of the device whose block the point stored in
 ;;; Zp_PointX_i16 and Zp_PointY_i16 is in, if any.
 ;;; @return N Set if there was no device nearby, cleared otherwise.

@@ -33,9 +33,8 @@
 .IMPORT FuncA_Avatar_ComputeMaxInstructions
 .IMPORT FuncA_Avatar_InitMotionless
 .IMPORT FuncA_Room_InitAllMachines
+.IMPORT Func_SetPointToDeviceCenter
 .IMPORT Func_TryPushAvatarVert
-.IMPORT Ram_DeviceBlockCol_u8_arr
-.IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_LastSafe_bSpawn
@@ -47,6 +46,8 @@
 .IMPORTZP Zp_Current_eRoom
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Nearby_bDevice
+.IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_Previous_eRoom
 
 ;;;=========================================================================;;;
@@ -155,7 +156,7 @@ Zp_LastPoint_eRoom: .res 1
     bmi _SpawnAtPassage
 _SpawnAtDevice:
     and #bSpawn::IndexMask
-    tax  ; param: device index
+    tay  ; param: device index
     jmp FuncA_Avatar_SpawnAtDevice
 _SpawnAtPassage:
     and #bSpawn::IndexMask  ; param: passage index
@@ -326,16 +327,16 @@ _Finish:
 ;;; Called when entering a new room via a door device.  Marks the entrance door
 ;;; as the last spawn point and positions the player avatar at that door.
 ;;; @prereq The new room is loaded, and Zp_Previous_eRoom is initialized.
-;;; @param Y The device type of the origin door from the previous room.
+;;; @param X The device type of the origin door from the previous room.
 .EXPORT FuncA_Avatar_EnterRoomViaDoor
 .PROC FuncA_Avatar_EnterRoomViaDoor
     ;; Find the corresponding door to enter from in the new room.
-    ldx #kMaxDevices - 1
+    ldy #kMaxDevices - 1
     @loop:
-    lda Ram_DeviceType_eDevice_arr, x
-    cpy #eDevice::Door2Open
+    lda Ram_DeviceType_eDevice_arr, y
+    cpx #eDevice::Door2Open
     beq @door2
-    cpy #eDevice::Door3Open
+    cpx #eDevice::Door3Open
     beq @door3
     @door1:
     cmp #eDevice::Door1Locked
@@ -353,51 +354,41 @@ _Finish:
     cmp #eDevice::Door3Open
     bne @continue
     @foundDoor:
-    lda Ram_DeviceTarget_byte_arr, x
+    lda Ram_DeviceTarget_byte_arr, y
     cmp Zp_Previous_eRoom
     beq _FoundMatchingDoor
     @continue:
-    dex
+    dey
     .assert kMaxDevices <= $80, error
     bpl @loop
-    inx  ; this should never happen, but at least make device index valid
+    iny  ; this should never happen, but at least make device index valid
 _FoundMatchingDoor:
     ;; Update the the last spawn point.
-    txa  ; door device index
+    tya  ; door device index
     ora #bSpawn::Device  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint  ; preserves X
+    jsr Func_SetLastSpawnPoint  ; preserves Y
     ;; Spawn the avatar.
     fall FuncA_Avatar_SpawnAtDevice
 .ENDPROC
 
 ;;; Spawns the player avatar into the current room at the specified device.
 ;;; @prereq The room is loaded.
-;;; @param X The device index in the current room.
+;;; @param Y The device index in the current room.
 .EXPORT FuncA_Avatar_SpawnAtDevice
 .PROC FuncA_Avatar_SpawnAtDevice
     ;; Position the avatar in front of the device.
-    lda #0
-    sta Zp_AvatarPosX_i16 + 1
-    sta Zp_AvatarPosY_i16 + 1
-    lda Ram_DeviceBlockCol_u8_arr, x
-    .assert kMaxRoomWidthBlocks <= $80, error
-    asl a      ; Since kMaxRoomWidthBlocks <= $80, the device block col fits in
-    .repeat 3  ; seven bits, so the first ASL won't set the carry bit, so we
-    asl a      ; only need to ROL (Zp_AvatarPosX_i16 + 1) after the second ASL.
-    rol Zp_AvatarPosX_i16 + 1
-    .endrepeat
-    ldy Ram_DeviceType_eDevice_arr, x
-    ora _DeviceOffset_u8_arr, y
+    jsr Func_SetPointToDeviceCenter  ; preserves Y
+    lda Zp_PointX_i16 + 0
+    and #$f0
+    ldx Ram_DeviceType_eDevice_arr, y
+    ora _DeviceOffset_u8_arr, x
     sta Zp_AvatarPosX_i16 + 0
-    lda Ram_DeviceBlockRow_u8_arr, x
-    .assert kTallRoomHeightBlocks <= $20, error
-    asl a  ; Since kTallRoomHeightBlocks <= $20, the device block row fits in
-    asl a  ; five bits, so the first three ASL's won't set the carry bit, so
-    asl a  ; we only need to ROL (Zp_AvatarPosY_i16 + 1) after the fourth ASL.
-    asl a
-    rol Zp_AvatarPosY_i16 + 1
-    ora #kBlockHeightPx - kAvatarBoundingBoxDown
+    lda Zp_PointX_i16 + 1
+    sta Zp_AvatarPosX_i16 + 1
+    lda Zp_PointY_i16 + 0
     sta Zp_AvatarPosY_i16 + 0
+    lda Zp_PointY_i16 + 1
+    sta Zp_AvatarPosY_i16 + 1
     ;; Make the avatar stand still, facing to the right.
     lda #0  ; param: facing direction (0 = right)
     tax  ; param: bAvatar value

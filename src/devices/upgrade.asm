@@ -27,16 +27,10 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT FuncA_Objects_SetUpgradeTileIds
-.IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_PlaySfxPoof
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
-.IMPORT Ram_ActorPosY_i16_0_arr
-.IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Func_SetPointToDeviceCenter
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Ram_DeviceAnim_u8_arr
-.IMPORT Ram_DeviceBlockCol_u8_arr
-.IMPORT Ram_DeviceBlockRow_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 
@@ -63,37 +57,8 @@ kPaletteObjUpgrade = 0
     sta Ram_DeviceType_eDevice_arr, y
     lda #kUpgradeDeviceAnimStart
     sta Ram_DeviceAnim_u8_arr, y
-_SmokePuff:
-    ;; Create a puff of smoke over the upgrade device.
-    jsr Func_FindEmptyActorSlot  ; preserves Y, sets C on failure, returns X
-    bcs @done
-    lda #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    sta Ram_ActorPosY_i16_1_arr, x
-    ;; Set the smoke Y-position.
-    lda Ram_DeviceBlockRow_u8_arr, y
-    .assert kTallRoomHeightBlocks <= $20, error
-    asl a  ; Since kTallRoomHeightBlocks <= $20, the device block row fits in
-    asl a  ; five bits, so the first three ASL's won't set the carry bit, so
-    asl a  ; we only need to ROL the Ram_ActorPosY_i16_1 after the fourth ASL.
-    asl a
-    rol Ram_ActorPosY_i16_1_arr, x
-    adc #kTileHeightPx
-    sta Ram_ActorPosY_i16_0_arr, x
-    ;; Set the smoke X-position.
-    lda Ram_DeviceBlockCol_u8_arr, y
-    .assert kMaxRoomWidthBlocks <= $80, error
-    asl a      ; Since kMaxRoomWidthBlocks <= $80, the device block col fits in
-    .repeat 3  ; seven bits, so the first ASL won't set the carry bit, so we
-    asl a      ; only need to ROL the Ram_ActorPosX_i16_1 after the second ASL.
-    rol Ram_ActorPosX_i16_1_arr, x
-    .endrepeat
-    adc #kTileWidthPx
-    sta Ram_ActorPosX_i16_0_arr, x
-    ;; Spawn the smoke.
-    jsr Func_InitActorSmokeExplosion
-    @done:
-_PlaySound:
+    jsr Func_SetPointToDeviceCenter
+    jsr Func_SpawnExplosionAtPoint
     jmp Func_PlaySfxPoof
 .ENDPROC
 

@@ -107,7 +107,7 @@ kTeleportTransferThreshold = $30
 .PROC FuncA_Avatar_EnterRoomViaTeleporter
     lda #bSpawn::Device | kTeleporterDeviceIndex  ; param: bSpawn value
     jsr Func_SetLastSpawnPoint
-    ldx #kTeleporterDeviceIndex  ; param: device index
+    ldy #kTeleporterDeviceIndex  ; param: device index
     jsr FuncA_Avatar_SpawnAtDevice
 _InitCutsceneState:
     lda #eAvatar::Hidden

@@ -456,7 +456,7 @@ _AvatarPosY_i16_1_arr:
     lda #0
     sta Zp_BreakerBeingActivated_eFlag
     ;; Position the player avatar at the breaker device.
-    ldx #kBossBreakerDeviceIndex  ; param: device index
+    ldy #kBossBreakerDeviceIndex  ; param: device index
     jsr FuncA_Avatar_SpawnAtDevice
     ;; Since the room's Enter function hasn't been called yet, the breaker
     ;; device is actually still a Placeholder device, which has a different
