@@ -134,9 +134,9 @@
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_SetScrollGoalFromPoint
 .IMPORT Func_ShakeRoom
-.IMPORT Main_Finale_GaveRemote
-.IMPORT Main_Finale_Reactivate
-.IMPORT Main_Finale_YearsLater
+.IMPORT MainA_Cutscene_FinaleGaveRemote
+.IMPORT MainA_Cutscene_FinaleReactivate
+.IMPORT MainA_Cutscene_FinaleYearsLater
 .IMPORT Ppu_ChrObjBoss3
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -2035,7 +2035,7 @@ _GiveUpRemote_sCutscene:
     act_CallFunc Func_PlaySfxExplodeBig
     act_ShakeRoom 30
     act_WaitFrames 60
-    act_JumpToMain Main_Finale_GaveRemote
+    act_JumpToMain MainA_Cutscene_FinaleGaveRemote
 _GrontaAdjust_sCutscene:
     act_MoveNpcGrontaWalk kGrontaActorIndex, $010c
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
@@ -2208,7 +2208,7 @@ _LookAtTopOfCore:
     act_CallFunc Func_PlaySfxExplodeBig
     act_ShakeRoom 30
     act_WaitFrames 60
-    act_JumpToMain Main_Finale_Reactivate
+    act_JumpToMain MainA_Cutscene_FinaleReactivate
 .ENDPROC
 
 .EXPORT DataA_Cutscene_CoreBossFinaleSelfDestruct_sCutscene
@@ -2252,7 +2252,7 @@ _LookAtTopOfCore:
     act_SetCutsceneFlags bCutscene::AvatarRagdoll
     act_RepeatFunc kFadeToWhiteFrames, _FadeToWhite
     act_WaitFrames 60
-    act_JumpToMain Main_Finale_YearsLater
+    act_JumpToMain MainA_Cutscene_FinaleYearsLater
 _ShakeSmall_sCutscene:
     act_RepeatFunc 32, _ShakeSmall
     act_ForkStart 1, _ShakeSmall_sCutscene

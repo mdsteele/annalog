@@ -108,12 +108,12 @@ Zp_NumRollingDeathDigits_u8: .res 1
 .EXPORT Main_Death
 .PROC Main_Death
     jsr FuncM_DrawObjectsForRoom
-    jsr_prga FuncA_Death_InitAndFadeToBlack
+    jsr_prga FuncA_Cutscene_InitDeathAndFadeToBlack
 _AnimateAvatar:
     jmp @start
     @loop:
     jsr Func_ProcessFrame
-    jsr_prga FuncA_Death_AnimateAvatar
+    jsr_prga FuncA_Cutscene_AnimateAvatarDeath
     @start:
     jsr_prga FuncA_Objects_DrawPlayerAvatar
     jsr Func_ClearRestOfOam
@@ -130,9 +130,11 @@ _Respawn:
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Death"
+.SEGMENT "PRGA_Cutscene"
 
-.PROC FuncA_Death_InitAndFadeToBlack
+;;; Initializes death mode.
+;;; @prereq Rendering is enabled.
+.PROC FuncA_Cutscene_InitDeathAndFadeToBlack
 _CountNinesInDeathCounter:
     ldy #0
     @loop:
@@ -190,7 +192,7 @@ _FadeOut:
 .ENDPROC
 
 ;;; Performs per-frame updates during the player avatar death animation.
-.PROC FuncA_Death_AnimateAvatar
+.PROC FuncA_Cutscene_AnimateAvatarDeath
     lda Zp_AvatarFlags_bObj
     and #<~bObj::FlipV
     sta Zp_AvatarFlags_bObj
@@ -208,7 +210,7 @@ _BlankOutBg:
     ldy Zp_DeathTimer_u8  ; param: nametable tile column index
     cpy #kScreenWidthTiles
     bge @noTransfer
-    jsr FuncA_Death_TransferBlankBgTileColumn
+    jsr FuncA_Cutscene_TransferBlankBgTileColumn
     @noTransfer:
 _SetAvatarPose:
     ;; Update the avatar pose based on the current value of the death animation
@@ -275,13 +277,13 @@ _SetAvatarPose:
 _DrawDeathCounter:
     lda Zp_DeathTimer_u8
     cmp #kDeathSleepingFrames
-    blt FuncA_Death_DrawDeathCounter
+    blt FuncA_Cutscene_DrawDeathCounter
     rts
 .ENDPROC
 
 ;;; Draws the decimal counter showing how many times the player avatar has
 ;;; died.
-.PROC FuncA_Death_DrawDeathCounter
+.PROC FuncA_Cutscene_DrawDeathCounter
 _SetPosX:
     ;; Calculate the screen X-position the death counter digits.  This will
     ;; normally be centered on the player avatar's X-position, but if the
@@ -410,8 +412,8 @@ _DrawDigits:
 
 ;;; Buffers a PPU transfer to blank out one tile column of terrain.
 ;;; @param Y The nametable tile column number to blank out.
-.EXPORT FuncA_Death_TransferBlankBgTileColumn
-.PROC FuncA_Death_TransferBlankBgTileColumn
+.EXPORT FuncA_Cutscene_TransferBlankBgTileColumn
+.PROC FuncA_Cutscene_TransferBlankBgTileColumn
     sty T0  ; nametable tile column index
     ldx Zp_PpuTransferLen_u8
 _UpperNametable:

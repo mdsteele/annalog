@@ -338,7 +338,7 @@ Ram_DialogText_u8_arr: .res (kDialogTextMaxCols + 1) * kDialogNumTextRows
     fall Main_Dialog_WhileExploring
 .ENDPROC
 
-;;; Mode for beginning dialog within a cutscene.
+;;; Mode for beginning dialog while exploring.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq Explore mode is initialized.
 ;;; @param Y The eDialog value for the dialog.

@@ -26,7 +26,7 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
-.IMPORT FuncA_Death_TransferBlankBgTileColumn
+.IMPORT FuncA_Cutscene_TransferBlankBgTileColumn
 .IMPORT FuncM_SwitchPrgcAndLoadRoomWithMusic
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOam
@@ -73,40 +73,6 @@ Zp_Current_eFinale: .res 1
 
 .SEGMENT "PRG8"
 
-;;; Mode for transitioning to the cutscene that plays in TownOutdoors after
-;;; giving the B-Remote to Gronta.
-;;; @prereq Rendering is enabled.
-.EXPORT Main_Finale_GaveRemote
-.PROC Main_Finale_GaveRemote
-    jsr Func_FadeOutToBlackSlowly
-    ldy #eFinale::GaveRemote1Outdoors  ; param: finale step to run
-    .assert eFinale::GaveRemote1Outdoors < $80, error
-    bpl Main_Finale_SetAndStartStep  ; unconditional
-.ENDPROC
-
-;;; Mode for transitioning to the cutscene that plays in TownOutdoors after
-;;; reactivating the complex.
-;;; @prereq Rendering is enabled.
-.EXPORT Main_Finale_Reactivate
-.PROC Main_Finale_Reactivate
-    jsr Func_FadeOutToBlackSlowly
-    ldy #eFinale::Reactivate1Outdoors  ; param: finale step to run
-    .assert eFinale::Reactivate1Outdoors < $80, error
-    bpl Main_Finale_SetAndStartStep  ; unconditional
-.ENDPROC
-
-;;; Mode for displaying the "years later" text as part of the self-destruct
-;;; finale, before switching to the "years later" cutscene.
-;;; @prereq Rendering is enabled.
-;;; @prereq The current fade level is eFade::White.
-.EXPORT Main_Finale_YearsLater
-.PROC Main_Finale_YearsLater
-    jsr_prga FuncA_Death_FinaleYearsLater
-    ldy #eFinale::YearsLater1Outdoors  ; param: finale step to run
-    .assert eFinale::YearsLater1Outdoors < $80, error
-    bpl Main_Finale_SetAndStartStep  ; unconditional
-.ENDPROC
-
 ;;; Fades out the screen, increments Zp_Current_eFinale, and begins the next
 ;;; finale step, starting the next cutscene after loading and entering its
 ;;; room.
@@ -134,6 +100,26 @@ Zp_Current_eFinale: .res 1
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Cutscene"
+
+;;; Mode for transitioning to the cutscene that plays in TownOutdoors after
+;;; giving the B-Remote to Gronta.
+;;; @prereq Rendering is enabled.
+.EXPORT MainA_Cutscene_FinaleGaveRemote
+.PROC MainA_Cutscene_FinaleGaveRemote
+    jsr Func_FadeOutToBlackSlowly
+    ldy #eFinale::GaveRemote1Outdoors  ; param: finale step to run
+    jmp Main_Finale_SetAndStartStep
+.ENDPROC
+
+;;; Mode for transitioning to the cutscene that plays in TownOutdoors after
+;;; reactivating the complex.
+;;; @prereq Rendering is enabled.
+.EXPORT MainA_Cutscene_FinaleReactivate
+.PROC MainA_Cutscene_FinaleReactivate
+    jsr Func_FadeOutToBlackSlowly
+    ldy #eFinale::Reactivate1Outdoors  ; param: finale step to run
+    jmp Main_Finale_SetAndStartStep
+.ENDPROC
 
 ;;; Sets Zp_Next_eCutscene for the specified finale step, and returns the room
 ;;; that the cutscene takes place in and the music to play in that room.
@@ -230,13 +216,9 @@ _AvatarPosY_i16_0_arr:
     D_END
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Death"
-
 ;;; The PPU transfer entry for drawing the self-destruct finale "years later"
 ;;; text.
-.PROC DataA_Death_YearsLaterTextTransfer_arr
+.PROC DataA_Cutscene_YearsLaterTextTransfer_arr
     .linecont +
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
@@ -247,16 +229,27 @@ _AvatarPosY_i16_0_arr:
     .linecont -
 .ENDPROC
 
+;;; Mode for displaying the "years later" text as part of the self-destruct
+;;; finale, before switching to the "years later" cutscene.
+;;; @prereq Rendering is enabled.
+;;; @prereq The current fade level is eFade::White.
+.EXPORT MainA_Cutscene_FinaleYearsLater
+.PROC MainA_Cutscene_FinaleYearsLater
+    jsr FuncA_Cutscene_FinaleYearsLater
+    ldy #eFinale::YearsLater1Outdoors  ; param: finale step to run
+    jmp Main_Finale_SetAndStartStep
+.ENDPROC
+
 ;;; Displays the "years later" text, then fades out the screen.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq The current fade level is eFade::White.
-.PROC FuncA_Death_FinaleYearsLater
+.PROC FuncA_Cutscene_FinaleYearsLater
 _BlankOutBg:
     ldy #kScreenWidthTiles - 1
     @loop:
     tya  ; loop counter
     pha  ; loop counter
-    jsr FuncA_Death_TransferBlankBgTileColumn
+    jsr FuncA_Cutscene_TransferBlankBgTileColumn
     jsr Func_ProcessFrame
     pla  ; loop counter
     tay  ; loop counter
@@ -269,8 +262,8 @@ _FadeOutFromWhite:
 _DrawText:
     lda #<.bank(Ppu_ChrBgFontUpper)
     sta Zp_Chr04Bank_u8
-    ldax #DataA_Death_YearsLaterTextTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Death_YearsLaterTextTransfer_arr)  ; param: data length
+    ldax #DataA_Cutscene_YearsLaterTextTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Cutscene_YearsLaterTextTransfer_arr)  ; param: data len
     jsr Func_BufferPpuTransfer
     ldx #45  ; param: num frames
     jsr Func_WaitXFrames
