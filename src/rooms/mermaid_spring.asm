@@ -59,7 +59,6 @@
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_InitActorSmokeRaindrop
-.IMPORT FuncA_Room_SpawnExplosionAtPoint
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -72,6 +71,7 @@
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -472,10 +472,10 @@ _AnimateExplodingRocks:
     jsr Func_SetPointToPlatformCenter
     lda #kTileWidthPx
     jsr Func_MovePointLeftByA
-    jsr FuncA_Room_SpawnExplosionAtPoint
+    jsr Func_SpawnExplosionAtPoint
     lda #kTileWidthPx * 2
     jsr Func_MovePointRightByA
-    jmp FuncA_Room_SpawnExplosionAtPoint
+    jmp Func_SpawnExplosionAtPoint
 _RaindropPosX_u8_arr:
     .byte $74, $84, $8c, $7c
 _RaindropVelY_u8_arr:

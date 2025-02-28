@@ -41,18 +41,16 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightHalfTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxPoof
 .IMPORT Func_PlaySfxSecretUnlocked
-.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPlatformTopToPointY
 .IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -456,13 +454,9 @@ _AnimateSwimmingDownFunc:
     sty Ram_ActorState1_byte_arr + kCorraActorIndex
     rts
 _ReleaseCratesFunc:
-    jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @doneSmoke
     ldy #kAnchor3PlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter  ; preserves X
-    jsr Func_SetActorCenterToPoint  ; preserves X
-    jsr Func_InitActorSmokeExplosion
-    @doneSmoke:
+    jsr Func_SetPointToPlatformCenter
+    jsr Func_SpawnExplosionAtPoint
     jsr Func_PlaySfxPoof
     ldx #eFlag::CoreSouthCorraHelped  ; param: flag
     jmp Func_SetFlag

@@ -106,6 +106,7 @@ _DropAcid:
     jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
     bcc @done
     ;; Don't drop acid if the player avatar is above the flydrop.
+    ;; TODO: don't drop if the avatar is too far below (e.g. in ShadowDescent)
     jsr FuncA_Actor_IsAvatarAboveOrBelow  ; preserves X, returns N
     bmi @done
     ;; Set the starting position for the acid.

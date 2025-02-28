@@ -55,18 +55,18 @@
 .IMPORT FuncA_Room_PlaySfxThudSmall
 .IMPORT FuncA_Room_ResetLever
 .IMPORT Func_FindActorWithType
-.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_PlaySfxSecretUnlocked
-.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Ppu_ChrObjBoss2
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -484,6 +484,7 @@ _CheckForRocketImpact:
     bcc @done  ; no collision
     cpy #kLauncherPlatformIndex
     beq @done  ; still exiting launcher
+    jsr Func_PlaySfxExplodeBig  ; preserves X
     ;; If the rocket hits a crate, destroy that crate.
     cpy #kNumCratePlatforms
     bge @doneCrate
@@ -493,12 +494,8 @@ _CheckForRocketImpact:
     txa  ; rocket actor index
     pha  ; rocket actor index
     jsr Func_SetPointToPlatformCenter
-    jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @doneExplosion
-    jsr Func_SetActorCenterToPoint  ; preserves X
-    jsr Func_InitActorSmokeExplosion
+    jsr Func_SpawnExplosionAtPoint
     jsr Func_PlaySfxExplodeFracture
-    @doneExplosion:
     pla  ; rocket actor index
     tax  ; rocket actor index
     @doneCrate:
@@ -506,7 +503,6 @@ _CheckForRocketImpact:
     lda #kRocketShakeFrames  ; param: num frames
     jsr Func_ShakeRoom  ; preserves X
     jsr Func_InitActorSmokeExplosion
-    ;; TODO: play a sound for the rocket exploding
     @done:
 _SetFlagIfCratesDestroyed:
     ;; Once crates 2-5 have all been destroyed, set the flag.

@@ -45,13 +45,13 @@
 .IMPORT FuncA_Room_MachineLaserReset
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
-.IMPORT FuncA_Room_SpawnExplosionAtPoint
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_MachineLaserReadRegC
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjShadow2
 .IMPORT Ram_ActorState1_byte_arr
@@ -285,7 +285,7 @@ _MaybeKillFlowerBaddie:
     jsr Func_SetPointToPlatformCenter
     jsr FuncA_Room_IsPointInLaserBeam  ; returns C
     bcc @done  ; the laser is not hitting the zone
-    jsr FuncA_Room_SpawnExplosionAtPoint
+    jsr Func_SpawnExplosionAtPoint
     ldx #kFlowerActorIndex  ; param: actor index
     jsr Func_InitActorSmokeExplosion
     jsr Func_PlaySfxBaddieDeath

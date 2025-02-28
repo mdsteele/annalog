@@ -46,7 +46,6 @@
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorProjFireball
-.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxDrip
@@ -55,6 +54,7 @@
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToAvatarCenter
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Ppu_ChrObjShadow1
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -526,6 +526,7 @@ _ShootFireball:
     dlg_Call _TeleportAvatar
     dlg_Done
 _TeleportAvatar:
+    jsr Func_PlaySfxPoof
     inc Zp_RoomState + sState::TeleportCount_u8
     lda #120
     sta Zp_RoomState + sState::TeleportCooldown_u8
@@ -548,14 +549,10 @@ _TeleportAvatar:
     @setAvatarPos:
     stx Zp_AvatarPosX_i16 + 0
     sty Zp_AvatarPosY_i16 + 0
+    fall _SpawnPoofOnAvatar
 _SpawnPoofOnAvatar:
     jsr Func_SetPointToAvatarCenter
-    jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @done
-    jsr Func_SetActorCenterToPoint  ; preserves X
-    jsr Func_InitActorSmokeExplosion
-    @done:
-    jmp Func_PlaySfxPoof
+    jmp Func_SpawnExplosionAtPoint
 .ENDPROC
 
 ;;;=========================================================================;;;

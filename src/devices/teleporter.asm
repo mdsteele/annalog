@@ -31,11 +31,9 @@
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_FadeOutToBlack
-.IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorSmokeExplosion
-.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetPointToAvatarCenter
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ppu_ChrBgTeleport
 .IMPORT Ram_DeviceAnim_u8_arr
@@ -143,13 +141,8 @@ _InitCutsceneState:
 ;;; Spawns a smoke explosion actor at the player avatar's current position,
 ;;; representing the avatar teleporting in/out.
 .PROC FuncA_Cutscene_MakeTeleportSmokePuff
-    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
-    bcs @done
-    jsr Func_SetPointToAvatarCenter  ; preserves X
-    jsr Func_SetActorCenterToPoint  ; preserves X
-    jmp Func_InitActorSmokeExplosion
-    @done:
-    rts
+    jsr Func_SetPointToAvatarCenter
+    jmp Func_SpawnExplosionAtPoint
 .ENDPROC
 
 ;;;=========================================================================;;;

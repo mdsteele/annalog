@@ -35,7 +35,6 @@
 .IMPORT FuncA_Room_SpawnUpgradeDevice
 .IMPORT FuncA_Room_UnlockDoorDevice
 .IMPORT Func_DivMod
-.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
@@ -45,11 +44,11 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxSample
-.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetAndTransferFade
 .IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_ShakeRoom
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
@@ -257,16 +256,13 @@ _BossExploding:
     jsr Func_DivMod  ; returns quotient in Y and remainder in A
     cmp #kFramesPerExplosion - 1
     bne @noExplosion
-    ;; Choose a random position within the boss's body.
+    ;; Choose a random position within the boss's body and spawn an explosion
+    ;; there.
     ldy #sBoss::BodyPlatform_u8
     lda (Zp_Current_sBoss_ptr), y
     tax  ; param: platform index
     jsr FuncA_Room_SetPointRandomlyWithinPlatform
-    ;; Allocate an actor for the explosion.
-    jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
-    bcs @noExplosion
-    jsr Func_SetActorCenterToPoint  ; preserves X
-    jsr Func_InitActorSmokeExplosion
+    jsr Func_SpawnExplosionAtPoint
     jsr Func_PlaySfxExplodeBig
     @noExplosion:
     ;; Wait for the phase timer to reach zero.

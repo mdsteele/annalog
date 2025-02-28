@@ -293,7 +293,7 @@ _FinalTerminal:
     jsr FuncC_Town_GetScreenTilePpuAddr  ; returns YA
     ldx Zp_PpuTransferLen_u8
     sta Ram_PpuTransfer_arr + 2, x
-    tya
+    tya  ; PPU addr (hi)
     sta Ram_PpuTransfer_arr + 1, x
     lda #kPpuCtrlFlagsHorz
     sta Ram_PpuTransfer_arr + 0, x
@@ -311,7 +311,8 @@ _FinalTerminal:
 ;;; @param A The screen tile column.
 ;;; @param X The screen tile row.
 ;;; @return YA The PPU address.
-;;; @preserve X
+;;; @preserve X, T2+
+.EXPORT FuncC_Town_GetScreenTilePpuAddr
 .PROC FuncC_Town_GetScreenTilePpuAddr
     sta T1  ; screen tile column
     .assert Ppu_Nametable0_sName .mod $400 = 0, error

@@ -23,6 +23,7 @@
 .INCLUDE "../actors/orc.inc"
 .INCLUDE "../audio.inc"
 .INCLUDE "../avatar.inc"
+.INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
@@ -61,15 +62,19 @@
 .IMPORT DataA_Text2_TownOutdoorsFinaleReactivate5_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT FuncA_Cutscene_InitActorSmokeBeam
+.IMPORT FuncC_Town_GetScreenTilePpuAddr
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorNpcOrc
+.IMPORT Func_MovePointDownByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxFlopDown
 .IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Main_Finale_StartNextStep
 .IMPORT Main_LoadPrisonCellAndStartCutscene
 .IMPORT Ppu_ChrObjFinale
@@ -87,6 +92,7 @@
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceType_eDevice_arr
+.IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
@@ -100,6 +106,7 @@
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_PpuScrollX_u8
+.IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
@@ -672,11 +679,120 @@ _InitThurgAndGrunt:
     act_ForkStart 0, DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
 .ENDPROC
 
+;;; @prereq PRGC_Town is loaded.
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate1_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleReactivate1_sCutscene
     act_WaitFrames 60
+    act_CallFunc _ExplodeGround1
+    act_WaitFrames 10
+    act_CallFunc _ExplodeGround2
+    act_WaitFrames 10
+    act_CallFunc _ExplodeGround3
+    act_WaitFrames 10
+    act_CallFunc _ExplodeGround4
+    act_WaitFrames 10
+    act_CallFunc _ExplodeGround5
     ;; TODO: animate the ground opening and the core tower rising out
+    act_WaitFrames 60
     act_JumpToMain Main_Finale_StartNextStep
+_ExplodeGround1:
+    ldy #6  ; param: left-hand screen tile column
+    lda #7  ; param: right-hand screen tile column
+    bne _ExplodeGroundLeftAndRight  ; unconditional
+_ExplodeGround2:
+    ldy #5  ; param: left-hand screen tile column
+    lda #8  ; param: right-hand screen tile column
+    bne _ExplodeGroundLeftAndRight  ; unconditional
+_ExplodeGround3:
+    ldy #4  ; param: left-hand screen tile column
+    lda #9  ; param: right-hand screen tile column
+    bne _ExplodeGroundLeftAndRight  ; unconditional
+_ExplodeGround4:
+    ldy #3   ; param: left-hand screen tile column
+    lda #10  ; param: right-hand screen tile column
+    bne _ExplodeGroundLeftAndRight  ; unconditional
+_ExplodeGround5:
+    ldy #2   ; param: left-hand screen tile column
+    lda #11  ; param: right-hand screen tile column
+    fall _ExplodeGroundLeftAndRight
+_ExplodeGroundLeftAndRight:
+    pha     ; right-hand screen tile column
+    sty T3  ; left-hand screen tile column
+    jsr _ExplodeGroundAtScreenCol  ; preserves T3+
+    pla     ; right-hand screen tile column
+    add #1  ; param: screen tile column
+    jsr _AddRocksAtScreenCol  ; preserves T3+
+    lda T3  ; param: left-hand screen tile column
+    jsr _ExplodeGroundAtScreenCol  ; preserves T3+
+    ldx T3  ; left-hand screen tile column
+    dex
+    txa     ; param: screen tile column
+    fall _AddRocksAtScreenCol
+_AddRocksAtScreenCol:
+    ldx #27  ; param: first screen tile row
+    jsr FuncA_Cutscene_AllocGroundColTransfer  ; preserves T3+, returns X
+    lda #$10
+    sta Ram_PpuTransfer_arr + 4, x
+    sta Ram_PpuTransfer_arr + 6, x
+    lda #$11
+    sta Ram_PpuTransfer_arr + 5, x
+    rts
+_ExplodeGroundAtScreenCol:
+    ;; Clear ground BG tiles for the column being exploded.
+    pha  ; screen tile column
+    ldx #25  ; param: screen tile row
+    jsr FuncA_Cutscene_AllocGroundColTransfer  ; preserves T3+, returns X and Y
+    lda #' '
+    @loop:
+    sta Ram_PpuTransfer_arr + 4, x
+    inx
+    dey
+    bne @loop
+    ;; Spawn a pair of explosion actors centered on the column.
+    pla  ; screen tile column
+    mul #kTileWidthPx  ; also clears C for the ADC below
+    adc #kTileWidthPx / 2
+    sta Zp_PointX_i16 + 0
+    lda #$03
+    sta Zp_PointX_i16 + 1
+    ldya #$00d0
+    stya Zp_PointY_i16
+    jsr Func_SpawnExplosionAtPoint
+    lda #$10  ; param: offset
+    jsr Func_MovePointDownByA
+    jsr Func_SpawnExplosionAtPoint
+    jmp Func_PlaySfxExplodeBig
+.ENDPROC
+
+;;; Allocates a PPU transfer entry to draw BG tiles for one tile column of
+;;; ground terrain, starting at the specified screen tile column and row in the
+;;; upper nametable and extending down through the bottom tile row of the
+;;; nametable, and fills the entry header.  The caller must fill in the payload
+;;; of this entry.
+;;; @prereq PRGC_Town is loaded.
+;;; @param A The screen tile column.
+;;; @param X The starting screen tile row.
+;;; @return X The byte index into Ram_PpuTransfer_arr for the start of the
+;;;     entry (including the entry header).
+;;; @return Y The length of the transfer entry payload.
+;;; @preserve T3+
+.PROC FuncA_Cutscene_AllocGroundColTransfer
+    stx T2  ; first screen tile row
+    jsr FuncC_Town_GetScreenTilePpuAddr  ; preserves T2+, returns YA
+    ldx Zp_PpuTransferLen_u8
+    sta Ram_PpuTransfer_arr + 2, x
+    tya  ; PPU addr (hi)
+    sta Ram_PpuTransfer_arr + 1, x
+    lda #kPpuCtrlFlagsVert
+    sta Ram_PpuTransfer_arr + 0, x
+    lda #kScreenHeightTiles
+    sub T2  ; screen tile row
+    sta Ram_PpuTransfer_arr + 3, x
+    tay  ; transfer payload length in bytes
+    add #4  ; to account for transfer entry header
+    adc Zp_PpuTransferLen_u8  ; carry is already clear
+    sta Zp_PpuTransferLen_u8
+    rts
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene

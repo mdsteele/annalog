@@ -41,15 +41,11 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
-.IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxExplodeSmall
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
-.IMPORT Ram_ActorPosY_i16_0_arr
-.IMPORT Ram_ActorPosY_i16_1_arr
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineSlowdown_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
@@ -59,8 +55,6 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformBottom_i16_1_arr
-.IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_Current_sMachine_ptr
@@ -256,25 +250,8 @@ _Falling:
 .EXPORT FuncA_Machine_WinchHitBreakableFloor
 .PROC FuncA_Machine_WinchHitBreakableFloor
 _AddSmokeActor:
-    jsr Func_FindEmptyActorSlot  ; preserves Y, returns C and X
-    bcs @done
-    ;; Set X-position:
-    lda Ram_PlatformLeft_i16_0_arr, y
-    add #kTileWidthPx
-    sta Ram_ActorPosX_i16_0_arr, x
-    lda Ram_PlatformLeft_i16_1_arr, y
-    adc #0
-    sta Ram_ActorPosX_i16_1_arr, x
-    ;; Set Y-position:
-    lda Ram_PlatformTop_i16_0_arr, y
-    add #kTileHeightPx / 2
-    sta Ram_ActorPosY_i16_0_arr, x
-    lda Ram_PlatformTop_i16_1_arr, y
-    adc #0
-    sta Ram_ActorPosY_i16_1_arr, x
-    ;; Init actor:
-    jsr Func_InitActorSmokeExplosion
-    @done:
+    jsr Func_SetPointToPlatformCenter
+    jsr Func_SpawnExplosionAtPoint
 _SlowFallingSpeed:
     jsr FuncA_Machine_WinchShakeOnImpact
     ;; Slow down the falling winch load, in case we're breaking through the

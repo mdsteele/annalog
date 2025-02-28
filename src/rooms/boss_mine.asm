@@ -60,7 +60,6 @@
 .IMPORT Func_GetRandomByte
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorProjFireball
-.IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
@@ -77,6 +76,7 @@
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Ppu_ChrBgAnimB4
 .IMPORT Ppu_ChrBgBossStatic
 .IMPORT Ppu_ChrObjBoss1
@@ -1207,12 +1207,9 @@ _BreakBoulderIfAbsent:
     jsr Func_PlaySfxExplodeFracture
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kBoulderPlatformIndex
-    jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @done  ; no empty actor slots are available for the smoke
     ldy #kBoulderPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter  ; preserves X
-    jsr Func_SetActorCenterToPoint  ; preserves X
-    jmp Func_InitActorSmokeExplosion
+    jsr Func_SetPointToPlatformCenter
+    jmp Func_SpawnExplosionAtPoint
     @done:
     rts
 _ShakeFrames_u8_arr:

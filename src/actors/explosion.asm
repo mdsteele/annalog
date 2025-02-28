@@ -48,6 +48,19 @@ kPaletteObjExplosion = 0
 
 .SEGMENT "PRG8"
 
+;;; Spawns a new smoke explosion actor (if possible), starting it at the
+;;; room pixel position stored in Zp_PointX_i16 and Zp_PointY_i16.
+;;; @preserve T0+
+.EXPORT Func_SpawnExplosionAtPoint
+.PROC Func_SpawnExplosionAtPoint
+    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
+    bcc @spawn
+    rts
+    @spawn:
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
+    fall Func_InitActorSmokeExplosion  ; preserves T0+
+.ENDPROC
+
 ;;; Initializes the specified actor as a smoke explosion.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param X The actor index.
@@ -56,23 +69,6 @@ kPaletteObjExplosion = 0
 .PROC Func_InitActorSmokeExplosion
     ldy #eActor::SmokeExplosion  ; param: actor type
     jmp Func_InitActorDefault  ; preserves X and T0+
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; Spawns a new smoke explosion actor (if possible), starting it at the
-;;; room pixel position stored in Zp_PointX_i16 and Zp_PointY_i16.
-;;; @preserve T0+
-.EXPORT FuncA_Room_SpawnExplosionAtPoint
-.PROC FuncA_Room_SpawnExplosionAtPoint
-    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
-    bcs @done
-    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
-    jmp Func_InitActorSmokeExplosion  ; preserves T0+
-    @done:
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
