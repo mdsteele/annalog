@@ -51,6 +51,7 @@
 .IMPORT FuncA_Objects_DrawLauncherMachineHorz
 .IMPORT FuncA_Objects_DrawRocksPlatformVert
 .IMPORT FuncA_Room_SpawnParticleAtPoint
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_FindActorWithType
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
@@ -259,9 +260,8 @@ _RockWall:
 
 .PROC FuncC_City_OutskirtsLauncher_ReadReg
     lda #kLauncherMaxPlatformTop + kTileHeightPx
-    sub Ram_PlatformTop_i16_0_arr + kLauncherPlatformIndex
-    div #kBlockHeightPx
-    rts
+    sub Ram_PlatformTop_i16_0_arr + kLauncherPlatformIndex  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;;=========================================================================;;;

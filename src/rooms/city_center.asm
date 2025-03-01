@@ -64,6 +64,7 @@
 .IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncA_Room_MachineSemaphoreReset
 .IMPORT FuncA_Room_UnlockDoorDevice
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_GetRandomByte
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxBaddieJump
@@ -528,9 +529,8 @@ _ReadRegLock:
     rts
 _ReadRegY:
     lda Ram_MachineState3_byte_arr, y  ; vertical offset
-    add #kTileHeightPx
-    div #kBlockHeightPx
-    rts
+    add #kTileHeightPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;;=========================================================================;;;

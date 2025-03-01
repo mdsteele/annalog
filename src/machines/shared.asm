@@ -123,6 +123,50 @@
     rts
 .ENDPROC
 
+;;; Helper function for machine ReadReg functions.  Divides an 8-bit distance
+;;; in pixels into a distance in blocks, clamping to a maximum of 9.
+;;; @param AX The distance in pixels (unsigned).
+;;; @return A The distance in blocks, clamped to a maximum of 9.
+;;; @preserve T0+
+.EXPORT Func_DivAXByBlockSizeAndClampTo9
+.PROC Func_DivAXByBlockSizeAndClampTo9
+    .assert $100 >= kBlockWidthPx * 9, error
+    tay  ; distance (hi)
+    bne Func_Return9  ; preserves T0+
+    txa  ; param: distance (lo)
+    fall Func_DivAByBlockSizeAndClampTo9  ; preserves T0+
+.ENDPROC
+
+;;; Helper function for machine ReadReg functions.  Divides a 16-bit distance
+;;; in pixels into a distance in blocks, clamping to a maximum of 9.
+;;; @param A The distance in pixels (unsigned).
+;;; @return A The distance in blocks, clamped to a maximum of 9.
+;;; @preserve T0+
+.EXPORT Func_DivAByBlockSizeAndClampTo9
+.PROC Func_DivAByBlockSizeAndClampTo9
+    .assert kBlockWidthPx = kBlockHeightPx, error
+    div #kBlockWidthPx
+    cmp #10
+    blt Func_DoneWithClamp
+    fall Func_Return9
+.ENDPROC
+
+;;; Helper function for Func_Div*ByBlockSizeAndClampTo9.  Returns 9 in A.
+;;; @return A Always equal to 9.
+;;; @preserve T0+
+.PROC Func_Return9
+    lda #9
+    fall Func_DoneWithClamp  ; preserves T0+, returns A unchanged
+.ENDPROC
+
+;;; Helper function for Func_Div*ByBlockSizeAndClampTo9.  Returns A unchanged.
+;;; @param A A value from 0-9.
+;;; @return A The value unchanged.
+;;; @preserve T0+
+.PROC Func_DoneWithClamp
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"

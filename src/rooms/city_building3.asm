@@ -54,6 +54,7 @@
 .IMPORT FuncA_Objects_DrawReloaderMachine
 .IMPORT FuncA_Room_PlaySfxThudSmall
 .IMPORT FuncA_Room_ResetLever
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_FindActorWithType
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInAnySolidPlatform
@@ -362,22 +363,20 @@ _Devices_sDevice_arr:
 
 .PROC FuncC_City_Building3Launcher_ReadReg
     cmp #$f
-    bne FuncC_City_Building3_ReadRegLR
+    bne FuncC_City_Building3_ReadRegLR  ; returns A
 _RegY:
     lda #kLauncherMaxPlatformTop + kTileHeightPx
-    sub Ram_PlatformTop_i16_0_arr + kLauncherPlatformIndex
-    div #kBlockHeightPx
-    rts
+    sub Ram_PlatformTop_i16_0_arr + kLauncherPlatformIndex  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 .PROC FuncC_City_Building3Reloader_ReadReg
     cmp #$e
-    bne FuncC_City_Building3_ReadRegLR
+    bne FuncC_City_Building3_ReadRegLR  ; returns A
 _RegX:
     lda Ram_PlatformLeft_i16_0_arr + kReloaderPlatformIndex
-    sub #kReloaderMinPlatformLeft - kTileWidthPx
-    div #kBlockWidthPx
-    rts
+    sub #kReloaderMinPlatformLeft - kTileWidthPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; Reads the shared "L" or "R" lever register for the CityBuilding3Launcher,

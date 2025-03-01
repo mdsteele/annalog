@@ -69,6 +69,7 @@
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_BufferPpuTransfer
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
@@ -860,9 +861,8 @@ _DrawBackgroundTerrainObjects:
     bne FuncC_Boss_City_ReadRegLR
 _RegY:
     lda #kLauncherMaxPlatformTop + kTileHeightPx
-    sub Ram_PlatformTop_i16_0_arr + kLauncherPlatformIndex
-    div #kBlockHeightPx
-    rts
+    sub Ram_PlatformTop_i16_0_arr + kLauncherPlatformIndex  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 .PROC FuncC_Boss_CityReloader_ReadReg
@@ -870,9 +870,8 @@ _RegY:
     bne FuncC_Boss_City_ReadRegLR
 _RegX:
     lda Ram_PlatformLeft_i16_0_arr + kReloaderPlatformIndex
-    sub #kReloaderMinPlatformLeft - kTileWidthPx
-    div #kBlockWidthPx
-    rts
+    sub #kReloaderMinPlatformLeft - kTileWidthPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; Reads the shared "L" or "R" lever register for the BossCityLauncher and

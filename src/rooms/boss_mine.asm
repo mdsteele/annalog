@@ -55,6 +55,7 @@
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncA_Room_TickBoss
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetRandomByte
@@ -929,9 +930,8 @@ _EyeOffsetY_u8_arr:
 _RegX:
     .assert kTrolleyMaxPlatformLeft < $100, error
     lda Ram_PlatformLeft_i16_0_arr + kTrolleyPlatformIndex
-    sub #kTrolleyMinPlatformLeft - kTileWidthPx
-    div #kBlockWidthPx
-    rts
+    sub #kTrolleyMinPlatformLeft - kTileWidthPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; ReadReg implementation for the BossMineCrane machine.
@@ -943,9 +943,8 @@ _RegX:
 _RegZ:
     .assert kCraneMaxPlatformTop < $100, error
     lda Ram_PlatformTop_i16_0_arr + kCranePlatformIndex
-    sub #kCraneMinPlatformTop - kTileHeightPx
-    div #kBlockHeightPx
-    rts
+    sub #kCraneMinPlatformTop - kTileHeightPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; Reads the shared "L" or "R" lever register for the BossMineTrolley and

@@ -42,6 +42,7 @@
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT FuncA_Objects_DrawLiftMachine
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
@@ -282,9 +283,8 @@ _Passages_sPassage_arr:
     .assert kLift1MachineIndex = kLift1PlatformIndex, error
     .assert kLift2MachineIndex = kLift2PlatformIndex, error
     .assert kLift3MachineIndex = kLift3PlatformIndex, error
-    sub Ram_PlatformTop_i16_0_arr, x
-    div #kBlockHeightPx
-    rts
+    sub Ram_PlatformTop_i16_0_arr, x  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;;=========================================================================;;;

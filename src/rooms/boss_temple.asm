@@ -64,6 +64,7 @@
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_DivMod
 .IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
@@ -719,9 +720,8 @@ _Offset_u8_arr2:
     beq @readR
     @readX:
     lda Ram_PlatformLeft_i16_0_arr + kMinigunPlatformIndex
-    sub #kMinigunMinPlatformLeft - kTileWidthPx
-    div #kBlockWidthPx
-    rts
+    sub #kMinigunMinPlatformLeft - kTileWidthPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
     @readL:
     lda Zp_RoomState + sState::LeverLeft_u8
     rts

@@ -44,6 +44,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Room_RemoveFlowerDeviceIfCarriedOrDelivered
 .IMPORT FuncA_Room_RespawnFlowerDeviceIfDropped
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
@@ -244,9 +245,8 @@ _ReadW:
     rts
 _ReadZ:
     lda Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex
-    sub #kUpperGirderMinPlatformTop - kTileHeightPx
-    div #kBlockWidthPx
-    rts
+    sub #kUpperGirderMinPlatformTop - kTileHeightPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; Draws the CryptFlowerWinch machine.

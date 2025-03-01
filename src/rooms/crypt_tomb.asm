@@ -50,6 +50,7 @@
 .IMPORT FuncA_Objects_DrawWinchBreakableFloor
 .IMPORT FuncA_Objects_DrawWinchMachineWithSpikeball
 .IMPORT FuncA_Room_ResetLever
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -374,14 +375,12 @@ _AnimateCircuit:
     beq _ReadX
 _ReadZ:
     lda Ram_PlatformTop_i16_0_arr + kSpikeballPlatformIndex
-    sub #kSpikeballMinPlatformTop - kTileHeightPx
-    div #kBlockHeightPx
-    rts
+    sub #kSpikeballMinPlatformTop - kTileHeightPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 _ReadX:
     lda Ram_PlatformLeft_i16_0_arr + kWinchPlatformIndex
-    sub #kWinchMinPlatformLeft - kTileWidthPx
-    div #kBlockWidthPx
-    rts
+    sub #kWinchMinPlatformLeft - kTileWidthPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 _ReadL:
     lda Zp_RoomState + sState::LeverLeft_u8
     rts

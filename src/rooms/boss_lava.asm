@@ -73,6 +73,7 @@
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_DistanceSensorRightDetectPoint
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_DivMod
 .IMPORT Func_EmitSteamUpFromPipe
 .IMPORT Func_FindActorWithType
@@ -1037,18 +1038,17 @@ _RegD:
     ldy #kSensorPlatformIndex  ; param: distance sensor platform index
     jsr Func_SetPointToAvatarCenter  ; preserves Y, T0+
     jsr Func_DistanceSensorRightDetectPoint  ; returns T0
+    ;; TODO: detect solifuge
     lda T0  ; minimum distance so far, in pixels
-    sub #kBlockWidthPx * 2
+    sub #kBlockWidthPx * 2  ; param: distance
     bge @noClamp
-    lda #0
+    lda #0  ; param: distance
     @noClamp:
-    div #kBlockWidthPx
-    rts
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 _RegX:
     lda Ram_PlatformLeft_i16_0_arr + kBlasterPlatformIndex
-    sub #kBlasterMinPlatformLeft - kTileWidthPx
-    div #kBlockWidthPx
-    rts
+    sub #kBlasterMinPlatformLeft - kTileWidthPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; ReadReg implementation for the BossLavaBoiler machine.

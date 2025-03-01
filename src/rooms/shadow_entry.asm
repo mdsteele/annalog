@@ -35,6 +35,7 @@
 .IMPORT FuncA_Machine_LiftTick
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_DrawLiftMachine
+.IMPORT Func_DivAXByBlockSizeAndClampTo9
 .IMPORT Func_Noop
 .IMPORT Func_WriteToLowerAttributeTable
 .IMPORT Ppu_ChrObjMine
@@ -195,18 +196,10 @@ _Passages_sPassage_arr:
 .PROC FuncC_Shadow_EntryLift_ReadReg
     lda #<(kLiftMaxPlatformTop + kTileHeightPx)
     sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
-    tay  ; delta (lo)
+    tax  ; param: distance (lo)
     lda #>(kLiftMaxPlatformTop + kTileHeightPx)
-    sbc Ram_PlatformTop_i16_1_arr + kLiftPlatformIndex
-    bne @clamp
-    tya  ; delta(lo)
-    div #kBlockHeightPx
-    cmp #10
-    blt @done
-    @clamp:
-    lda #9
-    @done:
-    rts
+    sbc Ram_PlatformTop_i16_1_arr + kLiftPlatformIndex  ; param: distance (hi)
+    jmp Func_DivAXByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;;=========================================================================;;;

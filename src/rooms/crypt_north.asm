@@ -44,6 +44,7 @@
 .IMPORT FuncA_Objects_DrawWinchChain
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_MoveShapeLeftOneTile
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_Noop
 .IMPORT Func_ResetWinchMachineState
@@ -253,18 +254,16 @@ _ReadW:
     rts
 _ReadZ:
     lda Ram_PlatformTop_i16_0_arr + kGirderPlatformIndex
-    sub #kGirderMinPlatformTop - kTileHeightPx
-    div #kBlockWidthPx
-    rts
+    sub #kGirderMinPlatformTop - kTileHeightPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 .PROC FuncC_Crypt_NorthLift_ReadReg
     .assert kLiftMaxPlatformTop + kTileHeightPx >= $100, error
     lda #<(kLiftMaxPlatformTop + kTileHeightPx)
-    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
+    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex  ; param: distance
     .assert kLiftMaxPlatformTop - kLiftMinPlatformTop < $100, error
-    div #kBlockHeightPx
-    rts
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; Draws the CryptNorthWinch machine.

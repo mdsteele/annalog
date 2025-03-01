@@ -96,6 +96,7 @@
 .IMPORT FuncA_Room_ReflectFireblastsOffMirror
 .IMPORT FuncA_Room_TurnProjectilesToSmoke
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_DivMod
 .IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
@@ -597,9 +598,8 @@ _Passages_sPassage_arr:
     jmp Func_MachineBlasterReadRegM
 _ReadX:
     lda Ram_PlatformLeft_i16_0_arr + kBlasterPlatformIndex
-    sub #<(kBlasterMinPlatformLeft - kTileWidthPx)
-    div #kBlockWidthPx
-    rts
+    sub #<(kBlasterMinPlatformLeft - kTileWidthPx)  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 .PROC FuncC_Core_BossLaser_ReadReg
@@ -609,9 +609,8 @@ _ReadC:
     jmp Func_MachineLaserReadRegC
 _ReadX:
     lda Ram_PlatformLeft_i16_0_arr + kLaserPlatformIndex
-    sub #kLaserMinPlatformLeft - kTileWidthPx
-    div #kBlockWidthPx
-    rts
+    sub #kLaserMinPlatformLeft - kTileWidthPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 .PROC FuncC_Core_BossWinch_ReadReg
@@ -619,18 +618,12 @@ _ReadX:
     beq _ReadX
 _ReadZ:
     lda Ram_PlatformTop_i16_0_arr + kSpikeballPlatformIndex
-    sub #kSpikeballMinPlatformTop - kTileHeightPx
-    div #kBlockHeightPx
-    cmp #10
-    blt @done
-    lda #9
-    @done:
-    rts
+    sub #kSpikeballMinPlatformTop - kTileHeightPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 _ReadX:
     lda Ram_PlatformLeft_i16_0_arr + kWinchPlatformIndex
-    sub #kWinchMinPlatformLeft - kTileWidthPx
-    div #kBlockWidthPx
-    rts
+    sub #kWinchMinPlatformLeft - kTileWidthPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; @prereq PRGA_Room is loaded.

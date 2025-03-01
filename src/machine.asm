@@ -21,6 +21,7 @@
 .INCLUDE "joypad.inc"
 .INCLUDE "machine.inc"
 .INCLUDE "macros.inc"
+.INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
 .INCLUDE "room.inc"
 

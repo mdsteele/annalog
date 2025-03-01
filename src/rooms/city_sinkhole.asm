@@ -37,6 +37,7 @@
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT FuncA_Objects_DrawLiftMachine
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -157,9 +158,8 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_City_SinkholeLift_ReadReg
     lda #kLiftMaxPlatformTop + kTileHeightPx
-    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex
-    div #kBlockHeightPx
-    rts
+    sub Ram_PlatformTop_i16_0_arr + kLiftPlatformIndex  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;;=========================================================================;;;

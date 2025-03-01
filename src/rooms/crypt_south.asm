@@ -49,6 +49,8 @@
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT Func_DivAByBlockSizeAndClampTo9
+.IMPORT Func_DivAXByBlockSizeAndClampTo9
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -96,13 +98,13 @@ kWeakFloorPlatformIndex    = 3
 kWinchInitGoalX = 0
 kWinchMaxGoalX  = 9
 ;;; The initial and maximum permitted values for the winch's Z-goal.
-kWinchInitGoalZ = 5
-kWinchMaxGoalZ  = 17
+kWinchInitGoalZ = 6
+kWinchMaxGoalZ  = 18
 
 ;;; The winch X and Z-register values at which the crusher is resting on the
 ;;; breakable floor.
 kWeakFloorGoalX = 8
-kWeakFloorGoalZ = 5
+kWeakFloorGoalZ = 6
 
 ;;; The minimum and initial room pixel position for the left edge of the winch.
 .LINECONT +
@@ -114,7 +116,7 @@ kWinchInitPlatformLeft = \
 ;;; The minimum and initial room pixel position for the top edge of the
 ;;; crusher.
 .LINECONT +
-kCrusherMinPlatformTop = $40
+kCrusherMinPlatformTop = $30
 kCrusherInitPlatformTop = \
     kCrusherMinPlatformTop + kBlockHeightPx * kWinchInitGoalZ
 .LINECONT +
@@ -363,26 +365,15 @@ _ReadW:
     rts
 _ReadX:
     lda Ram_PlatformLeft_i16_0_arr + kWinchPlatformIndex
-    sub #kWinchMinPlatformLeft - kTileWidthPx
-    div #kBlockWidthPx
-    rts
+    sub #kWinchMinPlatformLeft - kTileWidthPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 _ReadZ:
     lda Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex
     sub #kCrusherMinPlatformTop - kTileHeightPx
-    sta T0
+    tax  ; param: distance (lo)
     lda Ram_PlatformTop_i16_1_arr + kCrusherUpperPlatformIndex
-    sbc #0
-    .assert kBlockHeightPx = 16, error
-    .repeat 4
-    lsr a
-    ror T0
-    .endrepeat
-    lda T0
-    cmp #9
-    blt @done
-    lda #9
-    @done:
-    rts
+    sbc #0  ; param: distance (hi)
+    jmp Func_DivAXByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; @prereq PRGA_Machine is loaded.
@@ -590,7 +581,7 @@ _Error:
     lda _SolidFloor_u8_arr, y
     rts
 _SolidFloor_u8_arr:
-    .byte 6, 2, 6, 4, 6, 3, 6, 5, 17, 3
+    .byte 7, 3, 7, 5, 7, 4, 7, 6, 18, 4
 .ENDPROC
 
 ;;;=========================================================================;;;

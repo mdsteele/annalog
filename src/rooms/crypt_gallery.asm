@@ -42,6 +42,7 @@
 .IMPORT FuncA_Objects_DrawWinchMachine
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -272,14 +273,12 @@ _ReadW:
     rts
 _ReadX:
     lda Ram_PlatformLeft_i16_0_arr + kWinchPlatformIndex
-    sub #kWinchMinPlatformLeft - kTileWidthPx
-    div #kBlockWidthPx
-    rts
+    sub #kWinchMinPlatformLeft - kTileWidthPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 _ReadZ:
     lda Ram_PlatformTop_i16_0_arr + kCrusherUpperPlatformIndex
-    sub #kCrusherMinPlatformTop - kTileHeightPx
-    div #kBlockHeightPx
-    rts
+    sub #kCrusherMinPlatformTop - kTileHeightPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; Draws the CryptGalleryWinch machine.

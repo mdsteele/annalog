@@ -43,6 +43,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
@@ -240,9 +241,8 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Crypt_WestWinch_ReadReg
     lda Ram_PlatformTop_i16_0_arr + kSpikeball1PlatformIndex
-    sub #kSpikeball1MinPlatformTop - kTileHeightPx
-    div #kBlockWidthPx
-    rts
+    sub #kSpikeball1MinPlatformTop - kTileHeightPx  ; param: distance
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; @prereq PRGA_Objects is loaded.
