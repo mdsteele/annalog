@@ -28,6 +28,8 @@
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
+.IMPORT Func_PlaySfxLeverOff
+.IMPORT Func_PlaySfxLeverOn
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORTZP Zp_RoomState
@@ -62,7 +64,8 @@ kPaletteObjLeverHandle = 0
     lda #1
     @set:
     sta Zp_RoomState, y
-    rts
+    jne Func_PlaySfxLeverOn
+    jmp Func_PlaySfxLeverOff
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -84,14 +87,17 @@ _CurrentlyNonzero:
     lda T0  ; value to write
     sta Zp_RoomState, y
     bne _NoAnimate
+    jsr Func_PlaySfxLeverOff  ; preserves X
 _Animate:
     lda #kLeverAnimCountdown  ; param: num frames
     sta Ram_DeviceAnim_u8_arr, x
     jmp FuncA_Machine_StartWaiting
 _CurrentlyZero:
     lda T0  ; value to write
+    beq _NoAnimate
     sta Zp_RoomState, y
-    bne _Animate
+    jsr Func_PlaySfxLeverOff  ; preserves X
+    jmp _Animate
 _NoAnimate:
     rts
 .ENDPROC

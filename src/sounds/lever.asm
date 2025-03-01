@@ -22,7 +22,6 @@
 .INCLUDE "../sound.inc"
 
 .IMPORT Func_PlaySfxOnNoiseChannel
-.IMPORTZP Zp_AudioTmp_byte
 
 ;;;=========================================================================;;;
 
@@ -33,72 +32,34 @@ kSfxLaunchDurationFrames = $1c
 
 .SEGMENT "PRG8"
 
-;;; SFX data for the "rocket launch" sound effect.
-.PROC Data_RocketLaunch_sSfx
-    sfx_Func _Func
-    sfx_End
-_Func:
-    sty Zp_AudioTmp_byte  ; frames so far
-    lda #kSfxLaunchDurationFrames
-    sub Zp_AudioTmp_byte  ; frames so far
-    beq @stop
-    div #2
-    ora #bEnvelope::NoLength | bEnvelope::ConstVol
-    sta Hw_NoiseEnvelope_wo
-    lda #0
-    sta Hw_NoiseLength_wo
-    cpy #$0f
-    blt @setPeriod
-    ldy #$0f
-    @setPeriod:
-    sty Hw_NoisePeriod_wo
-    clc  ; clear C to indicate that the sound is still going
-    rts
-    @stop:
-    sec  ; set C to indicate that the sound is finished
-    rts
-.ENDPROC
-
-;;; SFX data for a clicking sound effect.
-.PROC Data_Click_sSfx
-    sfx_SetEnvTimer bEnvelope::NoLength | 0, $008a
-    sfx_Wait 3
-    sfx_SetTimerLo $88
+;;; SFX data for the "lever off" sound effect.
+.PROC Data_LeverOff_sSfx
+    sfx_SetEnvTimer (bEnvelope::NoLength | 0), $0008
     sfx_Wait 3
     sfx_End
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Cutscene"
-
-;;; Starts playing the sound for when a stepstone is pushed into position.
-;;; @preserve T0+
-.EXPORT FuncA_Cutscene_PlaySfxClick
-.PROC FuncA_Cutscene_PlaySfxClick
-    ldya #Data_Click_sSfx
-    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
+;;; SFX data for the "lever on" sound effect.
+.PROC Data_LeverOn_sSfx
+    sfx_SetEnvTimer (bEnvelope::NoLength | 0), $0006
+    sfx_Wait 3
+    sfx_End
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Machine"
-
-;;; Starts playing a rocket launch sound.
-;;; @preserve T0+
-.EXPORT FuncA_Machine_PlaySfxRocketLaunch
-.PROC FuncA_Machine_PlaySfxRocketLaunch
-    ldya #Data_RocketLaunch_sSfx
-    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
+;;; Starts playing the sound for flipping a lever to the off position.
+;;; @preserve X, T0+
+.EXPORT Func_PlaySfxLeverOff
+.PROC Func_PlaySfxLeverOff
+    ldya #Data_LeverOff_sSfx
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
 .ENDPROC
 
-;;; Starts playing the sound for when a rocket is transferred between machines
-;;; (e.g. a reloader and a launcher).
-;;; @preserve T0+
-.EXPORT FuncA_Machine_PlaySfxRocketTransfer
-.PROC FuncA_Machine_PlaySfxRocketTransfer
-    ldya #Data_Click_sSfx
-    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
+;;; Starts playing the sound for flipping a lever to the on position.
+;;; @preserve X, T0+
+.EXPORT Func_PlaySfxLeverOn
+.PROC Func_PlaySfxLeverOn
+    ldya #Data_LeverOn_sSfx
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;
