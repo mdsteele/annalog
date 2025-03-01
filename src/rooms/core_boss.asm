@@ -621,6 +621,10 @@ _ReadZ:
     lda Ram_PlatformTop_i16_0_arr + kSpikeballPlatformIndex
     sub #kSpikeballMinPlatformTop - kTileHeightPx
     div #kBlockHeightPx
+    cmp #10
+    blt @done
+    lda #9
+    @done:
     rts
 _ReadX:
     lda Ram_PlatformLeft_i16_0_arr + kWinchPlatformIndex
@@ -1472,7 +1476,7 @@ _Finished:
 .ENDPROC
 
 .PROC DataA_Machine_CoreBossWinchFloor_u8_arr
-    .byte 2, 6, 6
+    .byte 10, 2, 6
 .ENDPROC
 
 .PROC FuncA_Machine_CoreBossBlaster_TryMove
