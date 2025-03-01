@@ -62,6 +62,8 @@
 .IMPORT DataA_Text2_TownOutdoorsFinaleReactivate5_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT FuncA_Cutscene_InitActorSmokeBeam
+.IMPORT FuncA_Cutscene_PlaySfxBeam
+.IMPORT FuncA_Cutscene_PlaySfxQuickWindup
 .IMPORT FuncC_Town_GetScreenTilePpuAddr
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
@@ -74,6 +76,8 @@
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxFlopDown
 .IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SetPointToDeviceCenter
 .IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Main_Finale_StartNextStep
 .IMPORT Main_LoadPrisonCellAndStartCutscene
@@ -125,9 +129,12 @@ kIvanActorIndex   = 1
 kSandraActorIndex = 2
 kOrc1ActorIndex   = 1
 kOrc2ActorIndex   = 2
-kGrontaActorIndex = 3
+kThurgActorIndex  = 3
+kGrontaActorIndex = 5
 kOrc3ActorIndex   = 4
-kThurgActorIndex  = 5
+
+;;; The device index for the door that leads into TownHouse4.
+kTownHouse4DoorDeviceIndex = 4
 
 ;;; The room pixel X-position that the Alex actor should be at when kneeling
 ;;; down to pick up the metal thing he found.
@@ -139,6 +146,14 @@ kGrontaInitPosX = $05d7
 kOrc1InitPosX   = $05e8
 kOrc2InitPosX   = $05f9
 kThurgInitPosX  = $0608
+
+;;; Room pixel positions for actors during the finale cutscenes.
+kThurgFinalePosX = $02ac
+
+;;; The velocity applied to Thurg when he gets flung by the beam blast, in
+;;; subpixels per frame.
+kThurgFlingVelX = -600
+kThurgFlingVelY = -250
 
 ;;;=========================================================================;;;
 
@@ -208,6 +223,13 @@ _Actors_sActor_arr:
     d_word PosY_i16, $00c8
     d_byte Param_byte, eNpcAdult::HumanWoman
     D_END
+    .assert * - :- = kThurgActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, kThurgFinalePosX
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, eNpcOrc::GruntStanding
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -235,6 +257,7 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 32
     d_byte Target_byte, eDialog::TownOutdoorsSign
     D_END
+    .assert * - :- = kTownHouse4DoorDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Door1Open
     d_byte BlockRow_u8, 12
@@ -295,14 +318,27 @@ _Devices_sDevice_arr:
 
 .PROC FuncC_Town_Outdoors_EnterRoom
     lda #$ff
-    sta Ram_ActorState2_byte_arr + kIvanActorIndex
-_SetUpFinaleCutscene:
+    sta Ram_ActorState2_byte_arr + kThurgActorIndex
     ;; Check if a cutscene is playing as the room is entered.  If so, it's for
     ;; the finale.
     lda Zp_Next_eCutscene
     .assert eCutscene::None = 0, error
-    beq _Return
-    ;; Remove the townsfolk actors for the finale.
+    bne _SetUpFinaleCutscene
+    ;; Otherwise, set up for normal exploration of this room.
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kThurgActorIndex
+    lda #$ff
+    sta Ram_ActorState2_byte_arr + kIvanActorIndex
+    rts
+_SetUpFinaleCutscene:
+    ;; Remove the Thurg actor for anything other than the FinaleReactivate5
+    ;; cutscene.
+    cmp #eCutscene::TownOutdoorsFinaleReactivate5
+    beq @keepThurg
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kThurgActorIndex
+    @keepThurg:
+    ;; Remove the townsfolk actors for all finale cutscenes.
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kAlexActorIndex
     sta Ram_ActorType_eActor_arr + kIvanActorIndex
@@ -311,7 +347,6 @@ _SetUpFinaleCutscene:
     ;; the finale than are used normally for this room.
     lda #<.bank(Ppu_ChrObjFinale)
     sta Zp_Current_sRoom + sRoom::Chr18Bank_u8
-_Return:
     rts
 .ENDPROC
 
@@ -692,7 +727,7 @@ _InitThurgAndGrunt:
     act_CallFunc _ExplodeGround4
     act_WaitFrames 10
     act_CallFunc _ExplodeGround5
-    ;; TODO: animate the ground opening and the core tower rising out
+    ;; TODO: animate the core tower rising out
     act_WaitFrames 60
     act_JumpToMain Main_Finale_StartNextStep
 _ExplodeGround1:
@@ -798,32 +833,62 @@ _ExplodeGroundAtScreenCol:
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
     act_WaitFrames 60
-    ;; TODO: animate Thurg coming out of the town hall
+    act_CallFunc _InitThurg
+    act_WaitFrames 30
+    act_MoveNpcOrcWalk kThurgActorIndex, kThurgFinalePosX
+    act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
+    act_WaitFrames 30
     act_RunDialog eDialog::TownOutdoorsFinaleReactivate3
     act_WaitFrames 60
     act_JumpToMain Main_Finale_StartNextStep
+_InitThurg:
+    ldy #kTownHouse4DoorDeviceIndex  ; param: device index
+    jsr Func_SetPointToDeviceCenter
+    ldx #kThurgActorIndex  ; param: actor index
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    lda #eNpcOrc::GruntStanding  ; param: eNpcOrc value
+    jmp Func_InitActorNpcOrc
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene
-    act_WaitFrames 60
+    act_WaitFrames 30
+    act_MoveNpcOrcWalk kThurgActorIndex, $02b4
+    act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntThrowing1
     act_RunDialog eDialog::TownOutdoorsFinaleReactivate5
-    act_WaitFrames 60
+    act_WaitFrames 30
+    act_CallFunc FuncA_Cutscene_PlaySfxQuickWindup
+    act_WaitFrames 32
+    act_SetCutsceneFlags bCutscene::TickAllActors
     act_CallFunc _ShootBeamAtThurg
-    act_WaitFrames 60
+    act_WaitFrames 120
     act_JumpToMain Main_Finale_StartNextStep
 _ShootBeamAtThurg:
-    ldax #$0284
-    stax Zp_PointX_i16
-    ldax #$00c8
-    stax Zp_PointY_i16
+    ldx #kThurgActorIndex  ; param: actor index
+    lda #bObj::FlipH  ; param: actor flags
+    jsr Func_InitActorBadOrc  ; preserves X
+    lda #eBadOrc::Collapsing
+    sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
+    lda #<kThurgFlingVelX
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda #>kThurgFlingVelX
+    sta Ram_ActorVelX_i16_1_arr, x
+    lda #<kThurgFlingVelY
+    sta Ram_ActorVelY_i16_0_arr, x
+    lda #>kThurgFlingVelY
+    sta Ram_ActorVelY_i16_1_arr, x
+    jsr Func_SetPointToActorCenter
 _ShootBeamAtPoint:
     jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
     bcs @done  ; no more actor slots available
     jsr Func_SetActorCenterToPoint  ; preserves X
-    jmp FuncA_Cutscene_InitActorSmokeBeam
+    jsr FuncA_Cutscene_InitActorSmokeBeam
+    jsr FuncA_Cutscene_PlaySfxBeam
     @done:
-    rts
+    lda #6  ; param: offset
+    jsr Func_MovePointDownByA
+    jsr Func_SpawnExplosionAtPoint
+    jmp Func_PlaySfxExplodeBig
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownOutdoorsYearsLater_sCutscene

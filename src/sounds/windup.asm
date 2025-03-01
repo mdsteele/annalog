@@ -28,8 +28,19 @@
 
 .SEGMENT "PRG8"
 
-;;; SFX data for the "windup" sound effect.
-.PROC Data_Windup_sSfx
+;;; SFX data for the "quick windup" sound effect.
+.PROC Data_QuickWindup_sSfx
+    .linecont +
+    sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | \
+                bEnvelope::ConstVol | 15), \
+               (pulse_sweep -3, 0), $0280
+    sfx_Wait 30
+    sfx_End
+    .linecont -
+.ENDPROC
+
+;;; SFX data for the "slow windup" sound effect.
+.PROC Data_SlowWindup_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | \
                 bEnvelope::ConstVol | 15), \
@@ -41,13 +52,25 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Cutscene"
+
+;;; Starts playing the sound for when the activated core winds up a laser beam.
+;;; @preserve T0+
+.EXPORT FuncA_Cutscene_PlaySfxQuickWindup
+.PROC FuncA_Cutscene_PlaySfxQuickWindup
+    ldya #Data_QuickWindup_sSfx
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Room"
 
 ;;; Starts playing the sound for when a boss winds up a big attack.
 ;;; @preserve T0+
-.EXPORT FuncA_Room_PlaySfxWindup
-.PROC FuncA_Room_PlaySfxWindup
-    ldya #Data_Windup_sSfx
+.EXPORT FuncA_Room_PlaySfxSlowWindup
+.PROC FuncA_Room_PlaySfxSlowWindup
+    ldya #Data_SlowWindup_sSfx
     jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 

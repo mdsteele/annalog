@@ -40,6 +40,18 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Cutscene"
+
+;;; Starts playing the sound for when a core beam fires.
+;;; @preserve T0+
+.EXPORT FuncA_Cutscene_PlaySfxBeam
+.PROC FuncA_Cutscene_PlaySfxBeam
+    ldya #Data_Laser_sSfx
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Machine"
 
 ;;; Starts playing the sound for when a laser machine fires.

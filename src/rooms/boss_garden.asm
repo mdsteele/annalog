@@ -54,7 +54,7 @@
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineCannonReset
-.IMPORT FuncA_Room_PlaySfxWindup
+.IMPORT FuncA_Room_PlaySfxSlowWindup
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Room_TurnProjectilesToSmoke
@@ -558,7 +558,7 @@ _StartSprayMode:
     sta Zp_RoomState + sState::BossCooldown_u8
     lda #eBossMode::SprayWindup
     sta Zp_RoomState + sState::Current_eBossMode
-    jmp FuncA_Room_PlaySfxWindup
+    jmp FuncA_Room_PlaySfxSlowWindup
 _StartShootMode:
     ;; Choose a random number of fireballs to shoot, from 4-7.
     jsr Func_GetRandomByte  ; returns A

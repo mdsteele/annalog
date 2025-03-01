@@ -63,7 +63,7 @@
 .IMPORT FuncA_Room_InitActorProjFlamestrike
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineBoilerReset
-.IMPORT FuncA_Room_PlaySfxWindup
+.IMPORT FuncA_Room_PlaySfxSlowWindup
 .IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
@@ -619,7 +619,7 @@ _BossFiresprayPrepare:
     sta Zp_RoomState + sState::Current_eBossMode
     lda #70
     sta Zp_RoomState + sState::BossCooldown_u8
-    jmp FuncA_Room_PlaySfxWindup
+    jmp FuncA_Room_PlaySfxSlowWindup
     @done:
     rts
 _BossFiresprayWindup:

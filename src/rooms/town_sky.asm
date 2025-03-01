@@ -37,6 +37,7 @@
 .IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part5_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part6_u8_arr
 .IMPORT Data_Empty_sDevice_arr
+.IMPORT FuncA_Cutscene_PlaySfxBreakerRising
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawCoreInnerPlatform
 .IMPORT FuncA_Objects_DrawCoreOuterPlatform
@@ -354,11 +355,23 @@ _FinalTerminal:
 ;;; @prereq PRGC_Town is loaded.
 .EXPORT DataA_Cutscene_TownSkyFinaleReactivate2_sCutscene
 .PROC DataA_Cutscene_TownSkyFinaleReactivate2_sCutscene
+    act_ForkStart 1, _PlayRisingSound_sCutscene
     act_RepeatFunc $80, _RaiseCoreOuterPlatform
     act_RepeatFunc $c0, _RaiseCoreInnerPlatform
     act_WaitFrames 120
     ;; TODO: animate the core tower rising into the sky, with Anna riding it
     act_JumpToMain Main_Finale_StartNextStep
+_PlayRisingSound_sCutscene:
+    act_CallFunc FuncA_Cutscene_PlaySfxBreakerRising
+    act_WaitFrames $40
+    act_CallFunc FuncA_Cutscene_PlaySfxBreakerRising
+    act_WaitFrames $40
+    act_CallFunc FuncA_Cutscene_PlaySfxBreakerRising
+    act_WaitFrames $40
+    act_CallFunc FuncA_Cutscene_PlaySfxBreakerRising
+    act_WaitFrames $40
+    act_CallFunc FuncA_Cutscene_PlaySfxBreakerRising
+    act_ForkStop $ff
 _RaiseCoreOuterPlatform:
     txa  ; repeat count
     mod #4

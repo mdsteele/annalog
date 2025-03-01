@@ -183,8 +183,8 @@ _Finale_eRoom_arr:
     jmp Main_Explore_EnterRoom
 _AvatarPosX_i16_0_arr:
     D_ARRAY .enum, eFinale
-    d_byte GaveRemote1Outdoors, $18
-    d_byte Reactivate1Outdoors, $18
+    d_byte GaveRemote1Outdoors, $10
+    d_byte Reactivate1Outdoors, $10
     d_byte Reactivate2Sky,      $80
     d_byte Reactivate3Outdoors, $80
     d_byte Reactivate4Sky,      $80
@@ -210,7 +210,7 @@ _AvatarPosY_i16_0_arr:
     d_byte Reactivate2Sky,      $78
     d_byte Reactivate3Outdoors, $c8
     d_byte Reactivate4Sky,      $78
-    d_byte Reactivate5Outdoors, $c8
+    d_byte Reactivate5Outdoors, $28  ; high up, to avoid actor collisions
     d_byte Reactivate6Sky,      $78
     d_byte YearsLater1Outdoors, $c8
     D_END
