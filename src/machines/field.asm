@@ -33,6 +33,8 @@
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
@@ -101,11 +103,13 @@ kFieldActCooldown = $20
     cmp #kFieldMaxChargePoints * kFieldFramesPerChargePoint
     bge _IsCharged
 _NotCharged:
+    jsr Func_PlaySfxExplodeSmall
     lda #kTeleporterAnimPartial
     sta Ram_DeviceAnim_u8_arr + kTeleporterDeviceIndex
     .assert kTeleporterAnimPartial > 0, error
     bne _Cooldown  ; unconditional
 _IsCharged:
+    jsr Func_PlaySfxExplodeBig
     lda #kTeleportShakeFrames
     jsr Func_ShakeRoom
     lda #kTeleporterAnimFull

@@ -58,7 +58,7 @@
 .IMPORT DataA_Text1_CoreBossScreen_Reactivate_u8_arr
 .IMPORT DataA_Text1_CoreBossScreen_SelfDestruct_u8_arr
 .IMPORT FuncA_Cutscene_InitActorSmokeAxe
-.IMPORT FuncA_Cutscene_PlaySfxBreakerRising
+.IMPORT FuncA_Cutscene_PlaySfxFinalTerminalRising
 .IMPORT FuncA_Machine_BlasterTick
 .IMPORT FuncA_Machine_BlasterTryAct
 .IMPORT FuncA_Machine_BlasterWriteRegM
@@ -2019,7 +2019,7 @@ _GiveUpRemote_sCutscene:
     act_RunDialog eDialog::CoreBossGrontaGive2
     ;; Make Gronta step aside as the final terminal appears.
     act_ForkStart 1, _GrontaAdjust_sCutscene
-    act_CallFunc FuncA_Cutscene_PlaySfxBreakerRising
+    act_CallFunc FuncA_Cutscene_PlaySfxFinalTerminalRising
     act_RepeatFunc 64, FuncA_Cutscene_CoreBossRaiseFinalTerminal
     act_WaitFrames 30
     act_CallFunc FuncA_Cutscene_CoreBossTurnOnFinalTerminal
@@ -2136,7 +2136,7 @@ _ChangeGrontaFromNpcToBad:
     act_SetScrollFlags 0
     act_CallFunc _LookAtTopOfCore
     act_WaitFrames 60
-    act_CallFunc FuncA_Cutscene_PlaySfxBreakerRising
+    act_CallFunc FuncA_Cutscene_PlaySfxFinalTerminalRising
     act_RepeatFunc 64, FuncA_Cutscene_CoreBossRaiseFinalTerminal
     act_WaitFrames 30
     act_CallFunc FuncA_Cutscene_CoreBossTurnOnFinalTerminal

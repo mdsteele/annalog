@@ -31,6 +31,7 @@
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_FadeOutToBlack
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SpawnExplosionAtPoint
@@ -132,6 +133,7 @@ _InitCutsceneState:
 .EXPORT DataA_Cutscene_SharedTeleportIn_sCutscene
 .PROC DataA_Cutscene_SharedTeleportIn_sCutscene
     act_WaitFrames 50
+    act_CallFunc Func_PlaySfxExplodeBig
     act_ShakeRoom kTeleportShakeFrames
     act_SetDeviceAnim kTeleporterDeviceIndex, kTeleporterAnimFull
     act_CallFunc FuncA_Cutscene_MakeTeleportSmokePuff

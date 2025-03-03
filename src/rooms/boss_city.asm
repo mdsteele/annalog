@@ -83,6 +83,7 @@
 .IMPORT Func_MovePointHorz
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxDrip
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
@@ -663,6 +664,7 @@ _BossOpen:
     @done:
     rts
 _ShootBreakbombs:
+    jsr Func_PlaySfxDrip
     ;; Shoot a pair of breakbombs.
     jsr FuncA_Room_BossCity_SetPointToBossCenter
     jsr Func_FindEmptyActorSlot  ; returns C and X

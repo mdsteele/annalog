@@ -47,6 +47,7 @@
 .IMPORT DataA_Text1_TempleEntryGuard_Enter_u8_arr
 .IMPORT DataA_Text1_TempleEntryGuard_Intro_u8_arr
 .IMPORT DataA_Text1_TempleEntryGuard_NoPermission_u8_arr
+.IMPORT FuncA_Room_PlaySfxRumbling
 .IMPORT FuncC_Temple_DrawColumnPlatform
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -361,7 +362,8 @@ _MoveColumn:
     ldx #kColumnPlatformIndex  ; param: platform index
     jsr Func_MovePlatformTopTowardPointY  ; returns Z
     beq @done
-    ;; TODO: play a sound for the column moving
+    lda #kColumnShakeFrames  ; param: num frames
+    jsr FuncA_Room_PlaySfxRumbling
     lda #kColumnShakeFrames  ; param: num frames
     jmp Func_ShakeRoom
     @slowdown:

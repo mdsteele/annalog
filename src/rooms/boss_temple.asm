@@ -73,6 +73,7 @@
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxDrip
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
@@ -561,7 +562,8 @@ _BossShootBreak:
     jsr Func_SetActorCenterToPoint  ; preserves X
     jsr Func_GetRandomByte  ; preserves X, returns A
     and #bObj::FlipH  ; param: horz direction
-    jmp FuncA_Room_InitActorProjBreakball
+    jsr FuncA_Room_InitActorProjBreakball
+    jmp Func_PlaySfxDrip
 .ENDPROC
 
 ;;; Draw function for the BossTemple room.

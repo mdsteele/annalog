@@ -18,11 +18,14 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../apu.inc"
+.INCLUDE "../audio.inc"
 .INCLUDE "../devices/breaker.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
 .IMPORT Func_PlaySfxOnNoiseChannel
+.IMPORT Ram_Audio_sChanSfx_arr
+.IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
 
@@ -37,11 +40,14 @@
     sfx_End
 .ENDPROC
 
-;;; SFX data for the "breaker rising" sound effect.
-.PROC Data_BreakerRising_sSfx
+;;; SFX data for the "rumbling" sound effect.
+.PROC Data_Rumbling_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 0, $008e
-    sfx_Wait kBreakerRisingDeviceAnimStart
+    sfx_Func _WaitForParam1Frames
     sfx_End
+_WaitForParam1Frames:
+    cpy Ram_Audio_sChanSfx_arr + eChan::Noise + sChanSfx::Param1_byte
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -58,9 +64,20 @@
 
 ;;; Starts playing the sound for when a breaker device rises from the floor.
 ;;; @preserve T0+
-.EXPORT FuncA_Cutscene_PlaySfxBreakerRising
-.PROC FuncA_Cutscene_PlaySfxBreakerRising
-    ldya #Data_BreakerRising_sSfx
+.EXPORT FuncA_Cutscene_PlaySfxFinalTerminalRising
+.PROC FuncA_Cutscene_PlaySfxFinalTerminalRising
+    lda #kBreakerRisingDeviceAnimStart  ; param: num frames
+    fall FuncA_Cutscene_PlaySfxRumbling  ; preserves T0+
+.ENDPROC
+
+;;; Starts playing the sound for when something big and heavy is rising from
+;;; the ground.
+;;; @param A The number of frames to play the sound for.
+;;; @preserve T0+
+.EXPORT FuncA_Cutscene_PlaySfxRumbling
+.PROC FuncA_Cutscene_PlaySfxRumbling
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Param1_byte  ; frames
+    ldya #Data_Rumbling_sSfx
     jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
 .ENDPROC
 
@@ -72,7 +89,18 @@
 ;;; @preserve T0+
 .EXPORT FuncA_Room_PlaySfxBreakerRising
 .PROC FuncA_Room_PlaySfxBreakerRising
-    ldya #Data_BreakerRising_sSfx
+    lda #kBreakerRisingDeviceAnimStart
+    fall FuncA_Room_PlaySfxRumbling  ; preserves T0+
+.ENDPROC
+
+;;; Starts playing the sound for when something big and heavy is rising from
+;;; the ground.
+;;; @param A The number of frames to play the sound for.
+;;; @preserve T0+
+.EXPORT FuncA_Room_PlaySfxRumbling
+.PROC FuncA_Room_PlaySfxRumbling
+    sta Zp_Next_sChanSfx_arr + eChan::Noise + sChanSfx::Param1_byte  ; frames
+    ldya #Data_Rumbling_sSfx
     jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
 .ENDPROC
 
