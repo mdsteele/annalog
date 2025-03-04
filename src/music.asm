@@ -29,6 +29,7 @@
 .IMPORT DataC_Mermaid_Mermaid_sMusic
 .IMPORT DataC_Mine_Mine_sMusic
 .IMPORT DataC_Prison_Prison_sMusic
+.IMPORT DataC_Sewer_Sewer_sMusic
 .IMPORT DataC_Temple_TemplePlaceholder_sMusic
 .IMPORT DataC_Title_Credits_sMusic
 .IMPORT DataC_Title_Title_sMusic
@@ -62,6 +63,7 @@
     d_entry table, Mermaid, DataC_Mermaid_Mermaid_sMusic
     d_entry table, Mine,    DataC_Mine_Mine_sMusic
     d_entry table, Prison,  DataC_Prison_Prison_sMusic
+    d_entry table, Sewer,   DataC_Sewer_Sewer_sMusic
     d_entry table, Temple,  DataC_Temple_TemplePlaceholder_sMusic
     d_entry table, Title,   DataC_Title_Title_sMusic
     d_entry table, Town,    DataC_Town_Town_sMusic

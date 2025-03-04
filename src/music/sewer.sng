@@ -1,0 +1,94 @@
+@PRGC_Sewer
+
+!SONG Sewer "I|ABAC"
+% Composer: Jon T. Moran
+
+=tempo q28
+=key 0N  % C major
+
+!INST 1A PulseEcho  $28 d1/4
+!INST 2A PulseEcho  $26 d1/2
+!INST TV TriangleVibrato
+!INST ND Staccato   $08  % drum (bass and hi hat)
+!INST NS NoiseSnare $28  % snare drum
+
+!PART I
+
+T| p(iV f2e f3)TF :7 |
+
+!PART A
+
+1' p(iA c4q | e4q. d4e+ ' +h)1A | d5e e  g d5e+ ' +e b4q.  '
+2' p(iA a3q | c4q. b3e+ ' +h)2A | b4e c5 e b4e+ ' +e g4q.  '
+T' pTF      | p(iV g2e g3)TG :8                           |'
+N' p(iD x9e x2)N1 | p(iD x9e x2 iS x4 iD x2 ' x9e x2 iS x4 iD x2)N4 | pN4 '
+
+1' p1A                          | a5e g  a g    ' a g f d  '
+2' p2A                          | f5e e  f e    ' f e d b4 '
+T' pTF      | pTG            :8                           |'
+N' pN1      | pN4               | pN4                      '
+
+1' p1A                          | c5e c# d f5e+ ' +e g5q.  '
+2' p2A                          | a4e a# b d5e+ ' +e e5q.  '
+T' pTF      | pTG            :8                           |'
+N' pN1      | pN4               | pN4                      '
+
+1' p1A                          |
+2' p2A                          |
+T' pTF      | pTG            :4 |
+N' pN1      | pN4               |
+
+!PART B
+
+1| iA rq+       +s d5s f a ' bb5e. as+e  ge  |
+2| iA a3s b c4 d b3 c4 d e ' c d e f d e f g |
+T| pTG :4                                    |
+N| pN4                                       |
+
+1| f5w | a5h               ' f5h               |
+2| a4w | c5e d6s f a d c5e ' a4e d6s f a d a4e |
+T| p(d2e d3)TD :8                              |
+N| p(iD x9s    x2 x2 x2)NA p(iS x4s x4 iD x2    x2)NB '
+ ' pNA                     p(iS x4s x4 iD x2 iS x4)NC |
+ | p(iS x4s iD x2 x9 x2)ND pNB                        '
+ ' pNA                     pNC                        |
+
+1| g5w                                            |
+ | bb5s+s+s  a      g        f          ebq       |
+2| bb4e eb6s g bb g bb4e+ ' +e   eb6s g bb g bb4e |
+ | d5e  eb6s g bb g c5e   ' bb5e eb6s g bb g a4e  |
+T| p(eb2e eb3)TE :8                               |
+N| pNA pNB ' pNA pNC | pND pNB ' pNA pNC |
+
+1| d5w | g5w | c6w+ | +w '
+2| f4e  f6s  a c7 a6 f4e+  ' +e f6s  a c7 a6 f4e  '
+ | a4e  f6s  a d7 a6 a4e+  ' +e f6s  a d7 a6 a4e  '
+ | eb5e eb6s a c7 a6 eb5e+ ' +e eb6s a c7 a6 eb5e '
+ | eb5e eb6s a c7 a6 eb5e+ ' +e eb6s a c7 a6 eb5e '
+T| pTF :16                                        '
+N| pNA pNB ' pNA pNC | pND pNB ' pNA pNC |
+ | pNA pNB ' pNA pNC | pND pNB ' pNA pNC '
+
+!PART C
+
+1| iA f5e. e d  c b4 a ge+  | +w |
+2| iA d5e. c b4 a g  f ebe+ | +w |
+T| pTG :5                   |
+N| iS x4s iD x9e :6 iS x4e  |
+
+1    | a4e bb a ge+e  gq  fe+  | +w |
+2    | f4e g  f ebe+e ebq dbe+ | +w |
+T| pTE :8                      |
+N| pN4 :9
+
+1    | g4e  ab g  fe+e  fq  ebe+ | +w |
+2    | eb4e f  eb dbe+e dbq cbe+ | +w |
+T| p(db2e db3)TP :8              |
+
+1              | gb4w        |
+2              | cb4w        |
+T| cb2e cb3 :4 | ab1e ab2 :4 |
+
+1| f4w      | e4w | f#4w '
+2| eb4h dbh | c4w | c4w  '
+T| pTP :4   | pTD :8    |'

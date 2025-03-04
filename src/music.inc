@@ -32,6 +32,7 @@
     Mermaid
     Mine
     Prison
+    Sewer
     Temple
     Title
     Town

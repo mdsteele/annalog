@@ -449,17 +449,17 @@ _PrisonMusic:
     d_byte PrisonFlower,    bRoomMusic::Prison
     d_byte PrisonLower,     bRoomMusic::Prison
     d_byte PrisonUpper,     bRoomMusic::Prison
-    d_byte SewerAscent,     eMusic::Silence
-    d_byte SewerBasin,      eMusic::Silence
-    d_byte SewerEast,       eMusic::Silence
-    d_byte SewerFaucet,     eMusic::Silence
-    d_byte SewerFlower,     eMusic::Silence
-    d_byte SewerNorth,      eMusic::Silence
-    d_byte SewerPipe,       eMusic::Silence
-    d_byte SewerPool,       eMusic::Silence
-    d_byte SewerSouth,      eMusic::Silence
-    d_byte SewerTrap,       eMusic::Silence
-    d_byte SewerWest,       eMusic::Silence
+    d_byte SewerAscent,     eMusic::Sewer
+    d_byte SewerBasin,      eMusic::Sewer
+    d_byte SewerEast,       eMusic::Sewer
+    d_byte SewerFaucet,     eMusic::Sewer
+    d_byte SewerFlower,     eMusic::Sewer
+    d_byte SewerNorth,      eMusic::Sewer
+    d_byte SewerPipe,       eMusic::Sewer
+    d_byte SewerPool,       eMusic::Sewer
+    d_byte SewerSouth,      eMusic::Sewer
+    d_byte SewerTrap,       eMusic::Sewer
+    d_byte SewerWest,       eMusic::Sewer
     d_byte ShadowDepths,    eMusic::Silence
     d_byte ShadowDescent,   eMusic::Silence
     d_byte ShadowDrill,     eMusic::Silence
