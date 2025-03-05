@@ -53,8 +53,7 @@
     beq @writeChar
     bge @finish
     @substring:
-    and #$7f
-    mul #2
+    mul #2  ; also throws away uppermost bit
     sty T3  ; main string byte index
     tay  ; substring offset
     .linecont +
