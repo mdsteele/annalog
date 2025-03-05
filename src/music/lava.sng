@@ -1,0 +1,126 @@
+@PRGC_Lava
+
+!DPCM A Data_SampleAnvil_arr881 881
+!DPCM K Data_SampleKickDrum_arr657 657
+
+!SONG Lava "|ABXABYC"
+% Composer: Jon T. Moran
+
+=tempo q28
+=key 0N  % C major
+
+!INST 1E PulseEcho    $28 d1/8
+!INST 1P PulsePluck   $08 d1/4
+!INST 2C PulsePluck   $06 d1/8
+!INST 2E PulseEcho    $26 d1/4
+!INST 2S Staccato     $08 d1/8
+!INST 2V PulseVibrato $06 d1/8
+!INST TB Constant     $ff       % bass
+!INST ND Staccato     $08       % drum (bass and hi hat)
+!INST NS NoiseSnare   $28       % snare drum
+!INST DE Constant     $4e
+
+!PART A
+
+1| p(iE d5q c# d  c# | e5q.  de+h)1A |
+2| p(iE a4q g# gN f# | fN4q. f#e+h)2A |
+T| p(iB b2e ab3)TA :4 | p(b2e aN3)TB :4  |
+N| iD x9h iS x4q. iD x9e   :16 |
+D| iE sK13h  sA17q.  sK13e :16 |
+
+1| iP f4e ab bN f# aN c5 g4 bb | db5 ab4 bN dN5 aN4 c5 ebq |
+2| p(iV d4e r d r d r e r | d r d r d r c# r)2B |
+T| p(b2e a#3)TC :4 | p(b2e b3)TD :4 |
+
+1| p1A |
+2| p2A |
+T| pTA :4 | pTB :4 |
+
+1| iP rq e5e b4 c5 ab4q. | bb4e f gb de+q rq |
+2| p2B |
+T| pTC :4 | pTD :4 |
+
+1| p1A |
+2| p2A |
+T| pTA :4 | pTB :4 |
+
+1| iP rq c6e c# d a5 a# b | f5e f# g d d# e cN c# |
+2| p2B |
+T| pTC :4 | pTD :4 |
+
+1| p1A |
+2| p2A |
+T| pTA :4 | pTB :4 |
+
+1| iP rq eb5e eb eb eb r d  | d  d  d  r c# c# c# c# |
+2| iS rq a4e  a  a  a  r ab | ab ab ab r g  g  g  g  |
+T| pTC :4 | pTD :4 |
+
+!PART B
+
+1| iE rq a4e b cN5h | rq b4q e^e bv r ae+ | +h rh :4 |
+T| iB rq e4e g aNh  | rq g4q c^e gv r ee+ | +h rh :4 |
+2| p(iS a2e as as ae as as)21 ' p(a2e as as as as ae)22 |
+ | p21                        ' p22                     |
+ | p21                        ' p(g2e gs gs gs gs ge)23 |
+N| p(iD x9e x1 x1 x1 ' iS x4e iD x1s x1 x1 x1 x1e)NB :12 |
+D| p(iE sK13h sA17h)DB :12 |
+
+2| p(f2e fs fs fe fs fs)24 ' p(f2e fs fs fs fs fe)25 |
+ | p24                     ' p25                     |
+ | p24                     ' p(e2e es es es es ee)26 |
+
+2| p(d2e ds ds de ds ds)27 ' p(d2e ds ds ds ds de)28 |
+ | p27                     ' p28                     |
+ | p27                     ' p(eb2e ebs ebs ebs ebs ebe)29 |
+
+2| p(iS e2e es es ee es es)20 ' p26                     |
+ | p20                        ' p26                     |
+ | p20                        ' p26                     |
+
+!PART X
+
+1| iE bb4w |
+T| iB d4w  |
+2| p20 ' p26 |
+N| pNB |
+D| pDB |
+
+!PART Y
+
+1| iE bb4h g |
+T| iB d4q c d bbv |
+2| p20 ' bb2e bbs bbs bbs bbs bbe |
+N=:XN
+D=:XD
+
+!PART C
+
+1| iE a4h. bNq | c5e dq b4e+ ' +e aq re :3 |
+2| iE c4q iC f6s e d c ' bNv a ge iE d4q |
+ | e4e fq de+ ' +e cq re |
+T| p(iB f2s r)TF :16 |
+N| p(iS x4e iD x9e iS x4e iD x9e)NC ' p(iS x4q    x4s x4 x4 x4)N1 |
+ | pNC                              ' p(iS x4s x4 x4 x4 x4e x4)N4 |
+D| iE re sK13q sK13e+q sA17q :7 |
+
+2| c4q iC f#6s e d c ' bNv a ge iE d4q |
+ | e4e f#q de+ ' +e cq re |
+T| f#2s r :16 |
+N| pNC ' pN1 | pNC ' pN4 |
+
+2| c4q iC g6s f# e d ' c bNv ae iE d4q |
+ | e4e gq de+ ' +e cq re |
+T| g2s r :16 |
+N| pNC ' pN1 | pNC ' pN4 |
+
+1| a4q b ' c5 d | e5w | eb5w          |
+2| c4q d ' eb f |
+ | iC gb4e a#5s bs eN6e    a5s bs ' eN6e a5s bs f6e iE gN4e  |
+ |    ab4q iC      aN5s ab gN  gb ' f e  eb  d  db c   b4 bb |
+T| ab2s r :16         | pTF :4 f2q bb |
+N| pNC   ' pN1  |
+ | iS x4e x4e iD x9q   :2 |
+ | x9q.   x9e   :2 |
+D| sA17q         sK13q :2 |
+ | sK13q. sK13e :2 |

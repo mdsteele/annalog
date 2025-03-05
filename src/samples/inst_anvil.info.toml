@@ -1,0 +1,9 @@
+name = "Hammering on Anvil"
+artist = "SamsterBirdies"
+license = "CC0"
+year = 2016
+url = "https://freesound.org/people/SamsterBirdies/sounds/363169/"
+comments = """
+The original sound contained a sequence of anvil hits; this file was trimmed to
+just the fifth hit in the sequence.
+"""

@@ -22,20 +22,10 @@
 .INCLUDE "../sound.inc"
 
 .IMPORT Func_PlaySfxOnNoiseChannel
-.IMPORT Func_PlaySfxOnPulse2Channel
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
-
-;;; SFX data for the "metallic clang" sound effect.
-.PROC Data_MetallicClang_sSfx
-    sfx_SetAll bEnvelope::Duty18 | bEnvelope::NoLength | 7, kNoSweep, $00f7
-    sfx_Wait 4
-    sfx_SetEnvTimer bEnvelope::Duty14 | bEnvelope::NoLength | 9,      $00f5
-    sfx_Wait 40
-    sfx_End
-.ENDPROC
 
 ;;; SFX data for the "metallic ding" sound effect.
 .PROC Data_MetallicDing_sSfx
@@ -50,18 +40,6 @@
 .PROC Func_PlaySfxMetallicDing
     ldya #Data_MetallicDing_sSfx
     jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; Starts playing a metallic "clang" sound.
-;;; @preserve T0+
-.EXPORT FuncA_Room_PlaySfxMetallicClang
-.PROC FuncA_Room_PlaySfxMetallicClang
-    ldya #Data_MetallicClang_sSfx
-    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -25,13 +25,15 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 
 .IMPORT DataA_Room_House_sTileset
 .IMPORT DataA_Text0_TownHouse3Smith_Part1_u8_arr
 .IMPORT DataA_Text0_TownHouse3Smith_Part2_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
-.IMPORT FuncA_Room_PlaySfxMetallicClang
+.IMPORT FuncA_Room_PlaySfxThudSmall
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxSample
 .IMPORT Ppu_ChrObjVillage
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORTZP Zp_AvatarPosX_i16
@@ -142,7 +144,9 @@ _Devices_sDevice_arr:
     .assert eNpcAdult::HumanSmith2 > 0, error
     bne @setSmithState  ; unconditional
     @strikeHammer:
-    jsr FuncA_Room_PlaySfxMetallicClang
+    lda #eSample::Anvil  ; param: eSample to play
+    jsr Func_PlaySfxSample
+    jsr FuncA_Room_PlaySfxThudSmall
     @lowerHammer:
     lda #0
     sta Zp_RoomState + sState::HammerTimer_u8

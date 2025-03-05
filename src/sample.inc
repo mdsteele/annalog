@@ -19,8 +19,8 @@
 
 ;;; Samples that can be played on the DMC as sound effects.
 .ENUM eSample
-    BossRoar1   ; a boss roar (deep)
-    BossRoar2   ; a boss roar
+    Anvil       ; a metallic "clang"
+    BossRoar2   ; a boss roar (deep)
     BossRoar3   ; a boss roar
     BossRoar4   ; a boss roar
     BossRoar5   ; a boss roar

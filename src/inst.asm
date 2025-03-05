@@ -265,6 +265,46 @@ _VibratoDelta_i8_arr4:
     rts
 .ENDPROC
 
+;;; A table of timer deltas to apply to instruments with vibrato, looped over
+;;; an eight-frame period.
+.PROC Data_VibratoDelta_i16_0_arr8
+    .byte <0, <2, <3, <2, <0, <-2, <-3, <-2
+.ENDPROC
+.PROC Data_VibratoDelta_i16_1_arr8
+    .byte >0, >2, >3, >2, >0, >-2, >-3, >-2
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGE_InstSample"
+
+.EXPORT Data_SampleKickDrum_arr657
+.PROC Data_SampleKickDrum_arr657
+:   .assert * .mod kDmcSampleAlign = 0, error
+    .incbin "out/samples/inst_kick.dm"
+    .assert (* - :-) .mod 16 = 1, error
+.ENDPROC
+.ASSERT .sizeof(Data_SampleKickDrum_arr657) = 657, error
+
+;;; We have some space before the next sample can begin, room enough for some
+;;; other data.
+SampleGap1:
+kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
+
+;;; Calls the current instrument function for the specified music channel.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.EXPORT Func_AudioCallInstrument
+.PROC Func_AudioCallInstrument
+    ldy Ram_Audio_sChanCtrl_arr + sChanCtrl::Instrument_eInst, x
+    lda Data_Instruments_func_ptr_0_arr, y
+    sta Zp_AudioTmp_ptr + 0
+    lda Data_Instruments_func_ptr_1_arr, y
+    sta Zp_AudioTmp_ptr + 1
+    jmp (Zp_AudioTmp_ptr)
+.ENDPROC
+
 ;;; An instrument for playing bass drum sounds on the triangle channel.  Each
 ;;; frame, this increases the timer value (thus lowering the frequency) by the
 ;;; instrument param.
@@ -284,6 +324,33 @@ _Pitch:
     sta Ram_Audio_sChanNote_arr + sChanNote::TimerHi_byte, x
 _Envelope:
     lda #$ff
+    rts
+.ENDPROC
+
+;;; Align to the next sample, and make sure we didn't overshoot the gap.
+.ALIGN kDmcSampleAlign
+.ASSERT * - SampleGap1 = kSampleGap1Size, error
+
+.GLOBAL Data_SampleBongo_arr193
+.PROC Data_SampleBongo_arr193
+:   .assert * .mod kDmcSampleAlign = 0, error
+    .incbin "out/samples/inst_bongo.dm"
+    .assert (* - :-) .mod 16 = 1, error
+.ENDPROC
+.ASSERT .sizeof(Data_SampleBongo_arr193) = 193, error
+
+;;; We have some space before the next sample can begin, room enough for some
+;;; other data.
+SampleGap2:
+kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
+
+;;; An instrument that sets a constant duty/envelope byte.  This is the default
+;;; instrument for music channels that don't specify one.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentConstant
+    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     rts
 .ENDPROC
 
@@ -331,66 +398,16 @@ _Envelope:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGE_InstSample"
-
-.EXPORT Data_SampleKickDrum_arr657
-.PROC Data_SampleKickDrum_arr657
-:   .assert * .mod kDmcSampleAlign = 0, error
-    .incbin "out/samples/inst_kick.dm"
-    .assert (* - :-) .mod 16 = 1, error
-.ENDPROC
-.ASSERT .sizeof(Data_SampleKickDrum_arr657) = 657, error
-
-;;; We have some space before the next sample can begin, room enough for some
-;;; other data.
-SampleGap1:
-kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
-
-;;; Calls the current instrument function for the specified music channel.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return A The duty/envelope byte to use.
-;;; @preserve X
-.EXPORT Func_AudioCallInstrument
-.PROC Func_AudioCallInstrument
-    ldy Ram_Audio_sChanCtrl_arr + sChanCtrl::Instrument_eInst, x
-    lda Data_Instruments_func_ptr_0_arr, y
-    sta Zp_AudioTmp_ptr + 0
-    lda Data_Instruments_func_ptr_1_arr, y
-    sta Zp_AudioTmp_ptr + 1
-    jmp (Zp_AudioTmp_ptr)
-.ENDPROC
-
-;;; An instrument that sets a constant duty/envelope byte.  This is the default
-;;; instrument for music channels that don't specify one.
-;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
-;;; @return A The duty/envelope byte to use.
-;;; @preserve X
-.PROC Func_InstrumentConstant
-    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
-    rts
-.ENDPROC
-
-;;; A table of timer deltas to apply to instruments with vibrato, looped over
-;;; an eight-frame period.
-.PROC Data_VibratoDelta_i16_0_arr8
-    .byte <0, <2, <3, <2, <0, <-2, <-3, <-2
-.ENDPROC
-.PROC Data_VibratoDelta_i16_1_arr8
-    .byte >0, >2, >3, >2, >0, >-2, >-3, >-2
-.ENDPROC
-
 ;;; Align to the next sample, and make sure we didn't overshoot the gap.
 .ALIGN kDmcSampleAlign
-.ASSERT * - SampleGap1 = kSampleGap1Size, error
+.ASSERT * - SampleGap2 = kSampleGap2Size, error
 
-.GLOBAL Data_SampleBongo_arr193
-.PROC Data_SampleBongo_arr193
+.GLOBAL Data_SampleAnvil_arr881
+.PROC Data_SampleAnvil_arr881
 :   .assert * .mod kDmcSampleAlign = 0, error
-    .incbin "out/samples/inst_bongo.dm"
+    .incbin "out/samples/inst_anvil.dm"
     .assert (* - :-) .mod 16 = 1, error
 .ENDPROC
-.ASSERT .sizeof(Data_SampleBongo_arr193) = 193, error
+.ASSERT .sizeof(Data_SampleAnvil_arr881) = 881, error
 
 ;;;=========================================================================;;;

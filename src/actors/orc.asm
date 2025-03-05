@@ -816,6 +816,8 @@ _MaybeJump:
     and #$1f
     cmp #$10
     bne @finish
+    lda #eSample::Anvil  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves X
     jsr Func_PlaySfxMetallicDing  ; preserves X
     @finish:
     fall FuncA_Actor_BadOrcTrappedStop  ; preserves X

@@ -408,16 +408,16 @@ _PrisonMusic:
     d_byte GardenShrine,    eMusic::Garden
     d_byte GardenTower,     eMusic::Garden
     d_byte GardenTunnel,    eMusic::Garden
-    d_byte LavaCavern,      eMusic::Silence
-    d_byte LavaCenter,      eMusic::Silence
-    d_byte LavaEast,        eMusic::Silence
-    d_byte LavaFlower,      eMusic::Silence
-    d_byte LavaShaft,       eMusic::Silence
-    d_byte LavaStation,     eMusic::Silence
-    d_byte LavaTeleport,    eMusic::Silence
-    d_byte LavaTunnel,      eMusic::Silence
-    d_byte LavaVent,        eMusic::Silence
-    d_byte LavaWest,        eMusic::Silence
+    d_byte LavaCavern,      eMusic::Lava
+    d_byte LavaCenter,      eMusic::Lava
+    d_byte LavaEast,        eMusic::Lava
+    d_byte LavaFlower,      eMusic::Lava
+    d_byte LavaShaft,       eMusic::Lava
+    d_byte LavaStation,     eMusic::Lava
+    d_byte LavaTeleport,    eMusic::Lava
+    d_byte LavaTunnel,      eMusic::Lava
+    d_byte LavaVent,        eMusic::Lava
+    d_byte LavaWest,        eMusic::Lava
     d_byte MermaidCellar,   eMusic::Florist
     d_byte MermaidEast,     eMusic::Mermaid
     d_byte MermaidElevator, eMusic::Mermaid

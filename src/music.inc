@@ -29,6 +29,7 @@
     Crypt
     Florist
     Garden
+    Lava
     Mermaid
     Mine
     Prison

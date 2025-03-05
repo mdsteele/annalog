@@ -23,6 +23,7 @@
 .INCLUDE "sample.inc"
 .INCLUDE "sound.inc"
 
+.IMPORT Data_SampleAnvil_arr881
 .IMPORT Data_SampleKickDrum_arr657
 .IMPORT Ram_Audio_sChanSfx_arr
 .IMPORTZP Zp_Next_sChanSfx_arr
@@ -46,7 +47,7 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; The DMC sample rate (0-$f) to use for each sample.
 .PROC Data_SampleRate_u8_arr
     D_ARRAY .enum, eSample
-    d_byte BossRoar1,  $1
+    d_byte Anvil,      $e
     d_byte BossRoar2,  $2
     d_byte BossRoar3,  $3
     d_byte BossRoar4,  $4
@@ -67,7 +68,7 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; The encoded start address for each sample.
 .PROC Data_SampleStart_u8_arr
     D_ARRAY .enum, eSample
-    d_byte BossRoar1,  <(Data_SampleBoss_arr >> 6)
+    d_byte Anvil,      <(Data_SampleAnvil_arr881 >> 6)
     d_byte BossRoar2,  <(Data_SampleBoss_arr >> 6)
     d_byte BossRoar3,  <(Data_SampleBoss_arr >> 6)
     d_byte BossRoar4,  <(Data_SampleBoss_arr >> 6)
@@ -132,7 +133,7 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; The encoded byte length for each sample.
 .PROC Data_SampleLength_u8_arr
     D_ARRAY .enum, eSample
-    d_byte BossRoar1,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte Anvil,      881 >> 4
     d_byte BossRoar2,  .sizeof(Data_SampleBoss_arr) >> 4
     d_byte BossRoar3,  .sizeof(Data_SampleBoss_arr) >> 4
     d_byte BossRoar4,  .sizeof(Data_SampleBoss_arr) >> 4
@@ -153,7 +154,7 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; The number of frames to play each sample for.
 .PROC Data_SampleFrames_u8_arr
     D_ARRAY .enum, eSample
-    d_byte BossRoar1, 127
+    d_byte Anvil,      17
     d_byte BossRoar2, 117
     d_byte BossRoar3, 110
     d_byte BossRoar4,  98

@@ -31,6 +31,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "mine_west.inc"
 
 .IMPORT DataA_Room_Mine_sTileset
@@ -49,6 +50,7 @@
 .IMPORT Func_DistanceSensorDownDetectPoint
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_SetPointToAvatarTop
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjMine
@@ -398,6 +400,8 @@ _MaybeHitFloor:
     ;; floor, then the cage is hitting the floor this frame.
     cmp T0  ; cage dist above floor
     blt @done
+    lda #eSample::Anvil  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves T0+
     jsr FuncA_Machine_PlaySfxThudBig  ; preserves T0+
     lda #kCageShakeFrames  ; param: shake frames
     jsr Func_ShakeRoom  ; preserves T0+
