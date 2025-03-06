@@ -144,7 +144,7 @@ _Devices_sDevice_arr:
     .assert eNpcAdult::HumanSmith2 > 0, error
     bne @setSmithState  ; unconditional
     @strikeHammer:
-    lda #eSample::Anvil  ; param: eSample to play
+    lda #eSample::AnvilE  ; param: eSample to play
     jsr Func_PlaySfxSample
     jsr FuncA_Room_PlaySfxThudSmall
     @lowerHammer:

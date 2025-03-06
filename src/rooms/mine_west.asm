@@ -400,7 +400,7 @@ _MaybeHitFloor:
     ;; floor, then the cage is hitting the floor this frame.
     cmp T0  ; cage dist above floor
     blt @done
-    lda #eSample::Anvil  ; param: eSample to play
+    lda #eSample::AnvilE  ; param: eSample to play
     jsr Func_PlaySfxSample  ; preserves T0+
     jsr FuncA_Machine_PlaySfxThudBig  ; preserves T0+
     lda #kCageShakeFrames  ; param: shake frames

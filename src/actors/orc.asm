@@ -65,7 +65,6 @@
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxFlopDown
-.IMPORT Func_PlaySfxMetallicDing
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
@@ -816,9 +815,8 @@ _MaybeJump:
     and #$1f
     cmp #$10
     bne @finish
-    lda #eSample::Anvil  ; param: eSample to play
+    lda #eSample::AnvilF  ; param: eSample to play
     jsr Func_PlaySfxSample  ; preserves X
-    jsr Func_PlaySfxMetallicDing  ; preserves X
     @finish:
     fall FuncA_Actor_BadOrcTrappedStop  ; preserves X
 .ENDPROC

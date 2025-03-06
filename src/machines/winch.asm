@@ -22,6 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "shared.inc"
 .INCLUDE "winch.inc"
 
@@ -43,6 +44,7 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxExplodeSmall
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Func_SpawnExplosionAtPoint
@@ -272,15 +274,18 @@ _SlowFallingSpeed:
     lda _ShakeFrames_u8_arr, x  ; param: num frames
     jsr Func_ShakeRoom  ; preserves X
 _PlaySound:
-    cpx #kWinchMaxFallSpeed
-    bge @bigSound
     cpx #2
-    bge @smallSound
-    rts
+    blt @noSound
+    lda #eSample::AnvilD  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves X
+    cpx #kWinchMaxFallSpeed
+    blt @smallSound
     @bigSound:
     jmp Func_PlaySfxExplodeBig
     @smallSound:
     jmp Func_PlaySfxExplodeSmall
+    @noSound:
+    rts
 _ShakeFrames_u8_arr:
 :   .byte 0, 0, 4, 8, 8, 16
     .assert * - :- = kWinchMaxFallSpeed + 1, error

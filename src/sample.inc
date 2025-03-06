@@ -19,13 +19,13 @@
 
 ;;; Samples that can be played on the DMC as sound effects.
 .ENUM eSample
-    Anvil       ; a metallic "clang"
-    BossRoar2   ; a boss roar (deep)
-    BossRoar3   ; a boss roar
-    BossRoar4   ; a boss roar
-    BossRoar5   ; a boss roar
-    BossRoar6   ; a boss roar
-    BossRoar7   ; a boss roar
+    AnvilB      ; a metallic "clang" (deepest)
+    AnvilC      ; a metallic "clang"
+    AnvilD      ; a metallic "clang"
+    AnvilE      ; a metallic "clang"
+    AnvilF      ; a metallic "clang" (highest)
+    BossRoar6   ; a boss roar (deepest)
+    BossRoar7   ; a boss roar (medium)
     BossRoar8   ; a boss roar (highest)
     BossHurtD   ; a boss gets hurt (deepest)
     BossHurtE   ; a boss gets hurt (medium)

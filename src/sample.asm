@@ -47,11 +47,11 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; The DMC sample rate (0-$f) to use for each sample.
 .PROC Data_SampleRate_u8_arr
     D_ARRAY .enum, eSample
-    d_byte Anvil,      $e
-    d_byte BossRoar2,  $2
-    d_byte BossRoar3,  $3
-    d_byte BossRoar4,  $4
-    d_byte BossRoar5,  $5
+    d_byte AnvilB,     $b
+    d_byte AnvilC,     $c
+    d_byte AnvilD,     $d
+    d_byte AnvilE,     $e
+    d_byte AnvilF,     $f
     d_byte BossRoar6,  $6
     d_byte BossRoar7,  $7
     d_byte BossRoar8,  $8
@@ -68,11 +68,11 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; The encoded start address for each sample.
 .PROC Data_SampleStart_u8_arr
     D_ARRAY .enum, eSample
-    d_byte Anvil,      <(Data_SampleAnvil_arr881 >> 6)
-    d_byte BossRoar2,  <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar3,  <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar4,  <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar5,  <(Data_SampleBoss_arr >> 6)
+    d_byte AnvilB,     <(Data_SampleAnvil_arr881 >> 6)
+    d_byte AnvilC,     <(Data_SampleAnvil_arr881 >> 6)
+    d_byte AnvilD,     <(Data_SampleAnvil_arr881 >> 6)
+    d_byte AnvilE,     <(Data_SampleAnvil_arr881 >> 6)
+    d_byte AnvilF,     <(Data_SampleAnvil_arr881 >> 6)
     d_byte BossRoar6,  <(Data_SampleBoss_arr >> 6)
     d_byte BossRoar7,  <(Data_SampleBoss_arr >> 6)
     d_byte BossRoar8,  <(Data_SampleBoss_arr >> 6)
@@ -133,11 +133,11 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; The encoded byte length for each sample.
 .PROC Data_SampleLength_u8_arr
     D_ARRAY .enum, eSample
-    d_byte Anvil,      881 >> 4
-    d_byte BossRoar2,  .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar3,  .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar4,  .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar5,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte AnvilB,     881 >> 4
+    d_byte AnvilC,     881 >> 4
+    d_byte AnvilD,     881 >> 4
+    d_byte AnvilE,     881 >> 4
+    d_byte AnvilF,     881 >> 4
     d_byte BossRoar6,  .sizeof(Data_SampleBoss_arr) >> 4
     d_byte BossRoar7,  .sizeof(Data_SampleBoss_arr) >> 4
     d_byte BossRoar8,  .sizeof(Data_SampleBoss_arr) >> 4
@@ -151,14 +151,16 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
     D_END
 .ENDPROC
 
-;;; The number of frames to play each sample for.
+;;; The number of frames to play each sample for.  In general, this should be:
+;;;   floor(num_bytes * 8 * 60 / samples_per_second)
+;;; See https://www.nesdev.org/wiki/APU_DMC for the samples_per_second values.
 .PROC Data_SampleFrames_u8_arr
     D_ARRAY .enum, eSample
-    d_byte Anvil,      17
-    d_byte BossRoar2, 117
-    d_byte BossRoar3, 110
-    d_byte BossRoar4,  98
-    d_byte BossRoar5,  88
+    d_byte AnvilB,     30
+    d_byte AnvilC,     25
+    d_byte AnvilD,     19
+    d_byte AnvilE,     17
+    d_byte AnvilF,     12
     d_byte BossRoar6,  77
     d_byte BossRoar7,  72
     d_byte BossRoar8,  65
