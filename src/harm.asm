@@ -98,6 +98,8 @@ _SetVelX:
 ;;; @preserve X, Y, T0+
 .EXPORT Func_KillAvatar
 .PROC Func_KillAvatar
+    lda #eSample::Death  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves X, Y, and T0+
     lda Zp_AvatarFlags_bObj
     and #<~bObj::PaletteMask
     ora #kPaletteObjAvatarDeath

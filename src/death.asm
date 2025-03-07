@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "audio.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
@@ -47,6 +48,7 @@
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
@@ -55,15 +57,11 @@
 
 ;;; How many frames the player avatar spends in each phase of its death
 ;;; animation.
-kDeathKneelingFrames  = 45
-kDeathStrainingFrames = 60
-kDeathReachingFrames  = 8
-kDeathStumblingFrames = 30
+kDeathStumblingFrames = 55
 kDeathSlumpingFrames  = 10
 kDeathSleepingFrames  = 100
 .LINECONT +
 kDeathTotalAvatarAnimationFrames = \
-    kDeathKneelingFrames + kDeathStrainingFrames + kDeathReachingFrames + \
     kDeathStumblingFrames + kDeathSlumpingFrames + kDeathSleepingFrames
 .LINECONT -
 
@@ -135,6 +133,9 @@ _Respawn:
 ;;; Initializes death mode.
 ;;; @prereq Rendering is enabled.
 .PROC FuncA_Cutscene_InitDeathAndFadeToBlack
+    ;; Reduce music volume during death animation.
+    lda #bAudio::Enable | bAudio::ReduceMusic
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
 _CountNinesInDeathCounter:
     ldy #0
     @loop:
@@ -222,14 +223,8 @@ _SetAvatarPose:
     blt @sleeping
     sbc #kDeathSlumpingFrames
     blt @slumping
-    sbc #kDeathStumblingFrames
-    blt @kneeling
-    sbc #kDeathReachingFrames
-    blt @reaching
-    sbc #kDeathStrainingFrames
-    bge @kneeling
-    ;; If the player avatar is straining, make it vibrate horizontally.
-    @straining:
+    ;; If the player avatar is kneeling, make it vibrate horizontally.
+    @kneeling:
     div #4
     and #$01
     sta T0  ; horz vibration (0 or 1)
@@ -237,16 +232,9 @@ _SetAvatarPose:
     and #$fe
     ora T0  ; horz vibration (0 or 1)
     sta Zp_AvatarPosX_i16 + 0
-    lda #eAvatar::Straining
-    bne @setAvatarPose  ; unconditional
-    ;; If the player avatar is reaching/kneeling/slumping, just set the avatar
-    ;; pose.
-    @reaching:
-    lda #eAvatar::Reaching
-    bne @setAvatarPose  ; unconditional
-    @kneeling:
     lda #eAvatar::Kneeling
     bne @setAvatarPose  ; unconditional
+    ;; If the player avatar is slumping, just set the avatar pose.
     @slumping:
     lda #eAvatar::Slumping
     bne @setAvatarPose  ; unconditional

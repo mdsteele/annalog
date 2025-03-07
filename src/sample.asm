@@ -47,17 +47,15 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; The DMC sample rate (0-$f) to use for each sample.
 .PROC Data_SampleRate_u8_arr
     D_ARRAY .enum, eSample
-    d_byte AnvilB,     $b
-    d_byte AnvilC,     $c
     d_byte AnvilD,     $d
     d_byte AnvilE,     $e
     d_byte AnvilF,     $f
-    d_byte BossRoar6,  $6
     d_byte BossRoar7,  $7
     d_byte BossRoar8,  $8
     d_byte BossHurtD,  $d
     d_byte BossHurtE,  $e
     d_byte BossHurtF,  $f
+    d_byte Death,      $e
     d_byte Harm,       $e
     d_byte JumpAnna,   $f
     d_byte JumpGronta, $e
@@ -65,24 +63,24 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
     D_END
 .ENDPROC
 
-;;; The encoded start address for each sample.
-.PROC Data_SampleStart_u8_arr
+;;; The number of frames to play each sample for.  In general, this should be:
+;;;   floor(num_bytes * 8 * 60 / samples_per_second)
+;;; See https://www.nesdev.org/wiki/APU_DMC for the samples_per_second values.
+.PROC Data_SampleFrames_u8_arr
     D_ARRAY .enum, eSample
-    d_byte AnvilB,     <(Data_SampleAnvil_arr881 >> 6)
-    d_byte AnvilC,     <(Data_SampleAnvil_arr881 >> 6)
-    d_byte AnvilD,     <(Data_SampleAnvil_arr881 >> 6)
-    d_byte AnvilE,     <(Data_SampleAnvil_arr881 >> 6)
-    d_byte AnvilF,     <(Data_SampleAnvil_arr881 >> 6)
-    d_byte BossRoar6,  <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar7,  <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar8,  <(Data_SampleBoss_arr >> 6)
-    d_byte BossHurtD,  <(Data_SampleBoss_arr >> 6)
-    d_byte BossHurtE,  <(Data_SampleBoss_arr >> 6)
-    d_byte BossHurtF,  <(Data_SampleBoss_arr >> 6)
-    d_byte Harm,       <(Data_SampleHarm_arr >> 6)
-    d_byte JumpAnna,   <(Data_SampleJump_arr >> 6)
-    d_byte JumpGronta, <(Data_SampleJump_arr >> 6)
-    d_byte KickDrum,   <(Data_SampleKickDrum_arr657 >> 6)
+    d_byte AnvilD,     19
+    d_byte AnvilE,     17
+    d_byte AnvilF,     12
+    d_byte BossRoar7,  72
+    d_byte BossRoar8,  65
+    d_byte BossHurtD,  29
+    d_byte BossHurtE,  24
+    d_byte BossHurtF,  19
+    d_byte Death,      17
+    d_byte Harm,        5
+    d_byte JumpAnna,    9
+    d_byte JumpGronta, 12
+    d_byte KickDrum,   13
     D_END
 .ENDPROC
 
@@ -119,60 +117,17 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 .ALIGN kDmcSampleAlign
 .ASSERT * - SampleGap2 = kSampleGap2Size, error
 
-;;; Delta modulated sample data for eSample::Jump.
+;;; Delta modulated sample data for eSample::Jump*.
 .PROC Data_SampleJump_arr
 :   .assert * .mod kDmcSampleAlign = 0, error
     .incbin "out/samples/sfx_jump.dm"
     .assert (* - :-) .mod 16 = 1, error
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRG8"
-
-;;; The encoded byte length for each sample.
-.PROC Data_SampleLength_u8_arr
-    D_ARRAY .enum, eSample
-    d_byte AnvilB,     881 >> 4
-    d_byte AnvilC,     881 >> 4
-    d_byte AnvilD,     881 >> 4
-    d_byte AnvilE,     881 >> 4
-    d_byte AnvilF,     881 >> 4
-    d_byte BossRoar6,  .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar7,  .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar8,  .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossHurtD,  .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossHurtE,  .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossHurtF,  .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte Harm,       .sizeof(Data_SampleHarm_arr) >> 4
-    d_byte JumpAnna,   .sizeof(Data_SampleJump_arr) >> 4
-    d_byte JumpGronta, .sizeof(Data_SampleJump_arr) >> 4
-    d_byte KickDrum,   657 >> 4
-    D_END
-.ENDPROC
-
-;;; The number of frames to play each sample for.  In general, this should be:
-;;;   floor(num_bytes * 8 * 60 / samples_per_second)
-;;; See https://www.nesdev.org/wiki/APU_DMC for the samples_per_second values.
-.PROC Data_SampleFrames_u8_arr
-    D_ARRAY .enum, eSample
-    d_byte AnvilB,     30
-    d_byte AnvilC,     25
-    d_byte AnvilD,     19
-    d_byte AnvilE,     17
-    d_byte AnvilF,     12
-    d_byte BossRoar6,  77
-    d_byte BossRoar7,  72
-    d_byte BossRoar8,  65
-    d_byte BossHurtD,  29
-    d_byte BossHurtE,  24
-    d_byte BossHurtF,  19
-    d_byte Harm,        5
-    d_byte JumpAnna,    9
-    d_byte JumpGronta, 12
-    d_byte KickDrum,   13
-    D_END
-.ENDPROC
+;;; We have some space before the next sample can begin, room enough for a
+;;; function.
+SampleGap3:
+kSampleGap3Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 
 .PROC Data_Sample_sSfx
     sfx_Func _Initialize
@@ -195,6 +150,59 @@ _Wait:
     ldy Ram_Audio_sChanSfx_arr + eChan::Dmc + sChanSfx::Param1_byte  ; eSample
     cmp Data_SampleFrames_u8_arr, y
     rts
+.ENDPROC
+
+;;; Align to the next sample, and make sure we didn't overshoot the gap.
+.ALIGN kDmcSampleAlign
+.ASSERT * - SampleGap3 = kSampleGap3Size, error
+
+;;; Delta modulated sample data for eSample::Death.
+.PROC Data_SampleDeath_arr
+:   .assert * .mod kDmcSampleAlign = 0, error
+    .incbin "out/samples/sfx_death.dm"
+    .assert (* - :-) .mod 16 = 1, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
+
+;;; The encoded start address for each sample.
+.PROC Data_SampleStart_u8_arr
+    D_ARRAY .enum, eSample
+    d_byte AnvilD,     <(Data_SampleAnvil_arr881 >> 6)
+    d_byte AnvilE,     <(Data_SampleAnvil_arr881 >> 6)
+    d_byte AnvilF,     <(Data_SampleAnvil_arr881 >> 6)
+    d_byte BossRoar7,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossRoar8,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossHurtD,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossHurtE,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossHurtF,  <(Data_SampleBoss_arr >> 6)
+    d_byte Death,      <(Data_SampleDeath_arr >> 6)
+    d_byte Harm,       <(Data_SampleHarm_arr >> 6)
+    d_byte JumpAnna,   <(Data_SampleJump_arr >> 6)
+    d_byte JumpGronta, <(Data_SampleJump_arr >> 6)
+    d_byte KickDrum,   <(Data_SampleKickDrum_arr657 >> 6)
+    D_END
+.ENDPROC
+
+;;; The encoded byte length for each sample.
+.PROC Data_SampleLength_u8_arr
+    D_ARRAY .enum, eSample
+    d_byte AnvilD,     881 >> 4
+    d_byte AnvilE,     881 >> 4
+    d_byte AnvilF,     881 >> 4
+    d_byte BossRoar7,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossRoar8,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossHurtD,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossHurtE,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossHurtF,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte Death,      .sizeof(Data_SampleDeath_arr) >> 4
+    d_byte Harm,       .sizeof(Data_SampleHarm_arr) >> 4
+    d_byte JumpAnna,   .sizeof(Data_SampleJump_arr) >> 4
+    d_byte JumpGronta, .sizeof(Data_SampleJump_arr) >> 4
+    d_byte KickDrum,   657 >> 4
+    D_END
 .ENDPROC
 
 ;;;=========================================================================;;;

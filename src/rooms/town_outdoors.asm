@@ -37,6 +37,7 @@
 .INCLUDE "../portrait.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Outdoors_sTileset
@@ -75,6 +76,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxFlopDown
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToDeviceCenter
@@ -380,6 +382,8 @@ _DetectAvatarDeath:
     lda #0
     sta Zp_AvatarHarmTimer_u8
     jsr Func_HarmAvatar
+    lda #eSample::Death  ; param: eSample to play
+    jsr Func_PlaySfxSample
     lda #bMusic::UsesFlag | bMusic::FlagMask
     sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
     lda #eCutscene::TownOutdoorsGetCaught

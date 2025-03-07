@@ -19,17 +19,15 @@
 
 ;;; Samples that can be played on the DMC as sound effects.
 .ENUM eSample
-    AnvilB      ; a metallic "clang" (deepest)
-    AnvilC      ; a metallic "clang"
     AnvilD      ; a metallic "clang"
     AnvilE      ; a metallic "clang"
     AnvilF      ; a metallic "clang" (highest)
-    BossRoar6   ; a boss roar (deepest)
-    BossRoar7   ; a boss roar (medium)
-    BossRoar8   ; a boss roar (highest)
+    BossRoar7   ; a boss's death roar (most bosses)
+    BossRoar8   ; a boss's death roar (Gronta)
     BossHurtD   ; a boss gets hurt (deepest)
     BossHurtE   ; a boss gets hurt (medium)
     BossHurtF   ; a boss gets hurt (highest)
+    Death       ; when Anna dies
     Harm        ; when Anna gets hurt
     JumpAnna    ; when Anna jumps
     JumpGronta  ; when Gronta jumps

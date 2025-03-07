@@ -1,0 +1,9 @@
+name = "woman fighting.wav"
+artist = "drotzruhn"
+license = "CC-BY 4.0"
+year = 2017
+url = "https://freesound.org/people/drotzruhn/sounds/405328/"
+comments = """
+The original sound contained a sequence of fighting sounds; this file was
+trimmed to just the fourth sound in the sequence.
+"""
