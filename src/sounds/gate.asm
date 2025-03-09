@@ -39,11 +39,11 @@
 .SEGMENT "PRGC_Prison"
 
 ;;; Starts playing the sound for when a prison gate platform opens/closes.
-;;; @preserve T0+
+;;; @preserve X, T0+
 .EXPORT FuncC_Prison_PlaySfxPrisonGate
 .PROC FuncC_Prison_PlaySfxPrisonGate
     ldya #Data_PrisonGate_sSfx
-    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

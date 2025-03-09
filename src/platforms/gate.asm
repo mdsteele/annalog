@@ -21,6 +21,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "gate.inc"
 
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -31,7 +32,10 @@
 .IMPORT FuncC_Prison_PlaySfxPrisonGate
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
+.IMPORT Func_MovePointUpByA
+.IMPORT Func_PlaySfxSample
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
 
@@ -95,28 +99,46 @@ kGateObjFlags = kPaletteObjGate | bObj::Pri
     tya
     bne _Open
 _Shut:
+    ;; Move the gate towards its shut position.
     lda #kGateShutSpeed  ; param: move speed
-    .assert kGateShutSpeed > 0, error
-    bne _Move  ; unconditional
-_Open:
-    lda Zp_PointY_i16 + 0
-    sub #kGateRiseDistancePx
-    sta Zp_PointY_i16 + 0
-    lda Zp_PointY_i16 + 1
-    sbc #0
-    sta Zp_PointY_i16 + 1
-    lda #kGateOpenSpeed  ; param: move speed
-_Move:
     jsr Func_MovePlatformTopTowardPointY  ; preserves X, returns Z
-    php
-    beq @noSound
+    php  ; save Z
+    ;; When the gate moves, play occasional "clink" sounds.
+    beq @doneSound
+    jsr _PlayClinkingSound  ; preserves X
+    ;; If the gate finished moving into its fully-shut position, also play a
+    ;; "clang" sample.
+    lda Ram_PlatformTop_i16_1_arr, x
+    cmp Zp_PointY_i16 + 1
+    bne @doneSound
+    lda Ram_PlatformTop_i16_0_arr, x
+    cmp Zp_PointY_i16 + 0
+    bne @doneSound
+    lda #eSample::AnvilF
+    jsr Func_PlaySfxSample
+    @doneSound:
+    plp  ; restore Z
+    rts
+_Open:
+    ;; Move Zp_PointY_i16 up to the gate's open position.
+    lda #kGateRiseDistancePx  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves X
+    ;; Move the gate towards its open position.
+    lda #kGateOpenSpeed  ; param: move speed
+    jsr Func_MovePlatformTopTowardPointY  ; preserves X, returns Z
+    ;; When the gate moves, play occasional "clink" sounds.
+    beq @doneSound
+    php  ; save Z
+    jsr _PlayClinkingSound
+    plp  ; restore Z
+    @doneSound:
+_Return:
+    rts
+_PlayClinkingSound:
     lda Ram_PlatformTop_i16_0_arr, x
     and #$04
-    bne @noSound
-    jsr FuncC_Prison_PlaySfxPrisonGate
-    @noSound:
-    plp
-    rts
+    bne _Return
+    jmp FuncC_Prison_PlaySfxPrisonGate  ; preserves X
 .ENDPROC
 
 ;;; Draws a prison gate.
