@@ -293,13 +293,10 @@ _SetPoseOnGround:
     lda Zp_AvatarVelX_i16 + 1
     beq @standing
     lda Zp_FrameCounter_u8
-    and #$08
-    bne @running2
-    @running1:
-    lda #eAvatar::Running1
-    bne @setAvatarPose  ; unconditional
-    @running2:
-    lda #eAvatar::Running2
+    div #8
+    mod #4
+    tax
+    lda _RunningPoses_eAvatar_arr4, x
     bne @setAvatarPose  ; unconditional
     @standing:
     lda Zp_AvatarHarmTimer_u8
@@ -318,6 +315,11 @@ _SetPoseOnGround:
     @setAvatarPose:
     sta Zp_AvatarPose_eAvatar
     rts
+_RunningPoses_eAvatar_arr4:
+    .byte eAvatar::Running1
+    .byte eAvatar::Running2
+    .byte eAvatar::Running3
+    .byte eAvatar::Running2
 .ENDPROC
 
 ;;; Applies the player avatar's horizontal velocity and handles horizontal
@@ -896,7 +898,8 @@ _Tiles_u8_arr4_arr:
     d_byte Landing,   $20, $21, $22, $23
     d_byte Reading,   $24, $25, $26, $27
     d_byte Running1,  $28, $29, $2a, $2b
-    d_byte Running2,  $2c, $2d, $2a, $2f
+    d_byte Running2,  $2c, $2d, $2e, $2f
+    d_byte Running3,  $28, $3b, $2a, $36
     d_byte Swimming1, $30, $31, $32, $33
     d_byte Swimming2, $34, $35, $12, $37
     d_byte SwimDoor,  $38, $39, $3a, $37
@@ -904,7 +907,7 @@ _Tiles_u8_arr4_arr:
     d_byte Hovering,  $40, $41, $12, $43
     d_byte Falling,   $44, $45, $3e, $47
     d_byte Slumping,  $48, $49, $4a, $4b
-    d_byte Sleeping,  $3b, $42, $3b, $46
+    d_byte Sleeping,  $4f, $42, $4f, $46
     D_END
 .ENDPROC
 

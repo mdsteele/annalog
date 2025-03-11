@@ -956,24 +956,24 @@ _MoveByYA:
 
 ;;; Updates the flags and pose of the player avatar for a walking animation.
 ;;; @param N If set, the avatar will face left; otherwise, it will face right.
-;;; @preserve X, Y, T0+
+;;; @preserve X, T0+
 .PROC FuncA_Cutscene_AnimateAvatarWalking
     jsr FuncA_Cutscene_FaceAvatarTowardsN
     lda #0
     sta Zp_AvatarState_bAvatar
 _AnimatePose:
     lda Zp_FrameCounter_u8
-    and #$08
-    beq @walk2
-    @walk1:
-    lda #eAvatar::Running1
-    .assert eAvatar::Running1 > 0, error
-    bne @setPose  ; unconditional
-    @walk2:
-    lda #eAvatar::Running2
-    @setPose:
+    div #8
+    mod #4
+    tay
+    lda _RunningPoses_eAvatar_arr4, y
     sta Zp_AvatarPose_eAvatar
     rts
+_RunningPoses_eAvatar_arr4:
+    .byte eAvatar::Running1
+    .byte eAvatar::Running2
+    .byte eAvatar::Running3
+    .byte eAvatar::Running2
 .ENDPROC
 
 ;;; Updates the flags and state of the specified Alex NPC actor for a swimming

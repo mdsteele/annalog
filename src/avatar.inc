@@ -86,7 +86,8 @@ kPaletteObjAvatarDeath  = 3
     Landing    ; (grounded) just landed from a jump
     Reading    ; (grounded) facing away from camera (e.g. to read a sign)
     Running1   ; (grounded) running along the ground (1st frame)
-    Running2   ; (grounded) running along the ground (2nd frame)
+    Running2   ; (grounded) running along the ground (2nd and 4th frames)
+    Running3   ; (grounded) running along the ground (3rd frame)
     Swimming1  ; (swimming) swimming in water (1st frame)
     Swimming2  ; (swimming) swimming in water (2nd frame)
     SwimDoor   ; (swimming) facing into a doorway while swimming
