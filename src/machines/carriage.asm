@@ -27,9 +27,10 @@
 
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_StartWorking
-.IMPORT FuncA_Objects_Alloc2x2Shape
+.IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_DrawShapeTiles
 .IMPORT FuncA_Objects_GetMachineLightTileId
-.IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
+.IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_FindDeviceNearPoint
@@ -41,7 +42,6 @@
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
 
@@ -180,48 +180,59 @@ _CheckRightSide:
 .EXPORT FuncA_Objects_DrawCarriageMachine
 .PROC FuncA_Objects_DrawCarriageMachine
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
-_LeftHalf:
-    ;; Allocate objects.
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
-    lda #kPaletteObjMachineLight  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
-    bcs @done
-    ;; Set flags and tile IDs.
-    lda #kPaletteObjMachineLight | bObj::FlipHV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
-    lda #kPaletteObjMachineLight | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    lda #kPaletteObjMachineLight | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kTileIdObjCarriageCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdObjCarriageSurface
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @done:
-_RightHalf:
-    ;; Allocate objects.
-    lda #kTileWidthPx * 2  ; param: offset
+    lda #kTileWidthPx * 3  ; param: offset
     jsr FuncA_Objects_MoveShapeRightByA
-    lda #kPaletteObjMachineLight  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; sets C if offscreen; returns Y
-    bcs @done
-    ;; Set flags and tile IDs.
-    lda #kPaletteObjMachineLight | bObj::FlipV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    lda #kPaletteObjMachineLight | bObj::FlipHV
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
-    lda #kTileIdObjCarriageSurface
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdObjCarriageCorner
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    jsr FuncA_Objects_GetMachineLightTileId  ; preserves Y, returns A
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @done:
-    rts
+    jsr FuncA_Objects_MoveShapeDownOneTile
+    jsr FuncA_Objects_GetMachineLightTileId  ; returns A (param: tile ID)
+    ldy #kPaletteObjMachineLight | bObj::FlipHV  ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape
+    ldya #_Tiles_sShapeTile_arr  ; param: sShapeTile arr ptr
+    jmp FuncA_Objects_DrawShapeTiles  ; preserves X
+_Tiles_sShapeTile_arr:
+    ;; First row:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <(kTileWidthPx * -3)
+    d_byte DeltaY_i8, <(kTileHeightPx * -1)
+    d_byte Flags_bObj, kPaletteObjMachineLight | bObj::FlipHV
+    d_byte Tile_u8, kTileIdObjCarriageCorner
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, kTileWidthPx
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjMachineLight
+    d_byte Tile_u8, kTileIdObjCarriageSurface
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, kTileWidthPx
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjMachineLight
+    d_byte Tile_u8, kTileIdObjCarriageSurface
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, kTileWidthPx
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjMachineLight | bObj::FlipV
+    d_byte Tile_u8, kTileIdObjCarriageCorner
+    D_END
+    ;; Second row:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <(kTileWidthPx * -3)
+    d_byte DeltaY_i8, kTileHeightPx
+    d_byte Flags_bObj, kPaletteObjMachineLight | bObj::FlipH
+    d_byte Tile_u8, kTileIdObjCarriageCorner
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, kTileWidthPx
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjMachineLight | bObj::FlipV
+    d_byte Tile_u8, kTileIdObjCarriageSurface
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, kTileWidthPx
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjMachineLight | bObj::FlipV | bObj::Final
+    d_byte Tile_u8, kTileIdObjCarriageSurface
+    D_END
 .ENDPROC
 
 ;;;=========================================================================;;;
