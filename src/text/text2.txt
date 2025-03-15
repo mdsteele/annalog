@@ -585,36 +585,43 @@ stand by as humans
 take away what ours!#
 
 @TownSkyFinaleReactivate6_Part1
+The orcs...my dear,
+misguided children.
+I'd hoped better from
+you than what I saw.#
+
+@TownSkyFinaleReactivate6_Part2
 The people who built
 this place were very
 smart. But I can't say
 we were very wise.#
 
-@TownSkyFinaleReactivate6_Part2
+@TownSkyFinaleReactivate6_Part3
 We used the tools we
 created for foolish
 ends. To serve our
 foolish desires.#
 
-@TownSkyFinaleReactivate6_Part3
+@TownSkyFinaleReactivate6_Part4
 In doing so, we tore
 our own civilization
 apart.#
 
-@TownSkyFinaleReactivate6_Part4
+@TownSkyFinaleReactivate6_Part5
 After the end, but
 before I passed, I
 locked everything
 away.#
 
-@TownSkyFinaleReactivate6_Part5
+@TownSkyFinaleReactivate6_Part6
 But now...all those
 tools will serve human
 desires once again.#
 
-@TownSkyFinaleReactivate6_Part6
-Well...
+@TownSkyFinaleReactivate6_Part7
+Well...#
 
+@TownSkyFinaleReactivate6_Part8
 ...maybe this time
 will be different.#
 

@@ -123,6 +123,7 @@
 .IMPORT FuncA_Objects_DrawActorNpcOrc
 .IMPORT FuncA_Objects_DrawActorNpcOrcSleeping
 .IMPORT FuncA_Objects_DrawActorNpcQueen
+.IMPORT FuncA_Objects_DrawActorNpcSquare
 .IMPORT FuncA_Objects_DrawActorNpcToddler
 .IMPORT FuncA_Objects_DrawActorProjAcid
 .IMPORT FuncA_Objects_DrawActorProjAxe
@@ -513,6 +514,7 @@ _NoHit:
     d_byte NpcOrc,          kOrcBoundingBoxUp
     d_byte NpcOrcSleeping,   3
     d_byte NpcQueen,         2
+    d_byte NpcSquare,       kTileHeightPx
     d_byte NpcToddler,       4
     d_byte ProjAcid,         1
     d_byte ProjAxeBoomer,   kProjAxeRadius
@@ -584,6 +586,7 @@ _NoHit:
     d_byte NpcOrc,          kOrcBoundingBoxDown
     d_byte NpcOrcSleeping,   5
     d_byte NpcQueen,        24
+    d_byte NpcSquare,       kTileHeightPx
     d_byte NpcToddler,       8
     d_byte ProjAcid,         3
     d_byte ProjAxeBoomer,   kProjAxeRadius
@@ -655,6 +658,7 @@ _NoHit:
     d_byte NpcOrc,          kOrcBoundingBoxSide
     d_byte NpcOrcSleeping,   5
     d_byte NpcQueen,         5
+    d_byte NpcSquare,       kTileWidthPx
     d_byte NpcToddler,       3
     d_byte ProjAcid,         2
     d_byte ProjAxeBoomer,   kProjAxeRadius
@@ -794,6 +798,7 @@ _TypeSpecificTick:
     d_entry table, NpcOrc,          Func_Noop
     d_entry table, NpcOrcSleeping,  Func_Noop
     d_entry table, NpcQueen,        Func_Noop
+    d_entry table, NpcSquare,       Func_Noop
     d_entry table, NpcToddler,      FuncA_Actor_TickNpcToddler
     d_entry table, ProjAcid,        FuncA_Actor_TickProjAcid
     d_entry table, ProjAxeBoomer,   FuncA_Actor_TickProjAxeBoomer
@@ -970,6 +975,7 @@ _Finish:
     d_entry table, eActor::NpcOrc,          Func_InitActorNpcOrc
     d_entry table, eActor::NpcOrcSleeping,  Func_InitActorDefault
     d_entry table, eActor::NpcQueen,        Func_InitActorDefault
+    d_entry table, eActor::NpcSquare,       Func_InitActorDefault
     d_entry table, eActor::NpcToddler,      FuncA_Room_InitActorNpcToddler
     D_END
 .ENDREPEAT
@@ -1040,6 +1046,7 @@ _Finish:
     d_entry table, NpcOrc,          FuncA_Objects_DrawActorNpcOrc
     d_entry table, NpcOrcSleeping,  FuncA_Objects_DrawActorNpcOrcSleeping
     d_entry table, NpcQueen,        FuncA_Objects_DrawActorNpcQueen
+    d_entry table, NpcSquare,       FuncA_Objects_DrawActorNpcSquare
     d_entry table, NpcToddler,      FuncA_Objects_DrawActorNpcToddler
     d_entry table, ProjAcid,        FuncA_Objects_DrawActorProjAcid
     d_entry table, ProjAxeBoomer,   FuncA_Objects_DrawActorProjAxe

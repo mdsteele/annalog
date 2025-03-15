@@ -253,7 +253,8 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     TownOutdoorsSandra
     TownOutdoorsSign
     TownSkyFinaleReactivate4
-    TownSkyFinaleReactivate6
+    TownSkyFinaleReactivate6A
+    TownSkyFinaleReactivate6B
     NUM_VALUES
 .ENDENUM
 

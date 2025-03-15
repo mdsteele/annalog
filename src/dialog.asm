@@ -176,7 +176,8 @@
 .IMPORT DataA_Dialog_TownOutdoorsSandra_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsSign_sDialog
 .IMPORT DataA_Dialog_TownSkyFinaleReactivate4_sDialog
-.IMPORT DataA_Dialog_TownSkyFinaleReactivate6_sDialog
+.IMPORT DataA_Dialog_TownSkyFinaleReactivate6A_sDialog
+.IMPORT DataA_Dialog_TownSkyFinaleReactivate6B_sDialog
 .IMPORT FuncA_Dialog_PlaySfxDialogText
 .IMPORT FuncA_Dialog_PlaySfxQuestMarker
 .IMPORT FuncA_Objects_DrawObjectsForRoom
@@ -613,8 +614,10 @@ _Finish:
     d_entry t, TownOutdoorsSign,     DataA_Dialog_TownOutdoorsSign_sDialog
     d_entry t, TownSkyFinaleReactivate4, \
             DataA_Dialog_TownSkyFinaleReactivate4_sDialog
-    d_entry t, TownSkyFinaleReactivate6, \
-            DataA_Dialog_TownSkyFinaleReactivate6_sDialog
+    d_entry t, TownSkyFinaleReactivate6A, \
+            DataA_Dialog_TownSkyFinaleReactivate6A_sDialog
+    d_entry t, TownSkyFinaleReactivate6B, \
+            DataA_Dialog_TownSkyFinaleReactivate6B_sDialog
     D_END
 .ENDREPEAT
 .LINECONT -

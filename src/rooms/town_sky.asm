@@ -19,10 +19,12 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/adult.inc"
+.INCLUDE "../avatar.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../devices/console.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
@@ -36,6 +38,8 @@
 .IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part4_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part5_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part6_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part7_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part8_u8_arr
 .IMPORT Data_Empty_sDevice_arr
 .IMPORT FuncA_Cutscene_PlaySfxRumbling
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -48,16 +52,26 @@
 .IMPORT Func_ShakeRoom
 .IMPORT Main_Finale_StartNextStep
 .IMPORT Ppu_ChrObjFinale
+.IMPORT Ram_ActorFlags_bObj_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
-;;; Platform indices for various parts of the core
+;;; Actor indices for the NPCs in this room.
+kJeromeActorIndex      = 0
+kUpperSquareActorIndex = 1
+kLowerSquareActorIndex = 2
+
+;;; Platform indices for various parts of the core.
 kFinalTerminalPlatformIndex = 0
 kCoreInnerPlatformIndex     = 1
 kCoreOuterPlatformIndex     = 2
@@ -77,6 +91,10 @@ kCoreOuterPlatformWidthPx = kTileWidthPx * kCoreOuterPlatformWidthTiles
 ;;; inner platform.
 kInitCoreTopCenterX = $00b8
 kInitCoreTopCenterY = $00d2
+
+;;; The number of VBlank frames per pixel shown as Jerome's hologram is
+;;; revealed.
+.DEFINE kRevealSlowdown 8
 
 ;;;=========================================================================;;;
 
@@ -152,20 +170,49 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
+:   .assert * - :- = kJeromeActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0070
     d_word PosY_i16, $0080
     d_byte Param_byte, eNpcAdult::GhostJerome
     D_END
+    .assert * - :- = kUpperSquareActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcSquare
+    d_word PosX_i16, $0070
+    d_word PosY_i16, $0074
+    d_byte Param_byte, 0  ; ignored
+    D_END
+    .assert * - :- = kLowerSquareActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcSquare
+    d_word PosX_i16, $0070
+    d_word PosY_i16, $0084
+    d_byte Param_byte, 0  ; ignored
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 .ENDPROC
 
 .PROC FuncC_Town_Sky_EnterRoom
+    ;; Set the Jerome NPC actor's State2 byte to $ff so that we can control its
+    ;; facing direction explicitly.
+    dec Ram_ActorState2_byte_arr + kJeromeActorIndex  ; now #ff
+    ;; Branch setup based on the cutscene to be played (this room is only used
+    ;; for cutscenes).
     lda Zp_Next_eCutscene
     cmp #eCutscene::TownSkyFinaleReactivate2
     beq _Rising
+    cmp #eCutscene::TownSkyFinaleReactivate4
+    beq _AlreadyRisen
+_MakeJeromeFaceLeft:
+    lda #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr + kJeromeActorIndex
+_RemoveNpcSquares:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kUpperSquareActorIndex
+    sta Ram_ActorType_eActor_arr + kLowerSquareActorIndex
 _AlreadyRisen:
     lda #15 * kTileHeightPx
     sta Ram_PlatformTop_i16_0_arr + kFinalTerminalPlatformIndex
@@ -410,27 +457,51 @@ _MoveInnerOnly:
     dec Ram_PlatformTop_i16_0_arr + kCoreInnerPlatformIndex
     dec Ram_PlatformTop_i16_0_arr + kFinalTerminalPlatformIndex
     dec Ram_PlatformBottom_i16_0_arr + kFinalTerminalPlatformIndex
+    dec Zp_AvatarPosY_i16 + 0
     rts
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownSkyFinaleReactivate4_sCutscene
 .PROC DataA_Cutscene_TownSkyFinaleReactivate4_sCutscene
-    act_WaitFrames 120
-    ;; TODO: animate Jerome appearing
+    .linecont +
+    act_WaitFrames 60
+    ;; TODO: play a sound for Jerome's hologram appearing
+    act_RepeatFunc kBlockHeightPx * kRevealSlowdown, \
+                   FuncA_Cutscene_TownSkyRevealJerome
     act_RunDialog eDialog::TownSkyFinaleReactivate4
     act_WaitFrames 60
     act_JumpToMain Main_Finale_StartNextStep
+    .linecont -
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownSkyFinaleReactivate6_sCutscene
 .PROC DataA_Cutscene_TownSkyFinaleReactivate6_sCutscene
     act_WaitFrames 30
-    act_RunDialog eDialog::TownSkyFinaleReactivate6
+    act_RunDialog eDialog::TownSkyFinaleReactivate6A
+    act_WaitFrames 30
+    act_SetActorFlags kJeromeActorIndex, 0
+    act_WaitFrames 30
+    act_MoveAvatarWalk $00b0
+    act_SetAvatarPose eAvatar::Standing
+    act_WaitFrames 30
+    act_RunDialog eDialog::TownSkyFinaleReactivate6B
     act_WaitFrames 60
 _Finish_sCutscene:
     ;; TODO: jump to credits
     act_WaitFrames 60
     act_ForkStart 0, _Finish_sCutscene
+.ENDPROC
+
+;;; Called repeatedly via act_RepeatFunc to reveal Jerome's hologram.
+;;; @param X The repeat counter.
+.PROC FuncA_Cutscene_TownSkyRevealJerome
+    txa  ; repeat counter
+    mod #kRevealSlowdown
+    bne @done
+    dec Ram_ActorPosY_i16_0_arr + kUpperSquareActorIndex
+    inc Ram_ActorPosY_i16_0_arr + kLowerSquareActorIndex
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -444,14 +515,21 @@ _Finish_sCutscene:
     dlg_Done
 .ENDPROC
 
-.EXPORT DataA_Dialog_TownSkyFinaleReactivate6_sDialog
-.PROC DataA_Dialog_TownSkyFinaleReactivate6_sDialog
+.EXPORT DataA_Dialog_TownSkyFinaleReactivate6A_sDialog
+.PROC DataA_Dialog_TownSkyFinaleReactivate6A_sDialog
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part1_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownSkyFinaleReactivate6B_sDialog
+.PROC DataA_Dialog_TownSkyFinaleReactivate6B_sDialog
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part2_u8_arr
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part3_u8_arr
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part4_u8_arr
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part5_u8_arr
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part6_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part7_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part8_u8_arr
     dlg_Done
 .ENDPROC
 

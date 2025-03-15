@@ -60,6 +60,7 @@ kMaxActors = 16
     NpcOrc           ; used for orcs, and Queen Eirene when she's standing
     NpcOrcSleeping   ; used for an orc that's unconscious on the ground
     NpcQueen         ; used for Queen Eirene when she's seated
+    NpcSquare        ; used for hiding part of another actor
     NpcToddler       ; used for baby Nina
     ProjAcid         ; acid dropped by a flydrop baddie
     ProjAxeBoomer    ; a boomerang axe thrown by Gronta

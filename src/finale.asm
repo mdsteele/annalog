@@ -20,9 +20,11 @@
 .INCLUDE "avatar.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "cutscene.inc"
+.INCLUDE "devices/console.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "music.inc"
+.INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 
@@ -37,6 +39,7 @@
 .IMPORT Func_WaitXFrames
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ppu_ChrBgFontUpper
+.IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
@@ -177,19 +180,20 @@ _Finale_eRoom_arr:
     sta Zp_AvatarPosY_i16 + 0
     lda #0
     sta Zp_AvatarPosY_i16 + 1
-    ;; Hide the player avatar.
-    .assert eAvatar::Hidden = 0, error
+    lda _AvatarFlags_bObj_arr, y
+    sta Zp_AvatarFlags_bObj
+    lda _AvatarPose_eAvatar_arr, y
     sta Zp_AvatarPose_eAvatar
     jmp Main_Explore_EnterRoom
 _AvatarPosX_i16_0_arr:
     D_ARRAY .enum, eFinale
     d_byte GaveRemote1Outdoors, $10
     d_byte Reactivate1Outdoors, $10
-    d_byte Reactivate2Sky,      $80
+    d_byte Reactivate2Sky,      $b0
     d_byte Reactivate3Outdoors, $80
-    d_byte Reactivate4Sky,      $80
+    d_byte Reactivate4Sky,      $b0
     d_byte Reactivate5Outdoors, $80
-    d_byte Reactivate6Sky,      $80
+    d_byte Reactivate6Sky,      $b8 + kConsoleAvatarOffset
     d_byte YearsLater1Outdoors, $18
     D_END
 _AvatarPosX_i16_1_arr:
@@ -207,12 +211,34 @@ _AvatarPosY_i16_0_arr:
     D_ARRAY .enum, eFinale
     d_byte GaveRemote1Outdoors, $c8
     d_byte Reactivate1Outdoors, $c8
-    d_byte Reactivate2Sky,      $78
+    d_byte Reactivate2Sky,      $ca
     d_byte Reactivate3Outdoors, $c8
-    d_byte Reactivate4Sky,      $78
+    d_byte Reactivate4Sky,      $80
     d_byte Reactivate5Outdoors, $28  ; high up, to avoid actor collisions
-    d_byte Reactivate6Sky,      $78
+    d_byte Reactivate6Sky,      $80
     d_byte YearsLater1Outdoors, $c8
+    D_END
+_AvatarPose_eAvatar_arr:
+    D_ARRAY .enum, eFinale
+    d_byte GaveRemote1Outdoors, eAvatar::Hidden
+    d_byte Reactivate1Outdoors, eAvatar::Hidden
+    d_byte Reactivate2Sky,      eAvatar::Standing
+    d_byte Reactivate3Outdoors, eAvatar::Hidden
+    d_byte Reactivate4Sky,      eAvatar::Standing
+    d_byte Reactivate5Outdoors, eAvatar::Hidden
+    d_byte Reactivate6Sky,      eAvatar::Reading
+    d_byte YearsLater1Outdoors, eAvatar::Hidden
+    D_END
+_AvatarFlags_bObj_arr:
+    D_ARRAY .enum, eFinale
+    d_byte GaveRemote1Outdoors, kPaletteObjAvatarNormal | 0
+    d_byte Reactivate1Outdoors, kPaletteObjAvatarNormal | bObj::FlipH
+    d_byte Reactivate2Sky,      kPaletteObjAvatarNormal | bObj::FlipH
+    d_byte Reactivate3Outdoors, kPaletteObjAvatarNormal | bObj::FlipH
+    d_byte Reactivate4Sky,      kPaletteObjAvatarNormal | bObj::FlipH
+    d_byte Reactivate5Outdoors, kPaletteObjAvatarNormal | bObj::FlipH
+    d_byte Reactivate6Sky,      kPaletteObjAvatarNormal | 0
+    d_byte YearsLater1Outdoors, kPaletteObjAvatarNormal | 0
     D_END
 .ENDPROC
 

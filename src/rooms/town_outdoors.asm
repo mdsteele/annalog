@@ -76,6 +76,8 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxFlopDown
+.IMPORT Func_PlaySfxMenuConfirm
+.IMPORT Func_PlaySfxMenuMove
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
@@ -856,11 +858,25 @@ _InitThurg:
 
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene
+    ;; Animate Thurg stepping forward and shouting defiantly.
     act_WaitFrames 30
     act_MoveNpcOrcWalk kThurgActorIndex, $02b4
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntThrowing1
     act_RunDialog eDialog::TownOutdoorsFinaleReactivate5
     act_WaitFrames 30
+    ;; Play sounds for Anna operating the final terminal off-screen.
+    act_CallFunc Func_PlaySfxMenuConfirm
+    act_WaitFrames 10
+    act_CallFunc Func_PlaySfxMenuMove
+    act_WaitFrames 10
+    act_CallFunc Func_PlaySfxMenuMove
+    act_WaitFrames 10
+    act_CallFunc Func_PlaySfxMenuConfirm
+    act_WaitFrames 10
+    act_CallFunc Func_PlaySfxMenuConfirm
+    act_WaitFrames 30
+    ;; Animate the core shooting a laser beam at Thurg, and him falling to the
+    ;; ground.
     act_CallFunc FuncA_Cutscene_PlaySfxQuickWindup
     act_WaitFrames 32
     act_SetCutsceneFlags bCutscene::TickAllActors
