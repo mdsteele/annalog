@@ -22,8 +22,8 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "column.inc"
 
-.IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_Draw2x2MirroredShape
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
@@ -59,18 +59,11 @@ kPaletteObjColumn = 0
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
 _ColumnTop:
     jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
-    lda #kPaletteObjColumn | bObj::Pri  ; param: obj flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    bcs @done
+    jsr _DrawColumnBlock  ; returns C and Y
+    bcs @done  ; no objects were allocated
     lda #kTileIdObjColumnCorner
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdObjColumnSide
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda #kPaletteObjColumn | bObj::Pri | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     @done:
 _ColumnBody:
     ;; Determine how many blocks tall the platform is.
@@ -83,22 +76,16 @@ _ColumnBody:
     @loop:
     lda #kBlockHeightPx  ; param: move delta
     jsr FuncA_Objects_MoveShapeDownByA  ; preserves X
-    lda #kPaletteObjColumn | bObj::Pri  ; param: obj flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    bcs @continue
-    lda #kTileIdObjColumnSide
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    lda #kPaletteObjColumn | bObj::Pri | bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
+    jsr _DrawColumnBlock  ; preserves X
     @continue:
     dex
     bne @loop
 _Done:
     rts
+_DrawColumnBlock:
+    lda #kTileIdObjColumnSide  ; param: tile ID
+    ldy #kPaletteObjColumn | bObj::Pri  ; param: object flags
+    jmp FuncA_Objects_Draw2x2MirroredShape  ; preserves X, returns C and Y
 .ENDPROC
 
 ;;; Draws a cracked column platform.
