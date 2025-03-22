@@ -564,14 +564,29 @@ For example:
   :MOVE {kTileIdBgArrowRight}
   :TIL X{kTileIdBgCmpGe}5#
 
+@TownOutdoorsFinaleGaveRemote3
+Chief Gronta! You have
+returned!#
+
+@TownSkyFinaleGronta_Banished
+Humans, you are hereby
+banished from this
+place! It belongs to
+the orcs, now!#
+
 @TownOutdoorsFinaleReactivate3
 What going on!?#
 
-@TownSkyFinaleJeromeRecorded
+@TownSkyFinaleJerome_Recorded
 My name is Jerome.
 This is a recorded
 memory of me from
 before my death.#
+
+@TownSkyFinaleGaveRemote6_Part2
+It seems that orcs
+have reactivated the
+complex.#
 
 @TownSkyFinaleReactivate4_Part2
 It seems that humans
@@ -584,11 +599,14 @@ of Gurg! I will not
 stand by as humans
 take away what ours!#
 
-@TownSkyFinaleReactivate6_Part1
+@TownSkyFinaleJerome_HopedBetter
 The orcs...my dear,
 misguided children.
 I'd hoped better from
 you than what I saw.#
+
+@TownSkyFinaleGronta_WeAreBetter
+Fool! We ARE better.#
 
 @TownSkyFinaleReactivate6_Part2
 The people who built
@@ -596,32 +614,38 @@ this place were very
 smart. But I can't say
 we were very wise.#
 
-@TownSkyFinaleReactivate6_Part3
-We used the tools we
-created for foolish
+@TownSkyFinaleJerome_FoolishEnds
+Humans used the tools
+we created for foolish
 ends. To serve our
 foolish desires.#
 
-@TownSkyFinaleReactivate6_Part4
+@TownSkyFinaleJerome_ToreApart
 In doing so, we tore
 our own civilization
 apart.#
 
-@TownSkyFinaleReactivate6_Part5
+@TownSkyFinaleJerome_LockedAway
 After the end, but
 before I passed, I
 locked everything
 away.#
 
-@TownSkyFinaleReactivate6_Part6
+@TownSkyFinaleJerome_HumanDesires
 But now...all those
 tools will serve human
 desires once again.#
 
-@TownSkyFinaleReactivate6_Part7
+@TownSkyFinaleJerome_OrcDesires
+And now...all those
+tools will serve the
+foolish desires of
+orcs instead.#
+
+@TownSkyFinaleJerome_Well
 Well...#
 
-@TownSkyFinaleReactivate6_Part8
+@TownSkyFinaleJerome_MaybeThisTime
 ...maybe this time
 will be different.#
 

@@ -59,6 +59,7 @@
 .IMPORT DataA_Text0_TownOutdoorsSandra_Part1_u8_arr
 .IMPORT DataA_Text0_TownOutdoorsSandra_Part2_u8_arr
 .IMPORT DataA_Text0_TownOutdoorsSign_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleGaveRemote3_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleReactivate3_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleReactivate5_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
@@ -574,6 +575,12 @@ _SetFace:
     rts
 .ENDPROC
 
+.EXPORT DataA_Dialog_TownOutdoorsFinaleGaveRemote3_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleGaveRemote3_sDialog
+    dlg_Text OrcMaleShout, DataA_Text2_TownOutdoorsFinaleGaveRemote3_u8_arr
+    dlg_Done
+.ENDPROC
+
 .EXPORT DataA_Dialog_TownOutdoorsFinaleReactivate3_sDialog
 .PROC DataA_Dialog_TownOutdoorsFinaleReactivate3_sDialog
     dlg_Text OrcMaleShout, DataA_Text2_TownOutdoorsFinaleReactivate3_u8_arr
@@ -713,17 +720,32 @@ _InitThurgAndGrunt:
     jmp Func_InitActorNpcOrc
 .ENDPROC
 
-.EXPORT DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
-.PROC DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
-    ;; TODO: Implement TownOutdoorsGaveRemote cutscene.
+;;; @prereq PRGC_Town is loaded.
+.EXPORT DataA_Cutscene_TownOutdoorsFinaleGaveRemote1_sCutscene
+.PROC DataA_Cutscene_TownOutdoorsFinaleGaveRemote1_sCutscene
     act_WaitFrames 60
-    act_ForkStart 0, DataA_Cutscene_TownOutdoorsGaveRemote_sCutscene
+    act_ForkStart 1, DataA_Cutscene_TownOutdoors_ExplodeGround_sCutscene
+    act_WaitFrames 40
+    ;; TODO: animate the core tower rising out, with Gronta riding it
+    act_WaitFrames 60
+    act_JumpToMain Main_Finale_StartNextStep
 .ENDPROC
 
 ;;; @prereq PRGC_Town is loaded.
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate1_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleReactivate1_sCutscene
     act_WaitFrames 60
+    act_ForkStart 1, DataA_Cutscene_TownOutdoors_ExplodeGround_sCutscene
+    act_WaitFrames 40
+    ;; TODO: animate the core tower rising out, with Anna riding it
+    act_WaitFrames 60
+    act_JumpToMain Main_Finale_StartNextStep
+.ENDPROC
+
+;;; A cutscene fork (to be started with act_ForkStart) for exploding the ground
+;;; open so the core platform can rise out.
+;;; @prereq PRGC_Town is loaded.
+.PROC DataA_Cutscene_TownOutdoors_ExplodeGround_sCutscene
     act_CallFunc _ExplodeGround1
     act_WaitFrames 10
     act_CallFunc _ExplodeGround2
@@ -733,9 +755,7 @@ _InitThurgAndGrunt:
     act_CallFunc _ExplodeGround4
     act_WaitFrames 10
     act_CallFunc _ExplodeGround5
-    ;; TODO: animate the core tower rising out
-    act_WaitFrames 60
-    act_JumpToMain Main_Finale_StartNextStep
+    act_ForkStop $ff
 _ExplodeGround1:
     ldy #6  ; param: left-hand screen tile column
     lda #7  ; param: right-hand screen tile column
@@ -836,10 +856,24 @@ _ExplodeGroundAtScreenCol:
     rts
 .ENDPROC
 
+.EXPORT DataA_Cutscene_TownOutdoorsFinaleGaveRemote3_sCutscene
+.PROC DataA_Cutscene_TownOutdoorsFinaleGaveRemote3_sCutscene
+    act_WaitFrames 60
+    act_CallFunc FuncA_Cutscene_InitThurgAtHouseDoor4
+    act_WaitFrames 30
+    act_MoveNpcOrcWalk kThurgActorIndex, kThurgFinalePosX
+    act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
+    act_WaitFrames 20
+    act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntThrowing1
+    act_RunDialog eDialog::TownOutdoorsFinaleGaveRemote3
+    act_WaitFrames 60
+    act_JumpToMain Main_Finale_StartNextStep
+.ENDPROC
+
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
     act_WaitFrames 60
-    act_CallFunc _InitThurg
+    act_CallFunc FuncA_Cutscene_InitThurgAtHouseDoor4
     act_WaitFrames 30
     act_MoveNpcOrcWalk kThurgActorIndex, kThurgFinalePosX
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
@@ -847,13 +881,24 @@ _ExplodeGroundAtScreenCol:
     act_RunDialog eDialog::TownOutdoorsFinaleReactivate3
     act_WaitFrames 60
     act_JumpToMain Main_Finale_StartNextStep
-_InitThurg:
+.ENDPROC
+
+;;; Initializes the Thrug actor as an orc NPC positioned at the door in
+;;; TownOutdoors that leads from TownHouse4.
+.PROC FuncA_Cutscene_InitThurgAtHouseDoor4
     ldy #kTownHouse4DoorDeviceIndex  ; param: device index
     jsr Func_SetPointToDeviceCenter
     ldx #kThurgActorIndex  ; param: actor index
     jsr Func_SetActorCenterToPoint  ; preserves X
     lda #eNpcOrc::GruntStanding  ; param: eNpcOrc value
     jmp Func_InitActorNpcOrc
+.ENDPROC
+
+.EXPORT DataA_Cutscene_TownOutdoorsFinaleGaveRemote5_sCutscene
+.PROC DataA_Cutscene_TownOutdoorsFinaleGaveRemote5_sCutscene
+    act_WaitFrames 120
+    ;; TODO: humans protest, but Gronta shoots lasers at them
+    act_JumpToMain Main_Finale_StartNextStep
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene

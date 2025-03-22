@@ -169,12 +169,15 @@
 .IMPORT DataA_Dialog_TownOutdoorsAlex1_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsAlex2_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsAlex3_sDialog
+.IMPORT DataA_Dialog_TownOutdoorsFinaleGaveRemote3_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsFinaleReactivate3_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsFinaleReactivate5_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsGronta_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsIvan_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsSandra_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsSign_sDialog
+.IMPORT DataA_Dialog_TownSkyFinaleGaveRemote4_sDialog
+.IMPORT DataA_Dialog_TownSkyFinaleGaveRemote6_sDialog
 .IMPORT DataA_Dialog_TownSkyFinaleReactivate4_sDialog
 .IMPORT DataA_Dialog_TownSkyFinaleReactivate6A_sDialog
 .IMPORT DataA_Dialog_TownSkyFinaleReactivate6B_sDialog
@@ -604,6 +607,8 @@ _Finish:
     d_entry t, TownOutdoorsAlex1,    DataA_Dialog_TownOutdoorsAlex1_sDialog
     d_entry t, TownOutdoorsAlex2,    DataA_Dialog_TownOutdoorsAlex2_sDialog
     d_entry t, TownOutdoorsAlex3,    DataA_Dialog_TownOutdoorsAlex3_sDialog
+    d_entry t, TownOutdoorsFinaleGaveRemote3, \
+            DataA_Dialog_TownOutdoorsFinaleGaveRemote3_sDialog
     d_entry t, TownOutdoorsFinaleReactivate3, \
             DataA_Dialog_TownOutdoorsFinaleReactivate3_sDialog
     d_entry t, TownOutdoorsFinaleReactivate5, \
@@ -612,6 +617,10 @@ _Finish:
     d_entry t, TownOutdoorsIvan,     DataA_Dialog_TownOutdoorsIvan_sDialog
     d_entry t, TownOutdoorsSandra,   DataA_Dialog_TownOutdoorsSandra_sDialog
     d_entry t, TownOutdoorsSign,     DataA_Dialog_TownOutdoorsSign_sDialog
+    d_entry t, TownSkyFinaleGaveRemote4, \
+            DataA_Dialog_TownSkyFinaleGaveRemote4_sDialog
+    d_entry t, TownSkyFinaleGaveRemote6, \
+            DataA_Dialog_TownSkyFinaleGaveRemote6_sDialog
     d_entry t, TownSkyFinaleReactivate4, \
             DataA_Dialog_TownSkyFinaleReactivate4_sDialog
     d_entry t, TownSkyFinaleReactivate6A, \

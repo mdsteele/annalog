@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/adult.inc"
+.INCLUDE "../actors/orc.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../devices/console.inc"
@@ -26,20 +27,25 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../portrait.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Outdoors_sTileset
-.IMPORT DataA_Text2_TownSkyFinaleJeromeRecorded_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleGaveRemote6_Part2_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleGronta_Banished_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleGronta_WeAreBetter_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleJerome_FoolishEnds_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleJerome_HopedBetter_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleJerome_HumanDesires_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleJerome_LockedAway_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleJerome_MaybeThisTime_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleJerome_OrcDesires_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleJerome_Recorded_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleJerome_ToreApart_u8_arr
+.IMPORT DataA_Text2_TownSkyFinaleJerome_Well_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleReactivate4_Part2_u8_arr
-.IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part1_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part2_u8_arr
-.IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part3_u8_arr
-.IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part4_u8_arr
-.IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part5_u8_arr
-.IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part6_u8_arr
-.IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part7_u8_arr
-.IMPORT DataA_Text2_TownSkyFinaleReactivate6_Part8_u8_arr
 .IMPORT Data_Empty_sDevice_arr
 .IMPORT FuncA_Cutscene_PlaySfxRumbling
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -54,6 +60,7 @@
 .IMPORT Ppu_ChrObjFinale
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
@@ -70,6 +77,7 @@
 kJeromeActorIndex      = 0
 kUpperSquareActorIndex = 1
 kLowerSquareActorIndex = 2
+kGrontaActorIndex      = 3
 
 ;;; Platform indices for various parts of the core.
 kFinalTerminalPlatformIndex = 0
@@ -191,17 +199,32 @@ _Actors_sActor_arr:
     d_word PosY_i16, $0084
     d_byte Param_byte, 0  ; ignored
     D_END
+    .assert * - :- = kGrontaActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, $00b0
+    d_word PosY_i16, $00ca
+    d_byte Param_byte, eNpcOrc::GrontaStanding
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 .ENDPROC
 
 .PROC FuncC_Town_Sky_EnterRoom
-    ;; Set the Jerome NPC actor's State2 byte to $ff so that we can control its
-    ;; facing direction explicitly.
+    ;; Set the Jerome and Gronta NPC actors' State2 bytes to $ff so that we can
+    ;; control their facing direction explicitly.
     dec Ram_ActorState2_byte_arr + kJeromeActorIndex  ; now #ff
     ;; Branch setup based on the cutscene to be played (this room is only used
     ;; for cutscenes).
     lda Zp_Next_eCutscene
+    cmp #eCutscene::TownSkyFinaleGaveRemote2
+    beq _Rising
+    cmp #eCutscene::TownSkyFinaleGaveRemote4
+    beq _AlreadyRisen
+    cmp #eCutscene::TownSkyFinaleGaveRemote6
+    beq _AlreadyRisen
+    ldy #eActor::None
+    sty Ram_ActorType_eActor_arr + kGrontaActorIndex
     cmp #eCutscene::TownSkyFinaleReactivate2
     beq _Rising
     cmp #eCutscene::TownSkyFinaleReactivate4
@@ -214,6 +237,8 @@ _RemoveNpcSquares:
     sta Ram_ActorType_eActor_arr + kUpperSquareActorIndex
     sta Ram_ActorType_eActor_arr + kLowerSquareActorIndex
 _AlreadyRisen:
+    lda #$80
+    sta Ram_ActorPosY_i16_0_arr + kGrontaActorIndex
     lda #15 * kTileHeightPx
     sta Ram_PlatformTop_i16_0_arr + kFinalTerminalPlatformIndex
     lda #17 * kTileHeightPx
@@ -400,6 +425,12 @@ _FinalTerminal:
 .SEGMENT "PRGA_Cutscene"
 
 ;;; @prereq PRGC_Town is loaded.
+.EXPORT DataA_Cutscene_TownSkyFinaleGaveRemote2_sCutscene
+.PROC DataA_Cutscene_TownSkyFinaleGaveRemote2_sCutscene
+    fall DataA_Cutscene_TownSkyFinaleReactivate2_sCutscene
+.ENDPROC
+
+;;; @prereq PRGC_Town is loaded.
 .EXPORT DataA_Cutscene_TownSkyFinaleReactivate2_sCutscene
 .PROC DataA_Cutscene_TownSkyFinaleReactivate2_sCutscene
     act_CallFunc _PlayOuterRumblingSound
@@ -407,7 +438,6 @@ _FinalTerminal:
     act_CallFunc _PlayInnerRumblingSound
     act_RepeatFunc $c0, _RaiseCoreInnerPlatform
     act_WaitFrames 120
-    ;; TODO: animate the core tower rising into the sky, with Anna riding it
     act_JumpToMain Main_Finale_StartNextStep
 _PlayOuterRumblingSound:
     lda #$80  ; param: frames
@@ -458,7 +488,17 @@ _MoveInnerOnly:
     dec Ram_PlatformTop_i16_0_arr + kFinalTerminalPlatformIndex
     dec Ram_PlatformBottom_i16_0_arr + kFinalTerminalPlatformIndex
     dec Zp_AvatarPosY_i16 + 0
+    dec Ram_ActorPosY_i16_0_arr + kGrontaActorIndex
     rts
+.ENDPROC
+
+.EXPORT DataA_Cutscene_TownSkyFinaleGaveRemote4_sCutscene
+.PROC DataA_Cutscene_TownSkyFinaleGaveRemote4_sCutscene
+    act_WaitFrames 60
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaAxeRaised
+    act_RunDialog eDialog::TownSkyFinaleGaveRemote4
+    act_WaitFrames 10
+    act_JumpToMain Main_Finale_StartNextStep
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownSkyFinaleReactivate4_sCutscene
@@ -472,6 +512,22 @@ _MoveInnerOnly:
     act_WaitFrames 60
     act_JumpToMain Main_Finale_StartNextStep
     .linecont -
+.ENDPROC
+
+.EXPORT DataA_Cutscene_TownSkyFinaleGaveRemote6_sCutscene
+.PROC DataA_Cutscene_TownSkyFinaleGaveRemote6_sCutscene
+    .linecont +
+    act_WaitFrames 60
+    ;; TODO: play a sound for Jerome's hologram appearing
+    act_RepeatFunc kBlockHeightPx * kRevealSlowdown, \
+                   FuncA_Cutscene_TownSkyRevealJerome
+    act_RunDialog eDialog::TownSkyFinaleGaveRemote6
+    act_WaitFrames 60
+    .linecont -
+_Finish_sCutscene:
+    ;; TODO: jump to credits
+    act_WaitFrames 60
+    act_ForkStart 0, _Finish_sCutscene
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownSkyFinaleReactivate6_sCutscene
@@ -508,28 +564,60 @@ _Finish_sCutscene:
 
 .SEGMENT "PRGA_Dialog"
 
+.EXPORT DataA_Dialog_TownSkyFinaleGaveRemote4_sDialog
+.PROC DataA_Dialog_TownSkyFinaleGaveRemote4_sDialog
+    dlg_Text OrcGrontaShout, DataA_Text2_TownSkyFinaleGronta_Banished_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownSkyFinaleGaveRemote6_sDialog
+.PROC DataA_Dialog_TownSkyFinaleGaveRemote6_sDialog
+    .assert kTileIdBgPortraitJeromeFirst = kTileIdBgPortraitGrontaFirst, error
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_Recorded_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleGaveRemote6_Part2_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_HopedBetter_u8_arr
+    dlg_Call _RaiseGrontaAxe
+    dlg_Text OrcGrontaShout, DataA_Text2_TownSkyFinaleGronta_WeAreBetter_u8_arr
+    dlg_Call _LowerGrontaAxe
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_FoolishEnds_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_ToreApart_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_LockedAway_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_OrcDesires_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_Well_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_MaybeThisTime_u8_arr
+    dlg_Done
+_RaiseGrontaAxe:
+    lda #eNpcOrc::GrontaAxeRaised
+    sta Ram_ActorState1_byte_arr + kGrontaActorIndex
+    rts
+_LowerGrontaAxe:
+    lda #eNpcOrc::GrontaStanding
+    sta Ram_ActorState1_byte_arr + kGrontaActorIndex
+    rts
+.ENDPROC
+
 .EXPORT DataA_Dialog_TownSkyFinaleReactivate4_sDialog
 .PROC DataA_Dialog_TownSkyFinaleReactivate4_sDialog
-    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJeromeRecorded_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_Recorded_u8_arr
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate4_Part2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownSkyFinaleReactivate6A_sDialog
 .PROC DataA_Dialog_TownSkyFinaleReactivate6A_sDialog
-    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part1_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_HopedBetter_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownSkyFinaleReactivate6B_sDialog
 .PROC DataA_Dialog_TownSkyFinaleReactivate6B_sDialog
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part2_u8_arr
-    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part3_u8_arr
-    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part4_u8_arr
-    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part5_u8_arr
-    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part6_u8_arr
-    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part7_u8_arr
-    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleReactivate6_Part8_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_FoolishEnds_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_ToreApart_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_LockedAway_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_HumanDesires_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_Well_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_MaybeThisTime_u8_arr
     dlg_Done
 .ENDPROC
 

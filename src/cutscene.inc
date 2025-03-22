@@ -70,13 +70,18 @@ kMaxForks = 4
     TempleNaveAlexBoosting
     TownHouse2WakeUp
     TownHouse4BreakerLava
-    TownOutdoorsGaveRemote
-    TownOutdoorsGetCaught
-    TownOutdoorsOrcAttack
+    TownOutdoorsFinaleGaveRemote1
+    TownOutdoorsFinaleGaveRemote3
+    TownOutdoorsFinaleGaveRemote5
     TownOutdoorsFinaleReactivate1
     TownOutdoorsFinaleReactivate3
     TownOutdoorsFinaleReactivate5
+    TownOutdoorsGetCaught
+    TownOutdoorsOrcAttack
     TownOutdoorsYearsLater
+    TownSkyFinaleGaveRemote2
+    TownSkyFinaleGaveRemote4
+    TownSkyFinaleGaveRemote6
     TownSkyFinaleReactivate2
     TownSkyFinaleReactivate4
     TownSkyFinaleReactivate6

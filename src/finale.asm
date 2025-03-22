@@ -54,7 +54,12 @@
 ;;; Various steps of the three finales.  Each step represents a particular
 ;;; cutscene in a particular room.
 .ENUM eFinale
-    GaveRemote1Outdoors
+    GaveRemote1Outdoors  ; ground splits open, Gronta emerges riding the core
+    GaveRemote2Sky       ; Gronta rides the core into the sky
+    GaveRemote3Outdoors  ; Thurg comes out of the town hall and sees the core
+    GaveRemote4Sky       ; Gronta banishes all humans from the area
+    GaveRemote5Outdoors  ; The humans protest, but get chased off
+    GaveRemote6Sky       ; Jerome's recorded message plays
     Reactivate1Outdoors  ; ground splits open, Anna emerges riding the core
     Reactivate2Sky       ; Anna rides the core into the sky
     Reactivate3Outdoors  ; Thurg comes out of the town hall and sees the core
@@ -139,7 +144,12 @@ Zp_Current_eFinale: .res 1
     rts
 _Finale_eCutscene_arr:
     D_ARRAY .enum, eFinale
-    d_byte GaveRemote1Outdoors, eCutscene::TownOutdoorsGaveRemote
+    d_byte GaveRemote1Outdoors, eCutscene::TownOutdoorsFinaleGaveRemote1
+    d_byte GaveRemote2Sky,      eCutscene::TownSkyFinaleGaveRemote2
+    d_byte GaveRemote3Outdoors, eCutscene::TownOutdoorsFinaleGaveRemote3
+    d_byte GaveRemote4Sky,      eCutscene::TownSkyFinaleGaveRemote4
+    d_byte GaveRemote5Outdoors, eCutscene::TownOutdoorsFinaleGaveRemote5
+    d_byte GaveRemote6Sky,      eCutscene::TownSkyFinaleGaveRemote6
     d_byte Reactivate1Outdoors, eCutscene::TownOutdoorsFinaleReactivate1
     d_byte Reactivate2Sky,      eCutscene::TownSkyFinaleReactivate2
     d_byte Reactivate3Outdoors, eCutscene::TownOutdoorsFinaleReactivate3
@@ -151,6 +161,11 @@ _Finale_eCutscene_arr:
 _Finale_eRoom_arr:
     D_ARRAY .enum, eFinale
     d_byte GaveRemote1Outdoors, eRoom::TownOutdoors
+    d_byte GaveRemote2Sky,      eRoom::TownSky
+    d_byte GaveRemote3Outdoors, eRoom::TownOutdoors
+    d_byte GaveRemote4Sky,      eRoom::TownSky
+    d_byte GaveRemote5Outdoors, eRoom::TownOutdoors
+    d_byte GaveRemote6Sky,      eRoom::TownSky
     d_byte Reactivate1Outdoors, eRoom::TownOutdoors
     d_byte Reactivate2Sky,      eRoom::TownSky
     d_byte Reactivate3Outdoors, eRoom::TownOutdoors
@@ -188,17 +203,27 @@ _Finale_eRoom_arr:
 _AvatarPosX_i16_0_arr:
     D_ARRAY .enum, eFinale
     d_byte GaveRemote1Outdoors, $10
+    d_byte GaveRemote2Sky,      $a0  ; to left of Gronta, so she'll face left
+    d_byte GaveRemote3Outdoors, $80
+    d_byte GaveRemote4Sky,      $a0  ; to left of Gronta, so she'll face left
+    d_byte GaveRemote5Outdoors, $80
+    d_byte GaveRemote6Sky,      $a0  ; to left of Gronta, so she'll face left
     d_byte Reactivate1Outdoors, $10
-    d_byte Reactivate2Sky,      $b0
+    d_byte Reactivate2Sky,      $b0  ; riding core platform
     d_byte Reactivate3Outdoors, $80
-    d_byte Reactivate4Sky,      $b0
+    d_byte Reactivate4Sky,      $b0  ; riding core platform
     d_byte Reactivate5Outdoors, $80
-    d_byte Reactivate6Sky,      $b8 + kConsoleAvatarOffset
+    d_byte Reactivate6Sky,      $b8 + kConsoleAvatarOffset  ; using console
     d_byte YearsLater1Outdoors, $18
     D_END
 _AvatarPosX_i16_1_arr:
     D_ARRAY .enum, eFinale
     d_byte GaveRemote1Outdoors, $03
+    d_byte GaveRemote2Sky,      $00
+    d_byte GaveRemote3Outdoors, $02
+    d_byte GaveRemote4Sky,      $00
+    d_byte GaveRemote5Outdoors, $02
+    d_byte GaveRemote6Sky,      $00
     d_byte Reactivate1Outdoors, $03
     d_byte Reactivate2Sky,      $00
     d_byte Reactivate3Outdoors, $02
@@ -209,29 +234,44 @@ _AvatarPosX_i16_1_arr:
     D_END
 _AvatarPosY_i16_0_arr:
     D_ARRAY .enum, eFinale
-    d_byte GaveRemote1Outdoors, $c8
+    d_byte GaveRemote1Outdoors, $c8  ; this value doesn't really matter
+    d_byte GaveRemote2Sky,      $ca  ; this value doesn't really matter
+    d_byte GaveRemote3Outdoors, $c8  ; this value doesn't really matter
+    d_byte GaveRemote4Sky,      $ca  ; this value doesn't really matter
+    d_byte GaveRemote5Outdoors, $c8  ; this value doesn't really matter
+    d_byte GaveRemote6Sky,      $ca  ; this value doesn't really matter
     d_byte Reactivate1Outdoors, $c8
-    d_byte Reactivate2Sky,      $ca
+    d_byte Reactivate2Sky,      $ca  ; riding core platform
     d_byte Reactivate3Outdoors, $c8
-    d_byte Reactivate4Sky,      $80
+    d_byte Reactivate4Sky,      $80  ; riding core platform
     d_byte Reactivate5Outdoors, $28  ; high up, to avoid actor collisions
-    d_byte Reactivate6Sky,      $80
+    d_byte Reactivate6Sky,      $80  ; riding core platform
     d_byte YearsLater1Outdoors, $c8
     D_END
 _AvatarPose_eAvatar_arr:
     D_ARRAY .enum, eFinale
     d_byte GaveRemote1Outdoors, eAvatar::Hidden
+    d_byte GaveRemote2Sky,      eAvatar::Hidden
+    d_byte GaveRemote3Outdoors, eAvatar::Hidden
+    d_byte GaveRemote4Sky,      eAvatar::Hidden
+    d_byte GaveRemote5Outdoors, eAvatar::Hidden
+    d_byte GaveRemote6Sky,      eAvatar::Hidden
     d_byte Reactivate1Outdoors, eAvatar::Hidden
-    d_byte Reactivate2Sky,      eAvatar::Standing
+    d_byte Reactivate2Sky,      eAvatar::Standing  ; riding core platform
     d_byte Reactivate3Outdoors, eAvatar::Hidden
-    d_byte Reactivate4Sky,      eAvatar::Standing
+    d_byte Reactivate4Sky,      eAvatar::Standing  ; riding core platform
     d_byte Reactivate5Outdoors, eAvatar::Hidden
-    d_byte Reactivate6Sky,      eAvatar::Reading
+    d_byte Reactivate6Sky,      eAvatar::Reading   ; using console
     d_byte YearsLater1Outdoors, eAvatar::Hidden
     D_END
 _AvatarFlags_bObj_arr:
     D_ARRAY .enum, eFinale
     d_byte GaveRemote1Outdoors, kPaletteObjAvatarNormal | 0
+    d_byte GaveRemote2Sky,      kPaletteObjAvatarNormal | 0
+    d_byte GaveRemote3Outdoors, kPaletteObjAvatarNormal | 0
+    d_byte GaveRemote4Sky,      kPaletteObjAvatarNormal | 0
+    d_byte GaveRemote5Outdoors, kPaletteObjAvatarNormal | 0
+    d_byte GaveRemote6Sky,      kPaletteObjAvatarNormal | 0
     d_byte Reactivate1Outdoors, kPaletteObjAvatarNormal | bObj::FlipH
     d_byte Reactivate2Sky,      kPaletteObjAvatarNormal | bObj::FlipH
     d_byte Reactivate3Outdoors, kPaletteObjAvatarNormal | bObj::FlipH
