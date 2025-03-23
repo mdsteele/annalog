@@ -21,9 +21,11 @@
 .INCLUDE "../actors/adult.inc"
 .INCLUDE "../actors/orc.inc"
 .INCLUDE "../avatar.inc"
+.INCLUDE "../charmap.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../devices/console.inc"
 .INCLUDE "../dialog.inc"
+.INCLUDE "../fade.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -54,7 +56,10 @@
 .IMPORT FuncA_Objects_DrawTerminalPlatformInFront
 .IMPORT FuncA_Objects_MoveShapeRightHalfTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT Func_FadeOutToBlack
 .IMPORT Func_Noop
+.IMPORT Func_SetAndTransferFade
 .IMPORT Func_ShakeRoom
 .IMPORT Main_Finale_StartNextStep
 .IMPORT Ppu_ChrObjFinale
@@ -67,8 +72,12 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_Next_eCutscene
+.IMPORTZP Zp_PpuScrollX_u8
+.IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_PpuTransferLen_u8
+.IMPORTZP Zp_Render_bPpuMask
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -114,6 +123,9 @@ kInitCoreTopCenterY = $00d2
     ;; OuterCoreTerrainStartRow_u8 <= kScreenHeightTiles.
     InnerCoreTerrainStartRow_u8 .byte
     OuterCoreTerrainStartRow_u8 .byte
+    ;; If false ($00), draw the room normally.  If true ($ff), this room's
+    ;; DrawRoom function becomes a no-op.
+    DoNotDraw_bool .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -303,6 +315,10 @@ _SetUpDirectTransfer:
 
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Town_Sky_DrawRoom
+    bit Zp_RoomState + sState::DoNotDraw_bool
+    bpl @draw
+    rts
+    @draw:
 _OuterPlatform:
     ldx #kCoreOuterPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawCoreOuterPlatform
@@ -523,11 +539,8 @@ _MoveInnerOnly:
                    FuncA_Cutscene_TownSkyRevealJerome
     act_RunDialog eDialog::TownSkyFinaleGaveRemote6
     act_WaitFrames 60
+    act_ForkStart 0, DataA_Cutscene_TownSkyFinaleMaybeThisTime_sCutscene
     .linecont -
-_Finish_sCutscene:
-    ;; TODO: jump to credits
-    act_WaitFrames 60
-    act_ForkStart 0, _Finish_sCutscene
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownSkyFinaleReactivate6_sCutscene
@@ -542,10 +555,54 @@ _Finish_sCutscene:
     act_WaitFrames 30
     act_RunDialog eDialog::TownSkyFinaleReactivate6B
     act_WaitFrames 60
-_Finish_sCutscene:
-    ;; TODO: jump to credits
+    fall DataA_Cutscene_TownSkyFinaleMaybeThisTime_sCutscene
+.ENDPROC
+
+.PROC DataA_Cutscene_TownSkyFinaleMaybeThisTime_sCutscene
+    act_CallFunc _FadeRoomToBlack
     act_WaitFrames 60
-    act_ForkStart 0, _Finish_sCutscene
+    act_RunDialog eDialog::TownSkyFinaleMaybeThisTime
+    ;; TODO: jump to credits
+    @loop:
+    act_WaitFrames 60
+    act_ForkStart 0, @loop
+_FadeRoomToBlack:
+    jsr Func_FadeOutToBlack
+    ;; Stop drawing special platforms for this room.
+    dec Zp_RoomState + sState::DoNotDraw_bool  ; now $ff
+    ;; Stop drawing the player avatar.
+    lda #eAvatar::Hidden
+    sta Zp_AvatarPose_eAvatar
+    ;; Remove all actors.
+    .assert eAvatar::Hidden = eActor::None, error
+    ldx #kMaxActors - 1
+    @actorLoop:
+    sta Ram_ActorType_eActor_arr, x
+    dex
+    bpl @actorLoop
+    ;; Clear BG tiles in upper nametable.
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    ldax #Ppu_Nametable0_sName + sName::Tiles_u8_arr
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+    lda #' '
+    ldxy #kScreenWidthTiles * kScreenHeightTiles
+    @bgLoop:
+    sta Hw_PpuData_rw
+    dey
+    bne @bgLoop
+    dex
+    bpl @bgLoop
+    ;; Re-enable rendering:
+    lda #bPpuMask::BgMain | bPpuMask::ObjMain
+    sta Zp_Render_bPpuMask
+    lda #0
+    sta Zp_PpuScrollX_u8
+    sta Zp_PpuScrollY_u8
+    ldy #eFade::Normal  ; param: eFade value
+    jsr Func_SetAndTransferFade
+    jmp Func_ClearRestOfOamAndProcessFrame
 .ENDPROC
 
 ;;; Called repeatedly via act_RepeatFunc to reveal Jerome's hologram.
@@ -583,8 +640,6 @@ _Finish_sCutscene:
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_ToreApart_u8_arr
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_LockedAway_u8_arr
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_OrcDesires_u8_arr
-    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_Well_u8_arr
-    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_MaybeThisTime_u8_arr
     dlg_Done
 _RaiseGrontaAxe:
     lda #eNpcOrc::GrontaAxeRaised
@@ -616,6 +671,11 @@ _LowerGrontaAxe:
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_ToreApart_u8_arr
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_LockedAway_u8_arr
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_HumanDesires_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownSkyFinaleMaybeThisTime_sDialog
+.PROC DataA_Dialog_TownSkyFinaleMaybeThisTime_sDialog
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_Well_u8_arr
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_MaybeThisTime_u8_arr
     dlg_Done

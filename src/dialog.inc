@@ -255,6 +255,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     TownOutdoorsSign
     TownSkyFinaleGaveRemote4
     TownSkyFinaleGaveRemote6
+    TownSkyFinaleMaybeThisTime
     TownSkyFinaleReactivate4
     TownSkyFinaleReactivate6A
     TownSkyFinaleReactivate6B

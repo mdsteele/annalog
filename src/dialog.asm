@@ -178,6 +178,7 @@
 .IMPORT DataA_Dialog_TownOutdoorsSign_sDialog
 .IMPORT DataA_Dialog_TownSkyFinaleGaveRemote4_sDialog
 .IMPORT DataA_Dialog_TownSkyFinaleGaveRemote6_sDialog
+.IMPORT DataA_Dialog_TownSkyFinaleMaybeThisTime_sDialog
 .IMPORT DataA_Dialog_TownSkyFinaleReactivate4_sDialog
 .IMPORT DataA_Dialog_TownSkyFinaleReactivate6A_sDialog
 .IMPORT DataA_Dialog_TownSkyFinaleReactivate6B_sDialog
@@ -621,6 +622,8 @@ _Finish:
             DataA_Dialog_TownSkyFinaleGaveRemote4_sDialog
     d_entry t, TownSkyFinaleGaveRemote6, \
             DataA_Dialog_TownSkyFinaleGaveRemote6_sDialog
+    d_entry t, TownSkyFinaleMaybeThisTime, \
+            DataA_Dialog_TownSkyFinaleMaybeThisTime_sDialog
     d_entry t, TownSkyFinaleReactivate4, \
             DataA_Dialog_TownSkyFinaleReactivate4_sDialog
     d_entry t, TownSkyFinaleReactivate6A, \
