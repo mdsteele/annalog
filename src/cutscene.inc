@@ -38,6 +38,7 @@ kMaxForks = 4
 ;;; The list of cutscenes in the game.
 .ENUM eCutscene
     None
+    ;; @begin SORTED
     CityCenterBreakerCity
     CityFlowerOrcAttack
     CityOutskirtsLook
@@ -85,6 +86,7 @@ kMaxForks = 4
     TownSkyFinaleReactivate2
     TownSkyFinaleReactivate4
     TownSkyFinaleReactivate6
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 
@@ -99,6 +101,7 @@ kMaxForks = 4
 
 ;;; Actions that can be executed during a cutscene.
 .ENUM eAction
+    ;; @begin SORTED
     ;; Calls the specified function.  If the function clears C/Z, then the
     ;; current cutscene fork immediately continues on to the next action.  If
     ;; the function sets C/Z, then the current cutscene fork will immediately
@@ -198,6 +201,7 @@ kMaxForks = 4
     ;; cutscene fork immediately continues on to the next action.
     WaitUntilC         ; args: func ptr (2 bytes); func must return C
     WaitUntilZ         ; args: func ptr (2 bytes); func must return Z
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 

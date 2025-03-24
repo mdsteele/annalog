@@ -48,6 +48,10 @@ BAD_CODE_PATTERNS = [
         r'(Zp_[A-Za-z0-9_]+_ptr|T[0-9]T[0-9]), *[yY]')),
 ]
 
+BEGIN_PATTERN = re.compile(r'^ *;+ *@begin +([a-zA-Z0-9_]+)')
+END_PATTERN = re.compile(r'^ *;+ *@end +([a-zA-Z0-9_]+)')
+COMMENT_PATTERN = re.compile(r'^ *;')
+
 LOADED_PREREQ_PATTERN = re.compile(
     '^;;; @prereq (PRG[AC]_[A-Za-z0-9]+) is loaded.')
 SEGMENT_DECL_PATTERN = re.compile(r'^\.SEGMENT +"([a-zA-Z0-9_]*)"')
@@ -73,11 +77,6 @@ PRGC_PROC_NAME = re.compile(  # e.g. DataC_SegmentName_Foobar_sBaz_arr
     '^(?:DataC|FuncC|MainC)_([a-zA-Z0-9]+)_[a-zA-Z0-9_]+$')
 UNBANKED_PROC_NAME = re.compile(  # e.g. Main_Foobar
     '^(?:Data|Exit|Func|FuncM|Int|Main|Ppu|Sram)_[a-zA-Z0-9_]+$')
-
-SORT_PATTERNS = [
-    ('src/actor.inc', '.ENUM eActor', 'NUM_VALUES', 1),
-    ('src/room.inc', '.ENUM eRoom', 'NUM_VALUES', 0),
-]
 
 #=============================================================================#
 
@@ -171,6 +170,7 @@ def run_tests():
         proc_stack = []
         dialog_text_lines = []
         loaded_prereqs = set()
+        sorted_lines = None
         for (line_number, line) in enumerate(open(filepath)):
             def fail(message):
                 print('LINT: {}:{}: found {}'.format(
@@ -181,6 +181,23 @@ def run_tests():
             for (message, pattern) in BAD_CODE_PATTERNS:
                 if pattern.search(line):
                     fail(message)
+            # Track regions of code that should be in sorted order.
+            match = END_PATTERN.match(line)
+            if match and match.group(1) == 'SORTED':
+                if sorted_lines is None:
+                    fail('mismatched @end SORTED')
+                else:
+                    if sorted_lines != sorted(sorted_lines):
+                        fail('unsorted SORTED region')
+                    sorted_lines = None
+            if sorted_lines is not None and not COMMENT_PATTERN.match(line):
+                sorted_lines.append(line.strip())
+            match = BEGIN_PATTERN.match(line)
+            if match and match.group(1) == 'SORTED':
+                if sorted_lines is not None:
+                    fail('nested SORTED region')
+                else:
+                    sorted_lines = []
             # Keep track of which segment we're in.
             match = SEGMENT_DECL_PATTERN.match(line)
             if match:
@@ -276,31 +293,6 @@ def run_tests():
                                 fail(f'unterminated {kind} text line')
                             elif len(text) > max_len:
                                 fail(f'over-long {kind} text line')
-    for (filepath, start_string, end_string, skip) in SORT_PATTERNS:
-        def fail(message):
-            print('LINT: {}: {}'.format(filepath, message))
-            failed[0] = True
-        started = False
-        ended = False
-        lines = []
-        for line in open(filepath):
-            if not started:
-                if start_string in line:
-                    started = True
-            elif end_string in line:
-                ended = True
-                break
-            else:
-                lines.append(line.strip())
-        if not started:
-            fail('never found {}'.format(start_string))
-            continue
-        if not ended:
-            fail('never found {} after {}'.format(end_string, start_string))
-            continue
-        lines = lines[skip:]
-        if lines != sorted(lines):
-            fail('{} is not sorted'.format(start_string))
     return failed[0]
 
 if __name__ == '__main__':

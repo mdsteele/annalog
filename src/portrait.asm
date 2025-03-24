@@ -41,8 +41,8 @@
     d_byte ChildBrunoShout,    kChrBankPortraitBrunoTalk
     d_byte ChildMarie,         kChrBankPortraitMarieRest
     d_byte ChildNora,          kChrBankPortraitNoraRest
-    d_byte MermaidDaphne,      kChrBankPortraitMermaidRest
     d_byte MermaidCorra,       kChrBankPortraitCorraRest
+    d_byte MermaidDaphne,      kChrBankPortraitMermaidRest
     d_byte MermaidEirene,      kChrBankPortraitEireneRest
     d_byte MermaidEireneShout, kChrBankPortraitEireneTalk
     d_byte MermaidFarmer,      kChrBankPortraitFarmerRest
@@ -77,8 +77,8 @@
     d_byte ChildBrunoShout,    kChrBankPortraitBrunoRest
     d_byte ChildMarie,         kChrBankPortraitMarieTalk
     d_byte ChildNora,          kChrBankPortraitNoraTalk
-    d_byte MermaidDaphne,      kChrBankPortraitMermaidTalk
     d_byte MermaidCorra,       kChrBankPortraitCorraTalk
+    d_byte MermaidDaphne,      kChrBankPortraitMermaidTalk
     d_byte MermaidEirene,      kChrBankPortraitEireneTalk
     d_byte MermaidEireneShout, kChrBankPortraitEireneRest
     d_byte MermaidFarmer,      kChrBankPortraitFarmerTalk
@@ -112,8 +112,8 @@
     d_byte ChildBrunoShout,    kTileIdBgPortraitBrunoFirst
     d_byte ChildMarie,         kTileIdBgPortraitMarieFirst
     d_byte ChildNora,          kTileIdBgPortraitNoraFirst
-    d_byte MermaidDaphne,      kTileIdBgPortraitMermaidFirst
     d_byte MermaidCorra,       kTileIdBgPortraitCorraFirst
+    d_byte MermaidDaphne,      kTileIdBgPortraitMermaidFirst
     d_byte MermaidEirene,      kTileIdBgPortraitEireneFirst
     d_byte MermaidEireneShout, kTileIdBgPortraitEireneFirst
     d_byte MermaidFarmer,      kTileIdBgPortraitFarmerFirst

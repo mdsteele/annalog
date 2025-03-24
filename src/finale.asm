@@ -54,6 +54,7 @@
 ;;; Various steps of the three finales.  Each step represents a particular
 ;;; cutscene in a particular room.
 .ENUM eFinale
+    ;; @begin SORTED
     GaveRemote1Outdoors  ; ground splits open, Gronta emerges riding the core
     GaveRemote2Sky       ; Gronta rides the core into the sky
     GaveRemote3Outdoors  ; Thurg comes out of the town hall and sees the core
@@ -67,6 +68,7 @@
     Reactivate5Outdoors  ; Thurg and the other orc protest, but get laser-ed
     Reactivate6Sky       ; Jerome's recorded message concludes
     YearsLater1Outdoors
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 

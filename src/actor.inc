@@ -25,6 +25,7 @@ kMaxActors = 16
 ;;; Types of actors in a room (e.g. baddies, NPCs, projectiles, or smoke).
 .ENUM eActor
     None
+    ;; @begin SORTED
     BadBat           ; flies up and down or back and forth
     BadBeetleHorz    ; crawls around a platform
     BadBeetleVert    ; crawls around a platform
@@ -92,6 +93,7 @@ kMaxActors = 16
     SmokeSteamHorz   ; like ProjSteamHorz, but without any physics interactions
     SmokeSteamUp     ; like ProjSteamUp, but without any physics interactions
     SmokeWaterfall   ; pours out of a water pipe
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 

@@ -19,6 +19,7 @@
 
 ;;; Instruments that can be used for music notes.
 .ENUM eInst
+    ;; @begin SORTED
     Constant
     NoiseSnare
     PulseBasic
@@ -30,6 +31,7 @@
     TriangleDrum
     TriangleSlide
     TriangleVibrato
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 

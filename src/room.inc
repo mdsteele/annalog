@@ -40,6 +40,7 @@ kMaxPassages = 8
 
 ;;; The list of rooms in the game.
 .ENUM eRoom
+    ;; @begin SORTED
     BossCity
     BossCrypt
     BossGarden
@@ -184,6 +185,7 @@ kMaxPassages = 8
     TownHouse6
     TownOutdoors
     TownSky
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 
@@ -191,6 +193,7 @@ kMaxPassages = 8
 
 ;;; The list of areas in the game.
 .ENUM eArea
+    ;; @begin SORTED
     City
     Core
     Crypt
@@ -204,6 +207,7 @@ kMaxPassages = 8
     Shadow
     Temple
     Town
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 

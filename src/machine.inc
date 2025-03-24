@@ -28,6 +28,7 @@ kMachineRegNameB = $61  ; 'B'
 
 ;;; Diagrams for various kinds of machines.
 .ENUM eDiagram
+    ;; @begin SORTED
     AmmoRack
     Blaster
     Boiler
@@ -66,6 +67,7 @@ kMachineRegNameB = $61  ; 'B'
     Trolley
     Trombone
     Winch
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 

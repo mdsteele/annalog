@@ -20,6 +20,7 @@
 ;;; The list of fake consoles in the game (all of which are in the ShadowOffice
 ;;; room, as it happens).
 .ENUM eFake
+    ;; @begin SORTED
     CoreDump
     Corrupted
     EndThis
@@ -27,6 +28,7 @@
     IsThisEthical
     NoPower
     NoResponse
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 

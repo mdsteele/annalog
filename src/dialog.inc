@@ -69,6 +69,7 @@ kDialogTextYesNo   = $ff
 
 ;;; Animated dialog portraits for various NPCs and devices.
 .ENUM ePortrait
+    ;; @begin SORTED
     AdultElder
     AdultJerome
     AdultMan
@@ -80,8 +81,8 @@ kDialogTextYesNo   = $ff
     ChildBrunoShout
     ChildMarie
     ChildNora
-    MermaidDaphne
     MermaidCorra
+    MermaidDaphne
     MermaidEirene
     MermaidEireneShout
     MermaidFarmer
@@ -97,6 +98,7 @@ kDialogTextYesNo   = $ff
     Plaque
     Screen
     Sign
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 
@@ -115,6 +117,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
 
 ;;; The list of dialogs in the game.
 .ENUM eDialog
+    ;; @begin SORTED
     CityBuilding2Screen
     CityBuilding6Screen
     CityCenterAlex
@@ -259,6 +262,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     TownSkyFinaleReactivate4
     TownSkyFinaleReactivate6A
     TownSkyFinaleReactivate6B
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 

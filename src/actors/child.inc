@@ -37,6 +37,7 @@
 
 ;;; Possible values for a child NPC actor's State1 byte.
 .ENUM eNpcChild
+    ;; @begin SORTED
     AlexBoosting
     AlexHolding
     AlexKneeling
@@ -55,6 +56,7 @@
     MarieWalking1
     MarieWalking2
     NoraStanding
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 

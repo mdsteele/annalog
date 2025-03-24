@@ -27,6 +27,7 @@ kMaxDevices = 16
     ;; Non-interactive device types; these generally act as temporary
     ;; placeholders for interactive devices.
     None            ; empty slot
+    ;; @begin SORTED
     Boiler          ; boiler tank that can be hit by a fireblast
     BreakerDone     ; circuit breaker, after being activated
     BreakerRising   ; circuit breaker, rising out of the ground
@@ -35,8 +36,10 @@ kMaxDevices = 16
     Mousehole       ; used by rodent baddies
     Placeholder     ; invisible and does nothing
     Teleporter      ; invisible spawn point for teleport field machines
+    ;; @end SORTED
     ;; Interactive device types.  The player can interact with these by
     ;; pressing the B button while standing in front of them.
+    ;; @begin SORTED
     BreakerReady    ; circuit breaker, ready to be activated
     ConsoleCeiling  ; operates a machine
     ConsoleFloor    ; operates a machine
@@ -56,6 +59,7 @@ kMaxDevices = 16
     TalkLeft        ; initiates dialogue with the avatar facing to the left
     TalkRight       ; initiates dialogue with the avatar facing to the right
     Upgrade         ; collects the upgrade
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 

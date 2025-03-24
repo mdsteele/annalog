@@ -20,6 +20,7 @@
 ;;; Music songs that can be played.
 .ENUM eMusic
     Silence
+    ;; @begin SORTED
     Attack
     Boss1
     Boss2
@@ -38,6 +39,7 @@
     Title
     Town
     Upgrade
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 
