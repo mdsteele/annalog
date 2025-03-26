@@ -1193,7 +1193,7 @@ _chr_begin:
     chr_inc "proj_fireblast",       kTileIdObjProjFireblastFirst
     chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
     chr_inc "outbreak_obj",         kTileIdObjOutbreakFirst
-    chr_res $02
+    chr_res $01
     chr_inc "proj_breakfire",       kTileIdObjProjBreakfireFirst
     chr_res $08
     chr_inc "proj_spine",           kTileIdObjProjSpineFirst

@@ -207,12 +207,16 @@ kBossStunCycleFrames = 50
 ;;; How many frames the boss wobbles for at first when stunned.
 kBossStunAnimFrames = 24
 
+;;; How many frames to flash the boss's eyes for when hit by a bullet.
+kBossEyeFlashFrames = 8
+
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs used for drawing the boss.
 kTileIdObjOutbreakBrainFirst = kTileIdObjOutbreakFirst + 0
 kTileIdObjOutbreakEyeFirst   = kTileIdObjOutbreakFirst + 4
-kTileIdObjOutbreakClaw       = kTileIdObjOutbreakFirst + 8
+kTileIdObjOutbreakEyeFlash   = kTileIdObjOutbreakFirst + 8
+kTileIdObjOutbreakClaw       = kTileIdObjOutbreakFirst + 9
 kTileIdObjBloodFirst         = kTileIdObjDirtFirst
 
 ;;; OBJ palette numbers used for drawing the boss.
@@ -284,7 +288,9 @@ kBossBodyPlatformIndex = 3
     BossStunAnimTimer_u8 .byte
     ;; How open each of the eyes are, from 0 (closed) to kBossEyeOpenFrames
     ;; (open), indexed by eBossEye.
-    BossEyeOpen_u8_arr3  .byte eBossEye::NUM_VALUES
+    BossEyeOpen_u8_arr   .byte eBossEye::NUM_VALUES
+    ;; How many more frames each eye should flash for, indexed by eBossEye.
+    BossEyeFlash_u8_arr  .byte eBossEye::NUM_VALUES
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -550,7 +556,7 @@ _BossStunned:
 _BossShootBreak:
     ;; Wait for the active eye to be fully open.
     ldy Zp_RoomState + sState::Active_eBossEye  ; param: platform index
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, y
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr, y
     cmp #kBossEyeOpenFrames
     blt _Return  ; eye is not yet fully open
     ;; Spawn a breakball projetile and switch to waiting mode.
@@ -689,12 +695,22 @@ _Offset_u8_arr2:
     .assert eBossEye::Center = kBossEyeCenterPlatformIndex, error
     .assert eBossEye::Right = kBossEyeRightPlatformIndex, error
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    ;; Determine if the eye should flash red this frame.
+    lda Zp_RoomState + sState::BossEyeFlash_u8_arr, x
+    and #$02
+    sta T0  ; nonzero for flash
     ;; Determine tile ID.
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr, x
     .assert (kBossEyeOpenFrames + 1) .mod 4 = 0, error
     div #(kBossEyeOpenFrames + 1) / 4
     .assert kTileIdObjOutbreakEyeFirst .mod 4 = 0, error
     ora #kTileIdObjOutbreakEyeFirst  ; param: tile ID
+    cmp #kTileIdObjOutbreakEyeFirst + 3
+    bne @draw  ; eye is not fully open
+    ldy T0  ; nonzero for flash
+    beq @draw  ; eye is not flashing red this frame
+    lda #kTileIdObjOutbreakEyeFlash
+    @draw:
     ;; Draw the shape.
     ldy #kPaletteObjOutbreakEye  ; param: object flags
     jmp FuncA_Objects_Draw1x1Shape  ; preserves X
@@ -783,6 +799,11 @@ _Boss:
 ;;; @param X The eBossEye value for the eye.
 ;;; @preserve X
 .PROC FuncA_Room_BossTemple_TickBossEye
+_Flash:
+    lda Zp_RoomState + sState::BossEyeFlash_u8_arr, x
+    beq @done
+    dec Zp_RoomState + sState::BossEyeFlash_u8_arr, x
+    @done:
 _CheckIfOpenOrClosed:
     lda Zp_RoomState + sState::Current_eBossMode
     cmp #kFirstHealthyBossMode
@@ -792,16 +813,16 @@ _CheckIfOpenOrClosed:
     cpx Zp_RoomState + sState::Active_eBossEye
     bne _Close
 _Open:
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr, x
     cmp #kBossEyeOpenFrames
     bge @done
-    inc Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    inc Zp_RoomState + sState::BossEyeOpen_u8_arr, x
     @done:
     rts
 _Close:
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr, x
     beq @done
-    dec Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    dec Zp_RoomState + sState::BossEyeOpen_u8_arr, x
     @done:
     rts
 .ENDPROC
@@ -842,7 +863,7 @@ _StunBoss:
     sta Zp_RoomState + sState::BossStunAnimTimer_u8
     ldx Zp_RoomState + sState::Active_eBossEye
     lda #kBossEyeOpenFrames / 2
-    sta Zp_RoomState + sState::BossEyeOpen_u8_arr3, x
+    sta Zp_RoomState + sState::BossEyeOpen_u8_arr, x
     lda #eSample::BossHurtE  ; param: eSample to play
     jmp Func_PlaySfxSample
 .ENDPROC
@@ -884,7 +905,7 @@ _StunBoss:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     ;; Check if the eye is open.
-    lda Zp_RoomState + sState::BossEyeOpen_u8_arr3, y
+    lda Zp_RoomState + sState::BossEyeOpen_u8_arr, y
     .assert (kBossEyeOpenFrames + 1) .mod 4 = 0, error
     cmp #(kBossEyeOpenFrames + 1) * 3 / 4
     bge _EyeIsOpen
@@ -892,6 +913,8 @@ _EyeIsClosed:
     ;; TODO: play a sound for a bullet hitting a closed eye
     rts
 _EyeIsOpen:
+    lda #kBossEyeFlashFrames
+    sta Zp_RoomState + sState::BossEyeFlash_u8_arr, y
     lda #eSample::BossHurtF  ; param: eSample to play
     jsr Func_PlaySfxSample
     ;; Decrement the number of stun cycles if nonzero.
