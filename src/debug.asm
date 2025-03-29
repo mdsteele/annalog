@@ -35,6 +35,8 @@
 .IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT Func_PlaySfxMenuCancel
+.IMPORT Func_PlaySfxMenuMove
 .IMPORT Func_SetMachineIndex
 .IMPORT Main_Console_ContinueEditing
 .IMPORT Ram_Console_sProgram
@@ -160,6 +162,7 @@ _ExecuteNextIfRunning:
     .assert eMachine::Running = 0, error
     bne _ContinueDebugging
 _ExecuteNext:
+    jsr Func_PlaySfxMenuMove
     jsr Func_SetMachineIndex
     ldax #Ram_Console_sProgram
     stax Zp_Current_sProgram_ptr
@@ -168,6 +171,7 @@ _ContinueDebugging:
     clc  ; clear C to indicate that debugging should continue
     rts
 _StopDebugging:
+    jsr Func_PlaySfxMenuCancel
     sec  ; set C to indicate that debugging should stop
     rts
 .ENDPROC

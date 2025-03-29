@@ -53,6 +53,7 @@
 .IMPORT FuncM_ScrollTowardsGoal
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_IsFlagSet
+.IMPORT Func_PlaySfxMenuConfirm
 .IMPORT Func_PlaySfxWindowClose
 .IMPORT Func_PlaySfxWindowOpen
 .IMPORT Func_ProcessFrame
@@ -509,6 +510,7 @@ _ScrollWindow:
     and #$f0
     .assert eOpcode::Empty = 0, error
     beq @noDebug
+    jsr Func_PlaySfxMenuConfirm
     ldya #Main_Console_Debug
     bmi _ReturnYA  ; unconditional
     @noDebug:
