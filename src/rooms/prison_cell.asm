@@ -65,7 +65,7 @@
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
-.IMPORT Func_MovePointLeftByA
+.IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxConsoleTurnOn
@@ -77,7 +77,7 @@
 .IMPORT Func_SetOrClearFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
-.IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_SetPointToPlatformTopLeft
 .IMPORT Func_ShakeRoom
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ppu_ChrObjTown
@@ -95,6 +95,7 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
@@ -580,12 +581,23 @@ _RocketImpact:
     ldy #kUpperFloor1PlatformIndex  ; param: platform index
     jsr Func_IsPointInPlatform  ; preserves X, returns C
     bcc @done
-    ;; Explode the rocket and break the floor.
+    ;; Explode the rocket.
     jsr Func_InitActorSmokeExplosion
-    ;; TODO: more smoke/particles
     lda #kRocketShakeFrames  ; param: shake frames
     jsr Func_ShakeRoom
     jsr Func_PlaySfxExplodeFracture
+    ;; Add particles for the exploded upper floor.
+    ldy #kUpperFloor1PlatformIndex  ; param: platform index
+    ldax #_UpperFloor1ParticleAngle_u8_arr6  ; param: angle array pointer
+    jsr FuncC_Prison_Cell_SpawnParticlesForExplodedPlatform
+    ;; Add particles for the exploded mid ceiling.
+    ldy #kMidCeilingPlatformIndex  ; param: platform index
+    ldax #_MidCeilingParticleAngle_u8_arr2  ; param: angle array pointer
+    jsr FuncC_Prison_Cell_SpawnParticlesForExplodedPlatform
+    ;; Remove the upper floor platforms.  Note that we *don't* remove the mid
+    ;; ceiling platform; we'll stop drawing it in FuncC_Prison_Cell_DrawRoom,
+    ;; as though it were removed, but we leave it solid for now to prevent the
+    ;; player from jumping through before the trap floor has collapsed.
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor1PlatformIndex
     sta Ram_PlatformType_ePlatform_arr + kUpperFloor2PlatformIndex
@@ -639,20 +651,11 @@ _TrapFloor:
     sta Ram_PlatformType_ePlatform_arr + kTrapFloorPlatformIndex
     lda #kTrapFloorShakeFrames  ; param: shake frames
     jsr Func_ShakeRoom
+    jsr Func_PlaySfxExplodeFracture
     ;; Add particles for the collapsing floor.
     ldy #kTrapFloorPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter
-    lda #kTileWidthPx * 2 + kTileWidthPx / 2  ; param: offset
-    jsr Func_MovePointLeftByA
-    ldy #4 - 1
-    @loop:
-    lda #kTileWidthPx  ; param: offset
-    jsr Func_MovePointRightByA  ; preserves Y
-    lda _ParticleAngle_u8_arr4, y  ; param: angle
-    jsr FuncA_Room_SpawnParticleAtPoint  ; preserves Y
-    dey
-    bpl @loop
-    jsr Func_PlaySfxExplodeFracture
+    ldax #_TrapFloorParticleAngle_u8_arr4  ; param: angle array pointer
+    jsr FuncC_Prison_Cell_SpawnParticlesForExplodedPlatform
     @done:
 _Gate:
     ;; Update the flag from the lever.
@@ -662,8 +665,12 @@ _Gate:
     ;; Move the gate based on the lever.
     ldy Zp_RoomState + sState::GateLever_u8  ; param: zero for shut
     jmp FuncC_Prison_Cell_TickGate
-_ParticleAngle_u8_arr4:
-    .byte 52, 65, 70, 76
+_UpperFloor1ParticleAngle_u8_arr6:
+    .byte 156, 168, 180, 204, 216, 228
+_MidCeilingParticleAngle_u8_arr2:
+    .byte 78, 50
+_TrapFloorParticleAngle_u8_arr4:
+    .byte 76, 70, 65, 52
 .ENDPROC
 
 ;;; Performs per-frame updates for the gate in this room.
@@ -673,6 +680,35 @@ _ParticleAngle_u8_arr4:
     ldx #kGatePlatformIndex  ; param: gate platform index
     lda #kGateBlockRow  ; param: block row
     jmp FuncC_Prison_TickGatePlatform  ; returns Z
+.ENDPROC
+
+;;; Given a 1-tile-high by N-tile-wide platform, and an array of N angle values
+;;; from left to right, spawns N particles, each initially centered on one of
+;;; the platform's tiles.
+;;; @prereq PRGA_Room is loaded.
+;;; @param Y The platform index.
+;;; @param AX Pointer to the angle array for the particles.
+.PROC FuncC_Prison_Cell_SpawnParticlesForExplodedPlatform
+    stax T5T4  ; angle array pointer
+    jsr Func_SetPointToPlatformTopLeft  ; preserves Y and T0+
+    lda #kTileHeightPx / 2  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves Y and T0+
+    lda #kTileWidthPx / 2  ; param: offset
+    jsr Func_MovePointRightByA  ; preserves Y and T0+
+    lda Ram_PlatformRight_i16_0_arr, y
+    sub Ram_PlatformLeft_i16_0_arr, y
+    div #kTileWidthPx
+    sta T6  ; platform width in tiles
+    ldy #0
+    @loop:
+    lda (T5T4), y  ; param: angle
+    jsr FuncA_Room_SpawnParticleAtPoint  ; preserves Y and T4+
+    lda #kTileWidthPx  ; param: offset
+    jsr Func_MovePointRightByA  ; preserves Y and T0+
+    iny
+    cpy T6  ; platform width in tiles
+    blt @loop
+    rts
 .ENDPROC
 
 ;;; Draw function for the PrisonCell room.
