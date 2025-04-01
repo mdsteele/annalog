@@ -68,9 +68,9 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
-.IMPORT Func_PlaySfxFlopDown
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_PlaySfxShootFire
+.IMPORT Func_PlaySfxThump
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPlatformTopLeftToPoint
@@ -1161,7 +1161,7 @@ _CheckForFloorImpact:
     lda _ShakeFrames_u8_arr, y  ; param: num frames
     beq @noShake
     jsr Func_ShakeRoom  ; preserves T0+
-    jsr Func_PlaySfxFlopDown
+    jsr Func_PlaySfxThump
     @noShake:
     ;; Zero the boulder's velocity, and move it to exactly hit the floor.
     lda #0

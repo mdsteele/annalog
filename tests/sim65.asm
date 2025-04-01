@@ -124,7 +124,7 @@ _Buffer:
     php
     ldy #0
     plp
-    .assert * = Func_ExpectZEqualsY, error, "fallthrough"
+    fall Func_ExpectZEqualsY
 .ENDPROC
 
 ;;; Prints and exits with an error if the Z flag (treated as 0 or 1) is not
@@ -137,7 +137,7 @@ _Buffer:
     pla
     and #bProc::Zero
     div #bProc::Zero
-    .assert * = Func_ExpectAEqualsY, error, "fallthrough"
+    fall Func_ExpectAEqualsY
 .ENDPROC
 
 ;;; Prints and exits with an error if A does not equal Y.
@@ -181,19 +181,19 @@ _SerializeActual:
     jsr Func_BufferHexByte
 _Finish:
     jsr Func_WriteBuffer
-    .assert * = Exit_Failure, error, "fallthrough"
+    fall Exit_Failure
 .ENDPROC
 
 ;;; Exits the process with a failing error code.
 .PROC Exit_Failure
-    lda #1
+    lda #1  ; param: status code
     jmp $fff9  ; exit process with A as the status code (error if nonzero)
 .ENDPROC
 
 ;;; Exits the process with a succesful error code.
 .EXPORT Exit_Success
 .PROC Exit_Success
-    lda #0
+    lda #0  ; param: status code
     jmp $fff9  ; exit process with A as the status code (error if nonzero)
 .ENDPROC
 

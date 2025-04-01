@@ -64,8 +64,8 @@
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
-.IMPORT Func_PlaySfxFlopDown
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_PlaySfxThump
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToActorCenter
@@ -610,7 +610,7 @@ _Done:
     lda #5  ; param: bounding box down
     jsr FuncA_Actor_LandOnTerrain  ; preserves X, returns C
     bcc @done
-    jsr Func_PlaySfxFlopDown  ; preserves X
+    jsr Func_PlaySfxThump  ; preserves X
     lda #eActor::NpcOrcSleeping
     sta Ram_ActorType_eActor_arr, x
     jmp FuncA_Actor_ZeroVelX  ; preserves X
@@ -745,7 +745,7 @@ _WatchForAvatar:
 .PROC FuncA_Actor_TickBadOrc_Chasing
     ;; If the orc catches the player avatar, pause briefly.
     bcc @noCollide
-    jsr Func_PlaySfxFlopDown  ; preserves X
+    jsr Func_PlaySfxThump  ; preserves X
     lda #eBadOrc::Punching
     sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
     lda #kOrcPauseFrames

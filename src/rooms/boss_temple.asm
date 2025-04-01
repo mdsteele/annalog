@@ -75,6 +75,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxDrip
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_PlaySfxThump
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
@@ -910,8 +911,7 @@ _StunBoss:
     cmp #(kBossEyeOpenFrames + 1) * 3 / 4
     bge _EyeIsOpen
 _EyeIsClosed:
-    ;; TODO: play a sound for a bullet hitting a closed eye
-    rts
+    jmp Func_PlaySfxThump
 _EyeIsOpen:
     lda #kBossEyeFlashFrames
     sta Zp_RoomState + sState::BossEyeFlash_u8_arr, y

@@ -35,7 +35,7 @@
 .IMPORT Func_ClearRestOfOam
 .IMPORT Func_FadeOutToBlackSlowly
 .IMPORT Func_FadeToBlack
-.IMPORT Func_PlaySfxFlopDown
+.IMPORT Func_PlaySfxThump
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetAndTransferFade
 .IMPORT Main_Explore_SpawnInLastSafeRoom
@@ -257,7 +257,7 @@ _SetAvatarPose:
     tya
     adc Zp_AvatarPosX_i16 + 1
     sta Zp_AvatarPosX_i16 + 1
-    jsr Func_PlaySfxFlopDown
+    jsr Func_PlaySfxThump
     @sleeping:
     lda #eAvatar::Sleeping
     @setAvatarPose:

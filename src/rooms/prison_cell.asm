@@ -70,8 +70,8 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxConsoleTurnOn
 .IMPORT Func_PlaySfxExplodeFracture
-.IMPORT Func_PlaySfxFlopDown
 .IMPORT Func_PlaySfxSecretUnlocked
+.IMPORT Func_PlaySfxThump
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetOrClearFlag
@@ -837,7 +837,7 @@ _ParticleAngle_u8_arr4:
     act_SetAvatarState 0
     act_SetAvatarVelX 0
     act_WaitFrames 4
-    act_CallFunc Func_PlaySfxFlopDown
+    act_CallFunc Func_PlaySfxThump
     act_SetAvatarPose eAvatar::Sleeping
     ;; Animate the orc walking out.
     act_WaitFrames 30

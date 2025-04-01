@@ -73,6 +73,7 @@
 .IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_PlaySfxShootFire
+.IMPORT Func_PlaySfxThump
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
@@ -869,6 +870,7 @@ _HitEye:
 _HitClosedEye:
     ;; If the hit eye is closed, shake the room and switch the boss to Angry
     ;; mode.
+    jsr Func_PlaySfxThump  ; preserves X
     lda #kBossAngrySpikeCooldown * kBossAngryNumSpikes  ; param: num frames
     jsr Func_ShakeRoom  ; preserves X
     lda #eBossMode::Angry

@@ -22,6 +22,7 @@
 .INCLUDE "../sound.inc"
 
 .IMPORT Func_PlaySfxOnNoiseChannel
+.IMPORT Func_PlaySfxOnPulse2Channel
 
 ;;;=========================================================================;;;
 
@@ -39,6 +40,27 @@
     sfx_SetEnvTimer bEnvelope::NoLength | 5, $000d
     sfx_Wait 24
     sfx_End
+.ENDPROC
+
+;;; SFX data for the "thump" sound effect.
+.PROC Data_Thump_sSfx
+    .linecont +
+    sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | \
+                bEnvelope::ConstVol | 12), \
+               (pulse_sweep +6, 0), $0120
+    sfx_Wait 6
+    sfx_End
+    .linecont -
+.ENDPROC
+
+;;; Starts playing the sound for when a softer object gets hit (e.g. the player
+;;; avatar flops face down on the ground, or an orc punches someone, or a boss
+;;; gets hit for no damage).
+;;; @preserve X, T0+
+.EXPORT Func_PlaySfxThump
+.PROC Func_PlaySfxThump
+    ldya #Data_Thump_sSfx
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

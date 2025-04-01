@@ -76,10 +76,10 @@
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
-.IMPORT Func_PlaySfxFlopDown
 .IMPORT Func_PlaySfxMenuConfirm
 .IMPORT Func_PlaySfxMenuMove
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_PlaySfxThump
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToDeviceCenter
@@ -373,7 +373,7 @@ _KnockOutAlex:
     sta Ram_ActorState1_byte_arr + kAlexActorIndex
     lda #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
-    jsr Func_PlaySfxFlopDown
+    jsr Func_PlaySfxThump
     @done:
 _DetectAvatarDeath:
     ;; If the player avatar would die (because they were caught by the orcs;
@@ -684,7 +684,7 @@ _InitOrcs:
     act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
     act_SetAvatarPose eAvatar::Slumping
     act_WaitFrames 4
-    act_CallFunc Func_PlaySfxFlopDown
+    act_CallFunc Func_PlaySfxThump
     act_SetAvatarPose eAvatar::Sleeping
     act_WaitFrames 30
     act_CallFunc _InitThurgAndGrunt
