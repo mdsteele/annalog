@@ -22,6 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
+.IMPORT Func_PlaySfxOnPulse2Channel
 .IMPORTZP Zp_Next_sChanSfx_arr
 
 ;;;=========================================================================;;;
@@ -46,6 +47,16 @@ _TimerLo_u8_arr3:
     .byte $38, $80, $a0
 .ENDPROC
 
+;;; SFX data for the "drop" sound effect.
+.PROC Data_Drop_sSfx
+    .linecont +
+    sfx_SetAll bEnvelope::Duty12 | bEnvelope::NoLength | 4, \
+               (pulse_sweep +3, 0), $0070
+    sfx_Wait 20
+    sfx_End
+    .linecont -
+.ENDPROC
+
 ;;; Starts playing the sound for dripping acid.
 ;;; @preserve X, T0+
 .EXPORT Func_PlaySfxDrip
@@ -53,6 +64,18 @@ _TimerLo_u8_arr3:
     ldya #Data_Drip_sSfx
     stya Zp_Next_sChanSfx_arr + eChan::Triangle + sChanSfx::NextOp_sSfx_ptr
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Actor"
+
+;;; Starts playing the sound for dropping a spike.
+;;; @preserve X, T0+
+.EXPORT FuncA_Actor_PlaySfxDrop
+.PROC FuncA_Actor_PlaySfxDrop
+    ldya #Data_Drop_sSfx
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

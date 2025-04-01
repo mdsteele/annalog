@@ -28,6 +28,7 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarAboveOrBelow
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
+.IMPORT FuncA_Actor_PlaySfxDrop
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -135,6 +136,7 @@ _DropSpike:
     stx T0  ; slime actor index
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @noSpike
+    jsr FuncA_Actor_PlaySfxDrop  ; preserves X and T0+
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     jsr Func_InitActorProjSpike  ; preserves X and T0+
     lda #kSlimeSpikeInitSpeed

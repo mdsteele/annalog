@@ -27,6 +27,7 @@
 .IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
+.IMPORT Func_PlaySfxThump
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 
@@ -62,13 +63,15 @@ kSpikeTerminalVelocity = 6
     inc Ram_ActorState1_byte_arr, x
     beq _Expire
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X, returns C
-    bcs _Expire
+    bcs _Thump
     jsr FuncA_Actor_IsInRoomBounds  ; preserves X, returns C
     bcc _Expire
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
-    bcs _Expire
+    bcs _Thump
     lda #kSpikeTerminalVelocity  ; param: terminal velocity
     jmp FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
+_Thump:
+    jsr Func_PlaySfxThump  ; preserves X
 _Expire:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
