@@ -46,10 +46,6 @@
     sfx_End
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRG8"
-
 ;;; Starts playing the sound for a poof of smoke e.g. when an upgrade spawns,
 ;;; or a chain is broken, or an egg hatches.
 ;;; @preserve X, T0+

@@ -74,6 +74,7 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxDrip
+.IMPORT Func_PlaySfxPoof
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_PlaySfxThump
 .IMPORT Func_SetActorCenterToPoint
@@ -832,13 +833,9 @@ _Close:
 ;;; and stuns the boss.
 .PROC FuncA_Room_BossTemple_CheckForBreakballHit
     ;; Find the breakball actor (if any).
-    ldx #kMaxActors - 1
-    @loop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjBreakball
-    beq _FoundBreakball
-    dex
-    bpl @loop
+    lda #eActor::ProjBreakball  ; param: actor type to find
+    jsr Func_FindActorWithType  ; returns C and X
+    bcc _FoundBreakball
 _Done:
     rts
 _FoundBreakball:
@@ -852,6 +849,7 @@ _FoundBreakball:
     bcc _Done
 _StunBoss:
     ;; Expire the breakball.
+    jsr Func_PlaySfxPoof  ; preserves X
     jsr Func_InitActorSmokeExplosion
     ;; Stun the boss.
     lda #eBossMode::Stunned
@@ -997,8 +995,7 @@ _KillBoss:
     dey
     bpl @loop
     @break:
-    ;; TODO: play a sound for blood spurting
-    rts
+    jmp Func_PlaySfxDrip
 _BloodTile_u8_arr4:
     .byte kTileIdObjBloodFirst + 1
     .byte kTileIdObjBloodFirst + 0

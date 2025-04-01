@@ -40,6 +40,7 @@
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_PlaySfxPoof
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
@@ -153,6 +154,7 @@ _MovingUp:
     ;; If the terrain is solid, expire the breakball.
     jsr Func_PointHitsTerrain  ; preserves X, returns C
     bcc _Return
+    jsr Func_PlaySfxPoof  ; preserves X
     jmp Func_InitActorSmokeExplosion  ; preserves X
 _MovingDown:
     ;; Set the point to the bottom of the breakball.
@@ -170,6 +172,7 @@ _MovingDown:
 _Return:
     rts
 _Explode:
+    jsr Func_PlaySfxPoof  ; preserves X
     jsr Func_PlaySfxExplodeBig  ; preserves X
     ;; Adjust the breakball's position to 8 pixels above the floor.
     lda Ram_ActorPosY_i16_0_arr, x
