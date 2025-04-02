@@ -37,10 +37,12 @@
 .INCLUDE "tileset.inc"
 
 .IMPORT FuncA_Avatar_SpawnAtDevice
+.IMPORT FuncA_Cutscene_PlaySfxCircuitPowerUp
 .IMPORT FuncA_Cutscene_PlaySfxFlipBreaker
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT FuncM_SwitchPrgcAndLoadRoomWithMusic
 .IMPORT Func_FadeOutToBlack
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Main_Explore_Continue
@@ -259,10 +261,14 @@ _AvatarFlipOffsetY_u8_arr:
 
 .EXPORT DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
 .PROC DataA_Cutscene_CoreBossPowerUpCircuit_sCutscene
-    act_WaitFrames 61
-    act_RepeatFunc 194, _BlinkCircuit
+    act_WaitFrames 65
+    act_CallFunc FuncA_Cutscene_PlaySfxCircuitPowerUp
+    act_RepeatFunc 120, _PowerUpCircuit
+    act_CallFunc Func_PlaySfxExplodeBig
+    act_ShakeRoom 30
+    act_RepeatFunc 150, _AnimatePoweredCircuit
     act_JumpToMain Main_Breaker_TransitionToBreakerCutscene
-_BlinkCircuit:
+_PowerUpCircuit:
     cpx #64
     bge @on
     txa  ; timer (0-63 ascending)
@@ -275,10 +281,11 @@ _BlinkCircuit:
     @off:
     ldx #<.bank(Ppu_ChrBgAnimStatic)
     .assert <.bank(Ppu_ChrBgAnimStatic) <> 0, error
-    bne @setBank  ; unconditional
+    bne _SetBankToX  ; unconditional
     @on:
+_AnimatePoweredCircuit:
     ldx Zp_Chr04Bank_u8
-    @setBank:
+_SetBankToX:
     main_chr0c x
     rts
 .ENDPROC
@@ -320,7 +327,7 @@ _BlinkCircuit:
     lda #eAvatar::Hidden
     sta Zp_AvatarPose_eAvatar
     ;; Set room scroll and lock scrolling.
-    lda #$48
+    lda #$47
     sta Zp_RoomScrollY_u8
     ldax #$0090
     stax Zp_RoomScrollX_u16
