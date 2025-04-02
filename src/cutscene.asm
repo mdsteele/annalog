@@ -110,7 +110,9 @@
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_PointX_i16
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_ScrollGoalX_u16
+.IMPORTZP Zp_ScrollGoalY_u8
 
 ;;;=========================================================================;;;
 
@@ -434,6 +436,7 @@ _InitMainFork:
     d_entry table, RepeatFunc,        _RepeatFunc
     d_entry table, RunDialog,         _RunDialog
     d_entry table, ScrollSlowX,       _ScrollSlowX
+    d_entry table, ScrollSlowY,       _ScrollSlowY
     d_entry table, SetActorFlags,     _SetActorFlags
     d_entry table, SetActorPosX,      _SetActorPosX
     d_entry table, SetActorPosY,      _SetActorPosY
@@ -582,6 +585,17 @@ _ScrollSlowX:
     rts  ; otherwise, C is clear to indicate that the cutscene should continue
     @reachedGoal:
     ldy #3  ; param: byte offset
+    jmp FuncA_Cutscene_AdvanceForkAndExecute
+_ScrollSlowY:
+    lda (T1T0), y
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointY_i16 + 1
+    jsr FuncA_Cutscene_MoveScrollGoalTowardPointY  ; returns C
+    bcs @reachedGoal
+    rts  ; otherwise, C is clear to indicate that the cutscene should continue
+    @reachedGoal:
+    ldy #2  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
 _SetActorFlags:
     lda (T1T0), y
@@ -864,7 +878,8 @@ _CallFuncArg:
     jmp (T3T2)
 .ENDPROC
 
-;;; Moves Zp_ScrollGoalX_u16 one pixel left or right towards Zp_PointX_i16.
+;;; Moves Zp_ScrollGoalX_u16 one pixel left or right towards Zp_PointX_i16
+;;; (which is assumed to be in valid range for Zp_ScrollGoalX_u16).
 ;;; @return C Set if the goal point has been reached.
 .PROC FuncA_Cutscene_MoveScrollGoalTowardPointX
     lda Zp_PointX_i16 + 0
@@ -889,6 +904,28 @@ _MoveByYA:
     tya
     adc Zp_ScrollGoalX_u16 + 1
     sta Zp_ScrollGoalX_u16 + 1
+    clc  ; not yet reached goal
+    rts
+.ENDPROC
+
+;;; Moves Zp_ScrollGoalY_u8 one pixel up or down towards Zp_PointY_i16 (which
+;;; is assumed to be in valid range for Zp_ScrollGoalY_u8).
+;;; @return C Set if the goal point has been reached.
+.PROC FuncA_Cutscene_MoveScrollGoalTowardPointY
+    lda Zp_PointY_i16 + 0
+    cmp Zp_ScrollGoalY_u8
+    blt _MoveUp
+    bne _MoveDown
+    sec  ; goal point has been reached
+    rts
+_MoveDown:
+    lda #1
+    bpl _MoveByA  ; unconditional
+_MoveUp:
+    lda #<-1
+_MoveByA:
+    add Zp_ScrollGoalY_u8
+    sta Zp_ScrollGoalY_u8
     clc  ; not yet reached goal
     rts
 .ENDPROC

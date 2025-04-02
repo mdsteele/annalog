@@ -133,7 +133,8 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     CoreBossGrontaIntro
     CoreBossScreen
     CoreLockBreakerShadow
-    CoreSouthCorra
+    CoreSouthCorra1
+    CoreSouthCorra2
     CryptTombPlaque
     FactoryEastCorra
     FactoryElevatorBrunoHi

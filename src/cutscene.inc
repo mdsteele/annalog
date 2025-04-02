@@ -158,9 +158,11 @@ kMaxForks = 4
     ;; Starts the specified dialog, and suspends *all* cutscene forks while the
     ;; dialog runs.  The cutscene will continue once the dialog is done.
     RunDialog          ; args: eDialog value
-    ;; Slowly scrolls the screen to the specified scroll-X position, suspending
-    ;; the current fork until that scroll position is reached.
+    ;; Slowly scrolls the screen to the specified scroll-X or scroll-Y
+    ;; position, suspending the current fork until that scroll position is
+    ;; reached.
     ScrollSlowX        ; args: scroll-X goal (2 bytes)
+    ScrollSlowY        ; args: scroll-Y goal (1 byte)
     ;; Sets a field on the specified actor to the specified value, then the
     ;; current cutscene fork immediately continues on to the next action.
     SetActorFlags      ; args: actor index, new bObj value
@@ -319,6 +321,11 @@ kMaxForks = 4
 .MACRO act_ScrollSlowX GOALX
     .byte eAction::ScrollSlowX
     .word GOALX
+.ENDMACRO
+
+.MACRO act_ScrollSlowY GOALY
+    .byte eAction::ScrollSlowY
+    .byte GOALY
 .ENDMACRO
 
 .MACRO act_SetActorFlags INDEX, BOBJ

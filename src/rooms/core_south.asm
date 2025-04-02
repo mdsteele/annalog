@@ -31,10 +31,10 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Core_sTileset
-.IMPORT DataA_Text0_CoreSouthCorra_AlreadyHelped_u8_arr
-.IMPORT DataA_Text0_CoreSouthCorra_HelloAgain1_u8_arr
-.IMPORT DataA_Text0_CoreSouthCorra_HelloAgain2_u8_arr
-.IMPORT DataA_Text0_CoreSouthCorra_HelloAgain3_u8_arr
+.IMPORT DataA_Text0_CoreSouthCorra_ClimbUp_u8_arr
+.IMPORT DataA_Text0_CoreSouthCorra_GoodLuck_u8_arr
+.IMPORT DataA_Text0_CoreSouthCorra_HelloAgain_u8_arr
+.IMPORT DataA_Text0_CoreSouthCorra_NeverSeen_u8_arr
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawCratePlatform
 .IMPORT FuncA_Objects_MoveShapeDownByA
@@ -278,14 +278,14 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::TalkRight
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 5
-    d_byte Target_byte, eDialog::CoreSouthCorra
+    d_byte Target_byte, eDialog::CoreSouthCorra1
     D_END
     .assert * - :- = kCorraDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
     d_byte BlockRow_u8, 10
     d_byte BlockCol_u8, 6
-    d_byte Target_byte, eDialog::CoreSouthCorra
+    d_byte Target_byte, eDialog::CoreSouthCorra1
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
@@ -442,20 +442,28 @@ _WaterBobOffset_i8_arr8:
 
 .EXPORT DataA_Cutscene_CoreSouthCorraHelping_sCutscene
 .PROC DataA_Cutscene_CoreSouthCorraHelping_sCutscene
+    act_WaitFrames 15
+    act_ScrollSlowY $00
+    act_WaitFrames 180
+    act_RunDialog eDialog::CoreSouthCorra2
+    ;; Animate Corra swimming down to the anchor.
     act_SetCutsceneFlags bCutscene::RoomTick
     act_SetActorState2 kCorraActorIndex, $ff
     act_RepeatFunc 123, _SwimDownFunc
+    ;; Release the crates (and play a jingle once they float to the surface).
     act_RepeatFunc 40, _AnimateSwimmingDownFunc
     act_CallFunc _ReleaseCratesFunc
     act_ForkStart 1, _DelayedSecretJingle_sCutscene
     act_RepeatFunc 40, _AnimateSwimmingDownFunc
+    ;; Animate Corra swimming back up to the surface.
     act_SetActorFlags kCorraActorIndex, bObj::FlipH
     act_RepeatFunc 82, _SwimUpFunc
     act_SetActorState1 kCorraActorIndex, eNpcAdult::MermaidCorra
     act_WaitFrames 15
+    ;; Make Corra turn back towards Anna and finish the conversation.
     act_SetActorState2 kCorraActorIndex, 0
     act_WaitFrames 15
-    act_RunDialog eDialog::CoreSouthCorra
+    act_RunDialog eDialog::CoreSouthCorra1
     act_ContinueExploring
 _DelayedSecretJingle_sCutscene:
     act_WaitFrames 70
@@ -518,16 +526,22 @@ _AnimateSwimmingUpFunc:
 
 .SEGMENT "PRGA_Dialog"
 
-.EXPORT DataA_Dialog_CoreSouthCorra_sDialog
-.PROC DataA_Dialog_CoreSouthCorra_sDialog
-    dlg_IfSet CoreSouthCorraHelped, _AlreadyHelped_sDialog
-_HelloAgain_sDialog:
-    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra_HelloAgain1_u8_arr
-    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra_HelloAgain2_u8_arr
-    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra_HelloAgain3_u8_arr
+.EXPORT DataA_Dialog_CoreSouthCorra1_sDialog
+.PROC DataA_Dialog_CoreSouthCorra1_sDialog
+    dlg_IfSet CoreSouthCorraHelped, DataA_Dialog_CoreSouthCorra_Helped_sDialog
+    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra_HelloAgain_u8_arr
+    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra_NeverSeen_u8_arr
     dlg_Cutscene eCutscene::CoreSouthCorraHelping
-_AlreadyHelped_sDialog:
-    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra_AlreadyHelped_u8_arr
+.ENDPROC
+
+.EXPORT DataA_Dialog_CoreSouthCorra2_sDialog
+.PROC DataA_Dialog_CoreSouthCorra2_sDialog
+    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra_ClimbUp_u8_arr
+    dlg_Done
+.ENDPROC
+
+.PROC DataA_Dialog_CoreSouthCorra_Helped_sDialog
+    dlg_Text MermaidCorra, DataA_Text0_CoreSouthCorra_GoodLuck_u8_arr
     dlg_Done
 .ENDPROC
 

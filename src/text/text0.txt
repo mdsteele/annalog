@@ -35,24 +35,24 @@ village. Humans happy
 in ugly human village.
 Why fight? Pointless.#
 
-@CoreSouthCorra_HelloAgain1
+@CoreSouthCorra_HelloAgain
 Hello again! I heard
 that you were going to
 try to rescue your
 friends from the orcs.#
 
-@CoreSouthCorra_HelloAgain2
+@CoreSouthCorra_NeverSeen
 I've never seen ANY
 place like this. Who
 could have built
 something like this?#
 
-@CoreSouthCorra_HelloAgain3
+@CoreSouthCorra_ClimbUp
 Are you going to climb
 up? Let me see if I
 can help you...#
 
-@CoreSouthCorra_AlreadyHelped
+@CoreSouthCorra_GoodLuck
 Good luck! And be
 careful!#
 
