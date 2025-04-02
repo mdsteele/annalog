@@ -84,6 +84,24 @@ _Actors_sActor_arr:
     d_word PosY_i16, $00f8
     d_byte Param_byte, $7f
     D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $0058
+    d_word PosY_i16, $0018
+    d_byte Param_byte, %01010100
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $0028
+    d_word PosY_i16, $00b8
+    d_byte Param_byte, %11011000
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $00d8
+    d_word PosY_i16, $0168
+    d_byte Param_byte, %00001110
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Passages_sPassage_arr:

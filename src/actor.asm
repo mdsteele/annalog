@@ -118,6 +118,7 @@
 .IMPORT FuncA_Objects_DrawActorBadVinebug
 .IMPORT FuncA_Objects_DrawActorBadWasp
 .IMPORT FuncA_Objects_DrawActorNpcAdult
+.IMPORT FuncA_Objects_DrawActorNpcBlinky
 .IMPORT FuncA_Objects_DrawActorNpcChild
 .IMPORT FuncA_Objects_DrawActorNpcDuck
 .IMPORT FuncA_Objects_DrawActorNpcOrc
@@ -509,6 +510,7 @@ _NoHit:
     d_byte BadVinebug,       7
     d_byte BadWasp,          5
     d_byte NpcAdult,        13
+    d_byte NpcBlinky,        1
     d_byte NpcChild,         7
     d_byte NpcDuck,          1
     d_byte NpcOrc,          kOrcBoundingBoxUp
@@ -581,6 +583,7 @@ _NoHit:
     d_byte BadVinebug,       7
     d_byte BadWasp,          6
     d_byte NpcAdult,         8
+    d_byte NpcBlinky,        1
     d_byte NpcChild,         8
     d_byte NpcDuck,          3
     d_byte NpcOrc,          kOrcBoundingBoxDown
@@ -653,6 +656,7 @@ _NoHit:
     d_byte BadVinebug,       5
     d_byte BadWasp,          6
     d_byte NpcAdult,         5
+    d_byte NpcBlinky,        1
     d_byte NpcChild,         5
     d_byte NpcDuck,          3
     d_byte NpcOrc,          kOrcBoundingBoxSide
@@ -793,6 +797,7 @@ _TypeSpecificTick:
     d_entry table, BadVinebug,      FuncA_Actor_TickBadVinebug
     d_entry table, BadWasp,         FuncA_Actor_TickBadWasp
     d_entry table, NpcAdult,        Func_Noop
+    d_entry table, NpcBlinky,       Func_Noop
     d_entry table, NpcChild,        Func_Noop
     d_entry table, NpcDuck,         FuncA_Actor_TickNpcDuck
     d_entry table, NpcOrc,          Func_Noop
@@ -970,6 +975,7 @@ _Finish:
     d_entry table, eActor::BadVinebug,      Func_InitActorDefault
     d_entry table, eActor::BadWasp,         FuncA_Room_InitActorBadWasp
     d_entry table, eActor::NpcAdult,        Func_InitActorWithState1
+    d_entry table, eActor::NpcBlinky,       Func_InitActorWithState1
     d_entry table, eActor::NpcChild,        FuncA_Room_InitActorNpcChild
     d_entry table, eActor::NpcDuck,         Func_InitActorWithFlags
     d_entry table, eActor::NpcOrc,          Func_InitActorNpcOrc
@@ -1041,6 +1047,7 @@ _Finish:
     d_entry table, BadVinebug,      FuncA_Objects_DrawActorBadVinebug
     d_entry table, BadWasp,         FuncA_Objects_DrawActorBadWasp
     d_entry table, NpcAdult,        FuncA_Objects_DrawActorNpcAdult
+    d_entry table, NpcBlinky,       FuncA_Objects_DrawActorNpcBlinky
     d_entry table, NpcChild,        FuncA_Objects_DrawActorNpcChild
     d_entry table, NpcDuck,         FuncA_Objects_DrawActorNpcDuck
     d_entry table, NpcOrc,          FuncA_Objects_DrawActorNpcOrc

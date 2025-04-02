@@ -240,6 +240,36 @@ _Actors_sActor_arr:
     d_word PosY_i16, $0140
     d_byte Param_byte, 0
     D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $0078
+    d_word PosY_i16, $0008
+    d_byte Param_byte, %11001100
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $00a8
+    d_word PosY_i16, $0008
+    d_byte Param_byte, %11001100
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $0028
+    d_word PosY_i16, $00a8
+    d_byte Param_byte, %11100000
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $0108
+    d_word PosY_i16, $0078
+    d_byte Param_byte, %00001100
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $00e8
+    d_word PosY_i16, $00e8
+    d_byte Param_byte, %00111011
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:

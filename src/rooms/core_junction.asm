@@ -31,6 +31,13 @@
 .IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Sram_ProgressFlags_arr
+
+;;;=========================================================================;;;
+
+;;; The actor index of the blinky NPC attached to the circuit conduit.
+kCircuitBlinkyActorIndex = 4
 
 ;;;=========================================================================;;;
 
@@ -57,7 +64,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Core_Junction_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, FuncC_Core_Junction_DrawRoom
@@ -84,6 +91,37 @@ _Actors_sActor_arr:
     d_word PosY_i16, $0088
     d_byte Param_byte, 0
     D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $00c8
+    d_word PosY_i16, $0018
+    d_byte Param_byte, %11011101
+    D_END
+    .assert * - :- = kCircuitBlinkyActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $0068
+    d_word PosY_i16, $0058
+    d_byte Param_byte, %01010101
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $0108
+    d_word PosY_i16, $00a8
+    d_byte Param_byte, %01111101
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $0078
+    d_word PosY_i16, $00e8
+    d_byte Param_byte, %11001100
+    D_END
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcBlinky
+    d_word PosX_i16, $00a8
+    d_word PosY_i16, $00e8
+    d_byte Param_byte, %11001100
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Passages_sPassage_arr:
@@ -106,6 +144,15 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, $c1
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Core_Junction_EnterRoom
+    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
+    bne @done
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kCircuitBlinkyActorIndex
+    @done:
+    rts
 .ENDPROC
 
 ;;; @prereq PRGA_Objects is loaded.

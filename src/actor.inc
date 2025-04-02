@@ -56,6 +56,7 @@ kMaxActors = 16
     BadVinebug       ; moves vertically on a vine
     BadWasp          ; flies in a circle
     NpcAdult         ; used for human adults and for most mermaids
+    NpcBlinky        ; a blinkenlight in the Core area
     NpcChild         ; used for human children
     NpcDuck          ; used for the ducks in SewerPool
     NpcOrc           ; used for orcs, and Queen Eirene when she's standing
