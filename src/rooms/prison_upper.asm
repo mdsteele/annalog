@@ -144,10 +144,10 @@ kMarieJumpPositionX = $0199
 .PROC DataC_Prison_Upper_sRoom
     D_STRUCT sRoom
     d_byte MinScrollX_u8, $00
-    d_word MaxScrollX_u16, $0100
+    d_word MaxScrollX_u16, $0200
     d_byte Flags_bRoom, eArea::Prison
     d_byte MinimapStartRow_u8, 1
-    d_byte MinimapStartCol_u8, 5
+    d_byte MinimapStartCol_u8, 4
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
@@ -167,8 +167,9 @@ _Ext_sRoomExt:
     d_addr Draw_func_ptr, FuncC_Prison_Upper_DrawRoom
     D_END
 _TerrainData:
-:   .incbin "out/rooms/prison_upper.room"
-    .assert * - :- = 33 * 15, error
+:   .incbin "out/rooms/prison_upper1.room"
+    .incbin "out/rooms/prison_upper2.room"
+    .assert * - :- = 49 * 15, error
 _Platforms_sPlatform_arr:
 :   .assert * - :- = kGatePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform

@@ -325,6 +325,7 @@
 .ENDPROC
 
 .PROC DataA_Pause_PrisonAreaCells_u8_arr2_arr
+    .byte 1, 4
     .byte 1, 5
     .byte 1, 6
     .byte 1, 7

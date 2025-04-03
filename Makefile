@@ -318,6 +318,11 @@ $(OBJDIR)/rooms/mermaid_village.o: \
   $(ROOM_OUT_DIR)/mermaid_village1.room $(ROOM_OUT_DIR)/mermaid_village2.room
 	$(compile-asm)
 
+$(OBJDIR)/rooms/prison_upper.o: \
+  src/rooms/prison_upper.asm $(INC_FILES) \
+  $(ROOM_OUT_DIR)/prison_upper1.room $(ROOM_OUT_DIR)/prison_upper2.room
+	$(compile-asm)
+
 $(OBJDIR)/rooms/shadow_depths.o: \
   src/rooms/shadow_depths.asm $(INC_FILES) \
   $(ROOM_OUT_DIR)/shadow_depths1.room $(ROOM_OUT_DIR)/shadow_depths2.room \
