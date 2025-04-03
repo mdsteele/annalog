@@ -314,20 +314,20 @@ _EastGate:
     jsr FuncC_Prison_OpenGateAndFlipLever
     @shut:
 _LowerGate:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastLowerGateShut
-    bne @shut
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastLowerGateOpen
+    beq @shut
     ldy #sState::LowerGateLever_u8  ; param: lever target
     ldx #kLowerGatePlatformIndex  ; param: gate platform index
     jsr FuncC_Prison_OpenGateAndFlipLever
     @shut:
 _WestGate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastWestGateOpen
-    bne @open
-    rts
-    @open:
+    beq @shut
     ldy #sState::WestGateLever_u8  ; param: lever target
     ldx #kWestGatePlatformIndex  ; param: gate platform index
     jmp FuncC_Prison_OpenGateAndFlipLever
+    @shut:
+    rts
 .ENDPROC
 
 ;;; Tick function for the PrisonEast room.
@@ -360,9 +360,8 @@ _EastGate:
     jsr FuncC_Prison_TickGatePlatform
 _LowerGate:
     ;; Update the flag from the lever.
-    ldx #eFlag::PrisonEastLowerGateShut  ; param: flag
-    lda Zp_RoomState + sState::LowerGateLever_u8
-    eor #1  ; param: zero for clear
+    ldx #eFlag::PrisonEastLowerGateOpen  ; param: flag
+    lda Zp_RoomState + sState::LowerGateLever_u8  ; param: zero for clear
     jsr Func_SetOrClearFlag
     ;; Move the gate based on the lever.
     ldy Zp_RoomState + sState::LowerGateLever_u8  ; param: zero for shut
@@ -388,8 +387,8 @@ _CheckIfOrcIsGone:
 _CheckIfOrcIsTrapped:
     ldx #eFlag::PrisonEastOrcTrapped  ; param: flag
     ;; If the lower gate is open, mark the orc as not trapped.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastLowerGateShut
-    beq _OrcIsNotTrapped
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastLowerGateOpen
+    bne _OrcIsNotTrapped
     ;; Otherwise, if the orc is to the right of the gate, it's not trapped.
     lda #<kLowerGateLeft
     cmp Ram_ActorPosX_i16_0_arr + kOrcActorIndex

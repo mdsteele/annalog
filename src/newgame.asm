@@ -273,15 +273,15 @@ _SetFlags:
     .byte eFlag::CoreSouthCorraHelped
     .byte eFlag::PrisonEastEastGateOpen
     .byte eFlag::PaperJerome15  ; room: PrisonLower
-    .byte eFlag::PrisonEastLowerGateShut
     .byte eFlag::PrisonEastOrcTrapped
     .byte eFlag::PrisonEastWestGateOpen
+    .byte eFlag::PrisonCellGateOpen
     .byte eFlag::PrisonUpperFoundAlex
     .byte eFlag::PrisonUpperLoosenedBrick
     .byte eFlag::PrisonUpperFreedAlex
     .byte eFlag::PrisonUpperGateOpen
     .byte eFlag::PrisonUpperFreedKids
-    .byte eFlag::PrisonCellGateOpen
+    .byte eFlag::PrisonEastLowerGateOpen
     .byte eFlag::FlowerPrison
     .byte eFlag::MermaidHut1AlexPetition
     .byte eFlag::PaperJerome31  ; room: CoreFlower
