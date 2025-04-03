@@ -348,13 +348,25 @@ def load_markers():
 
 #=============================================================================#
 
-def test_area_cells_sorted(areas):
+def test_area_cells(areas):
     failed = False
     for area_name, area in areas.items():
         area_cells = area['cells']
         if area_cells != sorted(area_cells):
             print('SCENARIO: {}AreaCells is not sorted'.format(area_name))
             failed = True
+        # Each minimap row of each area can contain at most 8 cells (since we
+        # draw one OBJ in each minimap cell of the current area on the pause
+        # screen, and the NES can't draw more than 8 OBJs on one scanline).
+        area_rows = {}
+        for row, col in area_cells:
+            if row not in area_rows: area_rows[row] = []
+            area_rows[row].append(col)
+        for row, cols in area_rows.items():
+            if len(cols) > 8:
+                print('SCENARIO: more than 8 cells in row {} of {}AreaCells'.
+                      format(row, area_name))
+                failed = True
     return failed
 
 def test_markers_sorted(markers):
@@ -606,7 +618,7 @@ def test_newgame_flags(newgame_flags, all_flags, papers):
 def run_tests():
     failed = False
     areas = load_areas()
-    failed |= test_area_cells_sorted(areas)
+    failed |= test_area_cells(areas)
     markers = load_markers()
     failed |= test_markers_sorted(markers)
     minimap = load_minimap()
