@@ -31,6 +31,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Prison_sTileset
 .IMPORT FuncA_Machine_Error
@@ -61,6 +62,7 @@
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -278,7 +280,9 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 ;;; Enter function for the PrisonEast room.
+;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncC_Prison_East_EnterRoom
+    sta T0  ; bSpawn value
 _InitOrc:
     ;; Once the kids have been rescued, remove the orc from this room.
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
@@ -291,20 +295,27 @@ _InitOrc:
     ;; If the orc is trapped, move it inside the cell.  Otherwise, disable the
     ;; lift machine until the orc gets trapped.
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastOrcTrapped
-    bne @orcIsTrapped
-    @disableLift:
-    lda #eMachine::Halted
-    sta Ram_MachineStatus_eMachine_arr + kLiftMachineIndex
-    lda #eDevice::Placeholder
-    sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
-    .assert eDevice::Placeholder > 0, error
-    bne @done  ; unconditional
+    beq @disableLift
     @orcIsTrapped:
     ldya #kLowerGateLeft - kOrcTrappedDistance
     sta Ram_ActorPosX_i16_0_arr + kOrcActorIndex
     sty Ram_ActorPosX_i16_1_arr + kOrcActorIndex
     lda #eBadOrc::TrapPounding
     sta Ram_ActorState1_byte_arr + kOrcActorIndex  ; current eBadOrc mode
+    .assert eBadOrc::TrapPounding <> 0, error
+    bne @done  ; unconditional
+    @disableLift:
+    lda #eMachine::Halted
+    sta Ram_MachineStatus_eMachine_arr + kLiftMachineIndex
+    lda #eDevice::Placeholder
+    sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
+    ;; If the player avatar spawned at the now-disabled console (which the orc
+    ;; normally stands in front of), move the avatar to safety.
+    lda T0  ; bSpawn value
+    cmp #bSpawn::Device | kConsoleDeviceIndex
+    bne @done
+    ldax #$0158
+    stax Zp_AvatarPosY_i16
     @done:
 _EastGate:
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastEastGateOpen
