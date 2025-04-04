@@ -77,7 +77,7 @@ was clearly mutual.#
 We assumed each group
 would prosper, so long
 as each could abandon
-the other's presense.#
+the other's presence.#
 
 @PaperJerome07_Page1
 Day 7: At least, that
@@ -512,7 +512,7 @@ L/R:lever  M:mirror
   V:valve  W:weight#
 
 @PaperManual5_Page3
- X:horzizontal offset
+ X:horizontal offset
  Y:vertical ascent
  Z:vertical descent#
 

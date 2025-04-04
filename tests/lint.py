@@ -68,7 +68,6 @@ JUMP_PATTERN = re.compile(
 READ_PATTERN = re.compile(
     r'^ *(ad[cd]|and|cmp|cp[xy]|eor|ld[axy]+|ora|r?sbc|r?sub) +'
     r'([A-Za-z0-9_]+)')
-DIALOG_TEXT_LINE_PATTERN = re.compile(r'^ *\.byte *(.*)\n$')
 
 LOCAL_PROC_NAME = re.compile(r'^_[a-zA-Z0-9_]+$')  # e.g. _Foobar
 PRGA_PROC_NAME = re.compile(  # e.g. FuncA_SegmentName_Foobar
@@ -272,27 +271,6 @@ def run_tests():
                     if not is_valid_access(source, segment, loaded_prereqs,
                                            proc_stack[0]):
                         fail('invalid access in {}'.format(proc_stack[0]))
-                # Check that dialog text is well-formed.
-                if segment.startswith('PRGA_Text'):
-                    match = DIALOG_TEXT_LINE_PATTERN.match(line)
-                    if match:
-                        is_upgrade_text = '_Upgrade' in proc_stack[0]
-                        text = parse_dialog_text(match.group(1))
-                        if (dialog_text_lines and
-                            is_end_of_dialog_text(dialog_text_lines[-1])):
-                            fail('another dialog text line after end-of-text')
-                        else:
-                            dialog_text_lines.append(text)
-                            kind = 'upgrade' if is_upgrade_text else 'dialog'
-                            max_lines = 3 if is_upgrade_text else 4
-                            max_len = 25 if is_upgrade_text else 23
-                            if len(dialog_text_lines) > max_lines:
-                                fail(f'too many {kind} text lines')
-                            elif not (text.endswith('$') or
-                                      is_end_of_dialog_text(text)):
-                                fail(f'unterminated {kind} text line')
-                            elif len(text) > max_len:
-                                fail(f'over-long {kind} text line')
     return failed[0]
 
 if __name__ == '__main__':

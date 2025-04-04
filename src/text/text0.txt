@@ -709,7 +709,7 @@ separate habitats.#
 Voluntary segregation
 by ideology. A social
 divorce. An amicable
-end to incompatibily.#
+parting of ways.#
 
 @ShadowDrillScreen_Page3
 There will be no more
@@ -841,7 +841,7 @@ as you brutes!#
 @TownHouse4BreakerLava2_Part1
 How dare talk back to
 me? I am Thurg, son of
-Gurg! Lieutenent of
+Gurg! Lieutenant of
 great Chief Gronta!#
 
 @TownHouse4BreakerLava2_Part2
@@ -914,7 +914,7 @@ Orcs, attaaaaaack!#
 Anna, run!#
 
 @TownOutdoorsGronta_Search1
-Lieutenent Thurg! Have
+Lieutenant Thurg! Have
 the grunts round up
 the townsfolk and lock
 these kids up.#

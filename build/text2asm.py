@@ -22,8 +22,10 @@ import sys
 
 #=============================================================================#
 
-MAX_CHARS_PER_LINE = 22
-MAX_LINES_PER_TEXT = 4
+MAX_LINE_CHARS_FOR_DIALOG = 22
+MAX_LINE_CHARS_FOR_UPGRADE = 24
+MAX_LINES_FOR_DIALOG = 4
+MAX_LINES_FOR_UPGRADE = 3
 
 MAX_PAIRS = 0xfd - 0x80
 
@@ -44,58 +46,88 @@ FOOTER = """\
 
 #=============================================================================#
 
-def parse_text(data):
+def fail(error):
+    sys.stderr.write(f'TEXT ERROR: {error}\n')
+    sys.exit(1)
+
+def parse_text(text_name, data):
+    if text_name.startswith('Upgrade'):
+        max_lines = MAX_LINES_FOR_UPGRADE
+        max_line_chars = MAX_LINE_CHARS_FOR_UPGRADE
+    else:
+        max_lines = MAX_LINES_FOR_DIALOG
+        max_line_chars = MAX_LINE_CHARS_FOR_DIALOG
     text = []
     current_chars = []
     original_size = 0
+    num_lines = 0
+    num_line_chars = 0
+    spaces_in_a_row = 0
+    end_of_sentence = False
     def finish_string():
         if not current_chars: return
         string = ''.join(current_chars)
         current_chars.clear()
         text.append(('b', string))
     while data:
-        if data.startswith('{'):
+        char = data[0]
+        if char == ' ':
+            spaces_in_a_row += 1
+            if end_of_sentence and spaces_in_a_row > 1:
+                fail(f'post-sentence double-space in {text_name}')
+        elif char in '.!?':
+            end_of_sentence = True
+        else:
+            end_of_sentence = False
+            spaces_in_a_row = 0
+        if char == '{':
             i = data.find('}')
             finish_string()
             constant = data[1:i]
             data = data[i + 1:]
             text.append(('c', constant))
             original_size += 1
-        elif data.startswith('['):
+            num_line_chars += 1
+        elif char == '[':
             i = data.find(']')
             finish_string()
             pair = data[1:i]
             data = data[i + 1:]
-            assert len(pair) == 4
+            if len(pair) != 4:
+                fail(f'bad [] pair in {text_name}')
             text.append(('p', (int(pair[:2], 16), int(pair[2:], 16))))
             original_size += 2
+            num_line_chars += 2
         else:
-            char = data[0]
-            data = data[1:]
             current_chars.append(char)
+            data = data[1:]
             original_size += 1
+            if char in '$#%':
+                if num_line_chars > max_line_chars:
+                    fail(f'overlong line in {text_name}')
+                num_line_chars = 0
+                if num_lines >= max_lines:
+                    fail(f'too many lines for {text_name}')
+                num_lines += 1
+            else:
+                num_line_chars += 1
     finish_string()
     return (text, original_size)
 
 def parse_input_file(filepath):
     texts = {}
     current_text_name = None
-    current_text_num_lines = 0
     current_text_data = ''
     original_size = 0
     for line in open(filepath):
         line = line.rstrip('\n')
         if current_text_name is not None:
-            if current_text_num_lines >= MAX_LINES_PER_TEXT:
-                raise ValueError(f'too many lines for {current_text_name}')
-            current_text_num_lines += 1
             current_text_data += line
             if line.endswith('#') or line.endswith('%'):
-                (text, size) = parse_text(current_text_data)
+                (text, size) = parse_text(current_text_name, current_text_data)
                 texts[current_text_name] = text
                 original_size += size
                 current_text_name = None
-                current_text_num_lines = 0
                 current_text_data = ''
             else:
                 current_text_data += '$'
@@ -105,7 +137,7 @@ def parse_input_file(filepath):
             elif line.startswith('@'):
                 current_text_name = line[1:]
             else:
-                raise ValueError('bad line: ' + repr(line))
+                fail('bad line: ' + repr(line))
     assert current_text_name is None
     return (texts, original_size)
 
