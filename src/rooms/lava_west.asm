@@ -120,7 +120,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_LavaWest_EnterRoom
+    d_addr Enter_func_ptr, FuncC_Lava_West_EnterRoom
     d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInTallRoomWithLava
     d_addr Tick_func_ptr, FuncA_Room_TurnSteamToSmokeIfConsoleOpen
     d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
@@ -146,7 +146,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_LavaWestBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
     d_addr Draw_func_ptr, FuncC_Lava_WestBoiler_Draw
-    d_addr Reset_func_ptr, FuncA_Room_LavaWestBoiler_Reset
+    d_addr Reset_func_ptr, FuncC_Lava_WestBoiler_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -344,13 +344,10 @@ _ReadD:
     jmp FuncA_Objects_DrawBoilerValve
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
 ;;; Called when the player avatar enters the LavaWest room.
+;;; @prereq PRGA_Room is loaded.
 ;;; @param A The bSpawn value for where the avatar is entering the room.
-.PROC FuncA_Room_LavaWest_EnterRoom
+.PROC FuncC_Lava_West_EnterRoom
     ;; If the player avatar didn't enter from the shaft, do nothing.
     cmp #bSpawn::Passage | kShaftPassageIndex
     bne @done
@@ -392,7 +389,8 @@ _RaindropPosY_u8_arr:
     .byte $08, $01, $0f, $1c
 .ENDPROC
 
-.PROC FuncA_Room_LavaWestBoiler_Reset
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Lava_WestBoiler_Reset
     ldx #kLeverDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
     jmp FuncA_Room_MachineBoilerReset

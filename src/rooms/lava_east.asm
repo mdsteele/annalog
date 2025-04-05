@@ -151,7 +151,7 @@ _Ext_sRoomExt:
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, FuncA_Terrain_FadeInTallRoomWithLava
-    d_addr Tick_func_ptr, FuncA_Room_LavaEast_TickRoom
+    d_addr Tick_func_ptr, FuncC_Lava_East_TickRoom
     d_addr Draw_func_ptr, FuncA_Objects_AnimateLavaTerrain
     D_END
 _TerrainData:
@@ -168,14 +168,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "M", "U", "X", "L"
     d_byte MainPlatform_u8, kBlasterPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_LavaEastBlaster_Init
+    d_addr Init_func_ptr, FuncC_Lava_EastBlaster_Init
     d_addr ReadReg_func_ptr, FuncC_Lava_EastBlaster_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_LavaEastBlaster_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_LavaEastBlaster_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_BlasterTryAct
     d_addr Tick_func_ptr, FuncA_Machine_LavaEastBlaster_Tick
     d_addr Draw_func_ptr, FuncC_Lava_EastBlaster_Draw
-    d_addr Reset_func_ptr, FuncA_Room_LavaEastBlaster_Reset
+    d_addr Reset_func_ptr, FuncC_Lava_EastBlaster_Reset
     D_END
     .assert * - :- = kUpperBoilerMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -194,7 +194,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_LavaEastUpperBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
     d_addr Draw_func_ptr, FuncC_Lava_EastUpperBoiler_Draw
-    d_addr Reset_func_ptr, FuncA_Room_LavaEastUpperBoiler_Reset
+    d_addr Reset_func_ptr, FuncC_Lava_EastUpperBoiler_Reset
     D_END
     .assert * - :- = kLowerBoilerMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -213,7 +213,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_LavaEastLowerBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
     d_addr Draw_func_ptr, FuncA_Objects_DrawBoilerMachine
-    d_addr Reset_func_ptr, FuncA_Room_LavaEastLowerBoiler_Reset
+    d_addr Reset_func_ptr, FuncC_Lava_EastLowerBoiler_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -502,11 +502,8 @@ _Blaster:
     jmp FuncA_Objects_DrawBoilerValve
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_LavaEast_TickRoom
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Lava_East_TickRoom
     jsr FuncA_Room_TurnSteamToSmokeIfConsoleOpen
     lda #eActor::ProjFireblast  ; param: projectile type
     jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
@@ -522,13 +519,15 @@ _Mirrors:
     rts
 .ENDPROC
 
-.PROC FuncA_Room_LavaEastBlaster_Init
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Lava_EastBlaster_Init
     lda #kBlasterInitGoalM * kBlasterMirrorAnimSlowdown
     sta Ram_MachineState3_byte_arr + kBlasterMachineIndex  ; mirror anim
-    fall FuncA_Room_LavaEastBlaster_Reset
+    fall FuncC_Lava_EastBlaster_Reset
 .ENDPROC
 
-.PROC FuncA_Room_LavaEastBlaster_Reset
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Lava_EastBlaster_Reset
     lda #kBlasterInitGoalM
     sta Ram_MachineState1_byte_arr + kBlasterMachineIndex  ; mirror goal
     lda #kBlasterInitGoalX
@@ -539,13 +538,15 @@ _Mirrors:
     jmp FuncA_Room_ResetLever
 .ENDPROC
 
-.PROC FuncA_Room_LavaEastUpperBoiler_Reset
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Lava_EastUpperBoiler_Reset
     jsr FuncA_Room_MachineBoilerReset
     ldx #kUpperLeverDeviceIndex  ; param: device index
     jmp FuncA_Room_ResetLever
 .ENDPROC
 
-.PROC FuncA_Room_LavaEastLowerBoiler_Reset
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Lava_EastLowerBoiler_Reset
     jsr FuncA_Room_MachineBoilerReset
     ldx #kLowerLeverDeviceIndex  ; param: device index
     jmp FuncA_Room_ResetLever

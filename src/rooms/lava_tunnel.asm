@@ -126,7 +126,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_LavaTunnelBoiler_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BoilerTick
     d_addr Draw_func_ptr, FuncC_Lava_TunnelBoiler_Draw
-    d_addr Reset_func_ptr, FuncA_Room_LavaTunnelBoiler_Reset
+    d_addr Reset_func_ptr, FuncC_Lava_TunnelBoiler_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -250,11 +250,8 @@ _ReadL:
     jmp FuncA_Objects_DrawBoilerValve
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_LavaTunnelBoiler_Reset
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Lava_TunnelBoiler_Reset
     ldx #kLeverDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
     jmp FuncA_Room_MachineBoilerReset
