@@ -60,6 +60,7 @@
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_DivAByBlockSizeAndClampTo9
+.IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetRandomByte
@@ -82,6 +83,7 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
+.IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Active_sIrq
@@ -593,18 +595,70 @@ _BossWaiting:
     tax
     lda _GoalPosY_u8_arr4, x
     sta Zp_RoomState + sState::BossGoalPosY_u8
-    ;; If the boss isn't near the room's edge, definitely don't start strafing.
+    ;; Check if the center of the spikeball is within the boss's vertical zone.
+    ;; If so, move safely to avoid it; otherwise, move freely (and possibly
+    ;; start a strafing attack).
+    lda Ram_PlatformTop_i16_0_arr + kSpikeballPlatformIndex
+    cmp #kBossZoneBottomY - kSpikeballHeightPx / 2
+    bge _StartMovingFreely  ; spikeball is below boss zone
+    cmp #kBossZoneTopY - kSpikeballHeightPx / 2
+    blt _StartMovingFreely  ; spikeball is above boss zone
+_StartMovingSafely:
+    ;; The spikeball is in the boss's zone, so the boss should move so as to
+    ;; stay away from it.  If the boss is fully to one side of the spikeball,
+    ;; then it should stay on that side.
+    lda Zp_RoomState + sState::BossGoalPosX_u8
+    cmp Ram_PlatformLeft_i16_0_arr + kSpikeballPlatformIndex
+    blt @stayToLeftOfSpikeball
+    cmp Ram_PlatformRight_i16_0_arr + kSpikeballPlatformIndex
+    bge @stayToRightOfSpikeball
+    ;; Otherwise, the boss is in the same column as the spikeball, in which
+    ;; case it should retreat to whichever side has more room.
+    tax  ; current boss X goal
+    bpl @stayToRightOfSpikeball  ; boss is on left side of room, so go right
+    @stayToLeftOfSpikeball:
+    lda Ram_PlatformLeft_i16_0_arr + kSpikeballPlatformIndex
+    sub #kBlockWidthPx
+    tax  ; param: max X
+    lda #0  ; param: min X
+    beq _ChooseGoalXAndStartFiring  ; unconditional
+    @stayToRightOfSpikeball:
+    lda Ram_PlatformRight_i16_0_arr + kSpikeballPlatformIndex
+    add #kBlockWidthPx  ; param: min X
+    ldx #$ff  ; param: max X
+    bne _ChooseGoalXAndStartFiring  ; unconditional
+_StartMovingFreely:
+    ;; The spikeball is not in the boss's zone, so the boss can move freely or
+    ;; even start a strafing attack.  However, don't start a strafing attack if
+    ;; the boss isn't near the room's edge.
     lda Zp_RoomState + sState::BossGoalPosX_u8
     cmp #$50
-    blt @maybeStrafe
+    blt @maybeStrafe  ; boss is at left edge of room
     cmp #$b0
-    blt @doNotStrafe
-    ;; If the boss is near the room's edge, start strafing 50% of the time.
+    blt @doNotStrafe  ; boss is not at right edge of room.
+    ;; When the boss is near the room's edge, start strafing 50% of the time.
     @maybeStrafe:
     jsr Func_GetRandomByte  ; returns N
-    bmi @doNotStrafe
+    bpl _StartStrafing
+    @doNotStrafe:
+    ;; Pick a new random horizontal goal position.
+    lda #0  ; param: minimum safe goal X position
+    ldx #$ff  ; param: maximum safe goal X position
+_ChooseGoalXAndStartFiring:
+    jsr FuncC_Boss_Crypt_ChooseGoalPosX
+    ;; Commence firing.
+    lda #eBossMode::Firing
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #60  ; 1.0 seconds
+    sta Zp_RoomState + sState::BossCooldown_u8
+    ;; Randomly shoot either 3 or 4 fireballs.
+    jsr Func_GetRandomByte  ; returns A
+    and #$01
+    add #3
+    sta Zp_RoomState + sState::BossFireCount_u8
+    rts
+_StartStrafing:
     ;; When strafing, pick a goal on the far edge of the room.
-    @doStrafe:
     lda Zp_RoomState + sState::BossGoalPosX_u8
     bpl @strafeToTheRight
     @strafeToTheLeft:
@@ -620,29 +674,47 @@ _BossWaiting:
     lda #6
     sta Zp_RoomState + sState::BossFireCount_u8
     rts
-    @doNotStrafe:
-    ;; Pick a new random horizontal goal position.
-    jsr Func_GetRandomByte  ; returns A
-    mod #8
-    tax
-    ;; TODO: Avoid picking a goal that would run the boss into the spikeball.
-    lda _GoalPosX_u8_arr8, x
-    sta Zp_RoomState + sState::BossGoalPosX_u8
-    ;; Commence firing.
-    lda #eBossMode::Firing
-    sta Zp_RoomState + sState::Current_eBossMode
-    lda #60  ; 1.0 seconds
-    sta Zp_RoomState + sState::BossCooldown_u8
-    ;; Randomly shoot either 3 or 4 fireballs.
-    jsr Func_GetRandomByte  ; returns A
-    and #$01
-    add #3
-    sta Zp_RoomState + sState::BossFireCount_u8
-    rts
-_GoalPosX_u8_arr8:
-    .byte $48, $68, $68, $78, $88, $98, $98, $b8
 _GoalPosY_u8_arr4:
     .byte $74, $77, $7a, $7c
+.ENDPROC
+
+;;; Set the boss's goal X position to a randomly chosen valid position within
+;;; the specified range.
+;;; @param A The minimum safe goal X position.
+;;; @param X The maximum safe goal X position.
+.PROC FuncC_Boss_Crypt_ChooseGoalPosX
+    sta T0  ; min safe pos X
+    stx T1  ; max safe pos X
+    ldy #6
+    sty T2  ; index upper bound
+    dey
+    @loop:
+    lda _GoalPosX_u8_arr6, y
+    cmp T1  ; max safe pos X
+    blt @checkMin
+    sty T2  ; index upper bound
+    @checkMin:
+    cmp T0  ; min safe pos X
+    blt @break
+    dey
+    bpl @loop
+    @break:
+    iny
+    sty T3  ; index lower bound
+    lda T2  ; index upper bound
+    sub T3  ; index lower bound
+    tay  ; param: divisor
+    beq @done  ; no safe X positions, so just don't update goal X position
+    jsr Func_GetRandomByte  ; preserves Y and T0+, returns A (param: dividend)
+    jsr Func_DivMod  ; preserves T2+, returns remainder in A
+    add T3  ; index lower bound
+    tax
+    lda _GoalPosX_u8_arr6, x
+    sta Zp_RoomState + sState::BossGoalPosX_u8
+    @done:
+    rts
+_GoalPosX_u8_arr6:
+    .byte $48, $68, $78, $88, $98, $b8
 .ENDPROC
 
 ;;; Checks if the winch spikeball is falling and has hit the boss's eye; if so,
