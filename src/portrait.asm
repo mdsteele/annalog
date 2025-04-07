@@ -49,6 +49,7 @@
     d_byte MermaidFlorist,     kChrBankPortraitFloristRest
     d_byte MermaidGuardF,      kChrBankPortraitMermaidRest
     d_byte MermaidGuardM,      kChrBankPortraitFarmerRest
+    d_byte MermaidGuardMShout, kChrBankPortraitFarmerTalk
     d_byte MermaidPhoebe,      kChrBankPortraitNoraRest
     d_byte OrcGronta,          kChrBankPortraitGrontaRest
     d_byte OrcGrontaShout,     kChrBankPortraitGrontaTalk
@@ -85,6 +86,7 @@
     d_byte MermaidFlorist,     kChrBankPortraitFloristTalk
     d_byte MermaidGuardF,      kChrBankPortraitMermaidTalk
     d_byte MermaidGuardM,      kChrBankPortraitFarmerTalk
+    d_byte MermaidGuardMShout, kChrBankPortraitFarmerRest
     d_byte MermaidPhoebe,      kChrBankPortraitNoraTalk
     d_byte OrcGronta,          kChrBankPortraitGrontaTalk
     d_byte OrcGrontaShout,     kChrBankPortraitGrontaRest
@@ -120,6 +122,7 @@
     d_byte MermaidFlorist,     kTileIdBgPortraitFloristFirst
     d_byte MermaidGuardF,      kTileIdBgPortraitMermaidFirst
     d_byte MermaidGuardM,      kTileIdBgPortraitFarmerFirst
+    d_byte MermaidGuardMShout, kTileIdBgPortraitFarmerFirst
     d_byte MermaidPhoebe,      kTileIdBgPortraitNoraFirst
     d_byte OrcGronta,          kTileIdBgPortraitGrontaFirst
     d_byte OrcGrontaShout,     kTileIdBgPortraitGrontaFirst

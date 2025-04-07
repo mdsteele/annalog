@@ -344,7 +344,7 @@ _RemoveAlex:
 
 .EXPORT DataA_Dialog_MermaidHut1Guard_sDialog
 .PROC DataA_Dialog_MermaidHut1Guard_sDialog
-    dlg_Text MermaidGuardM, DataA_Text0_MermaidHut1Guard_u8_arr
+    dlg_Text MermaidGuardMShout, DataA_Text0_MermaidHut1Guard_u8_arr
     dlg_Done
 .ENDPROC
 

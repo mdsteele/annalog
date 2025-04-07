@@ -124,6 +124,7 @@ _Initialize:
     d_byte MermaidFlorist,     bSfxDialog::TypePulse12 | (4 << 3) | $2
     d_byte MermaidGuardF,      bSfxDialog::TypePulse12 | (5 << 3) | $2
     d_byte MermaidGuardM,      bSfxDialog::TypePulse12 | (6 << 3) | $2
+    d_byte MermaidGuardMShout, bSfxDialog::TypePulse12 | (6 << 3) | $2
     d_byte MermaidPhoebe,      bSfxDialog::TypePulse12 | (3 << 3) | $1
     d_byte OrcGronta,          bSfxDialog::TypePulse18 | (3 << 3) | $3
     d_byte OrcGrontaShout,     bSfxDialog::TypePulse18 | (3 << 3) | $3
@@ -159,6 +160,7 @@ _Initialize:
     d_byte MermaidFlorist,     $a0
     d_byte MermaidGuardF,      $a0
     d_byte MermaidGuardM,      $a0
+    d_byte MermaidGuardMShout, $a0
     d_byte MermaidPhoebe,      $20
     d_byte OrcGronta,          $00
     d_byte OrcGrontaShout,     $00
