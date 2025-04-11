@@ -17,12 +17,16 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "audio.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "boss.inc"
+.INCLUDE "breaker.inc"
+.INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
 .INCLUDE "cutscene.inc"
 .INCLUDE "device.inc"
 .INCLUDE "devices/breaker.inc"
+.INCLUDE "fade.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "hud.inc"
 .INCLUDE "macros.inc"
@@ -38,20 +42,28 @@
 
 .IMPORT FuncA_Avatar_SpawnAtDevice
 .IMPORT FuncA_Cutscene_PlaySfxCircuitPowerUp
+.IMPORT FuncA_Cutscene_PlaySfxCircuitTrace
 .IMPORT FuncA_Cutscene_PlaySfxFlipBreaker
 .IMPORT FuncM_SwitchPrgcAndLoadRoom
 .IMPORT FuncM_SwitchPrgcAndLoadRoomWithMusic
+.IMPORT Func_AllocObjects
+.IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeOutToBlack
+.IMPORT Func_FillUpperAttributeTable
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_SetAndTransferFade
 .IMPORT Func_SetFlag
 .IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrBgFontLower
+.IMPORT Ppu_ChrObjPause
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarPosX_i16
@@ -66,23 +78,37 @@
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_Current_eRoom
 .IMPORTZP Zp_FloatingHud_bHud
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Nearby_bDevice
 .IMPORTZP Zp_Next_eCutscene
+.IMPORTZP Zp_Next_sAudioCtrl
+.IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_PpuScrollX_u8
+.IMPORTZP Zp_PpuScrollY_u8
+.IMPORTZP Zp_Render_bPpuMask
 .IMPORTZP Zp_RoomScrollX_u16
 .IMPORTZP Zp_RoomScrollY_u8
 
 ;;;=========================================================================;;;
 
-;;; The durations of various breaker activation phases, in frames.
-kBreakerReachFrames  = $90
-kBreakerStrainFrames = 80
-kBreakerFlipFrames   = kBreakerDoneDeviceAnimStart + 60
+;;; How many frames to wait between fade steps for circuit-tracing mode.
+.DEFINE kCircuitTraceFadeSlowdown 8
+
+;;; The screen scroll speed during circuit-tracing mode, in pixels per frame.
+kCircuitTraceScrollSpeed = 6
+
+;;; The BG tile ID to use for the rock tiles during circuit-tracing mode.
+kTileIdBgCircuitTraceRocks = $10
+
+;;; The OBJ palette number to use for drawing energy waves during
+;;; circuit-tracing mode.
+kPaletteObjCircuitWave = 0
 
 ;;;=========================================================================;;;
 
 .ZEROPAGE
 
-;;; The room that the breaker is in.
+;;; The boss room that the breaker is in.
 Zp_Breaker_eRoom: .res 1
 
 ;;; The flag for the breaker that's being activated.
@@ -100,15 +126,6 @@ Zp_BreakerBeingActivated_eFlag: .res 1
 .EXPORT Main_Breaker_UseDevice
 .PROC Main_Breaker_UseDevice
     jmp_prga MainA_Cutscene_FlipBreakerDevice
-.ENDPROC
-
-;;; Mode for the circuit-tracing cutscene that plays when activating a breaker.
-;;; @prereq Rendering is enabled.
-;;; @prereq Explore mode is initialized.
-.PROC Main_Breaker_TraceCircuit
-    jsr Func_FadeOutToBlack
-    ;; TODO: implement circuit-tracing cutscene
-    fall Main_Breaker_LoadCoreRoom
 .ENDPROC
 
 ;;; Mode to load the room for the power core cutscene that plays when
@@ -178,7 +195,7 @@ Zp_BreakerBeingActivated_eFlag: .res 1
     act_PlaySfxSample eSample::JumpAnna
     act_WaitUntilZ _AnimateAvatarFlippingBreaker
     act_WaitFrames 60
-    act_JumpToMain Main_Breaker_TraceCircuit
+    act_JumpToMain MainA_Cutscene_CircuitTrace
 _PlayBreakerSound_sCutscene:
     act_WaitFrames 4
     act_CallFunc FuncA_Cutscene_PlaySfxFlipBreaker
@@ -319,6 +336,152 @@ _SetBankToX:
     jmp Main_Explore_Continue
 .ENDPROC
 
+;;; Mode for the circuit-tracing cutscene that plays when activating a breaker.
+;;; @prereq Rendering is enabled.
+;;; @prereq Explore mode is initialized.
+.PROC MainA_Cutscene_CircuitTrace
+    jsr Func_FadeOutToBlack
+_SetUpAudio:
+    lda #eMusic::Silence
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    jsr FuncA_Cutscene_PlaySfxCircuitTrace
+_ClearBackground:
+    lda #eMmc3Mirror::Vertical
+    sta Hw_Mmc3Mirroring_wo
+    ldxy #Ppu_Nametable0_sName  ; param: nametable addr
+    jsr FuncA_Cutscene_ClearNametableTiles
+    ldy #$00  ; param: attribute byte
+    jsr Func_FillUpperAttributeTable
+_DrawInitialRocks:
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    ldx #15 - 1
+    @loop:
+    .assert >Ppu_Nametable0_sName .mod 4 = 0, error
+    lda #>Ppu_Nametable0_sName >> 2
+    sta T0
+    txa  ; block row (0-15)
+    .assert kScreenWidthTiles * 2 = $10 << 2, error
+    mul #$10
+    .repeat 2
+    asl a
+    rol T0
+    .endrepeat
+    ldy T0
+    sty Hw_PpuAddr_w2
+    ora _RockTileCol_u8_arr15, x
+    sta Hw_PpuAddr_w2
+    ldy #kTileIdBgCircuitTraceRocks
+    sty Hw_PpuData_rw
+    dex
+    bpl @loop
+_DrawInitialCircuitConduit:
+    ldy #$ae  ; param: tile ID
+    lda #>Ppu_Nametable0_sName  ; param: nametable addr hi byte
+    ldx #15  ; param: BG tile column index
+    jsr FuncA_Cutscene_DirectDrawBgTileColumn
+    ldy #$af  ; param: tile ID
+    lda #>Ppu_Nametable0_sName  ; param: nametable addr hi byte
+    ldx #16  ; param: BG tile column index
+    jsr FuncA_Cutscene_DirectDrawBgTileColumn
+_InitEnergyWaves:
+    ;; This mode uses the avatar Y-position for storing the top of the main
+    ;; energy wave.
+    lda #200
+    sta Zp_AvatarPosY_i16 + 0
+    lda #0
+    sta Zp_AvatarPosY_i16 + 1
+    sta Zp_AvatarSubY_u8
+_EnableRendering:
+    main_chr08_bank Ppu_ChrBgAnimStatic
+    main_chr18_bank Ppu_ChrObjPause
+    lda #bPpuMask::BgMain | bPpuMask::ObjMain
+    sta Zp_Render_bPpuMask
+    ldx #0
+    stx Zp_PpuScrollX_u8
+    stx Zp_PpuScrollY_u8
+    ;; This mode uses Zp_FrameCounter_u8 as its timer.  We start the timer on
+    ;; $ff so that it will tick to zero on the first ProcessFrame.  Thereafter,
+    ;; it will take on values from 0 inclusive to kCircuitTraceFrames exclusive
+    ;; during each _GameLoop tick.
+    dex  ; now X is $ff
+    stx Zp_FrameCounter_u8
+    ldy #eFade::Dark  ; param: eFade value
+    jsr Func_SetAndTransferFade
+_GameLoop:
+    jsr FuncA_Cutscene_DrawCircuitTraceWaves
+    jsr Func_ClearRestOfOamAndProcessFrame
+    jsr FuncA_Cutscene_TickCircuitTrace
+    lda Zp_FrameCounter_u8
+    cmp #kCircuitTraceFrames - 1
+    blt _GameLoop
+_Finish:
+    jsr Func_FadeOutToBlack
+    lda #eMmc3Mirror::Horizontal
+    sta Hw_Mmc3Mirroring_wo
+    jmp Main_Breaker_LoadCoreRoom
+_RockTileCol_u8_arr15:
+    .byte 10, 24,  4, 18,  2
+    .byte 28,  7, 13, 22,  5
+    .byte 25,  9, 19,  8, 20
+.ENDPROC
+
+;;; Performs per-frame updates for circuit-tracing mode.
+.PROC FuncA_Cutscene_TickCircuitTrace
+_ScrollVertically:
+    lda Zp_PpuScrollY_u8
+    sub #kCircuitTraceScrollSpeed
+    bcs @setScroll
+    adc #kScreenHeightPx  ; carry is already clear
+    @setScroll:
+    sta Zp_PpuScrollY_u8
+_MoveEnergyWave:
+    lda Zp_FrameCounter_u8
+    cmp #kCircuitTraceSlowFrames
+    bge @fastVel
+    @slowVel:
+    ldya #$ffff & -$0060
+    bmi @applyVel  ; unconditional
+    @fastVel:
+    ldya #$ffff & -$02a0
+    @applyVel:
+    ;; This mode uses the avatar Y-position for storing the top of the main
+    ;; energy wave.
+    add Zp_AvatarSubY_u8
+    sta Zp_AvatarSubY_u8
+    tya  ; velocity (hi)
+    adc Zp_AvatarPosY_i16 + 0
+    sta Zp_AvatarPosY_i16 + 0
+    lda #$ff
+    adc Zp_AvatarPosY_i16 + 1
+    sta Zp_AvatarPosY_i16 + 1
+_UpdateFade:
+    ;; Set fade based on timer.
+    lda Zp_FrameCounter_u8
+    div #kCircuitTraceFadeSlowdown
+    .assert kCircuitTraceFrames .mod kCircuitTraceFadeSlowdown = 0, error
+    .linecont +
+    cmp #(kCircuitTraceFrames / kCircuitTraceFadeSlowdown) - \
+         (eFade::Normal - eFade::Black)
+    .linecont -
+    bge @fadeOut
+    cmp #(eFade::Normal - eFade::Dark) + 1
+    blt @fadeIn
+    @fadeNormal:
+    lda #eFade::Normal
+    .assert eFade::Normal > 0, error
+    bne @setFade  ; unconditional
+    @fadeIn:
+    add #eFade::Dark
+    bne @setFade  ; unconditional
+    @fadeOut:
+    .assert kCircuitTraceFrames .mod kCircuitTraceFadeSlowdown = 0, error
+    rsub #(kCircuitTraceFrames / kCircuitTraceFadeSlowdown) - 1
+    @setFade:
+    tay  ; param: eFade value
+    jmp Func_SetAndTransferFade
+.ENDPROC
+
 ;;; Sets up the CoreBossPowerUpCircuit cutscene, then jumps to
 ;;; Main_Explore_EnterRoom.
 ;;; @prereq Rendering is disabled.
@@ -447,6 +610,119 @@ _AvatarPosY_i16_1_arr:
     d_byte City,   $01
     d_byte Shadow, $00
     D_END
+.ENDPROC
+
+;;; Fills the specified nametable with blank BG tiles.
+;;; @prereq Rendering is disabled.
+;;; @param XY The PPU address for the nametable to clear.
+.PROC FuncA_Cutscene_ClearNametableTiles
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    .assert sName::Tiles_u8_arr = 0, error
+    stx Hw_PpuAddr_w2
+    sty Hw_PpuAddr_w2
+    lda #' '
+    ldxy #kScreenWidthTiles * kScreenHeightTiles
+    @loop:
+    sta Hw_PpuData_rw
+    dey
+    bne @loop
+    dex
+    bpl @loop
+    rts
+.ENDPROC
+
+;;; Draws a column of BG tiles to the upper nametable.
+;;; @prereq Rendering is disabled.
+;;; @param X The BG tile column index (0-31).
+;;; @param Y The BG tile ID to draw.
+;;; @preserve Y, T0+
+.PROC FuncA_Cutscene_DirectDrawBgTileColumn
+    .assert (Ppu_Nametable0_sName + sName::Tiles_u8_arr) .mod $100 = 0, error
+    lda #>(Ppu_Nametable0_sName + sName::Tiles_u8_arr)
+    sta Hw_PpuAddr_w2
+    stx Hw_PpuAddr_w2
+    lda #kPpuCtrlFlagsVert
+    sta Hw_PpuCtrl_wo
+    ldx #kScreenHeightTiles
+    @loop:
+    sty Hw_PpuData_rw
+    dex
+    bne @loop
+    rts
+.ENDPROC
+
+;;; Draws all the energy waves for circuit-tracing mode.
+.PROC FuncA_Cutscene_DrawCircuitTraceWaves
+_MainEnergyWave:
+    ;; If the main energy wave is not on-screen, don't drow it.
+    lda Zp_AvatarPosY_i16 + 1
+    bne @done
+    ldx Zp_AvatarPosY_i16 + 0  ; param: Y-position
+    lda Zp_FrameCounter_u8
+    mod #4
+    tay
+    lda _MainWaveTileId_u8_arr4, y  ; param: tile ID
+    jsr FuncA_Cutscene_DrawCircuitTraceWave
+    @done:
+_SecondaryEnergyWaves:
+    lda Zp_FrameCounter_u8
+    cmp #kCircuitTraceSlowFrames
+    blt @slow
+    mul #2
+    @slow:
+    mod #kTileHeightPx
+    add #kScreenHeightPx - 8
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointY_i16 + 1
+    @loop:
+    ldx Zp_PointY_i16 + 0  ; param: Y-position
+    lda #kTileIdObjCircuitWaveFirst + 0  ; param: tile ID
+    jsr FuncA_Cutscene_DrawCircuitTraceWave
+    lda #kTileHeightPx  ; param: offset
+    jsr Func_MovePointUpByA
+    lda Zp_PointY_i16 + 0
+    cmp Zp_AvatarPosY_i16 + 0
+    lda Zp_PointY_i16 + 1
+    bne @done
+    sbc Zp_AvatarPosY_i16 + 1
+    bpl @loop
+    @done:
+    rts
+_MainWaveTileId_u8_arr4:
+    .byte kTileIdObjCircuitWaveFirst + 0
+    .byte kTileIdObjCircuitWaveFirst + 1
+    .byte kTileIdObjCircuitWaveFirst + 2
+    .byte kTileIdObjCircuitWaveFirst + 1
+.ENDPROC
+
+;;; Draws a single energy wave for circuit-tracing mode.
+;;; @param A The OBJ tile ID for the wave.
+;;; @param X The screen Y-position of the top of the wave.
+.PROC FuncA_Cutscene_DrawCircuitTraceWave
+    cpx #kScreenHeightPx
+    bge @done  ; object is off-screen
+    pha  ; tile ID
+    lda #2  ; param: num objects
+    jsr Func_AllocObjects  ; preserves X and T0+, returns Y
+    pla  ; tile ID
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    dex
+    txa  ; Y-position
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::YPos_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::YPos_u8, y
+    lda #kScreenWidthPx / 2 - kTileWidthPx
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::XPos_u8, y
+    lda #kScreenWidthPx / 2
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::XPos_u8, y
+    lda #kPaletteObjCircuitWave | bObj::Pri
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
+    eor #bObj::FlipH
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

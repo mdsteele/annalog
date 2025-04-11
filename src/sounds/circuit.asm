@@ -19,6 +19,7 @@
 
 .INCLUDE "../apu.inc"
 .INCLUDE "../audio.inc"
+.INCLUDE "../breaker.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
@@ -27,50 +28,88 @@
 
 ;;;=========================================================================;;;
 
-;;; The initial envelope volume (before fading out) to use for the "circuit
-;;; power up" sound effect.
-kCircuitPowerUpBaseVol = 9
+;;; The initial envelope volume (before fading out) to use for circuit sound
+;;; effects.
+kCircuitBaseVol = 9
 
-;;; How many frames it takes to fade out the volume of the "circuit power up"
-;;; sound effect by one step.
-.DEFINE kCircuitPowerUpFadeOutSlowdown 8
+;;; How many frames it takes to fade out the volume of a circuit sound effect
+;;; by one step.
+.DEFINE kCircuitFadeOutSlowdown 8
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
+;;; SFX data for the "circuit trace" sound effect.
+.PROC Data_CircuitTrace_sSfx
+    .linecont +
+    sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | \
+                bEnvelope::ConstVol | kCircuitBaseVol), \
+               (pulse_sweep -1, 3), $07ff
+    sfx_Func _RampUp
+    sfx_Func Func_SfxCircuit_FadeOut
+    sfx_End
+    .linecont -
+_RampUp:
+    jsr Func_SfxCircuit_ModulateDutyAtBaseVolume  ; preserves X and Y
+    cpy #kCircuitTraceFrames - kCircuitFadeOutSlowdown * kCircuitBaseVol
+    rts
+.ENDPROC
+
 ;;; SFX data for the "circuit power up" sound effect.
 .PROC Data_CircuitPowerUp_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | \
-                bEnvelope::ConstVol | kCircuitPowerUpBaseVol), \
+                bEnvelope::ConstVol | kCircuitBaseVol), \
                (pulse_sweep -2, 2), $0700
     sfx_Func _RampUp
     sfx_SetSweep kNoSweep
     sfx_Func _Steady
-    sfx_Func _FadeOut
+    sfx_Func Func_SfxCircuit_FadeOut
     sfx_End
     .linecont -
 _RampUp:
-    jsr _ModulateDutyAtBaseVolume  ; preserves X and Y
+    jsr Func_SfxCircuit_ModulateDutyAtBaseVolume  ; preserves X and Y
     cpy #64
     rts
 _Steady:
-    jsr _ModulateDutyAtBaseVolume  ; preserves X and Y
+    jsr Func_SfxCircuit_ModulateDutyAtBaseVolume  ; preserves X and Y
     cpy #30
     rts
-_FadeOut:
-    tya
-    div #kCircuitPowerUpFadeOutSlowdown
-    rsub #kCircuitPowerUpBaseVol
-    jsr _ModulateDutyWithVolume  ; preserves X and Y
-    cpy #kCircuitPowerUpFadeOutSlowdown * (kCircuitPowerUpBaseVol - 1)
+.ENDPROC
+
+;;; An sfx_Func to fade out a circuit sound effect over time.
+;;; @param Y The sfx_Func loop index.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @preserve X, Y, T0+
+.PROC Func_SfxCircuit_FadeOut
+    tya  ; loop index
+    div #kCircuitFadeOutSlowdown
+    rsub #kCircuitBaseVol
+    jsr Func_SfxCircuit_ModulateDutyWithVolume  ; preserves X and Y
+    cpy #kCircuitFadeOutSlowdown * (kCircuitBaseVol - 1)
     rts
-_ModulateDutyAtBaseVolume:
-    lda #kCircuitPowerUpBaseVol  ; param: volume
-_ModulateDutyWithVolume:
+.ENDPROC
+
+;;; Modulates the duty cycle of a circuit sound effect between 1/8 and 1/4,
+;;; using kCircuitBaseVol as the envelope volume.
+;;; @param Y The sfx_Func loop index.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @preserve X, Y, T0+
+.PROC Func_SfxCircuit_ModulateDutyAtBaseVolume
+    lda #kCircuitBaseVol  ; param: volume
+    fall Func_SfxCircuit_ModulateDutyWithVolume  ; preserves X, Y, and T0+
+.ENDPROC
+
+;;; Modulates the duty cycle of a circuit sound effect between 1/8 and 1/4,
+;;; using the specified envelope volume.
+;;; @param A The volume to use (0-15).
+;;; @param Y The sfx_Func loop index.
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @preserve X, Y, T0+
+.PROC Func_SfxCircuit_ModulateDutyWithVolume
     sta Zp_AudioTmp_byte  ; volume
-    tya
+    tya  ; loop index
     and #$02
     .assert bEnvelope::Duty18 = 0, error
     beq @setDuty
@@ -85,6 +124,14 @@ _ModulateDutyWithVolume:
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Cutscene"
+
+;;; Starts playing the sound for when tracing a core circuit.
+;;; @preserve T0+
+.EXPORT FuncA_Cutscene_PlaySfxCircuitTrace
+.PROC FuncA_Cutscene_PlaySfxCircuitTrace
+    ldya #Data_CircuitTrace_sSfx
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
+.ENDPROC
 
 ;;; Starts playing the sound for when a core circuit powers up.
 ;;; @preserve T0+

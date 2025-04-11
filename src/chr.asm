@@ -60,6 +60,7 @@
 .INCLUDE "actors/vinebug.inc"
 .INCLUDE "actors/wasp.inc"
 .INCLUDE "avatar.inc"
+.INCLUDE "breaker.inc"
 .INCLUDE "devices/breaker.inc"
 .INCLUDE "dialog.inc"
 .INCLUDE "machines/ammorack.inc"
@@ -1447,8 +1448,10 @@ _chr_begin:
 .EXPORT Ppu_ChrObjPause
 .PROC Ppu_ChrObjPause
     CHR2_BANK $80
-    chr_res $30
-    chr_inc "pause",      kTileIdObjPauseFirst
+    chr_res $20
+    chr_inc "circuit_wave", kTileIdObjCircuitWaveFirst
+    chr_res $0d
+    chr_inc "pause",        kTileIdObjPauseFirst
     chr_inc "font_upper"
     END_CHR_BANK
 .ENDPROC
