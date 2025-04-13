@@ -367,14 +367,14 @@ _PrisonMusic:
     d_byte CityOutskirts,   eMusic::City
     d_byte CitySinkhole,    eMusic::City
     d_byte CityWest,        eMusic::City
-    d_byte CoreBoss,        eMusic::Silence
-    d_byte CoreEast,        eMusic::Silence
-    d_byte CoreElevator,    eMusic::Silence
-    d_byte CoreFlower,      eMusic::Silence
-    d_byte CoreJunction,    eMusic::Silence
-    d_byte CoreLock,        eMusic::Silence
-    d_byte CoreSouth,       eMusic::Silence
-    d_byte CoreWest,        eMusic::Silence
+    d_byte CoreBoss,        eMusic::Core
+    d_byte CoreEast,        eMusic::Core
+    d_byte CoreElevator,    eMusic::Core
+    d_byte CoreFlower,      eMusic::Core
+    d_byte CoreJunction,    eMusic::Core
+    d_byte CoreLock,        eMusic::Core
+    d_byte CoreSouth,       eMusic::Core
+    d_byte CoreWest,        eMusic::Core
     d_byte CryptCenter,     eMusic::Crypt
     d_byte CryptChains,     eMusic::Crypt
     d_byte CryptEast,       eMusic::Crypt

@@ -26,6 +26,7 @@
     Boss2
     Calm
     City
+    Core
     Credits
     Crypt
     Florist
