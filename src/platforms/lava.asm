@@ -105,7 +105,8 @@ kLavaChr04IrqY = $cf
     lda #kLavaChr04IrqY
     sub Zp_RoomScrollY_u8
     sta T0  ; IRQ latch for lava
-    rsub Zp_Buffered_sIrq + sIrq::Latch_u8
+    clc  ; subtract 1 extra to account for the IRQ using up a scanline
+    rsbc Zp_Buffered_sIrq + sIrq::Latch_u8
     blt @done  ; window top is above lava top
     sta Zp_Buffered_sIrq + sIrq::Param4_byte  ; window latch
     ;; Set up our own sIrq struct to handle lava animation.
