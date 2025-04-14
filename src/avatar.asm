@@ -28,6 +28,7 @@
 .INCLUDE "room.inc"
 .INCLUDE "sample.inc"
 
+.IMPORT FuncA_Avatar_TickExploreTimer
 .IMPORT FuncA_Avatar_UpdateWaterDepth
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_MovePointUpByA
@@ -175,6 +176,7 @@ _SetAvatarPose:
 ;;; Zp_AvatarExit_ePassage if the avatar hits a passage.
 .EXPORT FuncA_Avatar_ExploreMove
 .PROC FuncA_Avatar_ExploreMove
+    jsr FuncA_Avatar_TickExploreTimer
     ;; Apply healing.
     ldx Zp_AvatarHarmTimer_u8
     beq @doneHealing

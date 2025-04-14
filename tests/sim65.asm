@@ -73,23 +73,6 @@ Data_StrActual: .asciiz " but got $"
     jmp $fff7  ; write syscall
 .ENDPROC
 
-;;; Appends a single hex digit to the print buffer.
-;;; @param A Hex digit value from 0-f.
-;;; @param Y The current index into Ram_PrintBuffer_arr.
-;;; @return Y The new index into Ram_PrintBuffer_arr.
-.PROC Func_BufferHexDigit
-    cmp #9
-    bge _Letter
-    add #$30  ; '0'
-    bne _Buffer  ; unconditional
-_Letter:
-    add #$57  ; 'a' - $a
-_Buffer:
-    sta Ram_PrintBuffer_arr, y
-    iny
-    rts
-.ENDPROC
-
 ;;; Appends the value of A to the print buffer as two hex digits.
 ;;; @param A The value to serialize into Ram_PrintBuffer_arr as hex.
 ;;; @param Y The current index into Ram_PrintBuffer_arr.
@@ -102,7 +85,24 @@ _Buffer:
     jsr Func_BufferHexDigit
     txa
     and #$0f
-    jmp Func_BufferHexDigit
+    fall Func_BufferHexDigit
+.ENDPROC
+
+;;; Appends a single hex digit to the print buffer.
+;;; @param A Hex digit value from 0-f.
+;;; @param Y The current index into Ram_PrintBuffer_arr.
+;;; @return Y The new index into Ram_PrintBuffer_arr.
+.PROC Func_BufferHexDigit
+    cmp #$a
+    bge _Letter
+    add #$30  ; '0'
+    bne _Buffer  ; unconditional
+_Letter:
+    add #$61 - $a  ; 'a' - $a
+_Buffer:
+    sta Ram_PrintBuffer_arr, y
+    iny
+    rts
 .ENDPROC
 
 ;;; Prints and exits with an error if the Z flag is not set.
@@ -124,7 +124,7 @@ _Buffer:
     php
     ldy #0
     plp
-    fall Func_ExpectZEqualsY
+    fall Func_ExpectZEqualsY  ; preserves X
 .ENDPROC
 
 ;;; Prints and exits with an error if the Z flag (treated as 0 or 1) is not
@@ -137,7 +137,7 @@ _Buffer:
     pla
     and #bProc::Zero
     div #bProc::Zero
-    fall Func_ExpectAEqualsY
+    fall Func_ExpectAEqualsY  ; preserves X
 .ENDPROC
 
 ;;; Prints and exits with an error if A does not equal Y.
@@ -146,12 +146,17 @@ _Buffer:
 ;;; @preserve X
 .EXPORT Func_ExpectAEqualsY
 .PROC Func_ExpectAEqualsY
+    sta Zp_Actual_byte
     sty Zp_Expected_byte
     cmp Zp_Expected_byte
-    bne _Failure
+    bne Exit_ExpectationFailed  ; doesn't preserve X, but exits, so it's fine
     rts
+.ENDPROC
+
+;;; Prints a failure message and exits the process.
+;;; @prereq Zp_Actual_byte and Zp_Expected_byte are initialized.
+.PROC Exit_ExpectationFailed
 _Failure:
-    sta Zp_Actual_byte
     ldy #0
 _CopyStrExpected:
     ldx #0
