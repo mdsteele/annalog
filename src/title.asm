@@ -772,11 +772,25 @@ _DrawMenuItem:
     .assert eNewGame::NUM_VALUES * 8 < $100, error
     mul #8
     tax  ; index into DataC_Title_NewGameName_u8_arr8_arr
-    adc #8
+    ;; Count how many characters to draw:
+    tay  ; start index
+    adc #8  ; carry is clear from MUL above
     sta T1  ; index limit
-    lda #(kScreenWidthPx - kTileWidthPx * 8) / 2
+    @limitLoop:
+    lda DataC_Title_NewGameName_u8_arr8_arr, y
+    beq @limitBreak
+    iny
+    cpy T1  ; index limit
+    blt @limitLoop
+    @limitBreak:
+    sty T1  ; index limit
+    txa  ; start index
+    rsub T1
+    ;; Calculate start position:
+    mul #kTileWidthPx / 2
+    rsub #kScreenWidthPx / 2
     sta T0  ; current X pos
-    @loop:
+    @objLoop:
     jsr Func_AllocOneObject  ; preserves X and T0+, returns Y
     lda #kCheatMenuYPos
     sta Ram_Oam_sObj_arr64 + sObj::YPos_u8, y
@@ -790,7 +804,7 @@ _DrawMenuItem:
     sta Ram_Oam_sObj_arr64 + sObj::Flags_bObj, y
     inx
     cpx T1  ; index limit
-    blt @loop
+    blt @objLoop
     rts
 .ENDPROC
 
