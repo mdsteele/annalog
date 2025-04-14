@@ -27,6 +27,7 @@
 
 .IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_PlaySfxWingFlap
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Actor_ZeroVelX
@@ -102,6 +103,11 @@ kPaletteObjBird = 0
     lda Ram_ActorVelX_i16_1_arr, x
     beq _NotMoving
 _Moving:
+    lda Ram_ActorState2_byte_arr, x  ; flying animation counter
+    mod #8
+    bne @doneSound
+    jsr FuncA_Actor_PlaySfxWingFlap  ; preserves X
+    @doneSound:
     inc Ram_ActorState2_byte_arr, x  ; flying animation counter
     ;; Check the terrain in front of the bird.  If it's solid, then land.
     lda #kBirdLandDistance  ; param: offset
