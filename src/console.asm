@@ -66,6 +66,7 @@
 .IMPORT Func_Window_ScrollUp
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
+.IMPORT Func_ZeroAvatarLandingTimer
 .IMPORT Main_Console_Debug
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Menu_EditSelectedField
@@ -451,11 +452,6 @@ _InitWindow:
 ;;; adjusts it towards the correct position.
 .EXPORT FuncA_Console_AdjustAvatar
 .PROC FuncA_Console_AdjustAvatar
-    lda #eAvatar::Reading
-    sta Zp_AvatarPose_eAvatar
-    lda Zp_AvatarFlags_bObj
-    and #<~bObj::FlipH
-    sta Zp_AvatarFlags_bObj
     ;; Slide the player avatar to stand directly in front of the console.
     lda #0
     sta Zp_AvatarVelX_i16 + 0
@@ -472,7 +468,13 @@ _InitWindow:
     @adjustRight:
     inc Zp_AvatarPosX_i16 + 0
     @done:
-    rts
+    ;; Make the player avatar stand up facing towards the console.
+    lda #eAvatar::Reading
+    sta Zp_AvatarPose_eAvatar
+    lda Zp_AvatarFlags_bObj
+    and #<~bObj::FlipH
+    sta Zp_AvatarFlags_bObj
+    jmp Func_ZeroAvatarLandingTimer
 .ENDPROC
 
 ;;; Scrolls the console window in a bit, and transfers PPU data as needed; call

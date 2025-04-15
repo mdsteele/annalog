@@ -775,6 +775,18 @@ _InAirReverseGravity:
 
 .SEGMENT "PRG8"
 
+;;; If the player avatar is standing, sets the landing timer to zero.
+;;; @preserve X, Y, T0+
+.EXPORT Func_ZeroAvatarLandingTimer
+.PROC Func_ZeroAvatarLandingTimer
+    lda Zp_AvatarState_bAvatar
+    and #bAvatar::Airborne | bAvatar::Swimming
+    bne @done
+    sta Zp_AvatarState_bAvatar
+    @done:
+    rts
+.ENDPROC
+
 ;;; Stores the room pixel position of the top center of the player avatar in
 ;;; Zp_Point*_i16.
 ;;; @preserve X, Y, T0+
