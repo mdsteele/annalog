@@ -388,17 +388,17 @@ _PrisonMusic:
     d_byte CryptSpiral,     eMusic::Crypt
     d_byte CryptTomb,       eMusic::Crypt
     d_byte CryptWest,       eMusic::Crypt
-    d_byte FactoryAccess,   eMusic::Silence
-    d_byte FactoryBridge,   eMusic::Silence
-    d_byte FactoryCenter,   eMusic::Silence
+    d_byte FactoryAccess,   eMusic::Factory
+    d_byte FactoryBridge,   eMusic::Factory
+    d_byte FactoryCenter,   eMusic::Factory
     d_byte FactoryEast,     eMusic::Silence
-    d_byte FactoryElevator, eMusic::Silence
-    d_byte FactoryFlower,   eMusic::Silence
-    d_byte FactoryLock,     eMusic::Silence
-    d_byte FactoryPass,     eMusic::Silence
-    d_byte FactoryUpper,    eMusic::Silence
+    d_byte FactoryElevator, eMusic::Factory
+    d_byte FactoryFlower,   eMusic::Factory
+    d_byte FactoryLock,     eMusic::Factory
+    d_byte FactoryPass,     eMusic::Factory
+    d_byte FactoryUpper,    eMusic::Factory
     d_byte FactoryVault,    eMusic::Silence
-    d_byte FactoryWest,     eMusic::Silence
+    d_byte FactoryWest,     eMusic::Factory
     d_byte GardenCrossroad, eMusic::Garden
     d_byte GardenEast,      eMusic::Garden
     d_byte GardenFlower,    eMusic::Garden

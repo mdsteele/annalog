@@ -1,0 +1,95 @@
+@PRGC_Factory
+
+!SONG Factory "AB|BCCDDEEBCBCDYFFGGR"
+
+=tempo q32
+=key 0N  % A minor
+
+!INST 1A PulseEcho    $28 d1/8
+!INST 1B PulseEcho    $18 d1/8
+!INST 1C PulseEcho    $08 d1/8
+!INST 1X PulseEcho    $28 d1/2
+!INST 1Y PulseEcho    $18 d1/2
+!INST 1Z PulseEcho    $08 d1/2
+!INST 2A PulseEcho    $06 d3/4
+!INST TA Constant     $ff
+!INST TV TriangleVibrato
+!INST NB Staccato     $07  % base
+!INST NS NoiseSnare   $c8  % snare
+
+!PART A
+
+1| iA rw+ | +w+ | +w+ | +h.. f3s g |
+2| p(iA a2e c3s a2)2A :7 ' a2e g |
+ | p2A :8 |
+N| p(iB xCq ' iS x5e. iB xCs+ ' +s iS x5e. ' x5e iB x9s xB)NA :4 |
+
+!PART B
+
+1| iA a3q      ' c4q     ' iB de iC ds d  ' iA eq |
+ | iB f4e iC ds d ' iB ee iC cs c ' ds c iA b3e ' aq |
+2| p2A :8 |
+N| pNA :2 |
+
+!PART R
+
+1=:B1
+2=:B2
+T| iV a4q a3 a2 a1 |
+N=:BN
+
+!PART C
+
+=transpose -12
+1| iX a3q      ' c4q     ' iY de iZ ds d  ' iX eq |
+ | iY f4e iZ ds d ' iY ee iZ cs c ' ds c iX b3e ' aq |
+=transpose -0
+2=:B2
+N=:BN
+
+!PART D
+
+1| iB a3e iC es e :3 ' iA c4e. rs |
+2| p2A :3         ' a2e. rs |
+N| p(iB xCq ' iS x5e. iB xCs+ ' +s iS x5e.)ND ' x5q |
+
+!PART Y
+
+1=:D1
+2=:D2
+N| pND ' iB x9s xB x9 xB |
+
+!PART E
+
+1| iA re a3e ' c4q ' iB de iC ds d ' iA ee de+ | +e
+         f4e ' iB de iC ds e ' ds c iA b3e ' aq |
+ | re c4e ' a3q ' iC bs a iA ge ' eq |
+ | p(iB d3e iC ds d ' iB e3e iC es e ' iB f3e iC fs f ' iB g3e iC gs g)1E |
+2| p2A :16 |
+N=:AN
+
+!PART F
+
+1| p(iA re c4e ' a3q ' iC bs a iB ge ' iA eq)1F |
+ | p1E |
+ | p1F |
+ | iC e4s es iB ee ' de de ' iA fq ' iC es e e e |
+2=:E2
+T| iA a4s re. :6 ' g4s r e r ' a4t r a r as r |
+ | a4s r a r ' c5e r ' ds r dt r d r ' es r d r |
+ | a4s r c5 r ' a4 r c5 r ' g4 r e r ' a4t r a r as r |
+N=:EN
+
+!PART G
+
+1| iB a3e r :6 ' ge e ' iC as a iB ae |
+ | iA re a3e ' c4q ' iB de iC ds d ' iA ee de+ | +e
+      iB f4e ' de iC ds e ' ds c iA b3e ' aq |
+=transpose +12
+T| iA re a3s r ' c4e r ' ds r dt r d r ' es r de |
+ | re f4s r ' ds r dt r e r ' dt r c r b3s r ' ae r |
+ | re c4s r ' a3e r ' bt r a r gs r ' ee r |
+ | d3s r dt r d r ' e3s r et r e r ' f3s r ft r f r ' g3s r gt r g r |
+=transpose +0
+2=:E2
+N=:EN

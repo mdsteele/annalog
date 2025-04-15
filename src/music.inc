@@ -29,6 +29,7 @@
     Core
     Credits
     Crypt
+    Factory
     Florist
     Garden
     Lava

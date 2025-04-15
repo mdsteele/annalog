@@ -25,6 +25,7 @@
 .IMPORT DataC_Core_Boss2_sMusic
 .IMPORT DataC_Core_Core_sMusic
 .IMPORT DataC_Crypt_Crypt_sMusic
+.IMPORT DataC_Factory_Factory_sMusic
 .IMPORT DataC_Garden_Garden_sMusic
 .IMPORT DataC_Lava_Lava_sMusic
 .IMPORT DataC_Mermaid_Florist_sMusic
@@ -61,6 +62,7 @@
     d_entry table, Core,    DataC_Core_Core_sMusic
     d_entry table, Credits, DataC_Title_Credits_sMusic
     d_entry table, Crypt,   DataC_Crypt_Crypt_sMusic
+    d_entry table, Factory, DataC_Factory_Factory_sMusic
     d_entry table, Florist, DataC_Mermaid_Florist_sMusic
     d_entry table, Garden,  DataC_Garden_Garden_sMusic
     d_entry table, Lava,    DataC_Lava_Lava_sMusic
