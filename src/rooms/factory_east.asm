@@ -47,6 +47,7 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxLeverOn
 .IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
@@ -350,6 +351,7 @@ _AnimateSwimmingDownFunc:
     sty Ram_ActorState1_byte_arr + kCorraActorIndex
     rts
 _FlipLeverFunc:
+    jsr Func_PlaySfxLeverOn
     lda #kLeverAnimCountdown
     sta Ram_DeviceAnim_u8_arr + kLeverDeviceIndex
     inc Zp_RoomState + sState::Lever_u8
