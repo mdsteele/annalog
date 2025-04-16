@@ -46,18 +46,18 @@ Sram_LastSafe_bSpawn: .res 1
 .EXPORT Sram_CarryingFlower_eFlag
 Sram_CarryingFlower_eFlag: .res 1
 
-;;; The total time spent in explore mode for this saved game, stored as hours
-;;; (3 decimal digits), minutes (2 decimal digits), seconds (2 decimal digits),
-;;; and frames (1 base-60 digit), in big-endian order.
-.EXPORT Sram_ExploreTimer_u8_arr
-Sram_ExploreTimer_u8_arr: .res kNumTimerDigits
-
 ;;; The number of times the player avatar has died, stored as one decimal digit
 ;;; per byte (little-endian).
 .EXPORT Sram_DeathCount_u8_arr
 Sram_DeathCount_u8_arr: .res kNumDeathDigits
 
 .RES $01
+
+;;; The total time spent in explore mode for this saved game, stored as frames
+;;; (1 base-60 digit), seconds (2 decimal digits), minutes (2 decimal digits),
+;;; and hours (3 decimal digits), in little-endian order.
+.EXPORT Sram_ExploreTimer_u8_arr
+Sram_ExploreTimer_u8_arr: .res kNumTimerDigits
 
 ;;; A bit array indicating which minimap cells have been explored.  The array
 ;;; contains one u16 for each minimap column; if the minimap cell at row R and

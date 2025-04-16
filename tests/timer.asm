@@ -23,7 +23,6 @@
 .IMPORT Exit_Success
 .IMPORT FuncA_Avatar_TickExploreTimer
 .IMPORT Func_ExpectAEqualsY
-.IMPORT Ram_ExploreTimer_u8_arr
 
 ;;;=========================================================================;;;
 
@@ -33,23 +32,30 @@ Zp_TestTmp_ptr: .res 2
 
 ;;;=========================================================================;;;
 
+.BSS
+
+.EXPORT Sram_ExploreTimer_u8_arr
+Sram_ExploreTimer_u8_arr: .res kNumTimerDigits
+
+;;;=========================================================================;;;
+
 .CODE
 
-;;; Copies the given array into Ram_ExploreTimer_u8_arr.
+;;; Copies the given array into Sram_ExploreTimer_u8_arr.
 ;;; @param YA Pointer to an array of eight timer bytes.
 .PROC Func_SetExploreTimer
     stya Zp_TestTmp_ptr
     ldy #kNumTimerDigits - 1
     @loop:
     lda (Zp_TestTmp_ptr), y
-    sta Ram_ExploreTimer_u8_arr, y
+    sta Sram_ExploreTimer_u8_arr, y
     dey
     .assert kNumTimerDigits <= $80, error
     bpl @loop
     rts
 .ENDPROC
 
-;;; Tests that Ram_ExploreTimer_u8_arr equals the given array; if not, prints
+;;; Tests that Sram_ExploreTimer_u8_arr equals the given array; if not, prints
 ;;; an error message and exits.
 ;;; @param YA Pointer to an array of eight timer bytes.
 .PROC Func_ExpectExploreTimer
@@ -58,7 +64,7 @@ Zp_TestTmp_ptr: .res 2
     @loop:
     tya  ; loop index
     pha  ; loop index
-    ldx Ram_ExploreTimer_u8_arr, y
+    ldx Sram_ExploreTimer_u8_arr, y
     lda (Zp_TestTmp_ptr), y
     tay  ; param: expected value
     txa  ; param: actual value
@@ -74,83 +80,77 @@ Zp_TestTmp_ptr: .res 2
 .PROC Data_TimerTests_u8_arr8_arr2_arr
     .assert kNumTimerDigits = 8, error
     ;; Test:
-    .byte 0, 0, 0, 0, 0, 0, 0,  0  ; initial
-    .byte 0, 0, 0, 0, 0, 0, 0,  1  ; expected
+    .byte 00, 0, 0, 0, 0, 0, 0, 0  ; initial
+    .byte 01, 0, 0, 0, 0, 0, 0, 0  ; expected
     ;; Test:
-    .byte 0, 0, 0, 0, 0, 0, 0, 58  ; initial
-    .byte 0, 0, 0, 0, 0, 0, 0, 59  ; expected
+    .byte 58, 0, 0, 0, 0, 0, 0, 0  ; initial
+    .byte 59, 0, 0, 0, 0, 0, 0, 0  ; expected
     ;; Test:
-    .byte 0, 0, 0, 0, 0, 0, 0, 59  ; initial
-    .byte 0, 0, 0, 0, 0, 0, 1,  0  ; expected
+    .byte 59, 0, 0, 0, 0, 0, 0, 0  ; initial
+    .byte 00, 1, 0, 0, 0, 0, 0, 0  ; expected
     ;; Test:
-    .byte 0, 0, 0, 0, 0, 0, 8, 59  ; initial
-    .byte 0, 0, 0, 0, 0, 0, 9,  0  ; expected
+    .byte 59, 8, 0, 0, 0, 0, 0, 0  ; initial
+    .byte 00, 9, 0, 0, 0, 0, 0, 0  ; expected
     ;; Test:
-    .byte 0, 0, 0, 0, 0, 0, 9, 59  ; initial
-    .byte 0, 0, 0, 0, 0, 1, 0,  0  ; expected
+    .byte 59, 9, 0, 0, 0, 0, 0, 0  ; initial
+    .byte 00, 0, 1, 0, 0, 0, 0, 0  ; expected
     ;; Test:
-    .byte 0, 0, 0, 0, 0, 4, 9, 59  ; initial
-    .byte 0, 0, 0, 0, 0, 5, 0,  0  ; expected
+    .byte 59, 9, 4, 0, 0, 0, 0, 0  ; initial
+    .byte 00, 0, 5, 0, 0, 0, 0, 0  ; expected
     ;; Test:
-    .byte 0, 0, 0, 0, 0, 5, 9, 59  ; initial
-    .byte 0, 0, 0, 0, 1, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 0, 0, 0, 0, 0  ; initial
+    .byte 00, 0, 0, 1, 0, 0, 0, 0  ; expected
     ;; Test:
-    .byte 0, 0, 0, 0, 9, 5, 9, 59  ; initial
-    .byte 0, 0, 0, 1, 0, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 8, 0, 0, 0, 0  ; initial
+    .byte 00, 0, 0, 9, 0, 0, 0, 0  ; expected
     ;; Test:
-    .byte 0, 0, 0, 0, 8, 5, 9, 59  ; initial
-    .byte 0, 0, 0, 0, 9, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 9, 0, 0, 0, 0  ; initial
+    .byte 00, 0, 0, 0, 1, 0, 0, 0  ; expected
     ;; Test:
-    .byte 0, 0, 0, 0, 9, 5, 9, 59  ; initial
-    .byte 0, 0, 0, 1, 0, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 9, 4, 0, 0, 0  ; initial
+    .byte 00, 0, 0, 0, 5, 0, 0, 0  ; expected
     ;; Test:
-    .byte 0, 0, 0, 4, 9, 5, 9, 59  ; initial
-    .byte 0, 0, 0, 5, 0, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 9, 5, 0, 0, 0  ; initial
+    .byte 00, 0, 0, 0, 0, 1, 0, 0  ; expected
     ;; Test:
-    .byte 0, 0, 0, 5, 9, 5, 9, 59  ; initial
-    .byte 0, 0, 1, 0, 0, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 9, 5, 8, 0, 0  ; initial
+    .byte 00, 0, 0, 0, 0, 9, 0, 0  ; expected
     ;; Test:
-    .byte 0, 0, 8, 5, 9, 5, 9, 59  ; initial
-    .byte 0, 0, 9, 0, 0, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 9, 5, 9, 0, 0  ; initial
+    .byte 00, 0, 0, 0, 0, 0, 1, 0  ; expected
     ;; Test:
-    .byte 0, 0, 9, 5, 9, 5, 9, 59  ; initial
-    .byte 0, 1, 0, 0, 0, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 9, 5, 9, 8, 0  ; initial
+    .byte 00, 0, 0, 0, 0, 0, 9, 0  ; expected
     ;; Test:
-    .byte 0, 8, 9, 5, 9, 5, 9, 59  ; initial
-    .byte 0, 9, 0, 0, 0, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 9, 5, 9, 9, 0  ; initial
+    .byte 00, 0, 0, 0, 0, 0, 0, 1  ; expected
     ;; Test:
-    .byte 0, 9, 9, 5, 9, 5, 9, 59  ; initial
-    .byte 1, 0, 0, 0, 0, 0, 0,  0  ; expected
-    ;; Test:
-    .byte 8, 9, 9, 5, 9, 5, 9, 59  ; initial
-    .byte 9, 0, 0, 0, 0, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 9, 5, 9, 9, 8  ; initial
+    .byte 00, 0, 0, 0, 0, 0, 0, 9  ; expected
     ;; Timer should stop ticking when it reaches its maximum value:
-    .byte 9, 9, 9, 5, 9, 5, 9, 59  ; initial
-    .byte 9, 9, 9, 5, 9, 5, 9, 59  ; expected
+    .byte 59, 9, 5, 9, 5, 9, 9, 9  ; initial
+    .byte 59, 9, 5, 9, 5, 9, 9, 9  ; expected
     ;; Timer should repair itself when a digit is out of range:
-    .byte 1, 2, 3, 1, 2, 1, 2, 99  ; initial
-    .byte 1, 2, 3, 1, 2, 1, 3,  0  ; expected
+    .byte 99, 2, 1, 2, 1, 3, 2, 1  ; initial
+    .byte 00, 3, 1, 2, 1, 3, 2, 1  ; expected
     ;; Timer should repair itself when a digit is out of range:
-    .byte 1, 2, 3, 1, 2, 1, 99, 59  ; initial
-    .byte 1, 2, 3, 1, 2, 2,  0,  0  ; expected
+    .byte 59, 99, 1, 2, 1, 3, 2, 1  ; initial
+    .byte 00,  0, 2, 2, 1, 3, 2, 1  ; expected
     ;; Timer should repair itself when a digit is out of range:
-    .byte 1, 2, 3, 1, 2, 99, 9, 59  ; initial
-    .byte 1, 2, 3, 1, 3,  0, 0,  0  ; expected
+    .byte 59, 9, 99, 2, 1, 3, 2, 1  ; initial
+    .byte 00, 0,  0, 3, 1, 3, 2, 1  ; expected
     ;; Timer should repair itself when a digit is out of range:
-    .byte 1, 2, 3, 1, 99, 5, 9, 59  ; initial
-    .byte 1, 2, 3, 2,  0, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 99, 1, 3, 2, 1  ; initial
+    .byte 00, 0, 0,  0, 2, 3, 2, 1  ; expected
     ;; Timer should repair itself when a digit is out of range:
-    .byte 1, 2, 3, 99, 9, 5, 9, 59  ; initial
-    .byte 1, 2, 4,  0, 0, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 9, 99, 3, 2, 1  ; initial
+    .byte 00, 0, 0, 0,  0, 4, 2, 1  ; expected
     ;; Timer should repair itself when a digit is out of range:
-    .byte 1, 2, 99, 5, 9, 5, 9, 59  ; initial
-    .byte 1, 3,  0, 0, 0, 0, 0,  0  ; expected
+    .byte 59, 9, 5, 9, 5, 99, 2, 1  ; initial
+    .byte 00, 0, 0, 0, 0,  0, 3, 1  ; expected
     ;; Timer should repair itself when a digit is out of range:
-    .byte 1, 99, 9, 5, 9, 5, 9, 59  ; initial
-    .byte 2,  0, 0, 0, 0, 0, 0,  0  ; expected
-    ;; Timer should repair itself when a digit is out of range:
-    .byte 99, 9, 9, 5, 9, 5, 9, 59  ; initial
-    .byte  9, 9, 9, 5, 9, 5, 9, 59  ; expected
+    .byte 59, 9, 5, 9, 5, 9, 99, 1  ; initial
+    .byte 00, 0, 0, 0, 0, 0,  0, 2  ; expected
 .ENDPROC
 
 .LINECONT +

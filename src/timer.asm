@@ -18,17 +18,10 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "macros.inc"
+.INCLUDE "mmc3.inc"
 .INCLUDE "timer.inc"
 
-;;;=========================================================================;;;
-
-.SEGMENT "RAM_Timer"
-
-;;; The total time spent in explore mode for this game, stored as hours (3
-;;; decimal digits), minutes (2 decimal digits), seconds (2 decimal digits),
-;;; and frames (1 base-60 digit), in big-endian order.
-.EXPORT Ram_ExploreTimer_u8_arr
-Ram_ExploreTimer_u8_arr: .res kNumTimerDigits
+.IMPORT Sram_ExploreTimer_u8_arr
 
 ;;;=========================================================================;;;
 
@@ -37,35 +30,41 @@ Ram_ExploreTimer_u8_arr: .res kNumTimerDigits
 ;;; Advances Ram_ExploreTimer_u8_arr by one frame.
 .EXPORT FuncA_Avatar_TickExploreTimer
 .PROC FuncA_Avatar_TickExploreTimer
-    ldx #kNumTimerDigits - 1
+_CountDigitsToRoll:
+    ldx #0
     @loop:
-    lda Ram_ExploreTimer_u8_arr, x
+    lda Sram_ExploreTimer_u8_arr, x
     cmp _TimerDigitMax_u8_arr, x
-    blt _IncrementDigit
-    lda #0
-    sta Ram_ExploreTimer_u8_arr, x
-    dex
-    .assert kNumTimerDigits <= $80, error
-    bpl @loop
-_TimerOverflow:
-    ;; At this point, we've rolled the whole timer back to 000:00:00.00, so set
-    ;; it back to its maximum value of 999:59:59.59.
-    ldx #kNumTimerDigits - 1
-    @loop:
-    lda _TimerDigitMax_u8_arr, x
-    sta Ram_ExploreTimer_u8_arr, x
-    dex
-    .assert kNumTimerDigits <= $80, error
-    bpl @loop
+    blt _RollDigits
+    inx
+    cpx #kNumTimerDigits
+    blt @loop
+    ;; The timer is already at its maximum value, so leave it unchanged.
     rts
-_IncrementDigit:
-    inc Ram_ExploreTimer_u8_arr, x
+_RollDigits:
+    lda #0
+    ;; Enable writes to SRAM.
+    ldy #bMmc3PrgRam::Enable
+    sty Hw_Mmc3PrgRamProtect_wo
+    ;; Increment the first digit that shouldn't roll over to zero.
+    inc Sram_ExploreTimer_u8_arr, x
+    ;; Roll all lower digits back to zero.
+    bne @start  ; unconditional
+    @loop:
+    sta Sram_ExploreTimer_u8_arr, x
+    @start:
+    dex
+    .assert kNumTimerDigits <= $80, error
+    bpl @loop
+    ;; Disable writes to SRAM.
+    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sty Hw_Mmc3PrgRamProtect_wo
     rts
 _TimerDigitMax_u8_arr:
-:   .byte 9, 9, 9  ; hours (three decimal digits)
-    .byte 5, 9     ; minutes (two decimal digits)
-    .byte 5, 9     ; seconds (two decimal digits)
-    .byte 59       ; frames (one base-60 digit)
+:   .byte 59       ; frames (one base-60 digit)
+    .byte 9, 5     ; seconds (two decimal digits, little-endian)
+    .byte 9, 5     ; minutes (two decimal digits, little-endian)
+    .byte 9, 9, 9  ; hours (three decimal digits, little-endian)
     .assert * - :- = kNumTimerDigits, error
 .ENDPROC
 

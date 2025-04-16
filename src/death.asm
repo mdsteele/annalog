@@ -122,7 +122,6 @@ _FadeOut:
     jsr Func_SetAndTransferFade
     jsr Func_FadeOutToBlackSlowly
 _Respawn:
-    ;; TODO: Show a retry/quit menu, to let player quit to the title screen.
     jmp Main_Explore_SpawnInLastSafeRoom
 .ENDPROC
 

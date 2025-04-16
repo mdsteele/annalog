@@ -29,7 +29,6 @@
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
 .INCLUDE "spawn.inc"
-.INCLUDE "timer.inc"
 
 .IMPORT FuncA_Avatar_ComputeMaxInstructions
 .IMPORT FuncA_Avatar_InitMotionless
@@ -38,8 +37,6 @@
 .IMPORT Func_TryPushAvatarVert
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Ram_ExploreTimer_u8_arr
-.IMPORT Sram_ExploreTimer_u8_arr
 .IMPORT Sram_LastSafe_bSpawn
 .IMPORT Sram_LastSafe_eRoom
 .IMPORTZP Zp_AvatarPosX_i16
@@ -124,8 +121,7 @@ Zp_LastPoint_eRoom: .res 1
     fall Func_UpdateLastSafePoint
 .ENDPROC
 
-;;; Copies Zp_LastPoint_* to Sram_LastSafe_* and copies Ram_ExploreTimer_u8_arr
-;;; to Sram_ExploreTimer_u8_arr.
+;;; Copies Zp_LastPoint_* to Sram_LastSafe_*.
 ;;; @preserve X, Y, T0+
 .PROC Func_UpdateLastSafePoint
     txa
@@ -138,13 +134,6 @@ Zp_LastPoint_eRoom: .res 1
     sta Sram_LastSafe_bSpawn
     lda Zp_LastPoint_eRoom
     sta Sram_LastSafe_eRoom
-    ;; Update saved explore timer.
-    ldx #kNumTimerDigits - 1
-    @timerLoop:
-    lda Ram_ExploreTimer_u8_arr, x
-    sta Sram_ExploreTimer_u8_arr, x
-    dex
-    bpl @timerLoop
     ;; Disable writes to SRAM.
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
@@ -157,19 +146,11 @@ Zp_LastPoint_eRoom: .res 1
 
 .SEGMENT "PRGA_Avatar"
 
-;;; Spawns the player avatar into the last safe point, and copies
-;;; Sram_ExploreTimer_u8_arr to Ram_ExploreTimer_u8_arr.
+;;; Spawns the player avatar into the last safe point.
 ;;; @prereq The last safe room is loaded.
 .EXPORT FuncA_Avatar_SpawnAtLastSafePoint
 .PROC FuncA_Avatar_SpawnAtLastSafePoint
     jsr FuncA_Avatar_ComputeMaxInstructions
-    ;; Load explore timer.
-    ldx #kNumTimerDigits - 1
-    @loop:
-    lda Sram_ExploreTimer_u8_arr, x
-    sta Ram_ExploreTimer_u8_arr, x
-    dex
-    bpl @loop
     ;; Load last safe point.
     lda Sram_LastSafe_eRoom
     sta Zp_LastPoint_eRoom
