@@ -26,8 +26,8 @@
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_InitActorProjAcid
-.IMPORT FuncA_Actor_IsAvatarAboveOrBelow
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
+.IMPORT FuncA_Actor_IsAvatarWithinVertDistances
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Objects_Draw2x2Actor
@@ -62,6 +62,10 @@ kFlydropAcidCooldownFrames = 30
 ;;; How close the player avatar must be horizontally in order for the flydrop
 ;;; to drop acid, in pixels.
 kFlydropHorzProximity = $30
+
+;;; How close the player avatar must be below in order for the flydrop to drop
+;;; acid, in pixels.
+kFlydropVertProximity = $90
 
 ;;; The OBJ palette number to use for drawing flydrop baddie actors.
 kPaletteObjFlydrop = 0
@@ -105,10 +109,12 @@ _DropAcid:
     lda #kFlydropHorzProximity  ; param: distance
     jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
     bcc @done
-    ;; Don't drop acid if the player avatar is above the flydrop.
-    ;; TODO: don't drop if the avatar is too far below (e.g. in ShadowDescent)
-    jsr FuncA_Actor_IsAvatarAboveOrBelow  ; preserves X, returns N
-    bmi @done
+    ;; Don't drop acid if the player avatar is above the flydrop or too far
+    ;; below.
+    ldy #0  ; param: distance above actor
+    lda #kFlydropVertProximity  ; param: distance below actor
+    jsr FuncA_Actor_IsAvatarWithinVertDistances  ; preserves X, returns C
+    bcc @done
     ;; Set the starting position for the acid.
     lda #6  ; param: offset
     jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
