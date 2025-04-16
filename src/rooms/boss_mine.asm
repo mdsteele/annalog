@@ -54,6 +54,7 @@
 .IMPORT FuncA_Room_InitActorSmokeDirt
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineResetRun
+.IMPORT FuncA_Room_PlaySfxRumbling
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_FindEmptyActorSlot
@@ -513,22 +514,23 @@ _CheckMode:
 _BossHiding:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
-    bne _Return
+    bne @done
     ;; Start burrowing out of an exit.
     lda #eBossMode::Burrowing
     sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossBurrowFrames
     sta Zp_RoomState + sState::BossCooldown_u8
-_Return:
+    @done:
     rts
 _BossBurrowing:
     ;; Shake the room.
     lda Zp_RoomState + sState::BossCooldown_u8
-    and #$03
+    mod #4
     bne @noShake
     lda #2  ; param: num frames
     jsr Func_ShakeRoom
-    ;; TODO: play a sound for the boss burrowing
+    lda #4  ; param: num frames
+    jsr FuncA_Room_PlaySfxRumbling
     @noShake:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -564,7 +566,7 @@ _BossBurrowing:
     bpl @dirtLoop
     @dirtDone:
     ;; Start emerging from that exit.
-    ;; TODO: play a sound for the boss emerging
+    jsr Func_PlaySfxExplodeFracture
     lda #eBossMode::Emerging
     sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossEmergeFrames  ; param: num frames
@@ -585,6 +587,7 @@ _BossEmerging:
     sta Zp_RoomState + sState::BossFireCount_u8
     lda #kBossFirstShootCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
+_Return:
     rts
 _BossShooting:
     jsr FuncC_Boss_MineSetEyeDir
@@ -617,6 +620,8 @@ _BossShooting:
 _StartRetreating:
     lda #eBossMode::Retreating
     sta Zp_RoomState + sState::Current_eBossMode
+    lda #kBossEmergeFrames  ; param: num frames
+    jsr FuncA_Room_PlaySfxRumbling
     lda #kBossEmergeFrames  ; param: num frames
     jmp Func_ShakeRoom
 _BossHurt:
