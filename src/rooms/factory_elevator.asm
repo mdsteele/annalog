@@ -156,9 +156,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_FactoryElevator_EnterRoom
+    d_addr Enter_func_ptr, FuncC_Factory_Elevator_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, FuncA_Room_FactoryElevator_TickRoom
+    d_addr Tick_func_ptr, FuncC_Factory_Elevator_TickRoom
     d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
@@ -175,14 +175,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, "U", 0, "L", "Y"
     d_byte MainPlatform_u8, kUpperJetPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_FactoryElevatorUpperJet_Init
+    d_addr Init_func_ptr, FuncC_Factory_ElevatorUpperJet_Init
     d_addr ReadReg_func_ptr, FuncC_Factory_ElevatorUpperJet_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_FactoryElevatorUpperJet_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_FactoryElevatorUpperJet_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_FactoryElevatorUpperJet_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawJetMachine
-    d_addr Reset_func_ptr, FuncA_Room_FactoryElevatorUpperJet_Reset
+    d_addr Reset_func_ptr, FuncC_Factory_ElevatorUpperJet_Reset
     D_END
     .assert * - :- = kLowerJetMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -194,14 +194,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $b0
     d_byte RegNames_u8_arr4, "U", 0, "L", "Y"
     d_byte MainPlatform_u8, kLowerJetPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_FactoryElevatorLowerJet_Init
+    d_addr Init_func_ptr, FuncC_Factory_ElevatorLowerJet_Init
     d_addr ReadReg_func_ptr, FuncC_Factory_ElevatorLowerJet_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_FactoryElevatorLowerJet_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_FactoryElevatorLowerJet_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_FactoryElevatorLowerJet_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawJetMachine
-    d_addr Reset_func_ptr, FuncA_Room_FactoryElevatorLowerJet_Reset
+    d_addr Reset_func_ptr, FuncC_Factory_ElevatorLowerJet_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -372,12 +372,9 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
+;;; @prereq PRGA_Room is loaded.
 ;;; @param A The bSpawn value for where the avatar is entering the room.
-.PROC FuncA_Room_FactoryElevator_EnterRoom
+.PROC FuncC_Factory_Elevator_EnterRoom
 _MaybeRemoveBruno:
     pha  ; bSpawn value
     flag_bit Sram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
@@ -427,7 +424,8 @@ _LowerShaft:
     jmp FuncA_Room_InitElevatorJetState
 .ENDPROC
 
-.PROC FuncA_Room_FactoryElevator_TickRoom
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Factory_Elevator_TickRoom
 _StartCutscene:
     ;; If Bruno isn't here, or if Anna has already talked to Bruno, don't start
     ;; the cutscene.
@@ -453,10 +451,46 @@ _StartCutscene:
 _StoreElevatorState:
     ldx #kUpperJetMachineIndex  ; param: machine index
     lda Zp_AvatarPosY_i16 + 1
-    beq FuncA_Room_StoreElevatorJetState
-    ldx #kLowerJetMachineIndex  ; param: machine index
-    fall FuncA_Room_StoreElevatorJetState
+    beq @storeState
+    .assert kUpperJetMachineIndex + 1 = kLowerJetMachineIndex, error
+    inx  ; param: machine index (now kLowerJetMachineIndex)
+    @storeState:
+    jmp FuncA_Room_StoreElevatorJetState
 .ENDPROC
+
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Factory_ElevatorUpperJet_Reset
+    lda #0
+    sta Zp_RoomState + sElevatorState::UpperJetUpperLever_u8
+    ldx #kUpperJetLowerLeverDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    fall FuncC_Factory_ElevatorUpperJet_Init
+.ENDPROC
+
+.PROC FuncC_Factory_ElevatorUpperJet_Init
+    lda #kUpperJetInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kUpperJetMachineIndex
+    rts
+.ENDPROC
+
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Factory_ElevatorLowerJet_Reset
+    ldx #kLowerJetUpperLeverDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    lda #0
+    sta Zp_RoomState + sElevatorState::LowerJetLowerLever_u8
+    fall FuncC_Factory_ElevatorLowerJet_Init
+.ENDPROC
+
+.PROC FuncC_Factory_ElevatorLowerJet_Init
+    lda #kLowerJetInitGoalY
+    sta Ram_MachineGoalVert_u8_arr + kLowerJetMachineIndex
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
 
 ;;; Stores state data for the specified jet machine in Zp_RoomState, so that it
 ;;; can be restored later by FuncA_Room_InitElevatorJetState.
@@ -555,34 +589,6 @@ _Hud:
     txa
     ora Zp_RoomState + sElevatorState::PrevJetHud_bHud
     sta Zp_FloatingHud_bHud
-    rts
-.ENDPROC
-
-.PROC FuncA_Room_FactoryElevatorUpperJet_Reset
-    lda #0
-    sta Zp_RoomState + sElevatorState::UpperJetUpperLever_u8
-    ldx #kUpperJetLowerLeverDeviceIndex  ; param: device index
-    jsr FuncA_Room_ResetLever
-    fall FuncA_Room_FactoryElevatorUpperJet_Init
-.ENDPROC
-
-.PROC FuncA_Room_FactoryElevatorUpperJet_Init
-    lda #kUpperJetInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kUpperJetMachineIndex
-    rts
-.ENDPROC
-
-.PROC FuncA_Room_FactoryElevatorLowerJet_Reset
-    ldx #kLowerJetUpperLeverDeviceIndex  ; param: device index
-    jsr FuncA_Room_ResetLever
-    lda #0
-    sta Zp_RoomState + sElevatorState::LowerJetLowerLever_u8
-    fall FuncA_Room_FactoryElevatorLowerJet_Init
-.ENDPROC
-
-.PROC FuncA_Room_FactoryElevatorLowerJet_Init
-    lda #kLowerJetInitGoalY
-    sta Ram_MachineGoalVert_u8_arr + kLowerJetMachineIndex
     rts
 .ENDPROC
 
