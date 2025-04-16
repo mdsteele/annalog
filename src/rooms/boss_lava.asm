@@ -328,7 +328,7 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::Boiler
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $24
-    d_byte RegNames_u8_arr4, "L", "R", "V", 0
+    d_byte RegNames_u8_arr4, "L", "R", "V", "D"
     d_byte MainPlatform_u8, kBoilerPlatformIndex
     d_addr Init_func_ptr, Func_Noop
     d_addr ReadReg_func_ptr, FuncC_Boss_LavaBoiler_ReadReg
@@ -1031,20 +1031,7 @@ _DrawBossJawsOrTail:
 .PROC FuncC_Boss_LavaBlaster_ReadReg
     cmp #$e
     blt FuncC_Boss_Lava_ReadRegLR
-    beq _RegX
-_RegD:
-    lda #kBlockWidthPx * 11
-    sta T0  ; param: minimum distance so far, in pixels
-    ldy #kSensorPlatformIndex  ; param: distance sensor platform index
-    jsr Func_SetPointToAvatarCenter  ; preserves Y, T0+
-    jsr Func_DistanceSensorRightDetectPoint  ; returns T0
-    ;; TODO: detect solifuge
-    lda T0  ; minimum distance so far, in pixels
-    sub #kBlockWidthPx * 2  ; param: distance
-    bge @noClamp
-    lda #0  ; param: distance
-    @noClamp:
-    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
+    bne FuncC_Boss_Lava_ReadRegD
 _RegX:
     lda Ram_PlatformLeft_i16_0_arr + kBlasterPlatformIndex
     sub #kBlasterMinPlatformLeft - kTileWidthPx  ; param: distance
@@ -1057,6 +1044,7 @@ _RegX:
 .PROC FuncC_Boss_LavaBoiler_ReadReg
     cmp #$e
     blt FuncC_Boss_Lava_ReadRegLR
+    bne FuncC_Boss_Lava_ReadRegD
     jmp Func_MachineBoilerReadReg
 .ENDPROC
 
@@ -1073,6 +1061,32 @@ _RegL:
 _RegR:
     lda Zp_RoomState + sState::LeverRight_u8
     rts
+.ENDPROC
+
+;;; Reads the shared "D" distance sensor register for the BossLavaBlaster and
+;;; BossLavaBoiler machines.
+;;; @return A The value of the register (0-9).
+.PROC FuncC_Boss_Lava_ReadRegD
+    lda #kBlockWidthPx * 11
+    sta T0  ; param: minimum distance so far, in pixels
+    ;; Detect the player avatar.
+    ldy #kSensorPlatformIndex  ; param: distance sensor platform index
+    jsr Func_SetPointToAvatarCenter  ; preserves Y and T0+
+    jsr Func_DistanceSensorRightDetectPoint  ; preserves Y, returns T0
+    ;; Detect the hatched solifuge, if any.
+    lda #eActor::BadSolifuge  ; param: actor type to find
+    jsr Func_FindActorWithType  ; preserves Y and T0+, returns C and X
+    bcs @doneSolifuge  ; no solifuge baddie was found
+    jsr Func_SetPointToActorCenter  ; preserves Y and T0+
+    jsr Func_DistanceSensorRightDetectPoint  ; returns T0
+    @doneSolifuge:
+    ;; Compute and return the register value.
+    lda T0  ; minimum distance so far, in pixels
+    sub #kBlockWidthPx * 2  ; param: distance
+    bge @noClamp
+    lda #0  ; param: distance
+    @noClamp:
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; @prereq PRGA_Objects is loaded.
