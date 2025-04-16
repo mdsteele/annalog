@@ -80,6 +80,8 @@
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorProjFireball
+.IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_IsActorWithinDistanceOfPoint
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_MovePlatformHorz
@@ -88,6 +90,7 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
@@ -503,23 +506,44 @@ _Devices_sDevice_arr:
 ;;; Performs per-frame upates for the boss in this room.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Lava_TickBoss
-_CheckForHitTail:
-    ;; Fireblasts can only hit the boss's tail if its jaws/tail are fully open.
-    lda Zp_RoomState + sState::BossJawsOpen_u8
-    cmp #kBossJawsOpenFrames
-    blt @done  ; tail covering is not fully open
+_CheckForFireblastHit:
     ;; Check for a fireblast (in this room, it's not possible for there to be
     ;; more than one on screen at once).
     lda #eActor::ProjFireblast  ; param: actor type
     jsr Func_FindActorWithType  ; returns C and X
     bcs @done  ; no fireblast found
-    ;; TODO: Check if the fireblast has hit a solifuge.
+    ;; Fireblasts can only hit the boss's tail if its jaws/tail are fully open.
+    lda Zp_RoomState + sState::BossJawsOpen_u8
+    cmp #kBossJawsOpenFrames
+    blt @notHitTail  ; tail covering is not fully open
     ;; Check if the fireblast has hit the tail.
     jsr Func_SetPointToActorCenter  ; preserves X
     ldy #kBossTailPlatformIndex  ; param: platform index
     jsr Func_IsPointInPlatform  ; preserves X, returns C
-    bcc @done  ; fireblast has not hit tail
+    bcs @hitTail
+    @notHitTail:
+    ;; Check for a hatched solifuge (in this room, it's not possible for there
+    ;; to be more than one).
+    jsr Func_SetPointToActorCenter
+    stx T1  ; fireblast actor index
+    lda #eActor::BadSolifuge  ; param: actor type to find
+    jsr Func_FindActorWithType  ; preserves T0+, returns C and X
+    bcs @done  ; no solifuge found
+    ;; Check if the fireblast is hitting the solifuge.
+    lda #6  ; param: distance
+    jsr Func_IsActorWithinDistanceOfPoint  ; preserves X and T1+, returns C
+    bcc @done  ; fireblast is not hitting solifuge
+    ;; The fireblast has hit the solifuge, so kill the solifuge and remove the
+    ;; fireblast.
+    jsr Func_InitActorSmokeExplosion  ; preserves T0+
+    jsr Func_PlaySfxBaddieDeath  ; preserves T0+
+    ldx T1  ; fireblast actor index
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, y
+    .assert eActor::None = 0, error
+    beq @done  ; unconditional
     ;; The fireblast has hit the tail, so remove the fireblast.
+    @hitTail:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     ;; Make the boss react to getting hit.

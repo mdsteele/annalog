@@ -504,7 +504,7 @@ _NoHit:
     d_byte BadRhino,         4
     d_byte BadRodent,        2
     d_byte BadSlime,         4
-    d_byte BadSolifuge,     kBadSolifugeBoundingBoxDown
+    d_byte BadSolifuge,     kBadSolifugeBoundingBoxUp
     d_byte BadSpider,        8
     d_byte BadToad,          9
     d_byte BadVinebug,       7
