@@ -17,11 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; BG tile IDs for drawing the city boss.
-kTileIdBgBossCityFirst = $40
-
-;;; OBJ tile IDs for drawing terrain in BossCity.
-kTileIdObjPlatformCityBricks = $89
-kTileIdObjPlatformCityWalls  = $9c
+;;; BG tile IDs for drawing the falling rocks in FactoryPass.
+kTileIdBgAnimRocksFallFirst = $7c
 
 ;;;=========================================================================;;;

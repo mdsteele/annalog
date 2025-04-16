@@ -25,6 +25,7 @@
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "factory_pass.inc"
 
 .IMPORT DataA_Room_Factory_sTileset
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -202,7 +203,8 @@ _Passages_sPassage_arr:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_FactoryPassRocksRow1  ; transfer destination
     .byte 8
-    .byte $69, $68, $69, $68, $69, $68, $69, $68
+    .assert kTileIdBgAnimRocksFallFirst = $7c, error
+    .byte $7d, $7c, $7d, $7c, $7d, $7c, $7d, $7c
 .ENDPROC
 
 ;;; The PPU transfer entry for changing the rocks terrain when the rocks are

@@ -111,6 +111,7 @@
 .INCLUDE "rooms/boss_shadow.inc"
 .INCLUDE "rooms/boss_temple.inc"
 .INCLUDE "rooms/city_center.inc"
+.INCLUDE "rooms/factory_pass.inc"
 .INCLUDE "rooms/garden_tower.inc"
 .INCLUDE "rooms/mine_west.inc"
 .INCLUDE "upgrade.inc"
@@ -291,8 +292,8 @@ _chr_begin:
     chr_inc "anim_conveyor_0"
     chr_res $05
     chr_inc "anim_boss_lava_2",  kTileIdBgAnimBossLavaFirst
-    chr_inc "anim_rocks_fall_0"
     chr_inc "anim_boss_crypt_0", kTileIdBgAnimBossCryptFirst
+    chr_inc "anim_rocks_fall_0", kTileIdBgAnimRocksFallFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -307,8 +308,8 @@ _chr_begin:
     chr_inc "anim_conveyor_1"
     chr_res $05
     chr_inc "anim_boss_lava_1",  kTileIdBgAnimBossLavaFirst
-    chr_inc "anim_rocks_fall_1"
     chr_inc "anim_boss_crypt_1", kTileIdBgAnimBossCryptFirst
+    chr_inc "anim_rocks_fall_1", kTileIdBgAnimRocksFallFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -323,8 +324,8 @@ _chr_begin:
     chr_inc "anim_conveyor_2"
     chr_res $05
     chr_inc "anim_boss_lava_2",  kTileIdBgAnimBossLavaFirst
-    chr_inc "anim_rocks_fall_2"
     chr_inc "anim_boss_crypt_2", kTileIdBgAnimBossCryptFirst
+    chr_inc "anim_rocks_fall_2", kTileIdBgAnimRocksFallFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -339,8 +340,8 @@ _chr_begin:
     chr_inc "anim_conveyor_3"
     chr_res $05
     chr_inc "anim_boss_lava_3",  kTileIdBgAnimBossLavaFirst
-    chr_inc "anim_rocks_fall_3"
     chr_inc "anim_boss_crypt_3", kTileIdBgAnimBossCryptFirst
+    chr_inc "anim_rocks_fall_3", kTileIdBgAnimRocksFallFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -351,10 +352,10 @@ _chr_begin:
 .EXPORT Ppu_ChrBgAnimB4
 .PROC Ppu_ChrBgAnimB4
     CHR1_BANK $40
-    chr_inc "anim_outbreak_0"
-    chr_inc "anim_rocks_fall_4"
+    chr_inc "anim_wyrm_0",       kTileIdBgAnimWyrmFirst
+    chr_inc "anim_outbreak_0",   kTileIdBgAnimOutbreakFirst
     chr_res $04
-    chr_inc "anim_wyrm_0", kTileIdBgAnimWyrmFirst
+    chr_inc "anim_rocks_fall_4", kTileIdBgAnimRocksFallFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -364,10 +365,10 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimB5
     CHR1_BANK $40
-    chr_inc "anim_outbreak_1"
-    chr_inc "anim_rocks_fall_5"
+    chr_inc "anim_wyrm_1",       kTileIdBgAnimWyrmFirst
+    chr_inc "anim_outbreak_1",   kTileIdBgAnimOutbreakFirst
     chr_res $04
-    chr_inc "anim_wyrm_1", kTileIdBgAnimWyrmFirst
+    chr_inc "anim_rocks_fall_5", kTileIdBgAnimRocksFallFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -377,10 +378,10 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimB6
     CHR1_BANK $40
-    chr_inc "anim_outbreak_2"
-    chr_inc "anim_rocks_fall_6"
+    chr_inc "anim_wyrm_2",       kTileIdBgAnimWyrmFirst
+    chr_inc "anim_outbreak_2",   kTileIdBgAnimOutbreakFirst
     chr_res $04
-    chr_inc "anim_wyrm_2", kTileIdBgAnimWyrmFirst
+    chr_inc "anim_rocks_fall_6", kTileIdBgAnimRocksFallFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -390,10 +391,9 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimB7
     CHR1_BANK $40
-    chr_res $28
-    chr_inc "anim_rocks_fall_7"
-    chr_res $04
-    chr_inc "anim_wyrm_3", kTileIdBgAnimWyrmFirst
+    chr_inc "anim_wyrm_3",       kTileIdBgAnimWyrmFirst
+    chr_res $2c
+    chr_inc "anim_rocks_fall_7", kTileIdBgAnimRocksFallFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -404,7 +404,7 @@ _chr_begin:
 .EXPORT Ppu_ChrBgAnimStatic
 .PROC Ppu_ChrBgAnimStatic
     CHR1_BANK $40
-    chr_res $10
+    chr_inc "anim_wyrm_static", kTileIdBgAnimWyrmFirst
     chr_inc "thorns_anim_static"
     chr_res $0a
     chr_inc "circuit_anim_static"
@@ -413,14 +413,13 @@ _chr_begin:
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_BgBossStatic"
+.SEGMENT "CHR_BgBossCity"
 
-.EXPORT Ppu_ChrBgBossStatic
-.PROC Ppu_ChrBgBossStatic
+.EXPORT Ppu_ChrBgBossCity
+.PROC Ppu_ChrBgBossCity
     CHR1_BANK $40
-    chr_inc "boss_city"
-    chr_res $04
-    chr_inc "anim_wyrm_static"
+    chr_inc "boss_city", kTileIdBgBossCityFirst
+    chr_res $14
     END_CHR_BANK
 .ENDPROC
 

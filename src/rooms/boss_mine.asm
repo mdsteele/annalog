@@ -80,7 +80,7 @@
 .IMPORT Func_ShakeRoom
 .IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Ppu_ChrBgAnimB4
-.IMPORT Ppu_ChrBgBossStatic
+.IMPORT Ppu_ChrBgAnimStatic
 .IMPORT Ppu_ChrObjBoss1
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
@@ -824,7 +824,7 @@ _DrawBoulder:
     jsr FuncA_Objects_DrawBoulderPlatform
 _DrawBoss:
     ;; Set default CHR04 bank, in case boss isn't drawn.
-    lda #<.bank(Ppu_ChrBgBossStatic)
+    lda #<.bank(Ppu_ChrBgAnimStatic)
     sta Zp_Chr04Bank_u8
     jmp FuncA_Objects_DrawBoss
 .ENDPROC

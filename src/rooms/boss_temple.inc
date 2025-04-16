@@ -17,6 +17,9 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; BG tile IDs for drawing the temple boss.
+kTileIdBgAnimOutbreakFirst = $50
+
 ;;; OBJ tile IDs for drawing the temple boss.
 kTileIdObjOutbreakFirst = $a0
 

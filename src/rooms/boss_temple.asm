@@ -1109,7 +1109,7 @@ _BossRowStart_ptr_1_arr:
     .endrepeat
 _BossRowFirstTileId_u8_arr:
     .repeat kBossBodyHeightTiles, i
-    .byte $40 + kBossBodyWidthTiles * i
+    .byte kTileIdBgAnimOutbreakFirst + kBossBodyWidthTiles * i
     .endrepeat
 _ColumnTileId_u8_arr:
     .byte $9a, $9b, $94, $95, $94, $95, $9a, $9b
