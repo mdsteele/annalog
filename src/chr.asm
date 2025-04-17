@@ -419,7 +419,7 @@ _chr_begin:
 .PROC Ppu_ChrBgBossCity
     CHR1_BANK $40
     chr_inc "boss_city", kTileIdBgBossCityFirst
-    chr_res $14
+    chr_res $0c
     END_CHR_BANK
 .ENDPROC
 

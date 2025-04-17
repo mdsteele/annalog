@@ -101,6 +101,7 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr04Bank_u8
@@ -108,6 +109,7 @@
 .IMPORTZP Zp_NextIrq_int_ptr
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
+.IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_RoomState
 .IMPORTZP Zp_ShapePosX_i16
@@ -567,12 +569,12 @@ _Devices_sDevice_arr:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow2Start + 3  ; transfer destination
     .byte 2
-    .byte $68, $69
+    .byte $70, $71
     ;; Row 3:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow3Start + 3  ; transfer destination
     .byte 2
-    .byte $6a, $6b
+    .byte $72, $73
 .ENDPROC
 
 .PROC DataC_Boss_CityUnblinkTransfer_arr
@@ -580,12 +582,58 @@ _Devices_sDevice_arr:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow2Start + 3  ; transfer destination
     .byte 2
-    .byte $42, $43
+    .byte $52, $53
     ;; Row 3:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow3Start + 3  ; transfer destination
     .byte 2
-    .byte $48, $49
+    .byte $58, $59
+.ENDPROC
+
+.PROC DataC_Boss_BossCityBodyTransfer_arr
+    .assert kTileIdBgBossCityFirst = $40, error
+    ;; Col 3:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow1Start + 2  ; transfer destination
+    .byte 4
+    .byte $40, $41, $42, $43
+    ;; Col 4:
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_BossRow4Start + 2  ; transfer destination
+    .byte 4
+    .byte $44, $45, $46, $47
+.ENDPROC
+
+;;; Buffers a PPU transfer to draw the BG tiles for the city boss's body,
+;;; taking its current health into account. Note that this is called from both
+;;; room fade-in and boss tick functions, so no particular PRGA bank is
+;;; guaranteed to be loaded.
+;;; @preserve T3+
+.PROC FuncC_Boss_CityTransferBodyTiles
+    ;; Buffer a transfer for the boss's body at full health.
+    ldax #DataC_Boss_BossCityBodyTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataC_Boss_BossCityBodyTransfer_arr)  ; param: data length
+    jsr Func_BufferPpuTransfer  ; preserves T3+
+    ;; For each point of damage on the boss, alter one of the body tiles in the
+    ;; transfer buffer to be injured.
+    lda #kBossInitHealth
+    sub Zp_RoomState + sState::BossHealth_u8
+    tax
+    bpl @continue  ; unconditional
+    @loop:
+    lda Zp_PpuTransferLen_u8
+    sub _OffsetFromEnd_u8_arr, x
+    tay
+    lda Ram_PpuTransfer_arr, y
+    ora #$08
+    sta Ram_PpuTransfer_arr, y
+    @continue:
+    dex
+    bpl @loop
+    rts
+_OffsetFromEnd_u8_arr:
+:   .byte 4, 10, 1, 12, 2, 11, 3, 9
+    .assert * - :- = kBossInitHealth, error
 .ENDPROC
 
 ;;; Performs per-frame upates for the boss in this room.
@@ -638,9 +686,9 @@ _BossHurt:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
-    ;; At the end of the hurt animation, decrement the boss's health.  If its
-    ;; health is now zero, kill the boss.
-    dec Zp_RoomState + sState::BossHealth_u8
+    ;; At the end of the hurt animation, if the boss's health is now zero, kill
+    ;; the boss.
+    lda Zp_RoomState + sState::BossHealth_u8
     bne @resume  ; boss is not dead yet
     lda #eBossMode::Dead
     sta Zp_RoomState + sState::Current_eBossMode
@@ -909,6 +957,7 @@ _BossIsAlive:
     rts
 .ENDPROC
 
+;;; @prereq PRGC_Boss is loaded.
 .PROC FuncA_Room_BossCity_TickRoom
     ;; Check for a rocket (in this room, it's not possible for there to be more
     ;; than one on screen at once).
@@ -929,6 +978,13 @@ _BossIsAlive:
     bne @notBossCore
     lda #eSample::BossHurtE  ; param: eSample to play
     jsr Func_PlaySfxSample  ; preserves X and Y
+    lda Zp_RoomState + sState::BossHealth_u8
+    beq @doneBossHealth
+    dec Zp_RoomState + sState::BossHealth_u8
+    stx T3  ; rocket actor index
+    jsr FuncC_Boss_CityTransferBodyTiles  ; preserves T3+
+    ldx T3  ; rocket actor index
+    @doneBossHealth:
     lda #eBossMode::Hurt
     sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossHurtCooldown
@@ -1193,32 +1249,32 @@ _Error:
     .dbyt Ppu_BossRow0Start + 1  ; transfer destination
     .byte 6
     .assert kTileIdBgBossCityFirst = $40, error
-    .byte $4c, $4d, $4e, $4f, $50, $51
+    .byte $5c, $5d, $5e, $5f, $60, $61
     ;; Row 1:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow1Start  ; transfer destination
     .byte 8
-    .byte $52, $53, $54, $55, $56, $57, $58, $59
+    .byte $62, $63, $40, $41, $42, $43, $64, $65
     ;; Row 2:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow2Start + 1  ; transfer destination
     .byte 6
-    .byte $40, $41, $42, $43, $44, $45
+    .byte $50, $51, $52, $53, $54, $55
     ;; Row 3:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow3Start + 1  ; transfer destination
     .byte 6
-    .byte $46, $47, $48, $49, $4a, $4b
+    .byte $56, $57, $58, $59, $5a, $5b
     ;; Row 4:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow4Start  ; transfer destination
     .byte 8
-    .byte $5a, $5b, $5c, $5d, $5e, $5f, $60, $61
+    .byte $66, $67, $44, $45, $46, $47, $68, $69
     ;; Row 5:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow5Start + 1  ; transfer destination
     .byte 6
-    .byte $62, $63, $64, $65, $66, $67
+    .byte $6a, $6b, $6c, $6d, $6e, $6f
     ;; Attributes:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossCoreAttrs  ; transfer destination
@@ -1226,10 +1282,12 @@ _Error:
     .byte $11
 .ENDPROC
 
+;;; @prereq PRGC_Boss is loaded.
 .PROC FuncA_Terrain_BossCity_FadeInRoom
     ldax #DataA_Terrain_BossCityInitTransfer_arr  ; param: data pointer
     ldy #.sizeof(DataA_Terrain_BossCityInitTransfer_arr)  ; param: data length
-    jmp Func_BufferPpuTransfer
+    jsr Func_BufferPpuTransfer
+    jmp FuncC_Boss_CityTransferBodyTiles
 .ENDPROC
 
 ;;;=========================================================================;;;
