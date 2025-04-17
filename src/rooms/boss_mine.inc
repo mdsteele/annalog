@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; BG tile IDs for animating the mine boss emerging from the wall.
-kTileIdBgAnimWyrmFirst = $40
+kTileIdBgAnimWyrmFirst = $70
 ;;; BG tile IDs for drawing the conveyor for the mine boss.
 kTileIdBgTerrainConveyorFirst = $b8
 

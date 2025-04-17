@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; BG tile IDs for drawing the temple boss.
-kTileIdBgAnimOutbreakFirst = $50
+kTileIdBgAnimOutbreakFirst = $48
 
 ;;; OBJ tile IDs for drawing the temple boss.
 kTileIdObjOutbreakFirst = $a0

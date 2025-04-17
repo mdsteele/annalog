@@ -27,4 +27,7 @@ kCircuitTraceSlowFrames = 160
 ;;; OBJ tile IDs for drawing energy waves during circuit-tracing mode.
 kTileIdObjCircuitWaveFirst = $a0
 
+;;; BG tile IDs for drawing animated circuit conduit terrain.
+kTileIdBgAnimCircuitFirst = $5a
+
 ;;;=========================================================================;;;

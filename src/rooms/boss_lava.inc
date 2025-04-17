@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; BG tile IDs for animating the lava boss's legs.
-kTileIdBgAnimBossLavaFirst = $50
+kTileIdBgAnimBossLavaFirst = $68
 
 ;;; BG tile IDs for the lava boss's body, with and without injuries.
 kTileIdBgTerrainBossLavaHurtFirst = $b8

@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/orc.inc"
 .INCLUDE "../avatar.inc"
+.INCLUDE "../breaker.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
@@ -1858,26 +1859,27 @@ _Col1:
 .ENDPROC
 
 .PROC DataA_Terrain_CoreBoss_CircuitTiles_u8_arr
+    .assert kTileIdBgAnimCircuitFirst .mod $40 = $1a, error
     ;; $00
-    .byte $33, $32, $31, $30
-    .byte $34, $35, $36, $37
-    .byte $3b, $3a, $39, $38
-    .byte $3c, $3d, $3e, $3f
+    .byte $23, $22, $21, $20
+    .byte $24, $25, $26, $27
+    .byte $2b, $2a, $29, $28
+    .byte $2c, $2d, $2e, $2f
     ;; $10
-    .byte $34, $35, $36, $2b, $2b, $2b, $2b, $2b
-    .byte $2d, $2d, $2d, $2d, $2d, $3a, $39, $38
+    .byte $24, $25, $26, $1b, $1b, $1b, $1b, $1b
+    .byte $1d, $1d, $1d, $1d, $1d, $2a, $29, $28
     ;; $20
-    .byte $34, $2a, $2a, $2a, $2a, $2a, $2a
-    .byte $33, $2b, $2b, $2b, $2b, $2b, $2b, $2b, $2b
+    .byte $24, $1a, $1a, $1a, $1a, $1a, $1a
+    .byte $23, $1b, $1b, $1b, $1b, $1b, $1b, $1b, $1b
     ;; $30
-    .byte $2c, $2c, $2c, $2c, $2c, $2c, $38
-    .byte $2d, $2d, $2d, $2d, $2d, $2d, $2d, $2d, $3f
+    .byte $1c, $1c, $1c, $1c, $1c, $1c, $28
+    .byte $1d, $1d, $1d, $1d, $1d, $1d, $1d, $1d, $2f
     ;; $40
-    .byte $33, $32, $31, $2a, $2a, $2a, $2a, $2a, $2a, $2a
-    .byte $2c, $2c, $2c, $2c, $2c, $2c, $2c, $3d, $3e, $3f
+    .byte $23, $22, $21, $1a, $1a, $1a, $1a, $1a, $1a, $1a
+    .byte $1c, $1c, $1c, $1c, $1c, $1c, $1c, $2d, $2e, $2f
     ;; $54
-    .byte $2e, $2e, $2e, $2e
-    .byte $2f, $2f, $2f, $2f
+    .byte $1e, $1e, $1e, $1e
+    .byte $1f, $1f, $1f, $1f
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; BG tile IDs for drawing the crypt boss.
-kTileIdBgAnimBossCryptFirst     = $68
+kTileIdBgAnimBossCryptFirst     = $48
 kTileIdBgBossCryptEyeRedFirst   = $b4
 kTileIdBgBossCryptEyeWhiteFirst = $a4
 

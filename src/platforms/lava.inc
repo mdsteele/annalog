@@ -34,4 +34,7 @@ kLavaPlatformTopTallRoom  = kLavaTerrainTopTallRoom  + kLavaPlatformOffsetPx
 ;;; The height of a lava platform, in pixels.
 kLavaPlatformHeightPx = $20
 
+;;; BG tiles used for animated lava terrain.
+kTileIdBgAnimLavaFirst = $44
+
 ;;;=========================================================================;;;

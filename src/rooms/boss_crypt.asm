@@ -1230,25 +1230,25 @@ _Return:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow0Start  ; transfer destination
     .byte 6
-    .assert kTileIdBgAnimBossCryptFirst = $68, error
-    .byte $68, $69, $6a, $6b, $6c, $6d
+    .assert kTileIdBgAnimBossCryptFirst = $48, error
+    .byte $48, $49, $4a, $4b, $4c, $4d
     ;; Row 1:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow1Start  ; transfer destination
     .byte 6
     .assert kTileIdBgBossCryptEyeWhiteFirst = $a4, error
-    .byte $6e, $6f, $a8, $aa, $70, $71
+    .byte $4e, $4f, $a8, $aa, $50, $51
     ;; Row 2:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow2Start  ; transfer destination
     .byte 6
     .assert kTileIdBgBossCryptEyeWhiteFirst = $a4, error
-    .byte $78, $79, $a9, $ab, $7a, $7b
+    .byte $58, $59, $a9, $ab, $5a, $5b
     ;; Row 3:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow3Start  ; transfer destination
     .byte 6
-    .byte $72, $73, $74, $75, $76, $77
+    .byte $52, $53, $54, $55, $56, $57
     ;; Nametable attributes to color eyeball red:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossEyeAttrs  ; transfer destination

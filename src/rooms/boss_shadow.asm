@@ -886,8 +886,8 @@ _Tiles:
     lda #4
     sta T0  ; num block rows
     @loop:
-    ldy #$40  ; param: left tile ID
-    lda #$41  ; param: right tile ID
+    ldy #kTileIdBgAnimLavaFirst + 0  ; param: left tile ID
+    lda #kTileIdBgAnimLavaFirst + 1  ; param: right tile ID
     jsr _WriteLavaTileRow  ; preserves A, Y, and T0+
     tya  ; param: right tile ID (now $40)
     iny  ; param: left tile ID (now $41)

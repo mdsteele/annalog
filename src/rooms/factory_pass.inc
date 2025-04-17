@@ -18,6 +18,6 @@
 ;;;=========================================================================;;;
 
 ;;; BG tile IDs for drawing the falling rocks in FactoryPass.
-kTileIdBgAnimRocksFallFirst = $7c
+kTileIdBgAnimRocksFallFirst = $40
 
 ;;;=========================================================================;;;

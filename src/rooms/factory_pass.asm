@@ -203,8 +203,8 @@ _Passages_sPassage_arr:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_FactoryPassRocksRow1  ; transfer destination
     .byte 8
-    .assert kTileIdBgAnimRocksFallFirst = $7c, error
-    .byte $7d, $7c, $7d, $7c, $7d, $7c, $7d, $7c
+    .assert kTileIdBgAnimRocksFallFirst = $40, error
+    .byte $41, $40, $41, $40, $41, $40, $41, $40
 .ENDPROC
 
 ;;; The PPU transfer entry for changing the rocks terrain when the rocks are

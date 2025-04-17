@@ -376,11 +376,11 @@ _DrawInitialRocks:
     dex
     bpl @loop
 _DrawInitialCircuitConduit:
-    ldy #$ae  ; param: tile ID
+    ldy #kTileIdBgAnimCircuitFirst + 4  ; param: tile ID
     lda #>Ppu_Nametable0_sName  ; param: nametable addr hi byte
     ldx #15  ; param: BG tile column index
     jsr FuncA_Cutscene_DirectDrawBgTileColumn
-    ldy #$af  ; param: tile ID
+    ldy #kTileIdBgAnimCircuitFirst + 5  ; param: tile ID
     lda #>Ppu_Nametable0_sName  ; param: nametable addr hi byte
     ldx #16  ; param: BG tile column index
     jsr FuncA_Cutscene_DirectDrawBgTileColumn
@@ -393,7 +393,8 @@ _InitEnergyWaves:
     sta Zp_AvatarPosY_i16 + 1
     sta Zp_AvatarSubY_u8
 _EnableRendering:
-    main_chr08_bank Ppu_ChrBgAnimStatic
+    lda #<.bank(Ppu_ChrBgAnimStatic)
+    sta Zp_Chr04Bank_u8
     main_chr18_bank Ppu_ChrObjPause
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask

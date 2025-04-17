@@ -99,6 +99,7 @@
 .INCLUDE "platforms/gate.inc"
 .INCLUDE "platforms/girder.inc"
 .INCLUDE "platforms/glass.inc"
+.INCLUDE "platforms/lava.inc"
 .INCLUDE "platforms/stepstone.inc"
 .INCLUDE "platforms/terminal.inc"
 .INCLUDE "platforms/water.inc"
@@ -158,13 +159,13 @@ _chr_begin:
 .EXPORT Ppu_ChrBgAnimA0
 .PROC Ppu_ChrBgAnimA0
     CHR1_BANK $40
+    chr_inc "thorns_anim0"
+    chr_inc "sewage_anim0"
+    chr_inc "circuit_anim0", kTileIdBgAnimCircuitFirst
     chr_inc "water_anim0"
     chr_inc "acid_anim0"
     chr_inc "waterfall_anim0"
     chr_inc "anim_seaweed_0"
-    chr_inc "thorns_anim0"
-    chr_inc "sewage_anim0"
-    chr_inc "circuit_anim0"
     END_CHR_BANK
 .ENDPROC
 
@@ -174,13 +175,13 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimA1
     CHR1_BANK $40
+    chr_inc "thorns_anim1"
+    chr_inc "sewage_anim1"
+    chr_inc "circuit_anim1", kTileIdBgAnimCircuitFirst
     chr_inc "water_anim0"
     chr_inc "acid_anim1"
     chr_inc "waterfall_anim1"
     chr_inc "anim_seaweed_0"
-    chr_inc "thorns_anim1"
-    chr_inc "sewage_anim1"
-    chr_inc "circuit_anim1"
     END_CHR_BANK
 .ENDPROC
 
@@ -190,13 +191,13 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimA2
     CHR1_BANK $40
+    chr_inc "thorns_anim2"
+    chr_inc "sewage_anim2"
+    chr_inc "circuit_anim2", kTileIdBgAnimCircuitFirst
     chr_inc "water_anim1"
     chr_inc "acid_anim2"
     chr_inc "waterfall_anim2"
     chr_inc "anim_seaweed_1"
-    chr_inc "thorns_anim2"
-    chr_inc "sewage_anim2"
-    chr_inc "circuit_anim2"
     END_CHR_BANK
 .ENDPROC
 
@@ -206,13 +207,13 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimA3
     CHR1_BANK $40
+    chr_inc "thorns_anim3"
+    chr_inc "sewage_anim3"
+    chr_inc "circuit_anim3", kTileIdBgAnimCircuitFirst
     chr_inc "water_anim1"
     chr_inc "acid_anim3"
     chr_inc "waterfall_anim3"
     chr_inc "anim_seaweed_1"
-    chr_inc "thorns_anim3"
-    chr_inc "sewage_anim3"
-    chr_inc "circuit_anim3"
     END_CHR_BANK
 .ENDPROC
 
@@ -222,13 +223,13 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimA4
     CHR1_BANK $40
+    chr_inc "thorns_anim4"
+    chr_inc "sewage_anim0"
+    chr_inc "circuit_anim4", kTileIdBgAnimCircuitFirst
     chr_inc "water_anim2"
     chr_inc "acid_anim4"
     chr_inc "waterfall_anim0"
     chr_inc "anim_seaweed_2"
-    chr_inc "thorns_anim4"
-    chr_inc "sewage_anim0"
-    chr_inc "circuit_anim4"
     END_CHR_BANK
 .ENDPROC
 
@@ -238,13 +239,13 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimA5
     CHR1_BANK $40
+    chr_inc "thorns_anim5"
+    chr_inc "sewage_anim1"
+    chr_inc "circuit_anim5", kTileIdBgAnimCircuitFirst
     chr_inc "water_anim2"
     chr_inc "acid_anim5"
     chr_inc "waterfall_anim1"
     chr_inc "anim_seaweed_2"
-    chr_inc "thorns_anim5"
-    chr_inc "sewage_anim1"
-    chr_inc "circuit_anim5"
     END_CHR_BANK
 .ENDPROC
 
@@ -254,13 +255,13 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimA6
     CHR1_BANK $40
+    chr_inc "thorns_anim6"
+    chr_inc "sewage_anim2"
+    chr_inc "circuit_anim6", kTileIdBgAnimCircuitFirst
     chr_inc "water_anim1"
     chr_inc "acid_anim6"
     chr_inc "waterfall_anim2"
     chr_inc "anim_seaweed_3"
-    chr_inc "thorns_anim6"
-    chr_inc "sewage_anim2"
-    chr_inc "circuit_anim6"
     END_CHR_BANK
 .ENDPROC
 
@@ -270,13 +271,13 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimA7
     CHR1_BANK $40
+    chr_inc "thorns_anim7"
+    chr_inc "sewage_anim3"
+    chr_inc "circuit_anim7", kTileIdBgAnimCircuitFirst
     chr_inc "water_anim1"
     chr_inc "acid_anim7"
     chr_inc "waterfall_anim3"
     chr_inc "anim_seaweed_3"
-    chr_inc "thorns_anim7"
-    chr_inc "sewage_anim3"
-    chr_inc "circuit_anim7"
     END_CHR_BANK
 .ENDPROC
 
@@ -287,13 +288,13 @@ _chr_begin:
 .EXPORT Ppu_ChrBgAnimB0
 .PROC Ppu_ChrBgAnimB0
     CHR1_BANK $40
-    chr_inc "lava_anim0"
-    chr_res $06
-    chr_inc "anim_conveyor_0"
-    chr_res $05
-    chr_inc "anim_boss_lava_2",  kTileIdBgAnimBossLavaFirst
-    chr_inc "anim_boss_crypt_0", kTileIdBgAnimBossCryptFirst
     chr_inc "anim_rocks_fall_0", kTileIdBgAnimRocksFallFirst
+    chr_inc "lava_anim0",        kTileIdBgAnimLavaFirst
+    chr_res $02
+    chr_inc "anim_boss_crypt_0", kTileIdBgAnimBossCryptFirst
+    chr_inc "anim_conveyor_0"
+    chr_res $09
+    chr_inc "anim_boss_lava_2",  kTileIdBgAnimBossLavaFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -303,13 +304,13 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimB1
     CHR1_BANK $40
-    chr_inc "lava_anim1"
-    chr_res $06
-    chr_inc "anim_conveyor_1"
-    chr_res $05
-    chr_inc "anim_boss_lava_1",  kTileIdBgAnimBossLavaFirst
-    chr_inc "anim_boss_crypt_1", kTileIdBgAnimBossCryptFirst
     chr_inc "anim_rocks_fall_1", kTileIdBgAnimRocksFallFirst
+    chr_inc "lava_anim1",        kTileIdBgAnimLavaFirst
+    chr_res $02
+    chr_inc "anim_boss_crypt_1", kTileIdBgAnimBossCryptFirst
+    chr_inc "anim_conveyor_1"
+    chr_res $09
+    chr_inc "anim_boss_lava_1",  kTileIdBgAnimBossLavaFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -319,13 +320,13 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimB2
     CHR1_BANK $40
-    chr_inc "lava_anim2"
-    chr_res $06
-    chr_inc "anim_conveyor_2"
-    chr_res $05
-    chr_inc "anim_boss_lava_2",  kTileIdBgAnimBossLavaFirst
-    chr_inc "anim_boss_crypt_2", kTileIdBgAnimBossCryptFirst
     chr_inc "anim_rocks_fall_2", kTileIdBgAnimRocksFallFirst
+    chr_inc "lava_anim2",        kTileIdBgAnimLavaFirst
+    chr_res $02
+    chr_inc "anim_boss_crypt_2", kTileIdBgAnimBossCryptFirst
+    chr_inc "anim_conveyor_2"
+    chr_res $09
+    chr_inc "anim_boss_lava_2",  kTileIdBgAnimBossLavaFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -335,13 +336,13 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimB3
     CHR1_BANK $40
-    chr_inc "lava_anim3"
-    chr_res $06
-    chr_inc "anim_conveyor_3"
-    chr_res $05
-    chr_inc "anim_boss_lava_3",  kTileIdBgAnimBossLavaFirst
-    chr_inc "anim_boss_crypt_3", kTileIdBgAnimBossCryptFirst
     chr_inc "anim_rocks_fall_3", kTileIdBgAnimRocksFallFirst
+    chr_inc "lava_anim3",        kTileIdBgAnimLavaFirst
+    chr_res $02
+    chr_inc "anim_boss_crypt_3", kTileIdBgAnimBossCryptFirst
+    chr_inc "anim_conveyor_3"
+    chr_res $09
+    chr_inc "anim_boss_lava_3",  kTileIdBgAnimBossLavaFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -352,10 +353,10 @@ _chr_begin:
 .EXPORT Ppu_ChrBgAnimB4
 .PROC Ppu_ChrBgAnimB4
     CHR1_BANK $40
-    chr_inc "anim_wyrm_0",       kTileIdBgAnimWyrmFirst
-    chr_inc "anim_outbreak_0",   kTileIdBgAnimOutbreakFirst
-    chr_res $04
     chr_inc "anim_rocks_fall_4", kTileIdBgAnimRocksFallFirst
+    chr_res $04
+    chr_inc "anim_outbreak_0",   kTileIdBgAnimOutbreakFirst
+    chr_inc "anim_wyrm_0",       kTileIdBgAnimWyrmFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -365,10 +366,10 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimB5
     CHR1_BANK $40
-    chr_inc "anim_wyrm_1",       kTileIdBgAnimWyrmFirst
-    chr_inc "anim_outbreak_1",   kTileIdBgAnimOutbreakFirst
-    chr_res $04
     chr_inc "anim_rocks_fall_5", kTileIdBgAnimRocksFallFirst
+    chr_res $04
+    chr_inc "anim_outbreak_1",   kTileIdBgAnimOutbreakFirst
+    chr_inc "anim_wyrm_1",       kTileIdBgAnimWyrmFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -378,10 +379,10 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimB6
     CHR1_BANK $40
-    chr_inc "anim_wyrm_2",       kTileIdBgAnimWyrmFirst
-    chr_inc "anim_outbreak_2",   kTileIdBgAnimOutbreakFirst
-    chr_res $04
     chr_inc "anim_rocks_fall_6", kTileIdBgAnimRocksFallFirst
+    chr_res $04
+    chr_inc "anim_outbreak_2",   kTileIdBgAnimOutbreakFirst
+    chr_inc "anim_wyrm_2",       kTileIdBgAnimWyrmFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -391,9 +392,9 @@ _chr_begin:
 
 .PROC Ppu_ChrBgAnimB7
     CHR1_BANK $40
-    chr_inc "anim_wyrm_3",       kTileIdBgAnimWyrmFirst
-    chr_res $2c
     chr_inc "anim_rocks_fall_7", kTileIdBgAnimRocksFallFirst
+    chr_res $2c
+    chr_inc "anim_wyrm_3",       kTileIdBgAnimWyrmFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -404,10 +405,10 @@ _chr_begin:
 .EXPORT Ppu_ChrBgAnimStatic
 .PROC Ppu_ChrBgAnimStatic
     CHR1_BANK $40
-    chr_inc "anim_wyrm_static", kTileIdBgAnimWyrmFirst
     chr_inc "thorns_anim_static"
     chr_res $0a
-    chr_inc "circuit_anim_static"
+    chr_inc "circuit_anim_static",
+    chr_inc "anim_wyrm_static",    kTileIdBgAnimWyrmFirst
     END_CHR_BANK
 .ENDPROC
 

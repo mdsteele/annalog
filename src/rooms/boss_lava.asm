@@ -1236,7 +1236,7 @@ _ValvePipePlatformIndex_u8_arr4:
 .PROC DataA_Terrain_BossLavaLegsTransfer_arr
     .assert kBossFullWidthTiles = 8, error
     .assert kBossHeightTiles = 4, error
-    .assert kTileIdBgAnimBossLavaFirst = $50, error
+    .assert kTileIdBgAnimBossLavaFirst = $68, error
     ;; Nametable attributes to color body injuries red:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossBodyAttrs  ; transfer destination
@@ -1246,22 +1246,22 @@ _ValvePipePlatformIndex_u8_arr4:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow0Start  ; transfer destination
     .byte 8
-    .byte $50, $54, $58, $00, $00, $5c, $60, $64
+    .byte $68, $6c, $70, $00, $00, $74, $78, $7c
     ;; Row 1:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow1Start  ; transfer destination
     .byte 8
-    .byte $51, $55, $59, $00, $00, $5d, $61, $65
+    .byte $69, $6d, $71, $00, $00, $75, $79, $7d
     ;; Row 2:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow2Start  ; transfer destination
     .byte 8
-    .byte $52, $56, $5a, $00, $00, $5e, $62, $66
+    .byte $6a, $6e, $72, $00, $00, $76, $7a, $7e
     ;; Row 3:
     .byte kPpuCtrlFlagsHorz
     .dbyt Ppu_BossRow3Start  ; transfer destination
     .byte 8
-    .byte $53, $57, $5b, $00, $00, $5f, $63, $67
+    .byte $6b, $6f, $73, $00, $00, $77, $7b, $7f
 .ENDPROC
 
 ;;;=========================================================================;;;
