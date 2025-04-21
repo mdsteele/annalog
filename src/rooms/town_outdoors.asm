@@ -971,6 +971,7 @@ _ShootBeamAtPoint:
 ;;; room.  Sets the horizontal scroll for the treeline to a fraction of the
 ;;; room scroll, so that the treeline scrolls more slowly than the main portion
 ;;; of the room (thus making it look far away).
+;;; @thread IRQ
 .PROC Int_TownOutdoorsTreeTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha
@@ -1014,6 +1015,7 @@ _ShootBeamAtPoint:
 ;;; HBlank IRQ handler function for the bottom of the treeline in the
 ;;; TownOutdoors room.  Sets the horizontal scroll back to match the room
 ;;; scroll, so that the bottom portion of the room scrolls normally.
+;;; @thread IRQ
 .PROC Int_TownOutdoorsTreeBottomIrq
     ;; Save A and X registers (we won't be using Y).
     pha

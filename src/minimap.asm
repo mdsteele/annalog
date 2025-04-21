@@ -122,8 +122,8 @@ Zp_CameraMinimapCol_u8: .res 1
     .assert eAvatar::Hidden = 0, error
     beq _Return
 _UpdateMinimapRow:
-    ldy <(Zp_Current_sRoom + sRoom::MinimapStartRow_u8)
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    ldy Zp_Current_sRoom + sRoom::MinimapStartRow_u8
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvc @upperHalf
     @tall:
@@ -139,13 +139,13 @@ _UpdateMinimapCol:
     ;; (in other words, the hi byte of (camera center position - min scroll X)
     ;; in room pixel coordinates), storing the result in A.
     lda #kScreenWidthPx / 2
-    sub <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
+    sub Zp_Current_sRoom + sRoom::MinScrollX_u8
     add Zp_RoomScrollX_u16 + 0
     lda #0
     adc Zp_RoomScrollX_u16 + 1
     ;; Add that screen number to the room's starting minimap column to get the
     ;; current absolute minimap column.
-    add <(Zp_Current_sRoom + sRoom::MinimapStartCol_u8)
+    add Zp_Current_sRoom + sRoom::MinimapStartCol_u8
     sta Zp_CameraMinimapCol_u8
 _MarkMinimap:
     lda Zp_CameraMinimapCol_u8  ; param: minimap col
@@ -318,7 +318,7 @@ _Finish:
 .EXPORT FuncA_Pause_DrawMinimapObjects
 .PROC FuncA_Pause_DrawMinimapObjects
     ;; Copy the current area's AreaCells_u8_arr2_arr_ptr into T1T0.
-    lda <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    lda Zp_Current_sRoom + sRoom::Flags_bRoom
     and #bRoom::AreaMask
     tay  ; eArea value
     lda DataA_Pause_AreaCells_u8_arr2_arr_ptr_0_arr, y

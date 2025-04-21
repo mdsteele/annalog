@@ -134,7 +134,7 @@ Zp_RoomShake_u8: .res 1
 _SetScrollGoalY:
     ;; Calculate the maximum permitted scroll-Y and store it in T0.
     lda #0
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvc @shortRoom
     lda #kTallRoomHeightBlocks * kBlockHeightPx - kScreenHeightPx
@@ -171,21 +171,21 @@ _SetScrollGoalX:
     ;; Check AX against the current room's MinScrollX_u8, and clamp if needed.
     bmi @minGoal  ; if AX is negative, clamp to min scroll value
     bne @notMin   ; min scroll is 8-bit, so if A > 0, then AX > min
-    cpx <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
+    cpx Zp_Current_sRoom + sRoom::MinScrollX_u8
     bge @notMin
     @minGoal:
-    ldx <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
+    ldx Zp_Current_sRoom + sRoom::MinScrollX_u8
     lda #0
     beq @setGoalToAX  ; unconditional
     @notMin:
     ;; Check AX against the current room's MaxScrollX_u16, and clamp if needed.
-    cmp <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
+    cmp Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1
     blt @setGoalToAX
     bne @maxGoal
-    cpx <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
+    cpx Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0
     blt @setGoalToAX
     @maxGoal:
-    ldax <(Zp_Current_sRoom + sRoom::MaxScrollX_u16)
+    ldax Zp_Current_sRoom + sRoom::MaxScrollX_u16
     @setGoalToAX:
     stax Zp_ScrollGoalX_u16
     rts
@@ -311,7 +311,7 @@ _ClampScrollY:
     sta T0  ; visible screen height
     ;; Calculate the maximum permitted scroll-Y and store it in T1.
     lda #kScreenHeightPx
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvc @shortRoom
     lda #<(kTallRoomHeightBlocks * kBlockHeightPx)

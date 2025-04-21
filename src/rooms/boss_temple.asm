@@ -627,20 +627,20 @@ _DrawBossBrain:
 _SetUpIrq:
     ;; Compute the IRQ latch value to set between the bottom of the boss's zone
     ;; and the top of the window (if any), and set that as Param4_byte.
-    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    lda Zp_Buffered_sIrq + sIrq::Latch_u8
     sub #kBossZoneBottomY
     add Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Param4_byte)  ; window latch
+    sta Zp_Buffered_sIrq + sIrq::Param4_byte  ; window latch
     ;; Set up our own sIrq struct to handle boss movement.
     lda #kBossZoneTopY - 1
     sub Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_BossTempleZoneTopIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
     ;; Compute PPU scroll values for the boss zone.
     lda #kBossBodyStartRow * kTileHeightPx + kBossZoneTopY
     sub Ram_PlatformTop_i16_0_arr + kBossBodyPlatformIndex
-    sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
+    sta Zp_Buffered_sIrq + sIrq::Param2_byte  ; boss scroll-Y
     rts
 .ENDPROC
 
@@ -1124,6 +1124,7 @@ _ColumnTileCol_u8_arr:
 ;;; HBlank IRQ handler function for the top of the boss's zone in the
 ;;; BossTemple room.  Sets the vertical scroll so as to make the boss's BG
 ;;; tiles appear to move.
+;;; @thread IRQ
 .PROC Int_BossTempleZoneTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha
@@ -1147,7 +1148,7 @@ _ColumnTileCol_u8_arr:
     ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
     lda #3 << 2  ; nametable number << 2
     sta Hw_PpuAddr_w2
-    lda <(Zp_Active_sIrq + sIrq::Param2_byte)  ; boss scroll-Y
+    lda Zp_Active_sIrq + sIrq::Param2_byte  ; boss scroll-Y
     sta Hw_PpuScroll_w2
     and #$38
     mul #4
@@ -1164,6 +1165,7 @@ _ColumnTileCol_u8_arr:
 ;;; HBlank IRQ handler function for the bottom of the boss's zone in the
 ;;; BossTemple room.  Sets the scroll so as to make the bottom of the room look
 ;;; normal.
+;;; @thread IRQ
 .PROC Int_BossTempleZoneBottomIrq
     ;; Save A and X registers (we won't be using Y).
     pha

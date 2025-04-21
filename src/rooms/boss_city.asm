@@ -1297,6 +1297,7 @@ _Error:
 ;;; HBlank IRQ handler function for the top of the boss's zone in the BossCity
 ;;; room.  Sets the horizontal and vertical scroll so as to make the boss's
 ;;; upper shell BG tiles appear to move.
+;;; @thread IRQ
 .PROC Int_BossCityZoneTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha
@@ -1338,6 +1339,7 @@ _Error:
 ;;; HBlank IRQ handler function for the middle of the boss's zone in the
 ;;; BossCity room.  Sets the horizontal and vertical scroll so as to make the
 ;;; boss's lower shell BG tiles appear to move.
+;;; @thread IRQ
 .PROC Int_BossCityZoneMiddleIrq
     ;; Save A and X registers (we won't be using Y).
     pha
@@ -1385,6 +1387,7 @@ _Error:
 ;;; HBlank IRQ handler function for the bottom of the boss's zone in the
 ;;; BossCity room.  Sets the horizontal and vertical scroll so as to make the
 ;;; bottom of the room look normal.
+;;; @thread IRQ
 .PROC Int_BossCityZoneBottomIrq
     ;; Save A and X registers (we won't be using Y).
     pha

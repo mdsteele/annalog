@@ -88,6 +88,7 @@ Ram_PpuTransfer_arr: .res $80
 .SEGMENT "PRGE_Nmi"
 
 ;;; NMI interrupt handler, which is called at the start of VBlank.
+;;; @thread NMI
 .EXPORT Int_Nmi
 .PROC Int_Nmi
     pha

@@ -140,10 +140,10 @@ _Done:
 _Eastern:
     ;; Calculate the room pixel X-position where the avatar will be offscreen
     ;; to the right, storing the result in T0 (lo) and A (hi).
-    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
+    lda Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0
     add #<(kScreenWidthPx + kAvatarBoundingBoxLeft)
     sta T0  ; passage X-position (lo)
-    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
+    lda Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1
     adc #>(kScreenWidthPx + kAvatarBoundingBoxLeft)
     ;; Compare the avatar's position to the offscreen position.
     cmp Zp_AvatarPosX_i16 + 1
@@ -168,7 +168,7 @@ _Western:
     ;; Calculate the room pixel X-position where the avatar will be fully
     ;; hidden by the one-tile-wide mask on the left side of the screen, storing
     ;; the result in A.
-    lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8 + 0)
+    lda Zp_Current_sRoom + sRoom::MinScrollX_u8
     add #kTileWidthPx - kAvatarBoundingBoxRight
     ;; Compare the avatar's position to the offscreen position.  By this point,
     ;; we already know that the hi byte of the avatar's position is zero.
@@ -333,7 +333,7 @@ _Done:
 _Bottom:
     ;; Calculate the room pixel Y-position where the avatar will be touching
     ;; the bottom edge of the room, storing the result in T0 (lo) and A (hi).
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvs @tall
     @short:

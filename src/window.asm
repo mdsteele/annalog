@@ -277,8 +277,8 @@ _Disable:
 .SEGMENT "PRGE_Irq"
 
 ;;; Acks the current HBlank IRQ, and sets up the next IRQ for the top of the
-;;; window, using Param4_byte from Zp_Active_sIrq as the latch value.  This
-;;; should only be called from within an IRQ handler.
+;;; window, using Param4_byte from Zp_Active_sIrq as the latch value.
+;;; @thread IRQ
 ;;; @preserve X, Y, T0+
 .EXPORT Func_AckIrqAndLatchWindowFromParam4
 .PROC Func_AckIrqAndLatchWindowFromParam4
@@ -294,6 +294,7 @@ _Disable:
 
 ;;; Acks the current HBlank IRQ, writes a new latch value, and then immediately
 ;;; reloads the latch.
+;;; @thread IRQ
 ;;; @param A The value to write to Hw_Mmc3IrqLatch_wo.
 ;;; @preserve X, Y, T0+
 .EXPORT Func_AckIrqAndSetLatch
@@ -309,6 +310,7 @@ _Disable:
 
 ;;; HBlank IRQ handler function to switch the terrain animation CHR04 bank
 ;;; partway through the screen vertically.
+;;; @thread IRQ
 .EXPORT Int_SetChr04ToParam3ThenLatchWindowFromParam4
 .PROC Int_SetChr04ToParam3ThenLatchWindowFromParam4
     pha
@@ -322,6 +324,7 @@ _Disable:
 ;;; scroll so as to display the window, and disables drawing objects over the
 ;;; window's top border, so that it looks like the window is in front of any
 ;;; objects in the room.
+;;; @thread IRQ
 .PROC Int_WindowTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha
@@ -366,6 +369,7 @@ _Disable:
 ;;; HBlank IRQ handler function for the bottom edge of the window's top border
 ;;; (i.e. the top edge of the window interior).  Re-enables object rendering,
 ;;; so that objects can be displayed inside the window.
+;;; @thread IRQ
 .PROC Int_WindowInteriorIrq
     ;; Save the A register (we won't be using X or Y).
     pha
@@ -399,6 +403,7 @@ _Disable:
 ;;; (not counting the blank rows below the window border).  Disables BG
 ;;; rendering, so that the top row of the upper nametable will not be visible
 ;;; at the bottom of the screen when a max-sized window is fully scrolled in.
+;;; @thread IRQ
 .PROC Int_WindowBottomIrq
     ;; Save the A register and update the PPU mask as quickly as possible.
     pha
@@ -414,6 +419,7 @@ _Disable:
 .ENDPROC
 
 ;;; HBlank IRQ handler function that does nothing other than ack the IRQ.
+;;; @thread IRQ
 .EXPORT Int_NoopIrq
 .PROC Int_NoopIrq
     ;; Ack the current IRQ.

@@ -1273,6 +1273,7 @@ _Return:
 ;;; HBlank IRQ handler function for the top of the boss's zone in the BossCrypt
 ;;; room.  Sets the horizontal and vertical scroll so as to make the boss's BG
 ;;; tiles appear to move.
+;;; @thread IRQ
 .PROC Int_BossCryptZoneTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha
@@ -1318,6 +1319,7 @@ _Return:
 ;;; HBlank IRQ handler function for the bottom of the boss's zone in the
 ;;; BossCrypt room.  Sets the horizontal and vertical scroll so as to make the
 ;;; bottom of the room look normal.
+;;; @thread IRQ
 .PROC Int_BossCryptZoneBottomIrq
     ;; Save A and X registers (we won't be using Y).
     pha

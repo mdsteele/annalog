@@ -105,7 +105,7 @@ _IsJumping:
     bmi _ContinueJumping
     ;; Get the lavaball's starting Y-position (which depends on whether the
     ;; room is short or tall), storing it in YA.
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvs @tall
     @short:

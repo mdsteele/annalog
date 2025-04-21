@@ -129,10 +129,10 @@ Ram_MachineState3_byte_arr: .res kMaxMachines
 .PROC Func_SetMachineIndex
     stx Zp_MachineIndex_u8
     ;; Update Zp_Current_sMachine_ptr.
-    lda <(Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr + 0)
+    lda Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr + 0
     add _MachineOffsets_u8_arr, x
     sta Zp_Current_sMachine_ptr + 0
-    lda <(Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr + 1)
+    lda Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr + 1
     adc #0
     sta Zp_Current_sMachine_ptr + 1
     rts
@@ -306,7 +306,7 @@ _ReadRegB:
     ldx Zp_MachineIndex_u8
     inx
     @while:
-    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    cpx Zp_Current_sRoom + sRoom::NumMachines_u8
     blt @loop
     rts
 .ENDPROC
@@ -429,11 +429,11 @@ _Return:
 ;;; @return A The left-hand value (0-9).
 ;;; @return Y The right-hand value (0-9).
 .PROC FuncA_Machine_GetBinopArgs
-    lda <(Zp_Current_sIns + sIns::Arg_byte)
+    lda Zp_Current_sIns + sIns::Arg_byte
     and #$0f  ; param: immediate value or register to read
     jsr Func_MachineRead  ; returns A
     pha  ; left-hand value
-    lda <(Zp_Current_sIns + sIns::Arg_byte)
+    lda Zp_Current_sIns + sIns::Arg_byte
     div #$10  ; param: immediate value or register to read
     jsr Func_MachineRead  ; returns A
     tay  ; right-hand value
@@ -451,7 +451,7 @@ _Return:
     sty T0  ; right-hand value
     cmp T0  ; right-hand value
     php  ; comparison flags
-    lda <(Zp_Current_sIns + sIns::Op_byte)
+    lda Zp_Current_sIns + sIns::Op_byte
     and #$0f
     tax  ; eCmp value
     pla  ; comparison flags
@@ -600,19 +600,19 @@ _OpMul:
     lda #9
     bne _SetLValueToA  ; unconditional
 _OpCopy:
-    lda <(Zp_Current_sIns + sIns::Arg_byte)
+    lda Zp_Current_sIns + sIns::Arg_byte
     and #$0f  ; param: immediate value or register to read
     jsr Func_MachineRead  ; returns A
 _SetLValueToA:
     pha  ; value to write
-    lda <(Zp_Current_sIns + sIns::Op_byte)
+    lda Zp_Current_sIns + sIns::Op_byte
     and #$0f
     tax  ; param: register to write to
     pla  ; param: value to write
     jsr FuncA_Machine_WriteReg
     jmp FuncA_Machine_IncrementPcIfRunning
 _OpSkip:
-    lda <(Zp_Current_sIns + sIns::Op_byte)
+    lda Zp_Current_sIns + sIns::Op_byte
     and #$0f  ; param: immediate value or register
     jsr Func_MachineRead  ; returns A
     tax
@@ -657,7 +657,7 @@ _OpAct:
     .assert sMachine::TryAct_func_ptr > 0, error
     bne _MoveOrAct  ; unconditional
 _OpMove:
-    lda <(Zp_Current_sIns + sIns::Op_byte)
+    lda Zp_Current_sIns + sIns::Op_byte
     and #$0f  ; param: immediate value or register
     jsr Func_MachineRead  ; returns A
     and #$03  ; turn 0-9 value into 2-bit eDir value
@@ -667,12 +667,12 @@ _MoveOrAct:
     jsr Func_MachineCall
     jmp FuncA_Machine_IncrementPcIfRunning
 _OpGoto:
-    lda <(Zp_Current_sIns + sIns::Op_byte)
+    lda Zp_Current_sIns + sIns::Op_byte
     and #$0f
     sta Ram_MachinePc_u8_arr, x
     rts
 _OpBeep:
-    lda <(Zp_Current_sIns + sIns::Op_byte)
+    lda Zp_Current_sIns + sIns::Op_byte
     and #$0f  ; param: immediate value or register
     jsr Func_MachineRead  ; returns A
     jsr FuncA_Machine_PlaySfxBeep
@@ -799,7 +799,7 @@ _CallTickFunction:
 .EXPORT FuncA_Machine_TickAll
 .PROC FuncA_Machine_TickAll
     ;; If there are no machines in this room, then we're done.
-    lda <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    lda Zp_Current_sRoom + sRoom::NumMachines_u8
     beq @return
     ;; Call each machine's tick function.
     ldx #0
@@ -809,7 +809,7 @@ _CallTickFunction:
     jsr FuncA_Machine_Tick
     ldx Zp_MachineIndex_u8
     inx
-    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    cpx Zp_Current_sRoom + sRoom::NumMachines_u8
     blt @loop
     @return:
     rts
@@ -820,7 +820,7 @@ _CallTickFunction:
 .EXPORT FuncA_Machine_ExecuteAll
 .PROC FuncA_Machine_ExecuteAll
     ;; If there are no machines in this room, then we're done.
-    lda <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    lda Zp_Current_sRoom + sRoom::NumMachines_u8
     beq _Return
 _Execute:
     ;; Give each machine in the room a chance to execute.
@@ -832,7 +832,7 @@ _Execute:
     jsr FuncA_Machine_Tick
     ldx Zp_MachineIndex_u8
     inx
-    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    cpx Zp_Current_sRoom + sRoom::NumMachines_u8
     blt @loop
 _CheckForSync:
     ;; Check if all machines in the room are blocked on a SYNC instruction.  If
@@ -843,7 +843,7 @@ _CheckForSync:
     cmp #eMachine::Syncing
     bne _Return
     inx
-    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    cpx Zp_Current_sRoom + sRoom::NumMachines_u8
     blt @loop
 _UnblockSync:
     ;; At this point, all machines in the room have reached a SYNC instruction,
@@ -857,7 +857,7 @@ _UnblockSync:
     jsr FuncA_Machine_GetProgram
     jsr FuncA_Machine_IncrementPc  ; returns current machine index in X
     inx
-    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    cpx Zp_Current_sRoom + sRoom::NumMachines_u8
     blt @loop
     jmp FuncA_Machine_PlaySfxSync
 _Return:
@@ -880,7 +880,7 @@ _Return:
     ldx Zp_MachineIndex_u8
     inx
     @while:
-    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    cpx Zp_Current_sRoom + sRoom::NumMachines_u8
     blt @loop
     rts
 .ENDPROC

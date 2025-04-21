@@ -1337,6 +1337,7 @@ _OffsetFromEnd_u8_arr:
 ;;; HBlank IRQ handler function for the top of the boss's zone in the BossLava
 ;;; room.  Sets the horizontal and vertical scroll so as to make the boss's BG
 ;;; tiles appear to move.
+;;; @thread IRQ
 .PROC Int_BossLavaZoneTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha
@@ -1382,6 +1383,7 @@ _OffsetFromEnd_u8_arr:
 ;;; HBlank IRQ handler function for the bottom of the boss's zone in the
 ;;; BossLava room.  Sets the horizontal and vertical scroll so as to make the
 ;;; bottom of the room look normal.
+;;; @thread IRQ
 .PROC Int_BossLavaZoneBottomIrq
     ;; Save A and X registers (we won't be using Y).
     pha

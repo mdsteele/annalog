@@ -407,7 +407,7 @@ _DisableMachines:
     sta Ram_MachineStatus_eMachine_arr, x
     inx
     @while:
-    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    cpx Zp_Current_sRoom + sRoom::NumMachines_u8
     blt @loop
 _DisableConsoles:
     ldx #kMaxDevices - 1
@@ -437,7 +437,7 @@ _DisableConsoles:
     ldx Zp_MachineIndex_u8
     inx
     @while:
-    cpx <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    cpx Zp_Current_sRoom + sRoom::NumMachines_u8
     blt @loop
     rts
 .ENDPROC

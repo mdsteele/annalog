@@ -298,7 +298,7 @@ _DrawCurrentAreaLabel:
     blt @loop
 _DrawCurrentAreaName:
     ;; Copy the current room's AreaName_u8_arr_ptr into T1T0.
-    lda <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    lda Zp_Current_sRoom + sRoom::Flags_bRoom
     and #bRoom::AreaMask
     tay  ; eArea value
     lda DataA_Pause_AreaNames_u8_arr12_ptr_0_arr, y
@@ -620,15 +620,15 @@ _CircuitBreakers_byte_arr8_arr6:
     bge _Disable
 _Enable:
     dey
-    sty <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sty Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_PausePapersTopIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
     rts
 _Disable:
     lda #$ff
-    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_NoopIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
     rts
 .ENDPROC
 
@@ -790,6 +790,7 @@ _YPos_u8_arr4:
 ;;; window.  Sets the PPU scroll so as to display the papers window, and
 ;;; disables drawing objects over the window's top border, so that it looks
 ;;; like the window is in front of any objects in the minimap window.
+;;; @thread IRQ
 .PROC Int_PausePapersTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha
@@ -834,6 +835,7 @@ _YPos_u8_arr4:
 ;;; HBlank IRQ handler function for the bottom edge of the pause screen papers
 ;;; window's top border (i.e. the top edge of the window interior).  Re-enables
 ;;; object rendering, so that objects can be displayed inside the window.
+;;; @thread IRQ
 .PROC Int_PausePapersInteriorIrq
     ;; Save the A register and update the PPU mask as quickly as possible.
     pha

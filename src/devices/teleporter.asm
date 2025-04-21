@@ -367,6 +367,7 @@ _TransferBgTiles:
 ;;; HBlank IRQ handler function for the bottom of the teleportation zone in the
 ;;; LavaTeleport and ShadowTeleport rooms.  Switches the CHR04 bank to support
 ;;; animated terrain at the bottom of the room.
+;;; @thread IRQ
 .PROC Int_TeleportZoneBottomIrq
     pha
     ;; At this point, the first HBlank is already almost over.  Ack the current

@@ -938,6 +938,7 @@ _WriteLavaTileRow:
 
 ;;; HBlank IRQ handler function for the top of the lava in the BossShadow room.
 ;;; Sets the scroll so as to make the lava appear to start here.
+;;; @thread IRQ
 .PROC Int_BossShadowLavaIrq
     ;; Save A and X registers (we won't be using Y).
     pha

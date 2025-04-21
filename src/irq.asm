@@ -56,6 +56,7 @@ Zp_IrqTmp_byte: .res 1
 
 ;;; The IRQ handler.  The only IRQ that this game uses is the MMC3's HBlank
 ;;; interrupt.
+;;; @thread IRQ
 .EXPORT Int_Irq
 .PROC Int_Irq
     jmp (Zp_NextIrq_int_ptr)

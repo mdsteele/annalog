@@ -247,7 +247,7 @@ _TopEdge:
 _BottomEdge:
     ;; Get the height of the room in pixels, storing the lo byte in X and the
     ;; high byte in (Zp_AvatarPosY_i16 + 1).
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvs @tall
     @short:
@@ -309,17 +309,17 @@ _EastWest:
     cmp #ePassage::Western
     beq _WestEdge
 _EastEdge:
-    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
+    lda Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0
     add #kScreenWidthPx - kPassageSpawnMargin
     sta Zp_AvatarPosX_i16 + 0
-    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
+    lda Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1
     adc #0
     sta Zp_AvatarPosX_i16 + 1
     ldx #0  ; param: bAvatar value
     lda #bObj::FlipH  ; param: facing direction (FlipH = left)
     bne _Finish  ; unconditional
 _WestEdge:
-    lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
+    lda Zp_Current_sRoom + sRoom::MinScrollX_u8
     add #kPassageSpawnMargin
     sta Zp_AvatarPosX_i16 + 0
     lda #0  ; param: facing direction (0 = right)
@@ -585,7 +585,7 @@ _UpDown:
     sta Zp_AvatarPosY_i16 + 1
     rts
     @bottomEdge:
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvs @tall
     @short:
@@ -610,15 +610,15 @@ _EastWest:
     cmp #ePassage::Western
     beq @westEdge
     @eastEdge:
-    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0)
+    lda Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 0
     add #kScreenWidthPx - 8
     sta Zp_AvatarPosX_i16 + 0
-    lda <(Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1)
+    lda Zp_Current_sRoom + sRoom::MaxScrollX_u16 + 1
     adc #0
     sta Zp_AvatarPosX_i16 + 1
     rts
     @westEdge:
-    lda <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
+    lda Zp_Current_sRoom + sRoom::MinScrollX_u8
     add #8
     sta Zp_AvatarPosX_i16 + 0
     lda #0

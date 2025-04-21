@@ -662,9 +662,9 @@ _Loop:
 .PROC FuncC_Title_DrawMenu
 _SetUpIrq:
     lda Zp_TitleMenuLinePosY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_TitleMenuIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
 _DrawMenuWords:
     ldx Zp_First_eTitle
     @loop:
@@ -814,6 +814,7 @@ _DrawMenuItem:
 
 ;;; HBlank IRQ handler function for the title screen menu.  Sets the vertical
 ;;; scroll so as to make the menu selection line appear to move.
+;;; @thread IRQ
 .PROC Int_TitleMenuIrq
     ;; Save the A register (we won't be using X or Y).
     pha

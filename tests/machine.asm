@@ -207,9 +207,9 @@ SetMachineIndex:
     lda #kMaxProgramLength
     sta Zp_MachineMaxInstructions_u8
     ldax #Data_Machines_sMachine_arr
-    stax <(Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr)
+    stax Zp_Current_sRoom + sRoom::Machines_sMachine_arr_ptr
     lda #1
-    sta <(Zp_Current_sRoom + sRoom::NumMachines_u8)
+    sta Zp_Current_sRoom + sRoom::NumMachines_u8
     ;; Set the current machine.
     ldx #kTestMachineIndex  ; param: machine index
     jsr Func_SetMachineIndex

@@ -53,7 +53,9 @@ END_PATTERN = re.compile(r'^ *;+ *@end +([a-zA-Z0-9_]+)')
 COMMENT_PATTERN = re.compile(r'^ *;')
 
 LOADED_PREREQ_PATTERN = re.compile(
-    '^;;; @prereq (PRG[AC]_[A-Za-z0-9]+) is loaded.')
+    '^;;; @prereq (PRG[AC]_[A-Za-z0-9]+) is loaded.$')
+THREAD_ANNOTATION_PATTERN = re.compile(
+    '^;;; @thread ([A-Z]+(?: *, *[A-Z]+)*)$')
 SEGMENT_DECL_PATTERN = re.compile(r'^\.SEGMENT +"([a-zA-Z0-9_]*)"')
 PROC_DECL_PATTERN = re.compile(r'^\.PROC +([a-zA-Z0-9_]+)')
 PRG_BANK_SWITCH_PATTERN = re.compile(
@@ -63,11 +65,11 @@ MAIN_CHR_BANK_SWITCH_PATTERN = re.compile(
 IRQ_CHR_BANK_SWITCH_PATTERN = re.compile(
     r'^ *(irq_chr[01][048c](?:_bank)?) ')
 JUMP_PATTERN = re.compile(
-    r'^ *([jb](?:mp|sr|cc|cs|eq|ne|mi|pl|vc|vs|le|lt|ge|gt)) +'
+    r'^ *([jb](?:mp|sr|cc|cs|eq|ne|mi|pl|vc|vs|le|lt|ge|gt)|fall) +'
     r'([A-Za-z0-9_]+)')
 READ_PATTERN = re.compile(
-    r'^ *(ad[cd]|and|cmp|cp[xy]|eor|ld[axy]+|ora|r?sbc|r?sub) +'
-    r'([A-Za-z0-9_]+)')
+    r'^ *(ad[cd]|and|asl|bit|cmp|cp[xy]|dec|eor|inc|ld[axy]+|lsr|ora'
+    r'|ro[lr]|r?sbc|r?sub) +([A-Za-z0-9_]+)')
 
 LOCAL_PROC_NAME = re.compile(r'^_[a-zA-Z0-9_]+$')  # e.g. _Foobar
 PRGA_PROC_NAME = re.compile(  # e.g. FuncA_SegmentName_Foobar
@@ -112,9 +114,14 @@ def is_valid_proc_name_for_segment(proc, segment):
         return False
     return True
 
-def is_valid_access(dest, segment, loaded_prereqs, top_proc):
+def is_valid_access(dest, segment, loaded_prereqs, permitted_threads,
+                    top_proc):
     if LOCAL_PROC_NAME.match(dest):
         return True
+    if dest == 'Zp_Active_sIrq':
+        return 'IRQ' in permitted_threads or 'NMI' in permitted_threads
+    if dest == 'Zp_Buffered_sIrq':
+        return 'IRQ' not in permitted_threads
     match = PRGA_PROC_NAME.match(dest)
     if match:
         if top_proc.startswith('Func_'):
@@ -169,6 +176,7 @@ def run_tests():
         proc_stack = []
         dialog_text_lines = []
         loaded_prereqs = set()
+        permitted_threads = {'MAIN'}
         sorted_lines = None
         for (line_number, line) in enumerate(open(filepath)):
             def fail(message):
@@ -205,6 +213,11 @@ def run_tests():
             match = LOADED_PREREQ_PATTERN.match(line)
             if match:
                 loaded_prereqs.add(match.group(1))
+            # Keep track of thread annotations.
+            match = THREAD_ANNOTATION_PATTERN.match(line)
+            if match:
+                permitted_threads = set(
+                    name.strip() for name in match.group(1).split(','))
             # Check proc definitions.
             match = PROC_DECL_PATTERN.match(line)
             if match:
@@ -215,6 +228,11 @@ def run_tests():
                     # segment.
                     if not is_valid_proc_name_for_segment(proc, segment):
                         fail('misnamed proc for segment {}'.format(segment))
+                    # All Int_ functions must be for IRQ or for NMI only.
+                    if (proc.startswith('Int_') and
+                        'IRQ' not in permitted_threads and
+                        'NMI' not in permitted_threads):
+                        fail(f'Int_ function on {permitted_threads} threads')
                 proc_stack.append(proc)
             if line.startswith('.ENDPROC'):
                 proc_stack.pop()
@@ -225,6 +243,7 @@ def run_tests():
                         elif not is_end_of_dialog_text(dialog_text_lines[-1]):
                             fail('unterminated dialog text block')
                     loaded_prereqs.clear()
+                    permitted_threads = {'MAIN'}
             if proc_stack:
                 # Check that PRG bank-switches only happen in Main or FuncM
                 # procs.
@@ -258,10 +277,15 @@ def run_tests():
                     if dest.startswith('Main'):
                         if opcode == 'jsr':
                             fail('call to a Main')
-                        if not proc_stack[0].startswith('Main'):
+                        elif not proc_stack[0].startswith('Main'):
                             fail('jump to a Main outside of a Main')
+                    elif dest.startswith('Int'):
+                        if opcode == 'jsr':
+                            fail('call to an Int')
+                        elif not proc_stack[0].startswith('Int'):
+                            fail('jump to an Int outside of an Int')
                     if not is_valid_access(dest, segment, loaded_prereqs,
-                                           proc_stack[0]):
+                                           permitted_threads, proc_stack[0]):
                         fail('invalid {} from {}'.format(
                             opcode, proc_stack[0]))
                 # Check that procs don't read incorrectly from other procs.
@@ -269,7 +293,7 @@ def run_tests():
                 if match:
                     source = match.group(2)
                     if not is_valid_access(source, segment, loaded_prereqs,
-                                           proc_stack[0]):
+                                           permitted_threads, proc_stack[0]):
                         fail('invalid access in {}'.format(proc_stack[0]))
     return failed[0]
 

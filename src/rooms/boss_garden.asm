@@ -651,16 +651,16 @@ _AnimateThorns:
 _SetUpIrq:
     ;; Compute the IRQ latch value to set between the bottom of the boss's zone
     ;; and the top of the window (if any), and set that as Param4_byte.
-    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    lda Zp_Buffered_sIrq + sIrq::Latch_u8
     sub #kBossZoneBottomY
     add Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Param4_byte)  ; window latch
+    sta Zp_Buffered_sIrq + sIrq::Param4_byte  ; window latch
     ;; Set up our own sIrq struct to handle boss movement.
     lda #kBossZoneTopY - 1
     sub Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_BossGardenZoneTopIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
 _DrawBossLeftMiniEyes:
     ldx #kLeftEyePlatformIndex
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -997,6 +997,7 @@ _WriteR:
 ;;; HBlank IRQ handler function for the top of the boss's zone in the
 ;;; BossGarden room.  Sets the vertical scroll so as to make the thorn terrain
 ;;; visible.
+;;; @thread IRQ
 .PROC Int_BossGardenZoneTopIrq
     ;; Save A and X registers (we won't be using Y).
     pha
@@ -1037,6 +1038,7 @@ _WriteR:
 ;;; HBlank IRQ handler function for the bottom of the boss's zone in the
 ;;; BossGarden room.  Sets the scroll so as to make the bottom of the room look
 ;;; normal.
+;;; @thread IRQ
 .PROC Int_BossGardenZoneBottomIrq
     ;; Save A and X registers (we won't be using Y).
     pha

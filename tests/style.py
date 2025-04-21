@@ -36,6 +36,7 @@ PATTERNS = [
     ('tab character', re.compile(r'\t')),
     ('trailing whitespace', re.compile(r' $')),
     ('unindented .directive', re.compile(r'^\.[a-z]')),
+    ('unnecessary Zp_ truncation', re.compile(r'<\(Zp_')),
     ('wrong comment style',
      re.compile(r'^[ \t]+;;;|^;;[^;]|^[ \t]*; |^[^;]*[^;: \t][^;]*;;')),
 ]

@@ -409,7 +409,7 @@ _DeviceLever:
     .assert bPassage::EastWest = bProc::Negative, error
     bpl _UpDownPassage
 _EastWestPassage:
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvc @upperHalf
     @tall:
@@ -432,7 +432,7 @@ _UpDownPassage:
     ;; (in other words, the hi byte of (avatar position - min scroll X) in room
     ;; pixel coordinates), storing the result in A.
     lda Zp_AvatarPosX_i16 + 0
-    cmp <(Zp_Current_sRoom + sRoom::MinScrollX_u8)
+    cmp Zp_Current_sRoom + sRoom::MinScrollX_u8
     lda Zp_AvatarPosX_i16 + 1
     sbc #0
     ;; Construct the bPassage value from the screen number and ePassage value.

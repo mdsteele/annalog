@@ -78,7 +78,7 @@ Zp_TerrainColumn_u8_arr_ptr: .res 2
 ;;; @preserve X, Y, T0+
 .EXPORT Func_GetTerrainColumnPtrForPointX
 .PROC Func_GetTerrainColumnPtrForPointX
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvs _TallRoom
 _ShortRoom:
@@ -145,10 +145,10 @@ _TallRoom:
 ;;; @prereq Zp_TerrainColumn_u8_arr_ptr holds the terrain data byte offset.
 .PROC Func_GetTerrainColumnPtrForByteOffset
     lda Zp_TerrainColumn_u8_arr_ptr + 0
-    add <(Zp_Current_sRoom + sRoom::TerrainData_ptr + 0)
+    add Zp_Current_sRoom + sRoom::TerrainData_ptr + 0
     sta Zp_TerrainColumn_u8_arr_ptr + 0
     lda Zp_TerrainColumn_u8_arr_ptr + 1
-    adc <(Zp_Current_sRoom + sRoom::TerrainData_ptr + 1)
+    adc Zp_Current_sRoom + sRoom::TerrainData_ptr + 1
     sta Zp_TerrainColumn_u8_arr_ptr + 1
     rts
 .ENDPROC
@@ -164,7 +164,7 @@ _TallRoom:
 ;;; @preserve T0+
 .EXPORT FuncA_Terrain_GetColumnPtrForTileIndex
 .PROC FuncA_Terrain_GetColumnPtrForTileIndex
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvs _TallRoom
 _ShortRoom:
@@ -257,7 +257,7 @@ _TileColumnLoop:
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
     ;; Check if this room is more than one screen tall.
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvc _ShortRoom
 _TallRoom:
@@ -303,7 +303,7 @@ _TallRoom:
     stx Hw_PpuAddr_w2
     sta Hw_PpuAddr_w2
     ;; Check if this room is more than one screen tall.
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvc _ShortRoom
 _TallRoom:
@@ -382,7 +382,7 @@ _UpperTransfer:
     jsr FuncA_Terrain_TransferTileColumnData  ; preserves T1+
     ;; If this is a tall room, then we need to also buffer a PPU transfer for
     ;; the lower nametable.
-    bit <(Zp_Current_sRoom + sRoom::Flags_bRoom)
+    bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvs _LowerTransfer
     rts

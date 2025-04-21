@@ -107,10 +107,10 @@ _InitializeRam:
     ;; Initialize HBlank IRQs.
     lda #$ff
     sta Hw_Mmc3IrqLatch_wo
-    sta <(Zp_Active_sIrq + sIrq::Latch_u8)
+    sta Zp_Active_sIrq + sIrq::Latch_u8
     ldax #Int_NoopIrq
     stax Zp_NextIrq_int_ptr
-    stax <(Zp_Active_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Active_sIrq + sIrq::FirstIrq_int_ptr
     ;; Initialize APU.
     jsr Func_AudioReset
 _WaitForSecondVBlank:

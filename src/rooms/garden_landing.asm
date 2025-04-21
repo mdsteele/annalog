@@ -167,16 +167,16 @@ _SetUpIrq:
     beq @done
     ;; Compute the IRQ latch value to set between the IRQ seam and the top of
     ;; the window (if any), and set that as Param4_byte.
-    lda <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    lda Zp_Buffered_sIrq + sIrq::Latch_u8
     sub #kFallingIrqSeamY
-    sta <(Zp_Buffered_sIrq + sIrq::Param4_byte)  ; window latch
+    sta Zp_Buffered_sIrq + sIrq::Param4_byte  ; window latch
     ;; Set up our own sIrq struct.
     lda #kFallingIrqSeamY
-    sta <(Zp_Buffered_sIrq + sIrq::Latch_u8)
+    sta Zp_Buffered_sIrq + sIrq::Latch_u8
     lda Zp_RoomScrollY_u8
-    sta <(Zp_Buffered_sIrq + sIrq::Param2_byte)  ; room scroll-Y
+    sta Zp_Buffered_sIrq + sIrq::Param2_byte  ; room scroll-Y
     ldax #Int_GardenLandingFallingIrq
-    stax <(Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr)
+    stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
     @done:
     rts
 .ENDPROC
@@ -282,6 +282,7 @@ _TeleportUp:
 ;;; HBlank IRQ handler function for the GardenLanding room when falling.  Sets
 ;;; the vertical scroll partway down the screen to create the illusion that the
 ;;; shaft is taller than it is.
+;;; @thread IRQ
 .PROC Int_GardenLandingFallingIrq
     ;; Save A and X registers (we won't be using Y).
     pha
@@ -302,7 +303,7 @@ _TeleportUp:
     ;; See https://www.nesdev.org/wiki/PPU_scrolling#Split_X.2FY_scroll
     lda #0 << 2  ; nametable number << 2
     sta Hw_PpuAddr_w2
-    lda <(Zp_Active_sIrq + sIrq::Param2_byte)  ; new scroll-Y value
+    lda Zp_Active_sIrq + sIrq::Param2_byte  ; new scroll-Y value
     sta Hw_PpuScroll_w2
     and #$38
     mul #4
