@@ -139,6 +139,7 @@ Ram_Audio_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
 
 ;;; Mutes all APU channels, resets APU registers, disables APU IRQs, and
 ;;; initializes audio driver RAM.
+;;; @thread RESET
 ;;; @prereq Caller is within the Reset or NMI handler.
 .EXPORT Func_AudioReset
 .PROC Func_AudioReset
@@ -175,6 +176,7 @@ _HaltSfx:
 .ENDPROC
 
 ;;; Reads from Zp_Next_sAudioCtrl and updates the audio driver accordingly.
+;;; @thread NMI
 ;;; @prereq Caller is within the NMI handler, and Func_ProcessFrame is pending.
 .EXPORT Func_AudioSync
 .PROC Func_AudioSync
@@ -242,6 +244,7 @@ _StartSfx:
 .ENDPROC
 
 ;;; Sets audio RAM to start playing the specific music from the beginning.
+;;; @thread RESET, NMI
 ;;; @param X The eMusic value to start playing.
 .PROC Func_AudioRestartMusic
     stx Zp_Current_eMusic
@@ -287,7 +290,7 @@ _ResetChannels:
 
 ;;; Updates audio playback.  This should be called once per frame.  If audio is
 ;;; disabled, this is a no-op.
-;;; @prereq Caller is within the NMI handler.
+;;; @thread AUDIO
 .EXPORT Func_AudioUpdate
 .PROC Func_AudioUpdate
     bit Zp_Current_bAudio
@@ -300,6 +303,7 @@ _Enabled:
 .ENDPROC
 
 ;;; Continues playing the current music.
+;;; @thread AUDIO
 .PROC Func_AudioContinueMusic
     lda #0
     sta Zp_MusicMadeProgress_bool
@@ -398,6 +402,7 @@ _OpcodePlay:
 ;;; Continues playing the current music part.  If any notes/rests were played
 ;;; this frame, sets Zp_MusicMadeProgress_bool to true ($ff).  Otherwise,
 ;;; leaves Zp_MusicMadeProgress_bool unchanged, and the part is now finished.
+;;; @thread AUDIO
 .PROC Func_AudioContinuePart
     ;; Loop over APU channels, and continue music chain for each.
     .assert bApuStatus::Dmc = $10, error
@@ -418,6 +423,7 @@ _OpcodePlay:
 ;;; notes/rests were played this frame, sets Zp_MusicMadeProgress_bool to true
 ;;; ($ff).  Otherwise, leaves Zp_MusicMadeProgress_bool unchanged, and the
 ;;; chain is now finished.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @preserve X
 .PROC Func_AudioContinueChain
@@ -469,6 +475,7 @@ _ChainFinished:
 ;;; Continues playing the current music phrase for one APU channel.  If any
 ;;; notes/rests were played this frame, clears the C (carry) flag.  Otherwise,
 ;;; sets the C flag, and the phrase is now finished.
+;;; @thread AUDIO
 ;;; @prereq Zp_CurrentChannel_bApuStatus is initialized.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if no note/rest was played, and the phrase is now finished.
@@ -622,6 +629,7 @@ _SkipToneOrSame:
 .ENDPROC
 
 ;;; Continues playing any active sound effects.
+;;; @thread AUDIO
 .PROC Func_AudioContinueAllSfx
     ;; Loop over APU channels, and continue SFX for each.
     .assert bApuStatus::Dmc = $10, error
@@ -639,6 +647,7 @@ _SkipToneOrSame:
 .ENDPROC
 
 ;;; Continues playing the active SFX (if any) for the specified APU channel.
+;;; @thread AUDIO
 ;;; @prereq Zp_CurrentChannel_bApuStatus is initialized.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @preserve X
@@ -670,6 +679,7 @@ _SoundFinished:
 .ENDPROC
 
 ;;; Disables the current APU channel.
+;;; @thread AUDIO
 ;;; @prereq Zp_CurrentChannel_bApuStatus is initialized.
 ;;; @preserve C, X, Y, Zp_AudioTmp*
 .PROC Func_DisableCurrentChannel
@@ -682,6 +692,7 @@ _SoundFinished:
 .ENDPROC
 
 ;;; Enables the current APU channel.
+;;; @thread AUDIO
 ;;; @prereq Zp_CurrentChannel_bApuStatus is initialized.
 ;;; @preserve C, X, Y, Zp_AudioTmp*
 .PROC Func_EnableCurrentChannel

@@ -29,6 +29,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "quick windup" sound effect.
+;;; @thread AUDIO
 .PROC Data_QuickWindup_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | \
@@ -40,6 +41,7 @@
 .ENDPROC
 
 ;;; SFX data for the "slow windup" sound effect.
+;;; @thread AUDIO
 .PROC Data_SlowWindup_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | \

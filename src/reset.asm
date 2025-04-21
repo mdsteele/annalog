@@ -42,6 +42,7 @@ kSharedBgColor = $0f  ; black
 .SEGMENT "PRGE_Reset"
 
 ;;; Reset handler, which is jumped to on startup/reset.
+;;; @thread RESET
 .EXPORT Main_Reset
 .PROC Main_Reset
     sei  ; disable maskable (IRQ) interrupts
@@ -69,6 +70,7 @@ kSharedBgColor = $0f  ; black
 
 .SEGMENT "PRGC_Title"
 
+;;; @thread RESET
 .PROC MainC_Title_Reset
     ;; Enable SRAM, but disable writes for now.
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites

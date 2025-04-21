@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "crack" sound effect.
+;;; @thread AUDIO
 .PROC Data_Crack_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 1, $000b
     sfx_Wait 6

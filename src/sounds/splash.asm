@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "splash" sound effect.
+;;; @thread AUDIO
 .PROC Data_Splash_sSfx
     sfx_SetEnvTimer (bEnvelope::ConstVol | bEnvelope::NoLength | 1), $0002
     sfx_Func _EnvUp
@@ -41,6 +42,7 @@ _EnvUp:
 .ENDPROC
 
 ;;; SFX data for the "steam" sound effect.
+;;; @thread AUDIO
 .PROC Data_Steam_sSfx
     sfx_SetEnvTimer (bEnvelope::ConstVol | bEnvelope::NoLength | 2), $0004
     sfx_Func _EnvUp
@@ -56,6 +58,7 @@ _EnvUp:
 
 ;;; sfx_Func loop function for reducing the envelope volume of a splash or
 ;;; steam sound effeect.
+;;; @thread AUDIO
 ;;; @param Y The loop counter.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set when the loop is done.
@@ -69,6 +72,7 @@ _EnvUp:
 .ENDPROC
 
 ;;; Updates the Envelope_wo register for a splash or steam sound effect.
+;;; @thread AUDIO
 ;;; @param A The volume to set (0-15).
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @preserve C, X, T0+

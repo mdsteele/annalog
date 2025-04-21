@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "secret unlocked" sound effect.
+;;; @thread AUDIO
 .PROC Data_SecretUnlocked_sSfx
     sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 4, kNoSweep, $013f
     sfx_Wait 7

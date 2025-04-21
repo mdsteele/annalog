@@ -45,6 +45,7 @@
 
 ;;; SFX data for dialog text sounds.  Param1_byte should hold the TimerLo
 ;;; value, and Param2_byte should hold the bSfxDialog value.
+;;; @thread AUDIO
 .PROC Data_DialogText_sSfx
     sfx_Func _Initialize
     sfx_Wait 4

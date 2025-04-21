@@ -29,6 +29,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the pulse channel portion of the "poof" sound effect.
+;;; @thread AUDIO
 .PROC Data_PoofPulse_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty12 | bEnvelope::NoLength | \
@@ -40,6 +41,7 @@
 .ENDPROC
 
 ;;; SFX data for the noise channel portion of the "poof" sound effect.
+;;; @thread AUDIO
 .PROC Data_PoofNoise_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 3, $0001
     sfx_Wait 15

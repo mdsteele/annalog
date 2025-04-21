@@ -29,6 +29,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "baddie death" sound effect.
+;;; @thread AUDIO
 .PROC Data_BaddieDeath_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | 11), \
@@ -41,6 +42,7 @@
 .ENDPROC
 
 ;;; SFX data for the "baddie jump" sound effect.
+;;; @thread AUDIO
 .PROC Data_BaddieJump_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | 5), \

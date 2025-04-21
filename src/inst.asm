@@ -67,6 +67,7 @@
 ;;; An instrument for the pulse channels that applies vibrato, as well as the
 ;;; same duty/envelope characteristics as the PulseBasic instrument.  The
 ;;; instrument param works the same as for PulseBasic.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
@@ -91,6 +92,7 @@ _Envelope:
 ;;; A basic instrument for the pulse channels.  The bottom four bits of the
 ;;; instrument param specify the max volume, which fades out at the end of the
 ;;; note.  The top two bits of the instrument param specify the pulse duty.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
@@ -114,6 +116,7 @@ _Envelope:
 ;;; the instrument param specify the initial volume.  The top two bits of the
 ;;; instrument param specify the pulse duty.  Bits 4 and 5 control the duration
 ;;; of the full-volume portion of the note.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
@@ -140,6 +143,7 @@ _Quiet:
 ;;; bottom four bits of the instrument param specify the max volume, which
 ;;; fades out over time.  The top two bits of the instrument param specify the
 ;;; pulse duty after the initial pluck.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
@@ -163,6 +167,7 @@ _Decay:
 
 ;;; Combines the given volume value with the pulse duty bits from the
 ;;; instrument param to produce a final duty/envelope byte.
+;;; @thread AUDIO
 ;;; @param A The volume value (0-15).
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
@@ -183,6 +188,7 @@ _Decay:
 
 ;;; An instrument that ramps up volume quickly, then decays slowly, all with
 ;;; slight vibrato.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
@@ -225,6 +231,7 @@ _VibratoDelta_i8_arr4:
 ;;; the instrument param specify the initial volume, which starts fading out
 ;;; immediately.  The top four bits of the instrument param specify a delta to
 ;;; add to the noise period (mod 16) after the initial hit.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
@@ -245,6 +252,7 @@ _VibratoDelta_i8_arr4:
 ;;; the instrument param specify the initial volume, which starts fading out
 ;;; immediately.  The top two bits of the instrument param specify the pulse
 ;;; duty (ignored for the noise channel).
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
@@ -257,6 +265,7 @@ _VibratoDelta_i8_arr4:
 .ENDPROC
 
 ;;; An instrument for the pulse and noise channels that silences the channel.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
@@ -292,6 +301,7 @@ SampleGap1:
 kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 
 ;;; Calls the current instrument function for the specified music channel.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
@@ -308,6 +318,7 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 ;;; An instrument for playing bass drum sounds on the triangle channel.  Each
 ;;; frame, this increases the timer value (thus lowering the frequency) by the
 ;;; instrument param.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
@@ -346,6 +357,7 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 
 ;;; An instrument that sets a constant duty/envelope byte.  This is the default
 ;;; instrument for music channels that don't specify one.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
@@ -356,6 +368,7 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 
 ;;; An instrument for the triangle channel that slides down in pitch with
 ;;; vibrato.  The instrument param is ignored.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
@@ -378,6 +391,7 @@ _Vibrato:
 
 ;;; An instrument for the triangle channel that applies vibrato.  The
 ;;; instrument param is ignored.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X

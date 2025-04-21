@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "window close" sound effect.
+;;; @thread AUDIO
 .PROC Data_WindowClose_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | \
@@ -39,6 +40,7 @@
 .ENDPROC
 
 ;;; SFX data for the "window open" sound effect.
+;;; @thread AUDIO
 .PROC Data_WindowOpen_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | \

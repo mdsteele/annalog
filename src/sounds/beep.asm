@@ -42,6 +42,7 @@ kTromboneEnvFlags = \
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "beep" sound effect.
+;;; @thread AUDIO
 .PROC Data_Beep_sSfx
     sfx_SetEnvSweep bEnvelope::Duty12 | bEnvelope::NoLength | 3, kNoSweep
     sfx_Func Func_InitializeSfxBeepTimer
@@ -50,6 +51,7 @@ kTromboneEnvFlags = \
 .ENDPROC
 
 ;;; SFX data for the "hi-hat" sound effect.
+;;; @thread AUDIO
 .PROC Data_HiHat_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 1, $0002
     sfx_Wait 8
@@ -57,6 +59,7 @@ kTromboneEnvFlags = \
 .ENDPROC
 
 ;;; SFX data for the "organ" sound effect.
+;;; @thread AUDIO
 .PROC Data_Organ_sSfx
     sfx_SetEnv $ff
     sfx_Func Func_InitializeSfxBeepTimer
@@ -65,6 +68,7 @@ kTromboneEnvFlags = \
 .ENDPROC
 
 ;;; SFX data for the "trombone" sound effect.
+;;; @thread AUDIO
 .PROC Data_Trombone_sSfx
     sfx_SetEnvSweep kTromboneEnvFlags | 4, kNoSweep
     sfx_Func Func_InitializeSfxBeepTimer
@@ -83,6 +87,7 @@ kTromboneEnvFlags = \
 ;;; Sets the APU timer registers for the specified channel, using the tone
 ;;; value (0-9) stored in sChanSfx::Param1_byte to select one of the notes from
 ;;; Data_SfxBeepTimer*_u8_arr10.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @preserve X, T0+
 .PROC Func_InitializeSfxBeepTimer

@@ -32,6 +32,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "flip breaker" sound effect.
+;;; @thread AUDIO
 .PROC Data_FlipBreaker_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 3, $0002
     sfx_Wait 8
@@ -41,6 +42,7 @@
 .ENDPROC
 
 ;;; SFX data for the "rumbling" sound effect.
+;;; @thread AUDIO
 .PROC Data_Rumbling_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 0, $008e
     sfx_Func _WaitForParam1Frames

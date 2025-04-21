@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "shoot fire" sound effect.
+;;; @thread AUDIO
 .PROC Data_ShootFire_sSfx
     sfx_SetEnvTimer   bEnvelope::NoLength | bEnvelope::ConstVol |  4, $000a
     sfx_Wait 3
@@ -43,6 +44,7 @@
 .ENDPROC
 
 ;;; SFX data for the "fire burning" sound effect.
+;;; @thread AUDIO
 .PROC Data_FireBurning_sSfx
     sfx_SetEnvTimer   bEnvelope::NoLength | bEnvelope::ConstVol | 8, $000d
     sfx_Wait 3

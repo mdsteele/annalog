@@ -129,6 +129,7 @@ kSampleGap2Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 SampleGap3:
 kSampleGap3Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 
+;;; @thread AUDIO
 .PROC Data_Sample_sSfx
     sfx_Func _Initialize
     sfx_Func _Wait

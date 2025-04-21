@@ -34,6 +34,7 @@
 .SEGMENT "PRG8"
 
 ;;; Executes the sound effect on the specified APU channel.
+;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return C Set if the sound is finished, cleared otherwise.
 ;;; @preserve X, T0+

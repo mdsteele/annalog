@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "collect paper" sound effect.
+;;; @thread AUDIO
 .PROC Data_CollectPaper_sSfx
     sfx_SetTimer $0007
     sfx_Func _EnvUp

@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "machine end" sound effect.
+;;; @thread AUDIO
 .PROC Data_MachineEnd_sSfx
     sfx_SetAll bEnvelope::Duty12 | bEnvelope::NoLength | 3, kNoSweep, $0120
     sfx_Wait 8
@@ -37,6 +38,7 @@
 .ENDPROC
 
 ;;; SFX data for the "machine error" sound effect.
+;;; @thread AUDIO
 .PROC Data_MachineError_sSfx
     sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 4, kNoSweep, $0340
     sfx_Wait 8
@@ -48,6 +50,7 @@
 .ENDPROC
 
 ;;; SFX data for the "machine sync" sound effect.
+;;; @thread AUDIO
 .PROC Data_MachineSync_sSfx
     sfx_SetAll bEnvelope::Duty18 | bEnvelope::NoLength | 3, kNoSweep, $0120
     sfx_Wait 5

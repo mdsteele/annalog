@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "alarm" sound effect.
+;;; @thread AUDIO
 .PROC Data_Alarm_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | \

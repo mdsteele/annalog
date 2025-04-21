@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "quest marker" sound effect.
+;;; @thread AUDIO
 .PROC Data_QuestMarker_sSfx
     sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 4, kNoSweep, $011c
     sfx_Wait 5

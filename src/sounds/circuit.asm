@@ -41,6 +41,7 @@ kCircuitBaseVol = 9
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "circuit trace" sound effect.
+;;; @thread AUDIO
 .PROC Data_CircuitTrace_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | \
@@ -57,6 +58,7 @@ _RampUp:
 .ENDPROC
 
 ;;; SFX data for the "circuit power up" sound effect.
+;;; @thread AUDIO
 .PROC Data_CircuitPowerUp_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | \
@@ -79,6 +81,7 @@ _Steady:
 .ENDPROC
 
 ;;; An sfx_Func to fade out a circuit sound effect over time.
+;;; @thread AUDIO
 ;;; @param Y The sfx_Func loop index.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @preserve X, Y, T0+
@@ -93,6 +96,7 @@ _Steady:
 
 ;;; Modulates the duty cycle of a circuit sound effect between 1/8 and 1/4,
 ;;; using kCircuitBaseVol as the envelope volume.
+;;; @thread AUDIO
 ;;; @param Y The sfx_Func loop index.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @preserve X, Y, T0+
@@ -103,6 +107,7 @@ _Steady:
 
 ;;; Modulates the duty cycle of a circuit sound effect between 1/8 and 1/4,
 ;;; using the specified envelope volume.
+;;; @thread AUDIO
 ;;; @param A The volume to use (0-15).
 ;;; @param Y The sfx_Func loop index.
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).

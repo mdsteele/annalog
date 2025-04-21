@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "metallic ding" sound effect.
+;;; @thread AUDIO
 .PROC Data_MetallicDing_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 1, $0081
     sfx_Wait 4

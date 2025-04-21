@@ -29,6 +29,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "laser" sound effect.
+;;; @thread AUDIO
 .PROC Data_Laser_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | 12), \

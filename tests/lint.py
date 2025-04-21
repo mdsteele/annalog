@@ -67,9 +67,9 @@ IRQ_CHR_BANK_SWITCH_PATTERN = re.compile(
 JUMP_PATTERN = re.compile(
     r'^ *([jb](?:mp|sr|cc|cs|eq|ne|mi|pl|vc|vs|le|lt|ge|gt)|fall) +'
     r'([A-Za-z0-9_]+)')
-READ_PATTERN = re.compile(
+ACCESS_PATTERN = re.compile(
     r'^ *(ad[cd]|and|asl|bit|cmp|cp[xy]|dec|eor|inc|ld[axy]+|lsr|ora'
-    r'|ro[lr]|r?sbc|r?sub) +([A-Za-z0-9_]+)')
+    r'|ro[lr]|r?sbc|r?sub|st[axy]+) +([A-Za-z0-9_]+)')
 
 LOCAL_PROC_NAME = re.compile(r'^_[a-zA-Z0-9_]+$')  # e.g. _Foobar
 PRGA_PROC_NAME = re.compile(  # e.g. FuncA_SegmentName_Foobar
@@ -118,10 +118,23 @@ def is_valid_access(dest, segment, loaded_prereqs, permitted_threads,
                     top_proc):
     if LOCAL_PROC_NAME.match(dest):
         return True
+    if (dest == 'Hw_Channels_sChanRegs_arr5' or dest.startswith('Hw_Noise') or
+        dest.startswith('Hw_Dmc') or dest.startswith('Hw_Apu')):
+        return bool(permitted_threads & {'AUDIO', 'RESET'})
+    if dest.startswith('Zp_AudioTmp'):
+        return bool(permitted_threads & {'AUDIO', 'NMI'})
+    if dest == 'Ram_Audio_sChanSfx_arr':
+        return bool(permitted_threads & {'AUDIO', 'NMI', 'RESET'})
+    if dest == 'Zp_Next_sChanSfx_arr':
+        return bool(permitted_threads & {'MAIN', 'NMI'})
     if dest == 'Zp_Active_sIrq':
-        return 'IRQ' in permitted_threads or 'NMI' in permitted_threads
+        return bool(permitted_threads & {'IRQ', 'NMI', 'RESET'})
     if dest == 'Zp_Buffered_sIrq':
-        return 'IRQ' not in permitted_threads
+        return bool(permitted_threads & {'MAIN', 'NMI'})
+    if dest == 'Zp_NextIrq_int_ptr':
+        return bool(permitted_threads & {'IRQ', 'NMI', 'RESET'})
+    if dest == 'Zp_IrqTmp_byte':
+        return bool(permitted_threads & {'IRQ'})
     match = PRGA_PROC_NAME.match(dest)
     if match:
         if top_proc.startswith('Func_'):
@@ -288,8 +301,9 @@ def run_tests():
                                            permitted_threads, proc_stack[0]):
                         fail('invalid {} from {}'.format(
                             opcode, proc_stack[0]))
-                # Check that procs don't read incorrectly from other procs.
-                match = READ_PATTERN.match(line)
+                # Check that procs don't read/write things they can't or
+                # shouldn't access.
+                match = ACCESS_PATTERN.match(line)
                 if match:
                     source = match.group(2)
                     if not is_valid_access(source, segment, loaded_prereqs,

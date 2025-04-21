@@ -39,6 +39,7 @@
 
 .SEGMENT "PRG8"
 
+;;; @thread AUDIO
 .PROC Data_Explode_sSfx
     sfx_Func _Func
     sfx_End

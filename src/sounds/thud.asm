@@ -29,6 +29,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "small thud" sound effect.
+;;; @thread AUDIO
 .PROC Data_ThudSmall_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 1, $000c
     sfx_Wait 6
@@ -36,6 +37,7 @@
 .ENDPROC
 
 ;;; SFX data for the "big thud" sound effect.
+;;; @thread AUDIO
 .PROC Data_ThudBig_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 5, $000d
     sfx_Wait 24
@@ -43,6 +45,7 @@
 .ENDPROC
 
 ;;; SFX data for the "thump" sound effect.
+;;; @thread AUDIO
 .PROC Data_Thump_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | \

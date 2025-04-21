@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "prison gate" sound effect.
+;;; @thread AUDIO
 .PROC Data_PrisonGate_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 0, $0002
     sfx_Wait 2

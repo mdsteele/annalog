@@ -30,6 +30,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "drip" sound effect.
+;;; @thread AUDIO
 .PROC Data_Drip_sSfx
     sfx_SetEnv $ff
     sfx_Func _SetTimer
@@ -48,6 +49,7 @@ _TimerLo_u8_arr3:
 .ENDPROC
 
 ;;; SFX data for the "drop" sound effect.
+;;; @thread AUDIO
 .PROC Data_Drop_sSfx
     .linecont +
     sfx_SetAll bEnvelope::Duty12 | bEnvelope::NoLength | 4, \

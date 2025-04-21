@@ -29,6 +29,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "shoot bullet" sound effect.
+;;; @thread AUDIO
 .PROC Data_ShootBullet_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | 3), \

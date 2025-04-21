@@ -29,6 +29,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "cannon fire" sound effect.
+;;; @thread AUDIO
 .PROC Data_CannonFire_sSfx
     sfx_SetEnvTimer   bEnvelope::NoLength | bEnvelope::ConstVol | 8, $000d
     sfx_Wait 3

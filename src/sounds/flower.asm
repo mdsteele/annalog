@@ -30,6 +30,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "break flower" sound effect.
+;;; @thread AUDIO
 .PROC Data_BreakFlower_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 2, $0083
     sfx_Wait 2
@@ -41,6 +42,7 @@
 .ENDPROC
 
 ;;; SFX data for the "pick up flower" sound effect.
+;;; @thread AUDIO
 .PROC Data_PickUpFlower_sSfx
     sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 3, kNoSweep, $00d2
     sfx_Wait 3

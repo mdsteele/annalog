@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "console turn on" sound effect.
+;;; @thread AUDIO
 .PROC Data_ConsoleTurnOn_sSfx
     sfx_SetAll (bEnvelope::Duty12 | bEnvelope::NoLength | 2), kNoSweep, $0340
     sfx_Wait 4

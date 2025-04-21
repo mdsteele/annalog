@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX sequence data for the "menu cancel" sound effect.
+;;; @thread AUDIO
 .PROC Data_MenuCancel_sSfx
     sfx_SetAll bEnvelope::Duty18 | bEnvelope::NoLength | 1, kNoSweep, $0180
     sfx_Wait 5
@@ -37,6 +38,7 @@
 .ENDPROC
 
 ;;; SFX sequence data for the "menu confirm" sound effect.
+;;; @thread AUDIO
 .PROC Data_MenuConfirm_sSfx
     sfx_SetAll bEnvelope::Duty12 | bEnvelope::NoLength | 1, kNoSweep, $0180
     sfx_Wait 5
@@ -46,6 +48,7 @@
 .ENDPROC
 
 ;;; SFX data for the "menu move" sound effect.
+;;; @thread AUDIO
 .PROC Data_MenuMove_sSfx
     sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 0, kNoSweep, $01a0
     sfx_Wait 3

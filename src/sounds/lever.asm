@@ -33,6 +33,7 @@ kSfxLaunchDurationFrames = $1c
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "lever off" sound effect.
+;;; @thread AUDIO
 .PROC Data_LeverOff_sSfx
     sfx_SetEnvTimer (bEnvelope::NoLength | 0), $0008
     sfx_Wait 3
@@ -40,6 +41,7 @@ kSfxLaunchDurationFrames = $1c
 .ENDPROC
 
 ;;; SFX data for the "lever on" sound effect.
+;;; @thread AUDIO
 .PROC Data_LeverOn_sSfx
     sfx_SetEnvTimer (bEnvelope::NoLength | 0), $0006
     sfx_Wait 3

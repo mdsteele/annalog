@@ -59,6 +59,7 @@
 .SEGMENT "PRGE_Pcm"
 
 ;;; Plays all PCM data stored in the currently-loaded PRGA bank.
+;;; @thread AUDIO
 ;;; @prereq Audio is disabled.
 ;;; @prereq The PRGA bank for the PCM data is loaded.
 .EXPORT Func_PlayPrgaPcm

@@ -28,6 +28,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "wing flap" sound effect.
+;;; @thread AUDIO
 .PROC Data_WingFlap_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | bEnvelope::ConstVol | 1, $0001
     sfx_Func _RampUp

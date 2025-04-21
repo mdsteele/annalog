@@ -30,6 +30,7 @@
 .SEGMENT "PRG8"
 
 ;;; SFX data for the "emitter beam" sound effect.
+;;; @thread AUDIO
 .PROC Data_EmitterBeam_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | 0), \
@@ -40,6 +41,7 @@
 .ENDPROC
 
 ;;; SFX data for the "emitter forcefield" sound effect.
+;;; @thread AUDIO
 .PROC Data_EmitterForcefield_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 5, $0086
     sfx_Wait 5
