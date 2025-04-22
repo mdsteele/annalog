@@ -116,6 +116,7 @@
 .IMPORT DataC_Mermaid_Hut6_sRoom
 .IMPORT DataC_Mermaid_Spring_sRoom
 .IMPORT DataC_Mermaid_Village_sRoom
+.IMPORT DataC_Mine_Burrow_sRoom
 .IMPORT DataC_Mine_Center_sRoom
 .IMPORT DataC_Mine_Collapse_sRoom
 .IMPORT DataC_Mine_Drift_sRoom
@@ -125,7 +126,6 @@
 .IMPORT DataC_Mine_North_sRoom
 .IMPORT DataC_Mine_Pit_sRoom
 .IMPORT DataC_Mine_South_sRoom
-.IMPORT DataC_Mine_Tunnel_sRoom
 .IMPORT DataC_Mine_West_sRoom
 .IMPORT DataC_Prison_Cell_sRoom
 .IMPORT DataC_Prison_Crossroad_sRoom
@@ -431,6 +431,7 @@ _PrisonMusic:
     d_byte MermaidHut6,     eMusic::Silence
     d_byte MermaidSpring,   eMusic::Mermaid
     d_byte MermaidVillage,  eMusic::Mermaid
+    d_byte MineBurrow,      eMusic::Mine
     d_byte MineCenter,      eMusic::Mine
     d_byte MineCollapse,    eMusic::Mine
     d_byte MineDrift,       eMusic::Mine
@@ -440,7 +441,6 @@ _PrisonMusic:
     d_byte MineNorth,       eMusic::Mine
     d_byte MinePit,         eMusic::Mine
     d_byte MineSouth,       eMusic::Mine
-    d_byte MineTunnel,      eMusic::Mine
     d_byte MineWest,        eMusic::Mine
     d_byte PrisonCell,      bRoomMusic::Prison
     d_byte PrisonCrossroad, bRoomMusic::Prison
@@ -613,6 +613,7 @@ _PrisonMusic:
     d_entry table, MermaidHut6,     DataC_Mermaid_Hut6_sRoom
     d_entry table, MermaidSpring,   DataC_Mermaid_Spring_sRoom
     d_entry table, MermaidVillage,  DataC_Mermaid_Village_sRoom
+    d_entry table, MineBurrow,      DataC_Mine_Burrow_sRoom
     d_entry table, MineCenter,      DataC_Mine_Center_sRoom
     d_entry table, MineCollapse,    DataC_Mine_Collapse_sRoom
     d_entry table, MineDrift,       DataC_Mine_Drift_sRoom
@@ -622,7 +623,6 @@ _PrisonMusic:
     d_entry table, MineNorth,       DataC_Mine_North_sRoom
     d_entry table, MinePit,         DataC_Mine_Pit_sRoom
     d_entry table, MineSouth,       DataC_Mine_South_sRoom
-    d_entry table, MineTunnel,      DataC_Mine_Tunnel_sRoom
     d_entry table, MineWest,        DataC_Mine_West_sRoom
     d_entry table, PrisonCell,      DataC_Prison_Cell_sRoom
     d_entry table, PrisonCrossroad, DataC_Prison_Crossroad_sRoom

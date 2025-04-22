@@ -422,7 +422,7 @@ _Devices_sDevice_arr:
     d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 11
     d_byte BlockCol_u8, 3
-    d_byte Target_byte, eRoom::MineCollapse
+    d_byte Target_byte, eRoom::MineBurrow
     D_END
     .assert * - :- = kBossUpgradeDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice

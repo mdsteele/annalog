@@ -185,7 +185,7 @@ _Passages_sPassage_arr:
     act_SetActorFlags kGrontaActorIndex, bObj::FlipH
     act_WaitFrames 20
     act_SetActorFlags kGrontaActorIndex, 0
-    act_WaitFrames 60
+    act_WaitFrames 90
     act_SetActorFlags kGrontaActorIndex, bObj::FlipH
     act_RunDialog eDialog::GardenShrineBreakerMine2
     act_WaitFrames 60

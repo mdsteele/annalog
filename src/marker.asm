@@ -40,6 +40,12 @@
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 1
+    d_byte Col_u8, 4  ; room: PrisonUpper
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::PrisonUpperFreedKids
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 1
     d_byte Col_u8, 8  ; room: PrisonFlower
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::FlowerPrison
@@ -220,6 +226,12 @@
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 13
+    d_byte Col_u8, 8  ; room: ShadowHeart
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::ShadowHeartTaggedGhost
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 13
     d_byte Col_u8, 13  ; room: LavaTeleport
     d_byte If_eFlag, eFlag::CityCenterTalkedToAlex
     d_byte Not_eFlag, eFlag::ShadowTeleportEnteredLab
@@ -229,6 +241,12 @@
     d_byte Col_u8, 23  ; room: MinePit
     d_byte If_eFlag, 0
     d_byte Not_eFlag, eFlag::UpgradeOpSync
+    D_END
+    D_STRUCT sMarker
+    d_byte Row_u8, 14
+    d_byte Col_u8, 3  ; room: ShadowOffice
+    d_byte If_eFlag, 0
+    d_byte Not_eFlag, eFlag::ShadowOfficeTaggedGhost
     D_END
     D_STRUCT sMarker
     d_byte Row_u8, 14

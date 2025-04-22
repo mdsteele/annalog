@@ -388,7 +388,7 @@ _Finish:
 ;;; ID to use if there is an item/quest map marker on that tile.
 .PROC DataA_Pause_MinimapItemMarkerTiles_u8_arr
     .assert kTileIdBgMinimapUnexplored = $c0, error
-    .byte $c0, $f1, '?', $f3, $f2, '?', $f6, '?'
+    .byte $c0, $f1, $f2, $f3, $f4, '?', $f6, '?'
     .byte '?', '?', '?', $f7, '?', '?', '?', $f5
     .byte $ff, '?', '?', '?', '?', '?', $f8, '?'
     .byte '?', '?', '?', '?', '?', '?', '?', '?'
@@ -398,7 +398,7 @@ _Finish:
     .byte $f0, $a9, $aa, '?', '?', $ee, '?', '?'
     .byte '?', '?', '?', '?', '?', $ef, '?', '?'
     .byte '?', '?', '?', '?', '?', $f9, '?', '?'
-    .byte $f4, '?', '?', '?', '?', '?', $fe, '?'
+    .byte $ab, '?', '?', '?', '?', '?', $fe, '?'
     .byte '?', $fc, $fa, '?', '?', $fb
 .ENDPROC
 

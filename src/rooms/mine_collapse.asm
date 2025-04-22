@@ -28,7 +28,6 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
-.INCLUDE "mine_collapse.inc"
 
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -37,7 +36,6 @@
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_StartWorking
-.IMPORT FuncA_Objects_AnimateCircuitIfBreakerActive
 .IMPORT FuncA_Objects_DrawCraneMachine
 .IMPORT FuncA_Objects_DrawCraneRopeToPulley
 .IMPORT FuncA_Objects_DrawTrolleyMachine
@@ -67,11 +65,11 @@ kCranePlatformIndex   = 1
 
 ;;; The initial and maximum permitted values for the crane's Z-goal.
 kCraneInitGoalZ = 0
-kCraneMaxGoalZ = 8
+kCraneMaxGoalZ  = 4
 
 ;;; The initial and maximum permitted values for the trolley's X-goal.
-kTrolleyInitGoalX = 5
-kTrolleyMaxGoalX  = 8
+kTrolleyInitGoalX = 4
+kTrolleyMaxGoalX  = 5
 
 ;;; The minimum, initial, and maximum room pixel position for the top edge of
 ;;; the crane.
@@ -82,7 +80,7 @@ kCraneMaxPlatformTop  = kCraneMinPlatformTop + kBlockHeightPx * kCraneMaxGoalZ
 ;;; The minimum, initial, and maximum room pixel position for the left edge of
 ;;; the trolley.
 .LINECONT +
-kTrolleyMinPlatformLeft = $30
+kTrolleyMinPlatformLeft = $60
 kTrolleyInitPlatformLeft = \
     kTrolleyMinPlatformLeft + kBlockWidthPx * kTrolleyInitGoalX
 kTrolleyMaxPlatformLeft = \
@@ -96,11 +94,11 @@ kTrolleyMaxPlatformLeft = \
 .EXPORT DataC_Mine_Collapse_sRoom
 .PROC DataC_Mine_Collapse_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $00
-    d_word MaxScrollX_u16, $0000
+    d_byte MinScrollX_u8, $10
+    d_word MaxScrollX_u16, $0010
     d_byte Flags_bRoom, eArea::Mine
     d_byte MinimapStartRow_u8, 9
-    d_byte MinimapStartCol_u8, 18
+    d_byte MinimapStartCol_u8, 20
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
@@ -117,11 +115,11 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, Func_Noop
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
-    d_addr Draw_func_ptr, FuncC_Mine_Collapse_DrawRoom
+    d_addr Draw_func_ptr, Func_Noop
     D_END
 _TerrainData:
 :   .incbin "out/rooms/mine_collapse.room"
-    .assert * - :- = 17 * 15, error
+    .assert * - :- = 18 * 15, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kTrolleyMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
@@ -184,39 +182,32 @@ _Platforms_sPlatform_arr:
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
-    d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 12
+    d_byte BlockRow_u8, 11
+    d_byte BlockCol_u8, 14
     d_byte Target_byte, kTrolleyMachineIndex
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
-    d_byte BlockRow_u8, 12
-    d_byte BlockCol_u8, 13
-    d_byte Target_byte, kCraneMachineIndex
-    D_END
-    .assert * - :- = kMineCollapseDoorDeviceIndex * .sizeof(sDevice), error
-    D_STRUCT sDevice
-    d_byte Type_eDevice, eDevice::Door1Unlocked
     d_byte BlockRow_u8, 11
-    d_byte BlockCol_u8, 3
-    d_byte Target_byte, eRoom::BossMine
+    d_byte BlockCol_u8, 15
+    d_byte Target_byte, kCraneMachineIndex
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Western | 0
+    d_byte Destination_eRoom, eRoom::MineBurrow
+    d_byte SpawnBlock_u8, 5
+    d_byte SpawnAdjust_byte, 0
+    D_END
+    D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
-    d_byte Destination_eRoom, eRoom::MineTunnel
-    d_byte SpawnBlock_u8, 10
+    d_byte Destination_eRoom, eRoom::MineNorth
+    d_byte SpawnBlock_u8, 5
     d_byte SpawnAdjust_byte, 0
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
-.ENDPROC
-
-;;; @prereq PRGA_Objects is loaded.
-.PROC FuncC_Mine_Collapse_DrawRoom
-    ldx #eFlag::BreakerMine  ; param: breaker flag
-    jmp FuncA_Objects_AnimateCircuitIfBreakerActive
 .ENDPROC
 
 .PROC FuncC_Mine_CollapseTrolley_InitReset

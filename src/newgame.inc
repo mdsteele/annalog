@@ -34,7 +34,7 @@
     Cavern    ; start just outside the lava boss room
     Breaker4  ; start in the lava boss room, just after defeating it
     Mine      ; start at the entrance to the mine
-    Collapse  ; start just outside the mine boss room
+    Burrow    ; start just outside the mine boss room
     Breaker5  ; start in the mine boss room, just after defeating it
     Pass      ; start at the pass between the sewer and factory
     City      ; start at the eastern edge of the city center

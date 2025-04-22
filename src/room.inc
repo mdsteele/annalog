@@ -127,6 +127,7 @@ kMaxPassages = 8
     MermaidHut6
     MermaidSpring
     MermaidVillage
+    MineBurrow
     MineCenter
     MineCollapse
     MineDrift
@@ -136,7 +137,6 @@ kMaxPassages = 8
     MineNorth
     MinePit
     MineSouth
-    MineTunnel
     MineWest
     PrisonCell
     PrisonCrossroad

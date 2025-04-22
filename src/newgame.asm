@@ -29,7 +29,7 @@
 .INCLUDE "rooms/crypt_tomb.inc"
 .INCLUDE "rooms/garden_tower.inc"
 .INCLUDE "rooms/lava_cavern.inc"
-.INCLUDE "rooms/mine_collapse.inc"
+.INCLUDE "rooms/mine_burrow.inc"
 .INCLUDE "rooms/shadow_depths.inc"
 .INCLUDE "rooms/temple_spire.inc"
 .INCLUDE "spawn.inc"
@@ -63,16 +63,15 @@
     .endrepeat
     inx
     bne @loop
-    ;; TODO: For testing, reveal whole minimap (remove this later).
-.IF 0
+    ;; Change this to ".if 1" to reveal whole minimap.
+    .if 0
     lda #$ff
-    ldx #0
+    ldx #$30 - 1
     @minimapLoop:
     sta Sram_Minimap_u16_arr, x
-    inx
-    cpx #$30
-    blt @minimapLoop
-.ENDIF
+    dex
+    bpl @minimapLoop
+    .endif
     ;; Set starting location.
     lda DataC_Title_NewGameStarting_eRoom_arr, y
     sta Sram_LastSafe_eRoom
@@ -121,7 +120,7 @@ _SetFlags:
     d_byte Cavern,   "CAVERN  "
     d_byte Breaker4, "BREAKER4"
     d_byte Mine,     "MINE    "
-    d_byte Collapse, "COLLAPSE"
+    d_byte Burrow,   "BURROW  "
     d_byte Breaker5, "BREAKER5"
     d_byte Pass,     "PASS    "
     d_byte City,     "CITY    "
@@ -153,7 +152,7 @@ _SetFlags:
     d_byte Cavern,   eRoom::LavaCavern
     d_byte Breaker4, eRoom::BossLava
     d_byte Mine,     eRoom::MineEntry
-    d_byte Collapse, eRoom::MineCollapse
+    d_byte Burrow,   eRoom::MineBurrow
     d_byte Breaker5, eRoom::BossMine
     d_byte Pass,     eRoom::FactoryPass
     d_byte City,     eRoom::CityCenter
@@ -185,7 +184,7 @@ _SetFlags:
     d_byte Cavern,   bSpawn::Device | kLavaCavernDoorDeviceIndex
     d_byte Breaker4, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Mine,     bSpawn::Passage | 0
-    d_byte Collapse, bSpawn::Device | kMineCollapseDoorDeviceIndex
+    d_byte Burrow,   bSpawn::Device | kMineBurrowDoorDeviceIndex
     d_byte Breaker5, bSpawn::Device | kBossDoorDeviceIndex
     d_byte Pass,     bSpawn::Passage | 1
     d_byte City,     bSpawn::Passage | 1
@@ -217,7 +216,7 @@ _SetFlags:
     d_byte Cavern,   eFlag::BossLava
     d_byte Breaker4, eFlag::BreakerLava
     d_byte Mine,     eFlag::UpgradeOpSync
-    d_byte Collapse, eFlag::BossMine
+    d_byte Burrow,   eFlag::BossMine
     d_byte Breaker5, eFlag::BreakerMine
     d_byte Pass,     eFlag::FactoryPassLoweredRocks
     d_byte City,     eFlag::CityCenterEnteredCity

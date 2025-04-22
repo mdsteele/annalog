@@ -17,7 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
-;;; The device index for the door that leads from MineCollapse to BossMine.
-kMineCollapseDoorDeviceIndex = 2
+;;; The device index for the door that leads from MineBurrow to BossMine.
+kMineBurrowDoorDeviceIndex = 0
 
 ;;;=========================================================================;;;
