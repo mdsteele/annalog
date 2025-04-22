@@ -56,7 +56,9 @@
 .IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncA_Room_PlaySfxRumbling
 .IMPORT FuncA_Room_TickBoss
+.IMPORT Func_DistanceSensorDownDetectPoint
 .IMPORT Func_DivAByBlockSizeAndClampTo9
+.IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetRandomByte
@@ -67,6 +69,7 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_PlaySfxSample
@@ -75,7 +78,9 @@
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPlatformTopLeftToPoint
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
+.IMPORT Func_SetPointToAvatarTop
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Func_SpawnExplosionAtPoint
@@ -345,7 +350,7 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::Trolley
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $10
-    d_byte RegNames_u8_arr4, "L", "R", "X", 0
+    d_byte RegNames_u8_arr4, "L", "R", "X", "D"
     d_byte MainPlatform_u8, kTrolleyPlatformIndex
     d_addr Init_func_ptr, FuncC_Boss_MineTrolley_Init
     d_addr ReadReg_func_ptr, FuncC_Boss_MineTrolley_ReadReg
@@ -364,7 +369,7 @@ _Machines_sMachine_arr:
     d_byte Status_eDiagram, eDiagram::Crane
     d_word ScrollGoalX_u16, $00
     d_byte ScrollGoalY_u8, $10
-    d_byte RegNames_u8_arr4, "L", "R", 0, "Z"
+    d_byte RegNames_u8_arr4, "L", "R", "D", "Z"
     d_byte MainPlatform_u8, kCranePlatformIndex
     d_addr Init_func_ptr, FuncC_Boss_MineCrane_InitReset
     d_addr ReadReg_func_ptr, FuncC_Boss_MineCrane_ReadReg
@@ -931,8 +936,14 @@ _EyeOffsetY_u8_arr:
 ;;; @return A The value of the register (0-9).
 .PROC FuncC_Boss_MineTrolley_ReadReg
     cmp #$e
-    bne FuncC_Boss_Mine_ReadRegLR
-_RegX:
+    blt FuncC_Boss_Mine_ReadRegLR
+    bne FuncC_Boss_Mine_ReadRegD
+    fall FuncC_Boss_MineTrolley_ReadRegX
+.ENDPROC
+
+;;; ReadReg implementation for the BossMineTrolley machine's "X" register.
+;;; @return A The value of the register (0-9).
+.PROC FuncC_Boss_MineTrolley_ReadRegX
     .assert kTrolleyMaxPlatformLeft < $100, error
     lda Ram_PlatformLeft_i16_0_arr + kTrolleyPlatformIndex
     sub #kTrolleyMinPlatformLeft - kTileWidthPx  ; param: distance
@@ -943,8 +954,9 @@ _RegX:
 ;;; @param A The register to read ($c-$f).
 ;;; @return A The value of the register (0-9).
 .PROC FuncC_Boss_MineCrane_ReadReg
-    cmp #$f
-    bne FuncC_Boss_Mine_ReadRegLR
+    cmp #$e
+    blt FuncC_Boss_Mine_ReadRegLR
+    beq FuncC_Boss_Mine_ReadRegD
 _RegZ:
     .assert kCraneMaxPlatformTop < $100, error
     lda Ram_PlatformTop_i16_0_arr + kCranePlatformIndex
@@ -965,6 +977,55 @@ _RegL:
 _RegR:
     lda Zp_RoomState + sState::LeverRight_u8
     rts
+.ENDPROC
+
+;;; Reads the shared "D" distance sensor register for the BossMineTrolley and
+;;; BossMineCrane machines.
+;;; @return A The value of the register (0-9).
+.PROC FuncC_Boss_Mine_ReadRegD
+    jsr FuncC_Boss_MineTrolley_ReadRegX  ; returns A
+    tax  ; crane X position
+    lda _FloorPosY_u8_arr10, x
+    sub Ram_PlatformBottom_i16_0_arr + kCranePlatformIndex
+    sta T0  ; param: minimum distance so far, in pixels
+    ;; Detect the boss, if not hidden.
+    lda Zp_RoomState + sState::Current_eBossLoc
+    .assert eBossLoc::Hidden = 0, error
+    beq @doneBoss
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves T0+
+    ldy #kCranePlatformIndex  ; param: distance sensor platform index
+    jsr Func_DistanceSensorDownDetectPoint  ; returns T0
+    @doneBoss:
+    ;; Detect the boulder, if not absent.
+    lda Zp_RoomState + sState::BoulderState_eBoulder
+    .assert eBoulder::Absent = 0, error
+    beq @doneBoulder
+    ldy #kBoulderPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves T0+
+    lda #kBoulderHeightPx / 2  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves T0+
+    ldy #kCranePlatformIndex  ; param: distance sensor platform index
+    jsr Func_DistanceSensorDownDetectPoint  ; returns T0
+    @doneBoulder:
+    ;; Detect the player avatar.
+    ldy #kCranePlatformIndex  ; param: distance sensor platform index
+    jsr Func_SetPointToAvatarTop  ; preserves Y and T0+
+    jsr Func_DistanceSensorDownDetectPoint  ; preserves Y, returns T0
+    ;; Detect the hatched grub, if any.
+    lda #eActor::BadGrub  ; param: actor type to find
+    jsr Func_FindActorWithType  ; preserves Y and T0+, returns C and X
+    bcs @doneGrub  ; no solifuge baddie was found
+    jsr Func_SetPointToActorCenter  ; preserves Y and T0+
+    lda #2  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves Y and T0+
+    jsr Func_DistanceSensorDownDetectPoint  ; returns T0
+    @doneGrub:
+    ;; Compute and return the register value.
+    lda T0  ; param: minimum distance so far, in pixels
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
+_FloorPosY_u8_arr10:
+    .byte $70, $50, $c0, $d0, $d0, $d0, $d0, $d0, $d0, $d0
 .ENDPROC
 
 ;;; @prereq PRGA_Machine is loaded.

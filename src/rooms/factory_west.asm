@@ -39,6 +39,7 @@
 .IMPORT FuncA_Objects_DrawCraneMachine
 .IMPORT FuncA_Objects_DrawCranePulleyAndRope
 .IMPORT Func_DistanceSensorDownDetectPoint
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_SetPointToActorCenter
@@ -204,26 +205,20 @@ _ReadD:
     sta T0  ; param: minimum distance so far, in pixels
     ldy #kCranePlatformIndex  ; param: distance sensor platform index
     ;; Check the player avatar with the distance sensor.
-    jsr Func_SetPointToAvatarTop  ; preserves Y, T0+
+    jsr Func_SetPointToAvatarTop  ; preserves Y and T0+
     jsr Func_DistanceSensorDownDetectPoint  ; preserves Y, returns T0
     ;; Check the grub baddie with the distance sensor.
     ldx #kGrubActorIndex  ; param: actor index
-    jsr Func_SetPointToActorCenter  ; preserves Y, T0+
+    jsr Func_SetPointToActorCenter  ; preserves Y and T0+
     lda #2  ; param: offset
-    jsr Func_MovePointUpByA  ; preserves Y, T0+
+    jsr Func_MovePointUpByA  ; preserves Y and T0+
     jsr Func_DistanceSensorDownDetectPoint  ; returns T0
-    lda T0  ; minimum distance so far, in pixels
-    div #kBlockHeightPx
-    cmp #10
-    blt @done
-    lda #9
-    @done:
-    rts
+    lda T0  ; param: minimum distance so far, in pixels
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 _ReadZ:
     lda Ram_PlatformTop_i16_0_arr + kCranePlatformIndex
     sub #kCraneMinPlatformTop - kTileHeightPx
-    div #kBlockHeightPx
-    rts
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; @prereq PRGA_Objects is loaded.
