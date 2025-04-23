@@ -55,6 +55,7 @@
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncA_Room_PlaySfxRumbling
+.IMPORT FuncA_Room_ResetLever
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_DistanceSensorDownDetectPoint
 .IMPORT Func_DivAByBlockSizeAndClampTo9
@@ -375,7 +376,7 @@ _Machines_sMachine_arr:
     d_addr ReadReg_func_ptr, FuncC_Boss_MineCrane_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_BossMine_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_BossMineCrane_TryMove
-    d_addr TryAct_func_ptr, FuncC_Boss_MineCrane_TryAct
+    d_addr TryAct_func_ptr, FuncA_Machine_BossMineCrane_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_BossMineCrane_Tick
     d_addr Draw_func_ptr, FuncC_Boss_MineCrane_Draw
     d_addr Reset_func_ptr, FuncC_Boss_MineCrane_InitReset
@@ -891,6 +892,10 @@ _EyeOffsetY_u8_arr:
 
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_MineTrolley_Reset
+    ldx #kLeverLeftDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
+    ldx #kLeverRightDeviceIndex  ; param: device index
+    jsr FuncA_Room_ResetLever
     ;; Reset the crane machine (if it's not already resetting).
     lda Ram_MachineStatus_eMachine_arr + kCraneMachineIndex
     cmp #kFirstResetStatus
@@ -1026,33 +1031,6 @@ _RegR:
     jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 _FloorPosY_u8_arr10:
     .byte $70, $50, $c0, $d0, $d0, $d0, $d0, $d0, $d0, $d0
-.ENDPROC
-
-;;; @prereq PRGA_Machine is loaded.
-.PROC FuncC_Boss_MineCrane_TryAct
-    lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
-    eor #$ff
-    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
-    bpl _LetGo
-_TryGrasp:
-    lda Zp_RoomState + sState::BoulderState_eBoulder
-    cmp #eBoulder::OnGround
-    bne _StartWaiting
-    lda Ram_PlatformLeft_i16_0_arr + kCranePlatformIndex
-    cmp Ram_PlatformLeft_i16_0_arr + kBoulderPlatformIndex
-    bne _StartWaiting
-    lda Ram_PlatformBottom_i16_0_arr + kCranePlatformIndex
-    cmp Ram_PlatformTop_i16_0_arr + kBoulderPlatformIndex
-    bne _StartWaiting
-    lda #eBoulder::Grasped
-    sta Zp_RoomState + sState::BoulderState_eBoulder
-    .assert eBoulder::Grasped <> 0, error
-    bne _StartWaiting  ; unconditional
-_LetGo:
-    jsr FuncC_Boss_Mine_DropBoulder
-_StartWaiting:
-    lda #kCraneActCooldown  ; param: num frames
-    jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
 ;;; @prereq PRGA_Objects is loaded.
@@ -1227,7 +1205,7 @@ _CheckForFloorImpact:
     lda _ShakeFrames_u8_arr, y  ; param: num frames
     beq @noShake
     jsr Func_ShakeRoom  ; preserves T0+
-    jsr Func_PlaySfxThump
+    jsr Func_PlaySfxThump  ; preserves T0+
     @noShake:
     ;; Zero the boulder's velocity, and move it to exactly hit the floor.
     lda #0
@@ -1379,6 +1357,33 @@ _Success:
     jmp FuncA_Machine_StartWorking
 _Error:
     jmp FuncA_Machine_Error
+.ENDPROC
+
+;;; @prereq PRGC_Boss is loaded.
+.PROC FuncA_Machine_BossMineCrane_TryAct
+    lda Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
+    eor #$ff
+    sta Ram_MachineGoalHorz_u8_arr + kCraneMachineIndex  ; is closed
+    bpl _LetGo
+_TryGrasp:
+    lda Zp_RoomState + sState::BoulderState_eBoulder
+    cmp #eBoulder::OnGround
+    bne _StartWaiting
+    lda Ram_PlatformLeft_i16_0_arr + kCranePlatformIndex
+    cmp Ram_PlatformLeft_i16_0_arr + kBoulderPlatformIndex
+    bne _StartWaiting
+    lda Ram_PlatformBottom_i16_0_arr + kCranePlatformIndex
+    cmp Ram_PlatformTop_i16_0_arr + kBoulderPlatformIndex
+    bne _StartWaiting
+    lda #eBoulder::Grasped
+    sta Zp_RoomState + sState::BoulderState_eBoulder
+    .assert eBoulder::Grasped <> 0, error
+    bne _StartWaiting  ; unconditional
+_LetGo:
+    jsr FuncC_Boss_Mine_DropBoulder
+_StartWaiting:
+    lda #kCraneActCooldown  ; param: num frames
+    jmp FuncA_Machine_StartWaiting
 .ENDPROC
 
 .PROC FuncA_Machine_BossMineTrolley_Tick
