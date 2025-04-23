@@ -47,6 +47,7 @@
 .IMPORT Func_SetAndTransferFade
 .IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Ram_ActorType_eActor_arr
@@ -502,6 +503,18 @@ _ExpireFlamestrike:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x
     rts
+.ENDPROC
+
+;;; Stores the room pixel position of the center of the boss's body in
+;;; Zp_Point*_i16.
+;;; @prereq FuncA_Room_InitBoss has already been called for this room.
+;;; @preserve X, T0+
+.EXPORT FuncA_Room_SetPointToBossBodyCenter
+.PROC FuncA_Room_SetPointToBossBodyCenter
+    ldy #sBoss::BodyPlatform_u8
+    lda (Zp_Current_sBoss_ptr), y
+    tay  ; param: platform index
+    jmp Func_SetPointToPlatformCenter  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

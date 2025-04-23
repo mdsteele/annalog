@@ -65,6 +65,7 @@
 .IMPORT FuncA_Room_InitActorProjBreakbomb
 .IMPORT FuncA_Room_InitActorProjSpine
 .IMPORT FuncA_Room_InitBoss
+.IMPORT FuncA_Room_SetPointToBossBodyCenter
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
@@ -88,7 +89,6 @@
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
-.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Func_SignedMult
 .IMPORT Func_Sine
@@ -714,7 +714,7 @@ _BossOpen:
 _ShootBreakbombs:
     jsr Func_PlaySfxDrip
     ;; Shoot a pair of breakbombs.
-    jsr FuncA_Room_BossCity_SetPointToBossCenter
+    jsr FuncA_Room_SetPointToBossBodyCenter
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs @doneBreakbombs
     jsr Func_SetActorCenterToPoint  ; preserves X
@@ -756,7 +756,7 @@ _BossWeaving:
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
     ;; Wait for the boss's vertical position to be valid for opening its shell.
-    jsr FuncA_Room_BossCity_SetPointToBossCenter
+    jsr FuncA_Room_SetPointToBossBodyCenter
     lda Zp_PointY_i16 + 0
     cmp #kBossMinCenterOpenY
     blt @done
@@ -782,7 +782,7 @@ _BossShootSpines:
     sta T3  ; spine index
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @doneSpine
-    jsr FuncA_Room_BossCity_SetPointToBossCenter  ; preserves X and T0+
+    jsr FuncA_Room_SetPointToBossBodyCenter  ; preserves X and T0+
     ldy T3  ; spine index
     lda _SpineOffsetX_i8_arr5, y
     jsr Func_MovePointHorz  ; preserves X, Y, and T0+
@@ -1052,7 +1052,7 @@ _TickBoss:
 ;;; based on the boss's vertical position and on BossShellOpen_u8.
 ;;; @prereq PRGC_Boss is loaded.
 .PROC FuncA_Room_BossCity_AdjustShellPlatformsVert
-    jsr FuncA_Room_BossCity_SetPointToBossCenter
+    jsr FuncA_Room_SetPointToBossBodyCenter
     ldx Zp_RoomState + sState::BossShellOpen_u8
     lda DataC_Boss_City_ShellOffset_u8_arr, x  ; param: offset
     pha  ; shell offset
@@ -1067,13 +1067,6 @@ _TickBoss:
     ldx #kBossShellUpperPlatformIndex  ; param: platform index
     lda #127  ; param: max move by
     jmp Func_MovePlatformTopTowardPointY
-.ENDPROC
-
-;;; Stores the room pixel position of the center of the boss in Zp_Point*_i16.
-;;; @preserve X, T0+
-.PROC FuncA_Room_BossCity_SetPointToBossCenter
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jmp Func_SetPointToPlatformCenter  ; preserves X and T0+
 .ENDPROC
 
 ;;; Moves the boss horizontally, with sinusoidal motion.

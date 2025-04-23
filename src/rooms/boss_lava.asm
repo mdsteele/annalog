@@ -65,6 +65,7 @@
 .IMPORT FuncA_Room_MachineBoilerReset
 .IMPORT FuncA_Room_PlaySfxSlowWindup
 .IMPORT FuncA_Room_ResetLever
+.IMPORT FuncA_Room_SetPointToBossBodyCenter
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
@@ -94,7 +95,6 @@
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
-.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShootFireballFromPoint
 .IMPORT Ppu_ChrBgAnimB0
 .IMPORT Ppu_ChrObjBoss2
@@ -606,7 +606,7 @@ _BossEggDrop:
     bne @done
     ;; Drop an egg.
     lda #kBossHeightPx / 2 + kTileHeightPx / 2  ; param: offset
-    jsr FuncC_Boss_Lava_SetPointBelowBossCenter
+    jsr FuncA_Room_BossLava_SetPointBelowBossCenter
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs @done
     jsr Func_SetActorCenterToPoint  ; preserves X
@@ -690,7 +690,7 @@ _BossFlamestrikeShoot:
     sta Zp_RoomState + sState::BossCooldown_u8
     ;; Shoot a flamestrike projectile.
     lda #kBossHeightPx / 2 - 1  ; param: offset
-    jsr FuncC_Boss_Lava_SetPointBelowBossCenter
+    jsr FuncA_Room_BossLava_SetPointBelowBossCenter
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs @done
     jsr Func_SetActorCenterToPoint  ; preserves X
@@ -790,7 +790,7 @@ _BossFiresprayShoot:
     bne @done
     ;; Shoot a fireball.
     lda #kBossHeightPx / 2 + kTileHeightPx / 2  ; param: offset
-    jsr FuncC_Boss_Lava_SetPointBelowBossCenter
+    jsr FuncA_Room_BossLava_SetPointBelowBossCenter
     lda Zp_RoomState + sState::BossCooldown_u8
     mul #2  ; clears the carry bit
     bit Zp_RoomState + sState::BossModeParam_byte
@@ -924,17 +924,6 @@ _StartEgg:
     @setJaws:
     sta Zp_RoomState + sState::BossJawsOpen_u8
     rts
-.ENDPROC
-
-;;; Sets Zp_PointX_i16 to the horizontal center of the boss, and sets
-;;; Zp_PointY_i16 to a position A pixels below the vertical center of the boss.
-;;; @param A How many pixels below the center of the boss to set the point.
-.PROC FuncC_Boss_Lava_SetPointBelowBossCenter
-    pha  ; offset
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter
-    pla  ; param: offset
-    jmp Func_MovePointDownByA
 .ENDPROC
 
 ;;; Draw function for the BossLava room.
@@ -1156,6 +1145,16 @@ _Boss:
     .assert eBossMode::Dead = 0, error
     lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
     jmp FuncA_Room_TickBoss
+.ENDPROC
+
+;;; Sets Zp_PointX_i16 to the horizontal center of the boss, and sets
+;;; Zp_PointY_i16 to a position A pixels below the vertical center of the boss.
+;;; @param A How many pixels below the center of the boss to set the point.
+.PROC FuncA_Room_BossLava_SetPointBelowBossCenter
+    pha  ; offset
+    jsr FuncA_Room_SetPointToBossBodyCenter
+    pla  ; param: offset
+    jmp Func_MovePointDownByA
 .ENDPROC
 
 .PROC FuncA_Room_BossLavaBlaster_InitReset

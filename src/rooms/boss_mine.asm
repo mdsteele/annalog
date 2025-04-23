@@ -58,6 +58,7 @@
 .IMPORT FuncA_Room_MachineResetRun
 .IMPORT FuncA_Room_PlaySfxRumbling
 .IMPORT FuncA_Room_ResetLever
+.IMPORT FuncA_Room_SetPointToBossBodyCenter
 .IMPORT FuncA_Room_TickBoss
 .IMPORT Func_DistanceSensorDownDetectPoint
 .IMPORT Func_DivAByBlockSizeAndClampTo9
@@ -564,7 +565,7 @@ _BossBurrowing:
     stx Zp_RoomState + sState::Current_eBossLoc
     jsr FuncC_Boss_MineTransferExitEmerge
     ;; Spray dirt from the exit.
-    jsr FuncA_Room_BossMine_SetPointToBossCenter
+    jsr FuncA_Room_SetPointToBossBodyCenter
     lda #2
     sta T3  ; loop index
     @dirtLoop:
@@ -632,7 +633,7 @@ _BossShooting:
     dec Zp_RoomState + sState::BossFireCount_u8
     lda #kBossSubsequentShootCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
-    jsr FuncA_Room_BossMine_SetPointToBossCenter
+    jsr FuncA_Room_SetPointToBossBodyCenter
     jsr Func_GetAngleFromPointToAvatar  ; returns A
     tay  ; angle to avatar
     jsr Func_GetRandomByte  ; preserves Y, returns A
@@ -649,7 +650,7 @@ _BossShooting:
 _DropGrubRoll:
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs @done
-    jsr FuncA_Room_BossMine_SetPointToBossCenter  ; preserves X
+    jsr FuncA_Room_SetPointToBossBodyCenter  ; preserves X
     jsr Func_SetActorCenterToPoint  ; preserves X
     ;; Face the grub towards the center of the screen.
     lda Zp_PointX_i16 + 0
@@ -1260,7 +1261,7 @@ _CheckForBossImpact:
     cmp #kBossEmergeFrames
     blt @done  ; boss isn't fully emerged
     ;; Check if the boulder has hit the boss's eye.
-    jsr FuncA_Room_BossMine_SetPointToBossCenter
+    jsr FuncA_Room_SetPointToBossBodyCenter
     ldy #kBoulderPlatformIndex  ; param: platform index
     jsr Func_IsPointInPlatform  ; returns C
     bcc @done  ; no collision
@@ -1326,7 +1327,7 @@ _ShakeFrames_u8_arr:
 
 ;;; Sets Boss_eEyeDir so that the boss's eye is looking at the player avatar.
 .PROC FuncA_Room_BossMine_SetEyeDir
-    jsr FuncA_Room_BossMine_SetPointToBossCenter
+    jsr FuncA_Room_SetPointToBossBodyCenter
     jsr Func_GetAngleFromPointToAvatar  ; returns A
     add #$50
     div #$20
@@ -1337,14 +1338,6 @@ _ShakeFrames_u8_arr:
 _Dir_eEyeDir_arr8:
     .byte eEyeDir::Down, eEyeDir::Right,    eEyeDir::Right, eEyeDir::DownRight
     .byte eEyeDir::Down, eEyeDir::DownLeft, eEyeDir::Left,  eEyeDir::Left
-.ENDPROC
-
-;;; Stores the room pixel position of the center of the mine boss's body in
-;;; Zp_Point*_i16.
-;;; @preserve X, T0+
-.PROC FuncA_Room_BossMine_SetPointToBossCenter
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jmp Func_SetPointToPlatformCenter  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;
