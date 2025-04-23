@@ -266,6 +266,8 @@ kPaletteObjBossLava = 1
     ;; How open the boss's jaws are (0 = fully closed, kBossJawsOpenFrames =
     ;; fully open).
     BossJawsOpen_u8    .byte
+    ;; The number of solifuge eggs that the boss has dropped so far.
+    BossEggsDropped_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -611,6 +613,7 @@ _BossEggDrop:
     bcs @done
     jsr Func_SetActorCenterToPoint  ; preserves X
     jsr FuncA_Room_InitActorProjEgg
+    inc Zp_RoomState + sState::BossEggsDropped_u8
     ;; Change modes to wait for the egg to hatch and the solifuge be killed.
     lda #eBossMode::EggWait
     sta Zp_RoomState + sState::Current_eBossMode
@@ -825,9 +828,12 @@ _BossScuttling:
     sta Zp_RoomState + sState::BossCooldown_u8
     bne _StartNextScuttle  ; unconditional
     @attack:
-    jsr Func_GetRandomByte  ; returns N
-    bmi _StartEgg
-    bpl _StartFlamestrike  ; unconditional
+    ;; If the boss hasn't dropped enough eggs for this health level, drop one.
+    ldx Zp_RoomState + sState::BossHealth_u8
+    lda Zp_RoomState + sState::BossEggsDropped_u8
+    cmp _EggsToDrop_u8_arr, x
+    blt _StartEgg
+    bge _StartFlamestrike  ; unconditional
 _StartFlamestrike:
     ;; Choose a random valid position for firing a flamestrike (Y is 2, and X
     ;; is in in the range 3-6).
@@ -853,6 +859,43 @@ _StartEgg:
     ;; Change modes to move to the dropping position and drop an egg.
     lda #eBossMode::EggPrepare
     sta Zp_RoomState + sState::Current_eBossMode
+    rts
+_EggsToDrop_u8_arr:
+    ;; The boss should drop its first egg at 6 health remaining, and another
+    ;; one when at 3 health.  (At zero health, don't drop any more, since the
+    ;; boss is about to die.)
+:   .byte 0, 2, 2, 2, 1, 1, 1, 0, 0
+    .assert * - :- = kBossInitHealth + 1, error
+.ENDPROC
+
+;;; Opens the boss's jaws and tail by one step, up until they're fully open.
+;;; @return Z Set if the jaws are already fully open.
+.PROC FuncC_Boss_Lava_BossOpenJaws
+    lda Zp_RoomState + sState::BossJawsOpen_u8
+    cmp #kBossJawsOpenFrames
+    beq @done
+    inc Zp_RoomState + sState::BossJawsOpen_u8
+    @done:
+    rts
+.ENDPROC
+
+;;; Closes the boss's jaws and tail by one step, down until they're fully
+;;; closed.
+.PROC FuncC_Boss_Lava_BossCloseJaws
+    lda #1  ; param: speedup
+    fall FuncC_Boss_Lava_BossCloseJawsWithSpeedup
+.ENDPROC
+
+;;; Closes the boss's jaws and tail by the given number of steps, down until
+;;; they're fully closed.
+;;; @param A The speedup factor.
+.PROC FuncC_Boss_Lava_BossCloseJawsWithSpeedup
+    rsub Zp_RoomState + sState::BossJawsOpen_u8
+    .assert kBossJawsOpenFrames < $80, error
+    bpl @setJaws
+    lda #0
+    @setJaws:
+    sta Zp_RoomState + sState::BossJawsOpen_u8
     rts
 .ENDPROC
 
@@ -892,37 +935,6 @@ _StartEgg:
     rts
     @reachedGoalVert:
     sec  ; has reached goal
-    rts
-.ENDPROC
-
-;;; Opens the boss's jaws and tail by one step, up until they're fully open.
-;;; @return Z Set if the jaws are already fully open.
-.PROC FuncC_Boss_Lava_BossOpenJaws
-    lda Zp_RoomState + sState::BossJawsOpen_u8
-    cmp #kBossJawsOpenFrames
-    beq @done
-    inc Zp_RoomState + sState::BossJawsOpen_u8
-    @done:
-    rts
-.ENDPROC
-
-;;; Closes the boss's jaws and tail by one step, down until they're fully
-;;; closed.
-.PROC FuncC_Boss_Lava_BossCloseJaws
-    lda #1  ; param: speedup
-    fall FuncC_Boss_Lava_BossCloseJawsWithSpeedup
-.ENDPROC
-
-;;; Closes the boss's jaws and tail by the given number of steps, down until
-;;; they're fully closed.
-;;; @param A The speedup factor.
-.PROC FuncC_Boss_Lava_BossCloseJawsWithSpeedup
-    rsub Zp_RoomState + sState::BossJawsOpen_u8
-    .assert kBossJawsOpenFrames < $80, error
-    bpl @setJaws
-    lda #0
-    @setJaws:
-    sta Zp_RoomState + sState::BossJawsOpen_u8
     rts
 .ENDPROC
 
