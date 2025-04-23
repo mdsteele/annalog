@@ -79,7 +79,6 @@
 .IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
-.IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsActorWithinDistanceOfPoint
 .IMPORT Func_IsPointInPlatform
@@ -92,11 +91,11 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_PlaySfxSample
-.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_ShootFireballFromPoint
 .IMPORT Ppu_ChrBgAnimB0
 .IMPORT Ppu_ChrObjBoss2
 .IMPORT Ram_ActorType_eActor_arr
@@ -792,9 +791,6 @@ _BossFiresprayShoot:
     ;; Shoot a fireball.
     lda #kBossHeightPx / 2 + kTileHeightPx / 2  ; param: offset
     jsr FuncC_Boss_Lava_SetPointBelowBossCenter
-    jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @done
-    jsr Func_SetActorCenterToPoint  ; preserves X
     lda Zp_RoomState + sState::BossCooldown_u8
     mul #2  ; clears the carry bit
     bit Zp_RoomState + sState::BossModeParam_byte
@@ -805,8 +801,7 @@ _BossFiresprayShoot:
     @sweepRightToLeft:
     rsub #$70  ; param: aim angle
     @shootFireball:
-    jsr Func_InitActorProjFireball
-    jsr Func_PlaySfxShootFire
+    jsr Func_ShootFireballFromPoint
     ;; When the last fireball is fired, change modes.
     lda Zp_RoomState + sState::BossCooldown_u8
     beq _StartScuttling

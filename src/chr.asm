@@ -1150,8 +1150,7 @@ _chr_begin:
     chr_inc "proj_ember",            kTileIdObjProjEmber
     chr_res $01
     chr_inc "cannon",                kTileIdObjCannonFirst
-    chr_res $06
-    chr_inc "dirt",                  kTileIdObjDirtFirst
+    chr_res $08
     chr_inc "upgrade_oprest",        kTileIdObjUpgradeOpRestFirst
     chr_res $08
     chr_inc "boss_garden_eye_white", kTileIdObjBossGardenEyeWhiteFirst
@@ -1160,10 +1159,7 @@ _chr_begin:
     chr_inc "platform_crypt_bricks", kTileIdObjPlatformCryptBricksFirst
     chr_inc "boss_crypt_pupil",      kTileIdObjBossCryptPupilFirst
     chr_inc "proj_fireball",         kTileIdObjProjFireballFirst
-    chr_inc "boulder",               kTileIdObjBoulderFirst
-    chr_inc "crane",                 kTileIdObjCraneFirst
-    chr_res $08
-    chr_inc "boss_mine_eye",         kTileIdObjBossMineEyeFirst
+    chr_res $1c
     chr_inc "crusher",               kTileIdObjCrusherFirst
     chr_inc "winch",                 kTileIdObjWinchFirst
     chr_inc "proj_grenade",          kTileIdObjProjGrenadeFirst
@@ -1404,21 +1400,27 @@ _chr_begin:
 .PROC Ppu_ChrObjMine
     CHR2_BANK $80
     chr_inc "platform_girder", kTileIdObjPlatformGirder
-    chr_res $03
+    chr_res $01
+    chr_inc "upgrade_ram",     kTileIdObjUpgradeRamFirst
     chr_inc "hoist_obj",       kTileIdObjHoistFirst
     chr_inc "mine_cage",       kTileIdObjMineCageFirst
-    chr_res $0c
+    chr_res $08
+    chr_inc "dirt",            kTileIdObjDirtFirst
+    chr_res $02
     chr_inc "upgrade_opsync",  kTileIdObjUpgradeOpSyncFirst
     chr_inc "proj_fireblast",  kTileIdObjProjFireblastFirst
     chr_inc "bad_grub",        kTileIdObjBadGrubFirst
     chr_inc "bad_wasp",        kTileIdObjBadWaspFirst
-    chr_res $08
+    chr_inc "boss_mine_eye",   kTileIdObjBossMineEyeFirst
     chr_inc "bad_firefly",     kTileIdObjBadFireflyFirst
-    chr_res $08
+    chr_inc "proj_fireball",   kTileIdObjProjFireballFirst
+    chr_inc "boulder",         kTileIdObjBoulderFirst
     chr_inc "crane",           kTileIdObjCraneFirst
     chr_res $04
     chr_inc "bad_fish",        kTileIdObjBadFishFirst
-    chr_res $20
+    chr_inc "bad_grub_roll",   kTileIdObjBadGrubRollFirst
+    chr_res $08
+    chr_inc "breaker",         kTileIdObjBreakerFirst
     END_CHR_BANK
 .ENDPROC
 

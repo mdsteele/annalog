@@ -17,30 +17,37 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../tileset.inc"
 .INCLUDE "grub.inc"
 
+.IMPORT FuncA_Actor_ApplyGravityWithTerminalVelocity
 .IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
+.IMPORT FuncA_Actor_SetPointAboveOrBelowActor
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
+.IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Draw2x2Actor
-.IMPORT Func_FindEmptyActorSlot
+.IMPORT FuncA_Objects_Draw2x2MirroredActor
 .IMPORT Func_GetRandomByte
-.IMPORT Func_InitActorProjFireball
+.IMPORT Func_InitActorWithFlags
 .IMPORT Func_IsPointInAnySolidPlatform
-.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_PointHitsTerrain
-.IMPORT Func_SetActorCenterToPoint
+.IMPORT Func_ShootFireballFromPoint
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
+.IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorState3_byte_arr
+.IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
@@ -61,8 +68,26 @@ kGrubFireAttackFrames = \
     kGrubFireRiseFrames * 2 + kGrubFireCooldownFrames * kGrubFireAttackCount
 .LINECONT -
 
+;;; The terminal velocity for a falling grub roll, in pixels per frame.
+kGrubRollTerminalVelocity = 3
+
 ;;; The OBJ palette number to use for drawing grub baddie actors.
 kPaletteObjGrub = 0
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Room"
+
+;;; Initializes the specified actor as a grub roll baddie.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param A The flags to set.
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT FuncA_Room_InitActorBadGrubRoll
+.PROC FuncA_Room_InitActorBadGrubRoll
+    ldy #eActor::BadGrubRoll  ; param: actor type
+    jmp Func_InitActorWithFlags  ; preserves X and T0+
+.ENDPROC
 
 ;;;=========================================================================;;;
 
@@ -104,13 +129,7 @@ _ContinueAttacking:
     @shoot:
     ;; Shoot the fireball.
     stx T3  ; grub actor index
-    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
-    bcs @restoreX
-    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
-    lda T0  ; param: aim angle ($00 for right, or $80 for left)
-    jsr Func_InitActorProjFireball  ; preserves T3+
-    jsr Func_PlaySfxShootFire  ; preserves T0+
-    @restoreX:
+    jsr Func_ShootFireballFromPoint  ; preserves T3+
     ldx T3  ; grub actor index
     @done:
     rts
@@ -189,6 +208,38 @@ _StartMove:
     rts
 .ENDPROC
 
+;;; Performs per-frame updates for a grub roll baddie actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_TickBadGrubRoll
+.PROC FuncA_Actor_TickBadGrubRoll
+    inc Ram_ActorState3_byte_arr, x  ; animation counter
+    jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
+    ;; We want to unroll the grub while its center is still in the empty
+    ;; terrain block above the solid terrain that it hits, so check far enough
+    ;; below the center of the grub roll to ensure that its center won't be
+    ;; inside the solid terrain next frame.
+    lda #kGrubRollTerminalVelocity
+    jsr FuncA_Actor_SetPointAboveOrBelowActor  ; preserves X
+    ;; If the grub roll lands on solid terrain, it will unroll.
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    bcs _Unroll
+    ;; Otherwise, keep falling.
+    lda #kGrubRollTerminalVelocity  ; param: terminal velocity
+    jmp FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
+_Unroll:
+    jsr FuncA_Actor_ZeroVelY  ; preserves X
+    ;; Align the actor to kBadGrubBoundingBoxDown pixels above this block.
+    lda Ram_ActorPosY_i16_0_arr, x
+    and #$f0
+    ora #$10 - kBadGrubBoundingBoxDown
+    sta Ram_ActorPosY_i16_0_arr, x
+    ;; Unroll the grub.
+    lda #eActor::BadGrub
+    sta Ram_ActorType_eActor_arr, x
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Objects"
@@ -231,7 +282,7 @@ _TileIds_u8_arr4:
 .PROC FuncA_Objects_DrawActorBadGrub
     lda Ram_ActorState1_byte_arr, x  ; crawl timer
     div #8
-    and #$03
+    mod #4
     tay
     lda _TileIds_u8_arr4, y  ; param: first tile ID
     ldy #kPaletteObjGrub  ; param: palette
@@ -241,6 +292,28 @@ _TileIds_u8_arr4:
     .byte kTileIdObjBadGrubFirst + $04
     .byte kTileIdObjBadGrubFirst + $08
     .byte kTileIdObjBadGrubFirst + $04
+.ENDPROC
+
+;;; Draws a grub roll baddie actor.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Objects_DrawActorBadGrubRoll
+.PROC FuncA_Objects_DrawActorBadGrubRoll
+    lda Ram_ActorState3_byte_arr, x  ; animation counter
+    div #2
+    and #%110
+    .assert kTileIdObjBadGrubRollFirst .mod 8 = 0, error
+    ora #kTileIdObjBadGrubRollFirst  ; param: tile ID
+    pha  ; first tile ID
+    ldy #kPaletteObjGrub  ; param: object flags
+    jsr FuncA_Objects_Draw2x2MirroredActor  ; returns C and Y
+    pla  ; first tile ID
+    bcs @done
+    ora #%001
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
+    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

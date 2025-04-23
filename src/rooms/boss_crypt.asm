@@ -65,7 +65,6 @@
 .IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorProjEmber
-.IMPORT Func_InitActorProjFireball
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
@@ -76,6 +75,7 @@
 .IMPORT Func_ResetWinchMachineState
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_ShootFireballFromPoint
 .IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrBgAnimB0
 .IMPORT Ppu_ChrObjBoss1
@@ -531,18 +531,13 @@ _BossFiring:
     lda #220  ; param: wait frames
     bne _StartWaiting  ; unconditional
     @shootFireball:
-    ;; Otherwise, shoot some fireballs.
-    jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs _Return
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter  ; preserves X
-    jsr Func_SetActorCenterToPoint  ; preserves X
-    jsr Func_GetAngleFromPointToAvatar  ; preserves X, returns A (param: angle)
-    jsr Func_InitActorProjFireball
+    ;; Otherwise, shoot a fireball.
     dec Zp_RoomState + sState::BossFireCount_u8
     lda #30
     sta Zp_RoomState + sState::BossCooldown_u8
-    jmp Func_PlaySfxShootFire
+    jsr FuncA_Room_BossCrypt_SetPointToBossCenter  ; preserves X
+    jsr Func_GetAngleFromPointToAvatar  ; preserves X, returns A (param: angle)
+    jmp Func_ShootFireballFromPoint
 _StartWaiting:
     sta Zp_RoomState + sState::BossCooldown_u8
     lda #eBossMode::Waiting
@@ -556,8 +551,7 @@ _BossStrafing:
     beq @noMoreEmbers
     jsr Func_FindEmptyActorSlot  ; returns C and X
     bcs _Return
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter  ; preserves X
+    jsr FuncA_Room_BossCrypt_SetPointToBossCenter  ; preserves X
     jsr Func_SetActorCenterToPoint  ; preserves X
     jsr Func_InitActorProjEmber
     lda #15  ; 0.25 seconds
@@ -729,8 +723,7 @@ _GoalPosX_u8_arr6:
     bit Ram_MachineState1_byte_arr + kWinchMachineIndex  ; falling bool
     bpl @done  ; spikeball is not falling
     ;; Check if the spikeball has hit the center of the boss's eye.
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter
+    jsr FuncA_Room_BossCrypt_SetPointToBossCenter
     ldy #kSpikeballPlatformIndex  ; param: platform index
     jsr Func_IsPointInPlatform  ; returns C
     bcc @done
@@ -949,8 +942,7 @@ _BossIsAlive:
 ;;; Note that this is called from the room's Enter_func_ptr, so no PRGA bank
 ;;; can be assumed.
 .PROC FuncA_Room_BossCrypt_SetBossEyeDir
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter
+    jsr FuncA_Room_BossCrypt_SetPointToBossCenter
     jsr Func_GetAngleFromPointToAvatar  ; returns A
     add #$50
     div #$20
@@ -961,6 +953,14 @@ _BossIsAlive:
 _Dir_eEyeDir_arr8:
     .byte eEyeDir::Down, eEyeDir::Right,    eEyeDir::Right, eEyeDir::DownRight
     .byte eEyeDir::Down, eEyeDir::DownLeft, eEyeDir::Left,  eEyeDir::Left
+.ENDPROC
+
+;;; Stores the room pixel position of the center of the crypt boss's body in
+;;; Zp_Point*_i16.
+;;; @preserve X, T0+
+.PROC FuncA_Room_BossCrypt_SetPointToBossCenter
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jmp Func_SetPointToPlatformCenter  ; preserves X and T0+
 .ENDPROC
 
 ;;; Room tick function for the BossCrypt room.

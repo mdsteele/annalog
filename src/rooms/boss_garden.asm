@@ -64,7 +64,6 @@
 .IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
-.IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorProjSpike
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
@@ -72,12 +71,11 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeSmall
 .IMPORT Func_PlaySfxSample
-.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_PlaySfxThump
-.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
+.IMPORT Func_ShootFireballFromPoint
 .IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ppu_ChrObjBoss1
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -586,26 +584,19 @@ _StartShootMode:
 ;;; @param A Which room block column to shoot at.
 ;;; @param Y Which eEye to shoot from.
 .PROC FuncC_Boss_Garden_ShootFireballAtColumn
-    sta T0  ; room block column
-    ;; Shoot a fireball.
-    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
-    bcs @done
+    pha  ; room block column
     ;; Assert that we can use the eEye value as a platform index.
     .assert kLeftEyePlatformIndex = eEye::Left, error
     .assert kRightEyePlatformIndex = eEye::Right, error
     ;; Init fireball position to the center of the eye we're shooting from.
     jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
-    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     ;; Choose fireball angle based on target column.
-    lda T0  ; room block column
+    pla  ; room block column
     mul #2
     ora Zp_RoomState + sState::BossActive_eEye
     tay
     lda _FireballAngle_u8_arr2_arr, y  ; param: aim angle
-    jsr Func_InitActorProjFireball
-    jmp Func_PlaySfxShootFire
-    @done:
-    rts
+    jmp Func_ShootFireballFromPoint
 _FireballAngle_u8_arr2_arr:
     ;; Each pair has angles for left eye and right eye.
     ;; There is one pair for each room block column.

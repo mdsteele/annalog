@@ -72,6 +72,8 @@ kSpikeTerminalVelocity = 6
     jmp FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
 _Thump:
     jsr Func_PlaySfxThump  ; preserves X
+    ldy #eActor::SmokeParticle  ; param: actor type
+    jmp Func_InitActorDefault  ; preserves X
 _Expire:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x

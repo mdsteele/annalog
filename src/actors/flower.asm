@@ -28,14 +28,11 @@
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
 .IMPORT FuncA_Objects_DrawShapeTiles
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
-.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_GetRandomByte
-.IMPORT Func_InitActorProjFireball
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_MovePointUpByA
-.IMPORT Func_PlaySfxShootFire
-.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_ShootFireballFromPoint
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
@@ -196,17 +193,12 @@ _ShootFireball:
     jsr Func_MovePointRightByA  ; preserves X
     lda #7
     jsr Func_MovePointUpByA  ; preserves X
-    stx T3  ; flower actor index
-    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
-    bcs @done
-    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
-    jsr Func_GetRandomByte  ; preserves X and T0+, returns A
+    jsr Func_GetRandomByte  ; preserves X, returns A
     mod #16
     sub #8  ; param: aim angle
-    jsr Func_InitActorProjFireball  ; preserves X and T3+
-    jsr Func_PlaySfxShootFire  ; preserves T0+
-    @done:
-    ldx T3
+    stx T3  ; flower actor index
+    jsr Func_ShootFireballFromPoint  ; preserves T3+
+    ldx T3  ; flower actor index
 _Return:
     rts
 .ENDPROC

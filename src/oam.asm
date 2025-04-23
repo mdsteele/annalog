@@ -739,22 +739,22 @@ _FinishAllocation:
 ;;;     three objects will be mirrored from this starting value.
 ;;; @return C Set if no OAM slots were allocated, cleared otherwise.
 ;;; @return Y The OAM byte offset for the first of the four objects.
-;;; @preserve X
+;;; @preserve X, T3+
 .EXPORT FuncA_Objects_Draw2x2MirroredShape
 .PROC FuncA_Objects_Draw2x2MirroredShape
-    sty T3  ; object flags
-    sta T2  ; tile ID
-    lda #0  ; param: object flags
+    pha  ; tile ID
+    sty T2  ; object flags
+    tya  ; param: object flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X and T2+, returns C and Y
+    pla  ; tile ID
     bcs @done
     ;; Set tile IDs.
-    lda T2  ; tile ID
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     ;; Set object flags.
-    lda T3  ; object flags
+    lda T2  ; object flags
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Flags_bObj, y
     eor #bObj::FlipV
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y

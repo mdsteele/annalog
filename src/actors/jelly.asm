@@ -27,8 +27,7 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_SetPointInDirFromActor
 .IMPORT FuncA_Actor_ZeroVel
-.IMPORT FuncA_Objects_Draw2x2MirroredShape
-.IMPORT FuncA_Objects_SetShapePosToActorCenter
+.IMPORT FuncA_Objects_Draw2x2MirroredActor
 .IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -163,14 +162,13 @@ _SetVelocity:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadJelly
 .PROC FuncA_Objects_DrawActorBadJelly
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     lda Ram_ActorState2_byte_arr, x  ; animation counter
     div #kBadJellyAnimSlowdown
     and #$03
     tay
     lda _TileId_arr4, y  ; param: tile ID
     ldy #kPaletteObjJelly  ; param: object flags
-    jmp FuncA_Objects_Draw2x2MirroredShape
+    jmp FuncA_Objects_Draw2x2MirroredActor
 _TileId_arr4:
     .byte kTileIdObjBadJellyFirst + 0
     .byte kTileIdObjBadJellyFirst + 1

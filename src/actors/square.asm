@@ -20,8 +20,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 
-.IMPORT FuncA_Objects_Draw2x2MirroredShape
-.IMPORT FuncA_Objects_SetShapePosToActorCenter
+.IMPORT FuncA_Objects_Draw2x2MirroredActor
 
 ;;;=========================================================================;;;
 
@@ -40,10 +39,9 @@ kPaletteObjNpcSquare = 0
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorNpcSquare
 .PROC FuncA_Objects_DrawActorNpcSquare
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     lda #kTileIdObjNpcSquare  ; param: tile ID
     ldy #bObj::Pri | kPaletteObjNpcSquare  ; param: object flags
-    jmp FuncA_Objects_Draw2x2MirroredShape
+    jmp FuncA_Objects_Draw2x2MirroredActor
 .ENDPROC
 
 ;;;=========================================================================;;;

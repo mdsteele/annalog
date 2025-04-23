@@ -462,6 +462,9 @@ _MaybeExpireActor:
     ;; Temple boss projectiles:
     cmp #eActor::ProjBreakball
     beq _ExpireBreakball
+    ;; Crypt boss projectiles:
+    cmp #eActor::ProjEmber
+    beq _ExpireEmber
     ;; Lava boss projectiles:
     cmp #eActor::ProjEgg
     beq _ExpireEgg
@@ -469,6 +472,11 @@ _MaybeExpireActor:
     beq _ExpireFlamestrike
     cmp #eActor::BadSolifuge
     beq _ExpireSolifuge
+    ;; Mine boss projectiles:
+    cmp #eActor::BadGrub
+    beq _ExpireGrub
+    cmp #eActor::BadGrubRoll
+    beq _ExpireGrubRoll
     ;; City boss projectiles:
     cmp #eActor::ProjSpine
     beq _ExpireSpine
@@ -476,6 +484,7 @@ _MaybeExpireActor:
     beq _ExpireBreakbomb
     rts
 _ExpireBreakbomb:
+_ExpireEmber:
 _ExpireFireball:
 _ExpireSpine:
     ldy #eActor::SmokeParticle  ; param: actor type
@@ -485,6 +494,8 @@ _ExpireBreakfire:
     jmp Func_InitActorSmokeParticle  ; preserves X
 _ExpireBreakball:
 _ExpireEgg:
+_ExpireGrub:
+_ExpireGrubRoll:
 _ExpireSolifuge:
     jmp Func_InitActorSmokeExplosion  ; preserves X
 _ExpireFlamestrike:

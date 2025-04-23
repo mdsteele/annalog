@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../actors/grub.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../boss.inc"
 .INCLUDE "../charmap.inc"
@@ -51,6 +52,7 @@
 .IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_InitActorBadGrubRoll
 .IMPORT FuncA_Room_InitActorSmokeDirt
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineResetRun
@@ -64,7 +66,9 @@
 .IMPORT Func_GetAngleFromPointToAvatar
 .IMPORT Func_GetRandomByte
 .IMPORT Func_HarmAvatar
-.IMPORT Func_InitActorProjFireball
+.IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_IsActorWithinHorzDistanceOfPoint
+.IMPORT Func_IsActorWithinVertDistancesOfPoint
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
@@ -72,9 +76,9 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_PlaySfxSample
-.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_PlaySfxThump
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
@@ -84,10 +88,11 @@
 .IMPORT Func_SetPointToAvatarTop
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
+.IMPORT Func_ShootFireballFromPoint
 .IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Ppu_ChrBgAnimB4
 .IMPORT Ppu_ChrBgAnimStatic
-.IMPORT Ppu_ChrObjBoss1
+.IMPORT Ppu_ChrObjMine
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
@@ -252,7 +257,7 @@ Ppu_BossMineExit4Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 kBossBodyPlatformIndex = 2
 
 ;;; How many boulder hits are needed to defeat the boss.
-kBossInitHealth = 4
+kBossInitHealth = 6
 
 ;;; How many waves of fireballs to shoot after emerging.
 kBossNumFireballWaves = 6
@@ -298,6 +303,8 @@ kBossSubsequentShootCooldown = 45
     ;; How emerged from the wall the boss is, from 0 (not at all) to
     ;; kBossEmergeFrames (completely).
     BossEmerge_u8         .byte
+    ;; The number of grubs that the boss has dropped so far.
+    BossGrubsDropped_u8   .byte
     ;; What state the boulder is in.
     BoulderState_eBoulder .byte
     ;; The current Y subpixel position of the boulder.
@@ -324,7 +331,7 @@ kBossSubsequentShootCooldown = 45
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 2
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss1)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjMine)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -557,8 +564,7 @@ _BossBurrowing:
     stx Zp_RoomState + sState::Current_eBossLoc
     jsr FuncC_Boss_MineTransferExitEmerge
     ;; Spray dirt from the exit.
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter
+    jsr FuncA_Room_BossMine_SetPointToBossCenter
     lda #2
     sta T3  ; loop index
     @dirtLoop:
@@ -577,16 +583,34 @@ _BossBurrowing:
     sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossEmergeFrames  ; param: num frames
     jmp Func_ShakeRoom
-_DirtAngle_u8_arr3:
-    .byte $a8, $c4, $d0
 _BossEmerging:
-    jsr FuncC_Boss_MineSetEyeDir
+    jsr FuncA_Room_BossMine_SetEyeDir
     lda Zp_RoomState + sState::BossEmerge_u8
     cmp #kBossEmergeFrames
     bge @fullyEmerged
     inc Zp_RoomState + sState::BossEmerge_u8
     rts
     @fullyEmerged:
+    ;; If a grub is already out, don't drop another one.
+    lda #eActor::BadGrub  ; param: actor type to find
+    jsr Func_FindActorWithType  ; returns C
+    bcc @doNotDropGrub  ; there's already a grub in the room
+    ;; If the boss hasn't dropped enough grubs for this health level, drop one.
+    ldx Zp_RoomState + sState::BossHealth_u8
+    lda Zp_RoomState + sState::BossGrubsDropped_u8
+    cmp _GrubsToDrop_u8_arr, x
+    blt _DropGrubRoll
+    @doNotDropGrub:
+    ;; If the boss is at half health or less, immediately retreat 25% of the
+    ;; time.
+    lda #kBossInitHealth / 2
+    cmp Zp_RoomState + sState::BossHealth_u8
+    blt @startShooting  ; boss is at more than half health
+    jsr Func_GetRandomByte  ; returns A
+    mod #4
+    beq _StartRetreating
+    ;; Otherwise, start shooting fireballs.
+    @startShooting:
     lda #eBossMode::Shooting
     sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossNumFireballWaves
@@ -596,7 +620,7 @@ _BossEmerging:
 _Return:
     rts
 _BossShooting:
-    jsr FuncC_Boss_MineSetEyeDir
+    jsr FuncA_Room_BossMine_SetEyeDir
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne _Return
@@ -608,8 +632,7 @@ _BossShooting:
     dec Zp_RoomState + sState::BossFireCount_u8
     lda #kBossSubsequentShootCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter
+    jsr FuncA_Room_BossMine_SetPointToBossCenter
     jsr Func_GetAngleFromPointToAvatar  ; returns A
     tay  ; angle to avatar
     jsr Func_GetRandomByte  ; preserves Y, returns A
@@ -618,11 +641,24 @@ _BossShooting:
     bcc @fireOne
     pha  ; angle to avatar
     add #kBossFireballSplitAngle
-    jsr FuncC_Boss_MineShootFireball
+    jsr Func_ShootFireballFromPoint
     pla  ; angle to avatar
     sub #kBossFireballSplitAngle
     @fireOne:
-    jmp FuncC_Boss_MineShootFireball
+    jmp Func_ShootFireballFromPoint
+_DropGrubRoll:
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs @done
+    jsr FuncA_Room_BossMine_SetPointToBossCenter  ; preserves X
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    ;; Face the grub towards the center of the screen.
+    lda Zp_PointX_i16 + 0
+    and #$80
+    .assert bObj::FlipH = $40, error
+    div #2  ; param: actor flags
+    jsr FuncA_Room_InitActorBadGrubRoll
+    inc Zp_RoomState + sState::BossGrubsDropped_u8
+    @done:
 _StartRetreating:
     lda #eBossMode::Retreating
     sta Zp_RoomState + sState::Current_eBossMode
@@ -642,7 +678,7 @@ _BossHurt:
     @done:
     rts
 _BossRetreating:
-    jsr FuncC_Boss_MineSetEyeDir
+    jsr FuncA_Room_BossMine_SetEyeDir
     lda Zp_RoomState + sState::BossEmerge_u8
     beq @fullyRetreated
     dec Zp_RoomState + sState::BossEmerge_u8
@@ -667,37 +703,14 @@ _ExitTop_u8_arr:
     .byte kTileHeightPx * kBossExit2TileRow
     .byte kTileHeightPx * kBossExit3TileRow
     .byte kTileHeightPx * kBossExit4TileRow
-.ENDPROC
-
-;;; Sets Boss_eEyeDir so that the boss's eye is looking at the player avatar.
-.PROC FuncC_Boss_MineSetEyeDir
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter
-    jsr Func_GetAngleFromPointToAvatar  ; returns A
-    add #$50
-    div #$20
-    tax
-    lda _Dir_eEyeDir_arr8, x
-    sta Zp_RoomState + sState::Boss_eEyeDir
-    rts
-_Dir_eEyeDir_arr8:
-    .byte eEyeDir::Down, eEyeDir::Right,    eEyeDir::Right, eEyeDir::DownRight
-    .byte eEyeDir::Down, eEyeDir::DownLeft, eEyeDir::Left,  eEyeDir::Left
-.ENDPROC
-
-;;; Shoots a single fireball from the boss's eye.
-;;; @prereq Zp_Point*_i16 is set to the center of the boss's body.
-;;; @param A The angle to fire at, measured in increments of tau/256.
-.PROC FuncC_Boss_MineShootFireball
-    sta T0  ; angle to fire at
-    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
-    bcs @done
-    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
-    lda T0  ; param: angle to fire at
-    jsr Func_InitActorProjFireball
-    jmp Func_PlaySfxShootFire
-    @done:
-    rts
+_DirtAngle_u8_arr3:
+    .byte $a8, $c4, $d0
+_GrubsToDrop_u8_arr:
+    ;; The boss should drop its first grub at 4 health remaining, and another
+    ;; one when at 2 health.  (At zero health, don't drop any more, since the
+    ;; boss is about to die.)
+:   .byte 0, 2, 2, 1, 1, 0, 0
+    .assert * - :- = kBossInitHealth + 1, error
 .ENDPROC
 
 .PROC FuncC_Boss_Mine_FadeInRoom
@@ -1098,6 +1111,9 @@ _BossIsDead:
 ;;; Performs per-frame upates for the boulder when it's absent.
 ;;; @prereq BoulderState_eBoulder is eBoulder::Absent.
 .PROC FuncA_Room_BossMine_TickBoulderAbsent
+    ;; If the boss is at zero health, don't spawn a new boulder.
+    lda Zp_RoomState + sState::BossHealth_u8
+    beq @done
     ;; Spawn a new boulder.
     .assert eBoulder::OnConveyor = eBoulder::Absent + 1, error
     inc Zp_RoomState + sState::BoulderState_eBoulder
@@ -1113,6 +1129,8 @@ _BossIsDead:
     sta Zp_RoomState + sState::BoulderVelY_i16 + 1
     ldy #kBoulderPlatformIndex  ; param: platform index
     jmp Func_SetPlatformTopLeftToPoint
+    @done:
+    rts
 .ENDPROC
 
 ;;; Performs per-frame upates for the boulder when it's on the conveyor.
@@ -1216,14 +1234,33 @@ _CheckForFloorImpact:
 _MoveBoulderDownByA:
     ldx #kBoulderPlatformIndex  ; param: platform index
     jsr Func_MovePlatformVert
+_CheckForGrubImpact:
+    ;; Check for a dropped grub (in this room, it's not possible for there to
+    ;; be more than one).
+    lda #eActor::BadGrub  ; param: actor type to find
+    jsr Func_FindActorWithType  ; returns C and X
+    bcs @done  ; no grub exists right now
+    ;; Check if the boulder is hitting the grub.
+    ldy #kBoulderPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves X
+    lda #kBoulderWidthPx / 2 + kBadGrubBoundingBoxSide  ; param: distance
+    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, returns C
+    bcc @done  ; boulder isn't above the grub
+    ldy #kBoulderHeightPx / 2 + kBadGrubBoundingBoxUp  ; param: dist above grub
+    lda #kBoulderHeightPx / 2 + kBadGrubBoundingBoxDown  ; param: dist below
+    jsr Func_IsActorWithinVertDistancesOfPoint  ; preserves X, returns C
+    bcc @done  ; boulder isn't hitting the grub
+    ;; Squish the grub.
+    jsr Func_InitActorSmokeExplosion
+    jsr Func_PlaySfxBaddieDeath
+    @done:
 _CheckForBossImpact:
     ;; If the boss isn't fully emerged, the boulder can't hit it.
     lda Zp_RoomState + sState::BossEmerge_u8
     cmp #kBossEmergeFrames
     blt @done  ; boss isn't fully emerged
     ;; Check if the boulder has hit the boss's eye.
-    ldy #kBossBodyPlatformIndex  ; param: platform index
-    jsr Func_SetPointToPlatformCenter
+    jsr FuncA_Room_BossMine_SetPointToBossCenter
     ldy #kBoulderPlatformIndex  ; param: platform index
     jsr Func_IsPointInPlatform  ; returns C
     bcc @done  ; no collision
@@ -1265,26 +1302,49 @@ _ShakeFrames_u8_arr:
 ;;; @return Z Set if the boulder is exactly on the floor.
 .PROC FuncA_Room_BossMine_GetBoulderDistAboveFloor
     lda Ram_PlatformRight_i16_0_arr + kBoulderPlatformIndex
-    cmp #$60
-    bge @floorLowest
+    cmp #$5e
+    bge @floorLevers
     cmp #$50
     bge @floorDoor
     cmp #$31
-    bge @floorHighest
+    bge @floorCliff
     @floorConveyor:
     lda #$70
     bne @setFloorPos  ; unconditional
-    @floorHighest:
+    @floorCliff:
     lda #$50
     bne @setFloorPos  ; unconditional
     @floorDoor:
     lda #$c0
     bne @setFloorPos  ; unconditional
-    @floorLowest:
+    @floorLevers:
     lda #$d0
     @setFloorPos:
     sub Ram_PlatformBottom_i16_0_arr + kBoulderPlatformIndex
     rts
+.ENDPROC
+
+;;; Sets Boss_eEyeDir so that the boss's eye is looking at the player avatar.
+.PROC FuncA_Room_BossMine_SetEyeDir
+    jsr FuncA_Room_BossMine_SetPointToBossCenter
+    jsr Func_GetAngleFromPointToAvatar  ; returns A
+    add #$50
+    div #$20
+    tax
+    lda _Dir_eEyeDir_arr8, x
+    sta Zp_RoomState + sState::Boss_eEyeDir
+    rts
+_Dir_eEyeDir_arr8:
+    .byte eEyeDir::Down, eEyeDir::Right,    eEyeDir::Right, eEyeDir::DownRight
+    .byte eEyeDir::Down, eEyeDir::DownLeft, eEyeDir::Left,  eEyeDir::Left
+.ENDPROC
+
+;;; Stores the room pixel position of the center of the mine boss's body in
+;;; Zp_Point*_i16.
+;;; @preserve X, T0+
+.PROC FuncA_Room_BossMine_SetPointToBossCenter
+    ldy #kBossBodyPlatformIndex  ; param: platform index
+    jmp Func_SetPointToPlatformCenter  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -25,7 +25,8 @@
 ;;;     starts another movement cycle and resets the counter.
 ;;;   * State2: (BadGrubFire only) When nonzero, the fire grub is in the middle
 ;;;     of an attack cycle, and this decrements each frame.
-;;;   * State3: Unused.
+;;;   * State3: (BadGrubRoll only) An animation counter that increments each
+;;;     frame.
 ;;;   * State4: Unused.
 
 ;;; How far a grub baddie actor's bounding box extends in each direction from
@@ -37,5 +38,6 @@ kBadGrubBoundingBoxSide = 7
 ;;; Tile IDs for drawing grub baddie actors.
 kTileIdObjBadGrubFirst = $9c
 kTileIdObjBadGrubFireFirst = $a8
+kTileIdObjBadGrubRollFirst = $e0
 
 ;;;=========================================================================;;;

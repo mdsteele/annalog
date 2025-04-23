@@ -30,6 +30,7 @@
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_Draw1x2Shape
 .IMPORT FuncA_Objects_Draw2x1Shape
+.IMPORT FuncA_Objects_Draw2x2MirroredShape
 .IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
@@ -906,13 +907,9 @@ _VertOffset_u8_arr8:
 .EXPORT FuncA_Objects_Draw1x1Actor
 .PROC FuncA_Objects_Draw1x1Actor
     pha  ; tile ID
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and Y
+    jsr FuncA_Objects_SetShapePosAndGetActorFlags  ; preserves X, returns Y
     jsr FuncA_Objects_MoveShapeLeftHalfTile  ; preserves X and Y
     jsr FuncA_Objects_MoveShapeUpHalfTile  ; preserves X and Y
-    ;; Draw object.
-    tya
-    eor Ram_ActorFlags_bObj_arr, x
-    tay  ; param: object flags
     pla  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape  ; preserves X
 .ENDPROC
@@ -958,13 +955,38 @@ _VertOffset_u8_arr8:
 ;;; @preserve X, T2+
 .EXPORT FuncA_Objects_Draw2x2Actor
 .PROC FuncA_Objects_Draw2x2Actor
-    pha  ; first tile ID
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X, Y, and T0+
-    tya
-    eor Ram_ActorFlags_bObj_arr, x
-    tay  ; param: object flags
-    pla  ; param: first tile ID
+    jsr FuncA_Objects_SetShapePosAndGetActorFlags  ; preserves A, X, T0+, ret Y
     jmp FuncA_Objects_Draw2x2Shape  ; preserves X and T2+, returns C and Y
+.ENDPROC
+
+;;; Allocates and populates OAM slots for the specified actor, using the given
+;;; tile ID for all four objects and mirrored them around the center of the
+;;; actor.  The caller can then further modify the objects if needed.
+;;; @param A The tile ID to use for all four objects.
+;;; @param X The actor index.
+;;; @param Y The OBJ palette to use when drawing the actor.
+;;; @return C Set if no OAM slots were allocated, cleared otherwise.
+;;; @return Y The OAM byte offset for the first of the four objects.
+;;; @preserve X, T3+
+.EXPORT FuncA_Objects_Draw2x2MirroredActor
+.PROC FuncA_Objects_Draw2x2MirroredActor
+    jsr FuncA_Objects_SetShapePosAndGetActorFlags  ; preserves A, X, T0+; ret Y
+    jmp FuncA_Objects_Draw2x2MirroredShape  ; preserves X, T3+; returns C, Y
+.ENDPROC
+
+;;; Sets Zp_ShapePos* to the screen-space position of the specified actor, and
+;;; combines the actor's flags with the given object flags.
+;;; @param Y The base object flags to use when drawing the actor.
+;;; @return Y The combined object flags.
+;;; @preserve A, X, T0+
+.PROC FuncA_Objects_SetShapePosAndGetActorFlags
+    pha
+    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X, Y, and T0+
+    tya  ; base object flags
+    eor Ram_ActorFlags_bObj_arr, x
+    tay  ; combined object flags
+    pla
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

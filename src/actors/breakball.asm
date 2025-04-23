@@ -31,8 +31,7 @@
 .IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Actor_NegateVelY
 .IMPORT FuncA_Actor_PlaySfxBounce
-.IMPORT FuncA_Objects_Draw2x2MirroredShape
-.IMPORT FuncA_Objects_SetShapePosToActorCenter
+.IMPORT FuncA_Objects_Draw2x2MirroredActor
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
@@ -208,13 +207,13 @@ _Explode:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorProjBreakball
 .PROC FuncA_Objects_DrawActorProjBreakball
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     lda Zp_FrameCounter_u8
     div #kProjBreakballAnimSlowdown
-    and #$01
-    add #kTileIdObjProjBreakballFirst  ; param: tile ID
+    mod #2
+    .assert kTileIdObjProjBreakballFirst .mod 2 = 0, error
+    ora #kTileIdObjProjBreakballFirst  ; param: tile ID
     ldy #kPaletteObjProjBreakball  ; param: object flags
-    jmp FuncA_Objects_Draw2x2MirroredShape
+    jmp FuncA_Objects_Draw2x2MirroredActor
 .ENDPROC
 
 ;;;=========================================================================;;;

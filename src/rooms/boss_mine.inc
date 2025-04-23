@@ -23,7 +23,7 @@ kTileIdBgAnimWyrmFirst = $70
 kTileIdBgTerrainConveyorFirst = $b8
 
 ;;; OBJ tile IDs for drawing the mine boss.
-kTileIdObjBossMineEyeFirst = $d8
+kTileIdObjBossMineEyeFirst = $b0
 
 ;;; The OBJ palette number to use for drawing the mine boss's eye.
 kPaletteObjBossMineEye = 1

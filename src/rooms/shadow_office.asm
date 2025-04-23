@@ -45,15 +45,14 @@
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorDefault
-.IMPORT Func_InitActorProjFireball
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxDrip
 .IMPORT Func_PlaySfxPoof
-.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetFlag
 .IMPORT Func_SetPointToAvatarCenter
+.IMPORT Func_ShootFireballFromPoint
 .IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Ppu_ChrObjShadow1
 .IMPORT Ram_ActorPosY_i16_1_arr
@@ -506,17 +505,13 @@ _DripAcid:
 _ShootFireball:
     lda Zp_RoomState + sState::FireballCooldown_u8
     bne @done
-    jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @done
     jsr Func_SetPointToAvatarCenter  ; preserves X
     lda #$11
     sta Zp_PointX_i16 + 0
-    jsr Func_SetActorCenterToPoint  ; preserves X
     lda #$00  ; param: angle
-    jsr Func_InitActorProjFireball
+    jsr Func_ShootFireballFromPoint
     lda #30
     sta Zp_RoomState + sState::FireballCooldown_u8
-    jmp Func_PlaySfxShootFire
     @done:
     rts
 .ENDPROC

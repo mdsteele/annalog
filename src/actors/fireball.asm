@@ -30,8 +30,11 @@
 .IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_EmitSteamFromPipe
+.IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorWithState1
+.IMPORT Func_PlaySfxShootFire
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetActorVelocityPolar
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
@@ -75,6 +78,24 @@ kPaletteObjProjFireblast = 1
 .PROC Func_ReinitActorProjFireblastVelocity
     ldy #kFireblastSpeed  ; param: speed
     bne Func_ReinitActorProjFireballOrFireblastVelocity  ; unconditional
+.ENDPROC
+
+;;; Spawns a new fireball projectile actor (if possible), starting it at the
+;;; room pixel position stored in Zp_PointX_i16 and Zp_PointY_i16.  Also plays
+;;; a sound effect (if the fireball was successfully spawned).
+;;; @param A The angle to fire at, measured in increments of tau/256.
+;;; @preserve T3+
+.EXPORT Func_ShootFireballFromPoint
+.PROC Func_ShootFireballFromPoint
+    sta T0  ; angle
+    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
+    bcc @spawn
+    rts
+    @spawn:
+    jsr Func_PlaySfxShootFire  ; preserves X and T0+
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
+    lda T0  ; param: angle
+    fall Func_InitActorProjFireball  ; preserves T3+
 .ENDPROC
 
 ;;; Initializes the specified actor as a fireball projectile.
