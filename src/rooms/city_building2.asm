@@ -90,7 +90,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncA_Room_CityBuilding2_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, FuncA_Room_CityBuilding2_TickRoom
-    d_addr Draw_func_ptr, FuncA_Objects_CityBuilding2_DrawRoom
+    d_addr Draw_func_ptr, FuncC_City_Building2_DrawRoom
     D_END
 _Platforms_sPlatform_arr:
 :   .assert * - :- = kLastDigitPlatformIndex * .sizeof(sPlatform), error
@@ -120,11 +120,8 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_CityBuilding2_DrawRoom
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_City_Building2_DrawRoom
     flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
     bne @done
     ldx #kLastDigitPlatformIndex  ; param: platform index

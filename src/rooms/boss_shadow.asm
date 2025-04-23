@@ -243,7 +243,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncA_Machine_BossShadowEmitter_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
-    d_addr Draw_func_ptr, FuncA_Objects_BossShadowEmitterX_Draw
+    d_addr Draw_func_ptr, FuncC_Boss_ShadowEmitterX_Draw
     d_addr Reset_func_ptr, FuncA_Room_BossShadowEmitterX_InitReset
     D_END
     .assert * - :- = kEmitterYMachineIndex * .sizeof(sMachine), error
@@ -262,7 +262,7 @@ _Machines_sMachine_arr:
     d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncA_Machine_BossShadowEmitter_TryAct
     d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
-    d_addr Draw_func_ptr, FuncA_Objects_BossShadowEmitterY_Draw
+    d_addr Draw_func_ptr, FuncC_Boss_ShadowEmitterY_Draw
     d_addr Reset_func_ptr, FuncA_Room_BossShadowEmitterY_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
@@ -763,6 +763,25 @@ _DrawBoss:
     rts
 .ENDPROC
 
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Boss_ShadowEmitterX_Draw
+    ;; The beam length is 18 for GoalHorz=0 or GoalHorz=9, and 20 otherwise.
+    ldy #18  ; param: beam length in tiles
+    lda Ram_MachineGoalHorz_u8_arr + kEmitterXMachineIndex
+    beq @draw
+    cmp #9
+    beq @draw
+    ldy #20  ; param: beam length in tiles
+    @draw:
+    jmp FuncA_Objects_DrawEmitterXMachine
+.ENDPROC
+
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Boss_ShadowEmitterY_Draw
+    ldy #24  ; param: beam length in tiles
+    jmp FuncA_Objects_DrawEmitterYMachine
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Room"
@@ -908,28 +927,6 @@ _WriteLavaTileRow:
     dex
     bne @loop
     rts
-.ENDPROC
-
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_BossShadowEmitterX_Draw
-    ;; The beam length is 18 for GoalHorz=0 or GoalHorz=9, and 20 otherwise.
-    ldy #18  ; param: beam length in tiles
-    lda Ram_MachineGoalHorz_u8_arr + kEmitterXMachineIndex
-    beq @draw
-    cmp #9
-    beq @draw
-    iny
-    iny  ; param: beam length in tiles
-    @draw:
-    jmp FuncA_Objects_DrawEmitterXMachine
-.ENDPROC
-
-.PROC FuncA_Objects_BossShadowEmitterY_Draw
-    ldy #24  ; param: beam length in tiles
-    jmp FuncA_Objects_DrawEmitterYMachine
 .ENDPROC
 
 ;;;=========================================================================;;;

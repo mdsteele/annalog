@@ -158,7 +158,7 @@ _Ext_sRoomExt:
     d_addr Enter_func_ptr, FuncA_Room_CityCenter_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, FuncA_Room_CityCenter_TickRoom
-    d_addr Draw_func_ptr, FuncA_Objects_CityCenter_DrawRoom
+    d_addr Draw_func_ptr, FuncC_City_Center_DrawRoom
     D_END
 _TerrainData:
 :   .incbin "out/rooms/city_center1.room"
@@ -533,11 +533,8 @@ _ReadRegY:
     jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Objects"
-
-.PROC FuncA_Objects_CityCenter_DrawRoom
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_City_Center_DrawRoom
     ;; Once the door is unlocked, disable both display screens.
     flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
     bne _Return
