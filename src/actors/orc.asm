@@ -103,6 +103,8 @@ kGrontaInvincibleFrames = 30
 kGrontaJumpWindupFrames = 8
 ;;; How many frames it takes Gronta wind up to smash a machine.
 kGrontaSmashWindupFrames = 50
+;;; How many frames Gronta pauses for after smashing a machine.
+kGrontaSmashRecoverFrames = 45
 ;;; How many frames it takes Gronta wind up for an axe throw.
 kGrontaThrowWindupFrames = 15
 ;;; How many frames it takes Gronta to catch a returned axe projectile.
@@ -211,12 +213,24 @@ _BeginRunning:
 
 ;;; Makes a Gronta actor begin winding up to throw her axe.
 ;;; @param X The actor index.
-;;; @preserve X
+;;; @preserve X, T0+
 .EXPORT FuncA_Room_BadGrontaBeginThrowing
 .PROC FuncA_Room_BadGrontaBeginThrowing
     lda #kGrontaThrowWindupFrames
     sta Ram_ActorState2_byte_arr, x  ; timer
     lda #eBadGronta::ThrowWindup
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
+    rts
+.ENDPROC
+
+;;; Makes a Gronta actor recover after smashing a machine.
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT FuncA_Room_BadGrontaBeginSmashRecover
+.PROC FuncA_Room_BadGrontaBeginSmashRecover
+    lda #kGrontaSmashRecoverFrames
+    sta Ram_ActorState2_byte_arr, x  ; timer
+    lda #eBadGronta::SmashRecover
     sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
     rts
 .ENDPROC
@@ -289,13 +303,14 @@ _ExecMode:
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eBadGronta
-    d_entry table, Idle,         FuncA_Actor_FaceTowardsAvatar
+    d_entry table, Idle,         Func_Noop
     d_entry table, Injured,      FuncA_Actor_TickBadGronta_Injured
     d_entry table, JumpWindup,   FuncA_Actor_TickBadGronta_JumpWindup
     d_entry table, JumpAirborne, FuncA_Actor_TickBadGronta_JumpAirborne
     d_entry table, Running,      FuncA_Actor_TickBadGronta_Running
     d_entry table, SmashWindup,  FuncA_Actor_TickBadGronta_SmashWindup
     d_entry table, SmashWaiting, Func_Noop
+    d_entry table, SmashRecover, FuncA_Actor_TickBadGronta_SmashRecover
     d_entry table, ThrowWindup,  FuncA_Actor_TickBadGronta_ThrowWindup
     d_entry table, ThrowWaiting, Func_Noop
     d_entry table, ThrowCatch,   FuncA_Actor_TickBadGronta_ThrowCatch
@@ -505,6 +520,17 @@ _InitAxe:
     sta Ram_ActorState1_byte_arr, x  ; current eBadGronta mode
 _Done:
     rts
+.ENDPROC
+
+;;; Performs per-frame updates for a Gronta baddie actor that's in SmashRecover
+;;; mode.
+;;; @param C Set if Gronta just collided with the player avatar.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGronta_SmashRecover
+    ;; SmashRecover and ThrowCatch have identical tick implementions (but are
+    ;; drawn differently, so still need to be separate modes).
+    fall FuncA_Actor_TickBadGronta_ThrowCatch  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for a Gronta baddie actor that's in ThrowCatch
@@ -1007,6 +1033,7 @@ _Poses_eNpcOrc_arr:
     d_byte Running,      eNpcOrc::GrontaRunning1
     d_byte SmashWindup,  eNpcOrc::GrontaAxeRaised
     d_byte SmashWaiting, eNpcOrc::GrontaThrowing
+    d_byte SmashRecover, eNpcOrc::GrontaThrowing
     d_byte ThrowWindup,  eNpcOrc::GrontaAxeRaised
     d_byte ThrowWaiting, eNpcOrc::GrontaThrowing
     d_byte ThrowCatch,   eNpcOrc::GrontaAxeRaised

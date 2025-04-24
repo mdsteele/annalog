@@ -87,6 +87,7 @@
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_BadGrontaBeginChasing
+.IMPORT FuncA_Room_BadGrontaBeginSmashRecover
 .IMPORT FuncA_Room_BadGrontaBeginThrowing
 .IMPORT FuncA_Room_FindGrenadeActor
 .IMPORT FuncA_Room_HarmAvatarIfWithinLaserBeam
@@ -780,7 +781,7 @@ _Return:
 ;;; console).
 ;;; @prereq PRGA_Room is loaded.
 ;;; @param X The machine index for the machine to destroy.
-;;; @preserve X
+;;; @preserve X, T0+
 .PROC FuncC_Core_Boss_DestroyMachine
     lda #eMachine::Halted
     sta Ram_MachineStatus_eMachine_arr, x
@@ -792,7 +793,7 @@ _Return:
     .assert  kCannonConsoleDeviceIndex =  kCannonMachineIndex, error
     sta Ram_DeviceType_eDevice_arr, x
     ;; Remove the machine's main platform.
-    jsr Func_SetMachineIndex  ; preserves X
+    jsr Func_SetMachineIndex  ; preserves X and T0+
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
     tay  ; machine main platform index
@@ -827,31 +828,32 @@ _Return:
     rts
     @idle:
 _CheckForSmashedMachine:
-    ldx #kNumCoreBossMachines - 1
+    ldx #kNumCoreBossMachines
+    stx T0  ; num unsmashed machines remaining
+    dex
     @loop:
     lda Zp_RoomState + sState::MachineHits_i8_arr, x
-    bmi @continue  ; machine is already smashed
+    bmi @alreadySmashed  ; machine is already smashed
     cmp #kGrontaHitsPerMachine
     blt @continue  ; Gronta didn't just smash this machine
-    jsr FuncC_Core_Boss_DestroyMachine  ; preserves X
+    jsr FuncC_Core_Boss_DestroyMachine  ; preserves X and T0+
+    ldx #kGrontaActorIndex  ; param: actor index
+    jmp FuncA_Room_BadGrontaBeginSmashRecover
+    @alreadySmashed:
+    dec T0  ; num unsmashed machines remaining
     @continue:
     dex
     .assert kNumCoreBossMachines <= $80, error
     bpl @loop
 _CheckIfGrontaDefeated:
     ;; Gronta is defeated when all machines have been smashed.
-    ldx #kNumCoreBossMachines - 1
-    @loop:
-    lda Zp_RoomState + sState::MachineHits_i8_arr, x
-    bpl @notDefeated  ; this machine hasn't been smashed yet
-    dex
-    .assert kNumCoreBossMachines <= $80, error
-    bpl @loop
+    lda T0  ; num unsmashed machines remaining
+    bne @done  ; not all machines have been smashed yet
     @defeated:
     lda #eCutscene::CoreBossGrontaDefeated
     sta Zp_Next_eCutscene
     rts
-    @notDefeated:
+    @done:
 _MaybeThrowAxe:
     ;; Only throw an axe 25% of the time.
     jsr Func_GetRandomByte  ; returns A

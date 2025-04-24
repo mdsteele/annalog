@@ -72,6 +72,7 @@ kBadGrontaMaxJumpUpBlocks = 2
     Running       ; running towards a goal position
     SmashWindup   ; getting ready to throw an axe at a machine
     SmashWaiting  ; waiting for the axe to destroy the machine
+    SmashRecover  ; pausing briefly after smashing a machine
     ThrowWindup   ; getting ready to throw an axe at the player avatar
     ThrowWaiting  ; waiting for the axe to return
     ThrowCatch    ; catching a returned axe

@@ -367,7 +367,7 @@ _PrisonMusic:
     d_byte CityOutskirts,   eMusic::City
     d_byte CitySinkhole,    eMusic::City
     d_byte CityWest,        eMusic::City
-    d_byte CoreBoss,        eMusic::Core
+    d_byte CoreBoss,        eMusic::Silence
     d_byte CoreEast,        eMusic::Core
     d_byte CoreElevator,    eMusic::Core
     d_byte CoreFlower,      eMusic::Core
