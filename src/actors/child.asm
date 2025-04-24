@@ -88,7 +88,8 @@ kPaletteObjChild = 1
     adc #6  ; offset so swimming animation isn't synced with player avatar
     and #$10
     bne @setTiles
-    ldx #eNpcChild::AlexSwimming2
+    .assert eNpcChild::AlexSwimming1 + 1 = eNpcChild::AlexSwimming2, error
+    inx  ; now eNpcChild::AlexSwimming2
     @setTiles:
     ;; Set tile IDs for the objects.
     lda _Feet_u8_arr, x

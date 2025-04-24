@@ -1987,7 +1987,12 @@ _IntroDialog_sCutscene:
     act_BranchIfZ _ShouldGiveUpRemoteFunc, _GiveUpRemote_sCutscene
 _BeginFight_sCutscene:
     act_PlayMusic eMusic::Boss2
-    act_WaitFrames 210  ; TODO: animate Gronta getting ready to fight
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaLaughing1
+    act_WaitFrames 144
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
+    act_WaitFrames 48
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaAxeRaised
+    act_WaitFrames 18
     act_SetScrollFlags 0
     act_CallFunc _ChangeGrontaFromNpcToBad
     act_ContinueExploring
@@ -2007,7 +2012,9 @@ _GiveUpRemote_sCutscene:
     act_WaitFrames 65
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
     act_WaitFrames 10
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaLaughing1
     act_RunDialog eDialog::CoreBossGrontaGive1
+    act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
     ;; Animate Gronta throwing her axe at Anna.
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaAxeRaised
     act_WaitFrames 15

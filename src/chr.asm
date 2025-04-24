@@ -1217,16 +1217,16 @@ _chr_begin:
     chr_inc "platform_core",       kTileIdObjPlatformCoreFirst
     chr_res $02
     chr_inc "cannon",              kTileIdObjCannonFirst
-    chr_res $0a
+    chr_res $02
+    chr_inc "orc_gronta_throwing", kTileIdObjOrcGrontaThrowingFirst
+    chr_inc "orc_gronta_jumping",  kTileIdObjOrcGrontaJumpingFirst
     chr_inc "blaster",             kTileIdObjBlasterFirst
     chr_res $01
     chr_inc "proj_fireblast",      kTileIdObjProjFireblastFirst
     chr_res $04
     chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
     chr_inc "orc_gronta_running",  kTileIdObjOrcGrontaRunningFirst
-    chr_inc "orc_gronta_throwing", kTileIdObjOrcGrontaThrowingFirst
-    chr_inc "orc_gronta_jumping",  kTileIdObjOrcGrontaJumpingFirst
-    chr_res $08
+    chr_inc "orc_gronta_laughing", kTileIdObjOrcGrontaLaughingFirst
     chr_inc "mirror",              kTileIdObjMirrorFirst
     chr_res $03
     chr_inc "proj_axe",            kTileIdObjProjAxeFirst

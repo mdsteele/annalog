@@ -1109,6 +1109,18 @@ _Poses_eNpcOrc_arr:
 .PROC FuncA_Objects_DrawActorOrcInPose
     sta T2  ; pose index
     sty T3  ; feet object flags
+    ;; Special case: for eNpcOrc::GrontaLaughing1, automatically animate
+    ;; between GrontaLaughing1 and GrontaLaughing2.
+    cmp #eNpcOrc::GrontaLaughing1
+    bne @doneLaugh
+    lda Zp_FrameCounter_u8
+    and #$08
+    bne @doneLaugh
+    .assert eNpcOrc::GrontaLaughing1 + 1 = eNpcOrc::GrontaLaughing2, error
+    inc T2  ; now eNpcOrc::GrontaLaughing2
+    @doneLaugh:
+    ;; Determine object flags for the head.
+    lda T2  ; pose index
     cmp #kNpcOrcFirstGronta
     blt @notGronta
     tya
@@ -1116,6 +1128,7 @@ _Poses_eNpcOrc_arr:
     tay
     @notGronta:
     sty T4  ; head object flags
+    ;; Set shape position:
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X and T0+
     lda T2  ; pose index
     cmp #eNpcOrc::GhostStanding
@@ -1156,6 +1169,8 @@ _TileIdHead_u8_arr:
     d_byte GrontaRunning2,   kTileIdObjOrcGrontaHeadHigh
     d_byte GrontaRunning3,   kTileIdObjOrcGrontaHeadLow
     d_byte GrontaRunning4,   kTileIdObjOrcGrontaHeadHigh
+    d_byte GrontaLaughing1,  kTileIdObjOrcGrontaLaughingFirst + $00
+    d_byte GrontaLaughing2,  kTileIdObjOrcGrontaLaughingFirst + $08
     d_byte GrontaThrowing,   kTileIdObjOrcGrontaHeadLow
     d_byte EireneParley,     kTileIdObjEireneParleyFirst      + $00
     D_END
@@ -1181,6 +1196,8 @@ _TileIdFeet_u8_arr:
     d_byte GrontaRunning2,   kTileIdObjOrcGrontaFeetRunning2
     d_byte GrontaRunning3,   kTileIdObjOrcGrontaFeetRunning3
     d_byte GrontaRunning4,   kTileIdObjOrcGrontaFeetRunning2
+    d_byte GrontaLaughing1,  kTileIdObjOrcGrontaLaughingFirst + $04
+    d_byte GrontaLaughing2,  kTileIdObjOrcGrontaLaughingFirst + $0c
     d_byte GrontaThrowing,   kTileIdObjOrcGrontaThrowingFirst
     d_byte EireneParley,     kTileIdObjEireneParleyFirst      + $04
     D_END

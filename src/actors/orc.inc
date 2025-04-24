@@ -127,6 +127,8 @@ kBadGrontaMaxJumpUpBlocks = 2
     GrontaRunning2
     GrontaRunning3
     GrontaRunning4
+    GrontaLaughing1
+    GrontaLaughing2
     GrontaThrowing
     EireneParley  ; not really an orc, but drawn like Gronta
     NUM_VALUES
@@ -156,11 +158,12 @@ kOrcTrappedDistance = 7
 ;;; Tile IDs for drawing orc baddie/NPC actors.
 kTileIdObjOrcGhostFirst          = $d0
 kTileIdObjOrcGrontaCrouchFirst   = $f0
-kTileIdObjOrcGrontaJumpingFirst  = $c4
+kTileIdObjOrcGrontaJumpingFirst  = $94
+kTileIdObjOrcGrontaLaughingFirst = $c0
 kTileIdObjOrcGrontaParleyFirst   = $98
 kTileIdObjOrcGrontaRunningFirst  = $b0
 kTileIdObjOrcGrontaStandingFirst = $a0
-kTileIdObjOrcGrontaThrowingFirst = $c0
+kTileIdObjOrcGrontaThrowingFirst = $90
 kTileIdObjOrcGruntKneelingFirst  = $94
 kTileIdObjOrcGruntRunningFirst   = $b0
 kTileIdObjOrcGruntSleepingFirst  = $dc
