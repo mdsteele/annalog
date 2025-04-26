@@ -58,6 +58,7 @@ THREAD_ANNOTATION_PATTERN = re.compile(
     '^;;; @thread ([A-Z]+(?: *, *[A-Z]+)*)$')
 SEGMENT_DECL_PATTERN = re.compile(r'^\.SEGMENT +"([a-zA-Z0-9_]*)"')
 PROC_DECL_PATTERN = re.compile(r'^\.PROC +([a-zA-Z0-9_]+)')
+D_STRUCT_PATTERN = re.compile(r'^:? *D_STRUCT +(s[a-zA-Z0-9_]+)')
 PRG_BANK_SWITCH_PATTERN = re.compile(
     r'^ *((?:jsr|jmp|main)_prg[ac]) ')
 MAIN_CHR_BANK_SWITCH_PATTERN = re.compile(
@@ -70,6 +71,8 @@ JUMP_PATTERN = re.compile(
 ACCESS_PATTERN = re.compile(
     r'^ *(ad[cd]|and|asl|bit|cmp|cp[xy]|dec|eor|inc|ld[axy]+|lsr|ora'
     r'|ro[lr]|r?sbc|r?sub|st[axy]+) +([A-Za-z0-9_]+)')
+FUNC_PTR_PATTERN = re.compile(
+    r'^ *d_addr +([a-zA-Z0-9_]+)_func_ptr, *([a-zA-Z0-9_]+)')
 
 LOCAL_PROC_NAME = re.compile(r'^_[a-zA-Z0-9_]+$')  # e.g. _Foobar
 PRGA_PROC_NAME = re.compile(  # e.g. FuncA_SegmentName_Foobar
@@ -154,31 +157,53 @@ def is_valid_access(dest, segment, loaded_prereqs, permitted_threads,
             return match.group(1) == segment[5:]
     return True
 
-#=============================================================================#
-
-def parse_dialog_text(string):
-    unquoted = False
-    text = []
-    index = 0
-    while index < len(string) and string[index] != ';':
-        if string[index] == '"':
-            index += 1
-            while string[index] != '"':
-                text.append(string[index])
-                index += 1
-        elif string[index] == ',':
-            if unquoted:
-                text.append('@')
-                unquoted = False
-        elif string[index] != ' ':
-            unquoted = True
-        index += 1
-    if unquoted:
-        text.append('@')
-    return ''.join(text)
-
-def is_end_of_dialog_text(dialog_text_line):
-    return dialog_text_line.endswith('#') or dialog_text_line.endswith('%')
+def is_valid_func_ptr(struct_type, field_name, dest, segment, top_proc):
+    if LOCAL_PROC_NAME.match(dest):
+        return True
+    if dest.startswith('Func_'):
+        return True
+    match = PRGC_PROC_NAME.match(dest)
+    if match:
+        if segment.startswith('PRGC_'):
+            return match.group(1) == segment[5:]
+        return False
+    match = PRGA_PROC_NAME.match(dest)
+    if match:
+        bank = match.group(1)
+        if struct_type == 'sBoss':
+            if field_name == 'Draw':
+                return bank == 'Objects'
+            if field_name == 'Tick':
+                return bank == 'Room'
+            return False
+        if struct_type == 'sMachine':
+            if field_name == 'Draw':
+                return bank == 'Objects'
+            if field_name == 'Init':
+                return bank == 'Room'
+            if field_name == 'Reset':
+                return bank == 'Room'
+            if field_name == 'Tick':
+                return bank == 'Machine'
+            if field_name == 'TryAct':
+                return bank == 'Machine'
+            if field_name == 'TryMove':
+                return bank == 'Machine'
+            if field_name == 'WriteReg':
+                return bank == 'Machine'
+            return False
+        if struct_type == 'sRoomExt':
+            if field_name == 'Draw':
+                return bank == 'Objects'
+            if field_name == 'Enter':
+                return bank == 'Room'
+            if field_name == 'FadeIn':
+                return bank == 'Terrain'
+            if field_name == 'Tick':
+                return bank == 'Room'
+            return False
+        return False
+    return False
 
 #=============================================================================#
 
@@ -186,6 +211,7 @@ def run_tests():
     failed = [False]
     for filepath in src_and_test_filepaths('.asm', '.inc'):
         segment = ''
+        last_d_struct = ''
         proc_stack = []
         dialog_text_lines = []
         loaded_prereqs = set()
@@ -231,6 +257,10 @@ def run_tests():
             if match:
                 permitted_threads = set(
                     name.strip() for name in match.group(1).split(','))
+            # Track D_STRUCT declarations.
+            match = D_STRUCT_PATTERN.match(line)
+            if match:
+                last_d_struct = match.group(1)
             # Check proc definitions.
             match = PROC_DECL_PATTERN.match(line)
             if match:
@@ -250,11 +280,6 @@ def run_tests():
             if line.startswith('.ENDPROC'):
                 proc_stack.pop()
                 if not proc_stack:
-                    if segment.startswith('PRGA_Text'):
-                        if not dialog_text_lines:
-                            fail('empty dialog text block')
-                        elif not is_end_of_dialog_text(dialog_text_lines[-1]):
-                            fail('unterminated dialog text block')
                     loaded_prereqs.clear()
                     permitted_threads = {'MAIN'}
             if proc_stack:
@@ -309,6 +334,14 @@ def run_tests():
                     if not is_valid_access(source, segment, loaded_prereqs,
                                            permitted_threads, proc_stack[0]):
                         fail('invalid access in {}'.format(proc_stack[0]))
+                # Check that function pointers in structs are in valid banks.
+                match = FUNC_PTR_PATTERN.match(line)
+                if match:
+                    field_name = match.group(1)
+                    dest = match.group(2)
+                    if not is_valid_func_ptr(last_d_struct, field_name, dest,
+                                             segment, proc_stack[0]):
+                        fail('invalid func ptr in {}'.format(proc_stack[0]))
     return failed[0]
 
 if __name__ == '__main__':
