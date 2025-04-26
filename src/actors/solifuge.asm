@@ -27,7 +27,6 @@
 
 .IMPORT FuncA_Actor_AccelerateForward
 .IMPORT FuncA_Actor_ApplyGravity
-.IMPORT FuncA_Actor_CenterHitsTerrainOrSolidPlatform
 .IMPORT FuncA_Actor_ClampVelX
 .IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_FaceTowardsAvatar
@@ -38,12 +37,19 @@
 .IMPORT FuncA_Actor_IsPointInRoomBounds
 .IMPORT FuncA_Actor_LandOnTerrain
 .IMPORT FuncA_Actor_MovePointTowardVelXDir
+.IMPORT FuncA_Actor_SetPointAboveOrBelowActor
 .IMPORT FuncA_Actor_ZeroVelX
+.IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Draw2x2Actor
-.IMPORT Func_GetTerrainColumnPtrForPointX
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointLeftByA
+.IMPORT Func_MovePointRightByA
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_PlaySfxBaddieDeath
+.IMPORT Func_PointHitsTerrain
+.IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
@@ -55,6 +61,7 @@
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Current_sTileset
+.IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
 
 ;;;=========================================================================;;;
@@ -117,9 +124,28 @@ kPaletteObjSolifuge = 0
     and #bBadSolifuge::Jumping
     beq _MaybeJumpAtAvatar
 _AlreadyJumping:
-    ;; TODO: if hit ceiling, bounce off
+    jsr FuncA_Actor_BadSolifugeHitsCeiling  ; preserves X, returns C
+    bcc @notBlockedAbove
+    ;; If the solifuge is blocked above, then zero its Y-velocity and position
+    ;; it just below the ceiling (by aligning it within the terrain block row
+    ;; that the solifuge's feet are in).
+    @blockedAbove:
+    jsr FuncA_Actor_ZeroVelY  ; preserves X
+    jsr Func_SetPointToActorCenter  ; preserves X
+    lda #kBadSolifugeBoundingBoxDown  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves X
+    lda Zp_PointY_i16 + 0
+    .assert kBlockHeightPx = $10, error
+    and #$f0
+    .assert kBadSolifugeBoundingBoxUp < $10, error
+    ora #kBadSolifugeBoundingBoxUp
+    sta Zp_PointY_i16 + 0
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    @notBlockedAbove:
+    ;; Apply gravity.
     jsr FuncA_Actor_ApplyGravity  ; preserves X
-    lda #kTileHeightPx  ; param: bounding box down
+    ;; Handle landing on the floor.
+    lda #kBadSolifugeBoundingBoxDown  ; param: bounding box down
     jsr FuncA_Actor_LandOnTerrain  ; preserves X, returns C
     bcc _ChaseAvatar
     lda #0
@@ -127,13 +153,23 @@ _AlreadyJumping:
     beq _ChaseAvatar  ; unconditional
 _Steamed:
     jsr FuncA_Actor_ApplyGravity  ; preserves X
-    ;; If the solifuge hits the ceiling, kill it.
-    jsr FuncA_Actor_CenterHitsTerrainOrSolidPlatform  ; preserves X, returns C
-    bcc @noHitCeiling
+    ;; Check if the steamed solifuge is moving up or down.
+    lda Ram_ActorVelY_i16_1_arr, x
+    bpl @movingDown
+    ;; If the steamed solifuge hits the ceiling while moving up, kill it.
+    @movingUp:
+    jsr FuncA_Actor_BadSolifugeHitsCeiling  ; preserves X, returns C
+    bcc @done
     jsr Func_PlaySfxBaddieDeath  ; preserves X
     jmp Func_InitActorSmokeExplosion  ; preserves X
-    @noHitCeiling:
-    ;; TODO: if hit floor, land
+    ;; If the steamed solifuge hits the floor while going down, land.
+    @movingDown:
+    lda #kBadSolifugeBoundingBoxDown  ; param: bounding box down
+    jsr FuncA_Actor_LandOnTerrain  ; preserves X, returns C
+    bcc @done
+    lda #0
+    sta Ram_ActorState1_byte_arr, x  ; bBadSolifuge value
+    @done:
     rts
 _MaybeJumpAtAvatar:
     jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
@@ -174,27 +210,59 @@ _ChaseAvatar:
     ldya #kSolifugeMaxSpeedX  ; param: max speed
     jsr FuncA_Actor_ClampVelX  ; preserves X
 _StopIfBlockedHorz:
+    ;; Set Zp_Point* to just in front of the solifuge's feet.
     jsr Func_SetPointToActorCenter  ; preserves X
     lda #kSolifugeStopDistance  ; param: look-ahead distance
     jsr FuncA_Actor_MovePointTowardVelXDir  ; preserves X
+    lda #kBadSolifugeBoundingBoxDown - 1  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves X
+    ;; Don't allow the solifuge to move horizontally out of bounds.
     jsr FuncA_Actor_IsPointInRoomBounds  ; preserves X, returns C
     bcc @blocked
-    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
-    ;; TODO: also check terrain at corners of bounding box (not ground level)
+    ;; If there is terrain in front of the solifuge's feet, it's blocked.
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    bcs @blocked  ; wall in front of feet is solid, so solifuge is blocked
+    ;; If there is terrain in front of the solifuge's head, it's blocked.
+    lda #kBadSolifugeBoundingBoxUp + kBadSolifugeBoundingBoxDown - 1  ; param
+    jsr Func_MovePointUpByA  ; preserves X
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    bcs @blocked  ; wall in front of head is solid, so solifuge is blocked
+    ;; Check the wall at ground level in front of the solifuge (even if it's in
+    ;; midair).
     ldy Ram_ActorState2_byte_arr, x  ; grounded room block row
-    ;; Check the wall in front of the solifuge (at ground level).
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
-    bge @blocked  ; wall is solid
-    ;; Check the floor in front of the solifuge (at ground level).
+    bge @blocked  ; wall at ground level is solid, so solifuge is blocked
+    ;; Check the floor at ground level in front of the solifuge.
     iny
     lda (Zp_TerrainColumn_u8_arr_ptr), y
     cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
-    bge @done  ; floor is solid
+    bge @done  ; floor at ground level is solid, so solifuge *isn't* blocked
     @blocked:
     jsr FuncA_Actor_ZeroVelX  ; preserves X
     jmp FuncA_Actor_FaceOppositeDir  ; preserves X
     @done:
+    rts
+.ENDPROC
+
+;;; Determines if a solifuge baddie actor is hitting the ceiling (on either of
+;;; its bounding box's upper two corners).
+;;; @param X The actor index.
+;;; @return C Set if the top of solifuge is hitting solid terrain.
+;;; @preserve X
+.PROC FuncA_Actor_BadSolifugeHitsCeiling
+    ;; Check for solid terrain above each of the two upper corners of the
+    ;; solifuge.
+    lda #<-kBadSolifugeBoundingBoxUp
+    jsr FuncA_Actor_SetPointAboveOrBelowActor  ; preserves X
+    lda #kBadSolifugeBoundingBoxSide  ; param: offset
+    jsr Func_MovePointLeftByA  ; preserves X
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    bcs @return
+    lda #kBadSolifugeBoundingBoxSide * 2 - 1  ; param: offset
+    jsr Func_MovePointRightByA  ; preserves X
+    jmp Func_PointHitsTerrain  ; preserves X, returns C
+    @return:
     rts
 .ENDPROC
 
