@@ -137,6 +137,7 @@
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_SetScrollGoalFromPoint
 .IMPORT Func_ShakeRoom
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT MainA_Cutscene_FinaleGaveRemote
 .IMPORT MainA_Cutscene_FinaleReactivate
 .IMPORT MainA_Cutscene_FinaleYearsLater
@@ -807,6 +808,10 @@ _Return:
     sta Ram_PlatformType_ePlatform_arr + kSpikeballPlatformIndex
     lda #0
     sta Ram_MachineState1_byte_arr, y  ; falling bool
+    ldy #kSpikeballPlatformIndex  ; param: platform index
+    jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
+    jsr Func_SpawnExplosionAtPoint  ; preserves T0+
+    ldx #kWinchMachineIndex  ; restore X after Func_SpawnExplosionAtPoint
     @notWinch:
     ;; Zero the machine slowdown.  For the laser machine, this will turn off
     ;; the laser beam; for the other machines, it is irrelevant.
