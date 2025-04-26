@@ -546,7 +546,7 @@ _chr_begin:
 .PROC Ppu_ChrBgHouse
     CHR1_BANK $80
     chr_inc "indoors"
-    chr_res $07
+    chr_res $04
     chr_inc "window"
     chr_inc "terrain_furniture"
     chr_res $12

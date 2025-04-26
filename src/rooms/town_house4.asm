@@ -20,15 +20,13 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/adult.inc"
 .INCLUDE "../actors/orc.inc"
-.INCLUDE "../charmap.inc"
-.INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
-.INCLUDE "../platform.inc"
 .INCLUDE "../portrait.inc"
+.INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_House_sTileset
@@ -43,6 +41,7 @@
 .IMPORT DataA_Text0_TownHouse4Laura_Waiting2_u8_arr
 .IMPORT DataA_Text0_TownHouse4Martin_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
+.IMPORT Func_BufferPpuTransfer
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxThump
@@ -62,6 +61,18 @@ kLauraActorIndex  = 0
 kMartinActorIndex = 1
 kThurgActorIndex  = 2
 kHobokActorIndex  = 3
+
+;;; The tile row/col in the upper nametable for the leftmost BG tile used to
+;;; draw Martin when he's unconscious for the BreakerLava cutscene.
+kMartinBgStartRow = 25
+kMartinBgStartCol = 22
+
+;;; The PPU address for the leftmost BG tile used to draw Martin when he's
+;;; unconscious for the BreakerLava cutscene.
+.LINECONT +
+Ppu_MartinBgStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * (kMartinBgStartRow + 0) + kMartinBgStartCol
+.LINECONT -
 
 ;;;=========================================================================;;;
 
@@ -89,7 +100,7 @@ _Ext_sRoomExt:
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
     d_addr Enter_func_ptr, FuncC_Town_House4_EnterRoom
-    d_addr FadeIn_func_ptr, Func_Noop
+    d_addr FadeIn_func_ptr, FuncA_Terrain_TownHouse4_FadeInRoom
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
     D_END
@@ -171,21 +182,43 @@ _Devices_sDevice_arr:
     @initCutscene:
     lda #$ff
     sta Ram_ActorState2_byte_arr + kLauraActorIndex
-    sta Ram_ActorState2_byte_arr + kMartinActorIndex
     sta Ram_ActorState2_byte_arr + kThurgActorIndex
     sta Ram_ActorState2_byte_arr + kHobokActorIndex
     lda #bObj::FlipH
-    sta Ram_ActorFlags_bObj_arr + kMartinActorIndex
     sta Ram_ActorFlags_bObj_arr + kThurgActorIndex
     sta Ram_ActorFlags_bObj_arr + kHobokActorIndex
-    lda #$c0
-    sta Ram_ActorPosX_i16_0_arr + kMartinActorIndex
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kMartinActorIndex
     rts
     @noCutscene:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kThurgActorIndex
     sta Ram_ActorType_eActor_arr + kHobokActorIndex
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Terrain"
+
+.PROC DataA_Terrain_TownHouse4MartinTransfer_arr
+    .byte kPpuCtrlFlagsHorz
+    .dbyt Ppu_MartinBgStart  ; transfer destination
+    .byte 3
+    .byte $95, $96, $97
+.ENDPROC
+
+.PROC FuncA_Terrain_TownHouse4_FadeInRoom
+    ;; If the Martin NPC actor is not here (because the BreakerLava cutscene is
+    ;; playing), draw him unconscious with BG tiles.
+    lda Ram_ActorType_eActor_arr + kMartinActorIndex
+    .assert eActor::None = 0, error
+    beq @drawMartinUnconscious
+    rts
+    @drawMartinUnconscious:
+    ldax #DataA_Terrain_TownHouse4MartinTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataA_Terrain_TownHouse4MartinTransfer_arr)  ; param: data len
+    jmp Func_BufferPpuTransfer
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -201,7 +234,6 @@ _Devices_sDevice_arr:
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntThrowing1
     act_CallFunc Func_PlaySfxThump
     act_RepeatFunc 9, _LauraKnockback
-    ;; TODO: make Martin react
     act_RunDialog eDialog::TownHouse4BreakerLava2
     act_WaitFrames 60
     act_CallFunc Func_PlaySfxExplodeBig
