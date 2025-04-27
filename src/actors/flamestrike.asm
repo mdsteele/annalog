@@ -94,12 +94,18 @@ _Sweeping:
     jsr Func_SetPointToActorCenter  ; preserves X
     jsr Func_PointHitsTerrain  ; preserves X, returns C
     bcs _Remove
+    ;; Periodically play a sound, based on the timer.
+    lda Ram_ActorState3_byte_arr, x  ; timer
+    mod #4
+    bne @noSound
+    jsr FuncA_Actor_PlaySfxFireBurning  ; preserves X
+    @noSound:
     ;; Set speed based on the timer.
     inc Ram_ActorState3_byte_arr, x  ; timer
     lda #0
     sta T0  ; speed (hi)
     lda Ram_ActorState3_byte_arr, x  ; timer
-    .repeat 4
+    .repeat 3
     asl a   ; param: speed (lo)
     rol T0  ; speed (hi)
     .endrepeat

@@ -691,7 +691,7 @@ _BossRetreating:
     sta Zp_RoomState + sState::Current_eBossMode
     lda #eBossLoc::Hidden
     sta Zp_RoomState + sState::Current_eBossLoc
-    lda #90  ; TODO: make this a constant
+    lda #90
     sta Zp_RoomState + sState::BossCooldown_u8
     rts
 _ExitLeft_u8_arr:

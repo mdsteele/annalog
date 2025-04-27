@@ -214,6 +214,7 @@ Ppu_BossBodyAttrs = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
     FiresprayPrepare    ; move into position to shoot a spray of fireballs
     FiresprayWindup     ; open jaws before shooting a spray of fireballs
     FiresprayShoot      ; shoot a spray of fireballs
+    FiresprayRecover    ; waiting for a bit after a fireball spray
     FlamestrikePrepare  ; move into position to shoot a flamestrike projectile
     FlamestrikeShoot    ; open jaws and shoot the flamestrike
     FlamestrikeDescend  ; stay in place while the flamestrike descends
@@ -233,6 +234,8 @@ kBossInitCooldown = 120
 kBossHurtCooldown = 60
 ;;; How many frames to wait between consecutive scuttle actions.
 kBossScuttleCooldown = 60
+;;; How long to vibrate before shooting a flamestrike or dropping an egg.
+kAttackVibrateFrames = 81
 
 ;;; The platform indices for the boss's body and tail.
 kBossBodyPlatformIndex = 8
@@ -254,6 +257,10 @@ kPaletteObjBossLava = 1
     ;; What mode the boss is in.
     Current_eBossMode  .byte
     ;; Mode-specific parameter/counter for the current boss mode.
+    ;; * For Scuttling mode, this is how many times to scuttle.
+    ;; * For FiresprayShoot mode, any negative value means sweep right to left,
+    ;;   and any non-negative value means sweep left to right.
+    ;; * For all other boss modes, this is ignored.
     BossModeParam_byte .byte
     ;; How many more blaster hits are needed before the boss dies.
     BossHealth_u8      .byte
@@ -510,7 +517,7 @@ _Devices_sDevice_arr:
 _CheckForFireblastHit:
     ;; Check for a fireblast (in this room, it's not possible for there to be
     ;; more than one on screen at once).
-    lda #eActor::ProjFireblast  ; param: actor type
+    lda #eActor::ProjFireblast  ; param: actor type to find
     jsr Func_FindActorWithType  ; returns C and X
     bcs @done  ; no fireblast found
     ;; Fireblasts can only hit the boss's tail if its jaws/tail are fully open.
@@ -584,6 +591,7 @@ _CheckMode:
     d_entry table, FiresprayPrepare,   _BossFiresprayPrepare
     d_entry table, FiresprayWindup,    _BossFiresprayWindup
     d_entry table, FiresprayShoot,     _BossFiresprayShoot
+    d_entry table, FiresprayRecover,   _BossFiresprayRecover
     d_entry table, FlamestrikePrepare, _BossFlamestrikePrepare
     d_entry table, FlamestrikeShoot,   _BossFlamestrikeShoot
     d_entry table, FlamestrikeDescend, _BossFlamestrikeDescend
@@ -596,58 +604,26 @@ _BossEggPrepare:
     jsr FuncC_Boss_Lava_BossCloseJaws
     ;; Wait until the boss is in position.
     jsr FuncC_Boss_Lava_BossMoveTowardGoal  ; sets C when goal is reached
-    bcc @done
+    bcc _FirstReturn
     ;; Change modes to drop an egg.
     lda #eBossMode::EggDrop
     sta Zp_RoomState + sState::Current_eBossMode
-    @done:
-    rts
-_BossEggDrop:
-    ;; Wait until the boss's jaws are fully open.
-    jsr FuncC_Boss_Lava_BossOpenJaws  ; sets Z when jaws are fully open
-    bne @done
-    ;; Drop an egg.
-    lda #kBossHeightPx / 2 + kTileHeightPx / 2  ; param: offset
-    jsr FuncA_Room_BossLava_SetPointBelowBossCenter
-    jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @done
-    jsr Func_SetActorCenterToPoint  ; preserves X
-    jsr FuncA_Room_InitActorProjEgg
-    inc Zp_RoomState + sState::BossEggsDropped_u8
-    ;; Change modes to wait for the egg to hatch and the solifuge be killed.
-    lda #eBossMode::EggWait
-    sta Zp_RoomState + sState::Current_eBossMode
-    @done:
-    rts
-_BossEggWait:
-    jsr FuncC_Boss_Lava_BossCloseJaws
-    ;; Wait until no egg or solifuge exists.
-    ldx #kMaxActors - 1
-    @loop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjEgg
-    beq @done
-    cmp #eActor::BadSolifuge
-    beq @done
-    dex
-    .assert kMaxActors <= $80, error
-    bpl @loop
-    ;; Switch modes.
-    jmp _StartFirespray
-    @done:
+    lda #kAttackVibrateFrames
+    sta Zp_RoomState + sState::BossCooldown_u8
+    fall _FirstReturn
+_FirstReturn:
     rts
 _BossFiresprayPrepare:
     jsr FuncC_Boss_Lava_BossCloseJaws
     ;; Wait until the boss is in position.
     jsr FuncC_Boss_Lava_BossMoveTowardGoal  ; sets C when goal is reached
-    bcc @done
+    bcc _FirstReturn
     ;; Change modes to wind up for the spray of fireballs.
     lda #eBossMode::FiresprayWindup
     sta Zp_RoomState + sState::Current_eBossMode
     lda #70
     sta Zp_RoomState + sState::BossCooldown_u8
     jmp FuncA_Room_PlaySfxSlowWindup
-    @done:
     rts
 _BossFiresprayWindup:
     jsr FuncC_Boss_Lava_BossOpenJaws
@@ -668,24 +644,16 @@ _BossFlamestrikePrepare:
     ;; Wait until the boss is in position.
     jsr FuncC_Boss_Lava_BossMoveTowardGoal  ; sets C when goal is reached
     bcc @done
-    ;; Wait until no other flamestrike projectile exists.
-    ldx #kMaxActors - 1
-    @loop:
-    lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjFlamestrike
-    beq @done
-    dex
-    .assert kMaxActors <= $80, error
-    bpl @loop
     ;; Change modes to shoot the flamestrike.
     lda #eBossMode::FlamestrikeShoot
     sta Zp_RoomState + sState::Current_eBossMode
+    lda #kAttackVibrateFrames
+    sta Zp_RoomState + sState::BossCooldown_u8
     @done:
     rts
 _BossFlamestrikeShoot:
-    ;; Wait until the boss's jaws are fully open.
-    jsr FuncC_Boss_Lava_BossOpenJaws  ; sets Z when jaws are fully open
-    bne @done
+    jsr FuncC_Boss_Lava_VibrateForCooldownAndOpenJaws  ; sets Z when finished
+    bne _SecondReturn  ; still vibrating
     ;; Change modes to wait while the flamestrike descends.
     lda #eBossMode::FlamestrikeDescend
     sta Zp_RoomState + sState::Current_eBossMode
@@ -695,37 +663,42 @@ _BossFlamestrikeShoot:
     lda #kBossHeightPx / 2 - 1  ; param: offset
     jsr FuncA_Room_BossLava_SetPointBelowBossCenter
     jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @done
+    bcs _SecondReturn
     jsr Func_SetActorCenterToPoint  ; preserves X
     lda #0  ; param: FlipH flag
     jsr FuncA_Room_InitActorProjFlamestrike
     jsr Func_FindEmptyActorSlot  ; returns C and X
-    bcs @done
+    bcs _SecondReturn
     jsr Func_SetActorCenterToPoint  ; preserves X
     lda #bObj::FlipH  ; param: FlipH flag
     jmp FuncA_Room_InitActorProjFlamestrike
-    @done:
-    rts
 _BossFlamestrikeDescend:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
-    bne @done
+    bne _SecondReturn
     ;; Change modes to retreat while the flamestrike is paused.
+    fall _StartFlamestrikeRetreat
+_StartFlamestrikeRetreat:
     lda #0
     sta Zp_RoomState + sState::BossGoalY_u8
     lda #eBossMode::FlamestrikeRetreat
     sta Zp_RoomState + sState::Current_eBossMode
-    lda #110
-    sta Zp_RoomState + sState::BossCooldown_u8
-    @done:
+    fall _SecondReturn
+_SecondReturn:
     rts
 _BossFlamestrikeRetreat:
     jsr FuncC_Boss_Lava_BossCloseJaws
     jsr FuncC_Boss_Lava_BossMoveTowardGoal
-    ;; Wait for the cooldown to expire.
-    lda Zp_RoomState + sState::BossCooldown_u8
-    beq _StartFirespray
+    ;; Wait for the flamestrike to disappear.
+    lda #eActor::ProjFlamestrike  ; param: actor type to find
+    jsr Func_FindActorWithType  ; returns C
+    bcs _StartFirespray  ; flamestrike is gone
     rts
+_BossEggWait:
+    jsr FuncC_Boss_Lava_BossCloseJaws
+    ;; Wait until no egg or solifuge exists.
+    jsr FuncA_Room_BossLava_DoesEggOrSolifugeExist
+    bcc _SecondReturn  ; an egg or solifuge still exists in the room
 _StartFirespray:
     ;; Choose a random valid position for shooting a fireball spray.
     jsr Func_GetRandomByte  ; returns A
@@ -736,6 +709,22 @@ _StartFirespray:
     sta Zp_RoomState + sState::BossGoalY_u8
     ;; Change modes to move to the firing position and shoot a fireball spray.
     lda #eBossMode::FiresprayPrepare
+    sta Zp_RoomState + sState::Current_eBossMode
+    rts
+_BossEggDrop:
+    jsr FuncC_Boss_Lava_VibrateForCooldownAndOpenJaws  ; sets Z when finished
+    bne _SecondReturn  ; still vibrating
+    ;; Drop an egg.
+    lda #kBossHeightPx / 2 + kTileHeightPx / 2  ; param: offset
+    jsr FuncA_Room_BossLava_SetPointBelowBossCenter
+    jsr Func_FindEmptyActorSlot  ; returns C and X
+    bcs _SecondReturn
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    jsr FuncA_Room_InitActorProjEgg
+    inc Zp_RoomState + sState::BossEggsDropped_u8
+    fall _StartEggWait
+_StartEggWait:
+    lda #eBossMode::EggWait
     sta Zp_RoomState + sState::Current_eBossMode
     rts
 _BossHurt:
@@ -755,23 +744,32 @@ _BossHurt:
     jsr Func_MovePlatformHorz  ; preserves X
     pla  ; param: signed delta
     ldx #kBossTailPlatformIndex  ; param: platform index
-    jmp Func_MovePlatformHorz  ; preserves X
+    jmp Func_MovePlatformHorz
     @doneVibrate:
     ;; At the end of the hurt animation, if boss's health is now zero, kill the
-    ;; boss.  Otherwise, start scuttling.
+    ;; boss.
     lda Zp_RoomState + sState::BossHealth_u8
-    bne _StartScuttling  ; boss is not dead yet
+    bne @notDead
     .assert eBossMode::Dead = 0, error
     sta Zp_RoomState + sState::Current_eBossMode
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kBossBodyPlatformIndex
     rts
+    @notDead:
+    ;; Otherwise, switch modes based on what's happening in the battle.
+    lda #eActor::ProjFlamestrike  ; param: actor type to find
+    jsr Func_FindActorWithType  ; returns C
+    bcc _StartFlamestrikeRetreat  ; a flamestrike exists in the room
+    jsr FuncA_Room_BossLava_DoesEggOrSolifugeExist  ; returns C
+    bcc _StartEggWait  ; an egg or solifuge exists in the room
+    fall _StartScuttling
 _StartScuttling:
-    ;; Choose a random number of times to scuttle, from 2-5.
+    ;; Choose a random number of times to scuttle, from 3-6.
     jsr Func_GetRandomByte  ; returns A
     mod #4
-    add #2
+    add #3
     sta Zp_RoomState + sState::BossModeParam_byte
+    fall _StartNextScuttle
 _StartNextScuttle:
     lda #eBossMode::Scuttling
     sta Zp_RoomState + sState::Current_eBossMode
@@ -781,10 +779,11 @@ _StartNextScuttle:
     jsr Func_DivMod  ; returns remainder in A
     sta Zp_RoomState + sState::BossGoalX_u8
     jsr Func_GetRandomByte  ; returns A (param: dividend)
-    ldy #kBossMaxGoalY + 1  ; param: divisor
-    jsr Func_DivMod  ; returns remainder in A
+    .assert kBossMaxGoalY = 3, error
+    mod #4
     sta Zp_RoomState + sState::BossGoalY_u8
-_Return:
+    fall _ThirdReturn
+_ThirdReturn:
     rts
 _BossFiresprayShoot:
     ;; Only shoot every eight frames.
@@ -805,11 +804,21 @@ _BossFiresprayShoot:
     rsub #$70  ; param: aim angle
     @shootFireball:
     jsr Func_ShootFireballFromPoint
-    ;; When the last fireball is fired, change modes.
+    ;; Once the last fireball is shot, recover for a bit before switching back
+    ;; to scuttling.
     lda Zp_RoomState + sState::BossCooldown_u8
-    beq _StartScuttling
+    bne @done  ; still more fireballs to shoot
+    lda #eBossMode::FiresprayRecover
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #90
+    sta Zp_RoomState + sState::BossCooldown_u8
     @done:
     rts
+_BossFiresprayRecover:
+    ;; Wait for cooldown, then start scuttling.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    bne FuncC_Boss_Lava_BossOpenJaws
+    beq _StartScuttling  ; unconditional
 _BossScuttling:
     ;; Wait for cooldown.
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -818,7 +827,7 @@ _BossScuttling:
     jsr FuncC_Boss_Lava_BossCloseJaws
     ;; Move towards the goal.
     jsr FuncC_Boss_Lava_BossMoveTowardGoal  ; sets C when goal is reached
-    bcc _Return  ; hasn't reached goal yet
+    bcc _ThirdReturn  ; hasn't reached goal yet
     ;; Set a cooldown before proceeding to the next goal position.
     lda #kBossScuttleCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
@@ -896,6 +905,38 @@ _EggsToDrop_u8_arr:
     lda #0
     @setJaws:
     sta Zp_RoomState + sState::BossJawsOpen_u8
+    rts
+.ENDPROC
+
+;;; Makes the boss vibrate in place for the duration of the cooldown, opening
+;;; its jaws towards the end of the cooldown period (assuming that the total
+;;; cooldown period is kAttackVibrateFrames).
+;;; @return Z Set when finished vibrating.
+.PROC FuncC_Boss_Lava_VibrateForCooldownAndOpenJaws
+_Vibrate:
+    lda Zp_RoomState + sState::BossCooldown_u8
+    lsr a
+    bcs @done
+    and #1    ; param: signed delta
+    bne @vibrate
+    lda #<-1  ; param: signed delta
+    @vibrate:
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    pha  ; signed delta
+    jsr Func_MovePlatformHorz  ; preserves X
+    pla  ; param: signed delta
+    ldx #kBossTailPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformHorz
+    @done:
+_OpenJaws:
+    ;; Towards the end of the cooldown, open the boss's jaws.
+    lda Zp_RoomState + sState::BossCooldown_u8
+    cmp #30
+    bge @done
+    jsr FuncC_Boss_Lava_BossOpenJaws  ; sets Z when fully open
+    @done:
+_SetZWhenCooldownComplete:
+    lda Zp_RoomState + sState::BossCooldown_u8
     rts
 .ENDPROC
 
@@ -1136,14 +1177,8 @@ _BossIsAlive:
     sta Zp_RoomState + sState::BossHealth_u8
     lda #kBossInitCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
-    lda #eBossMode::Scuttling
+    lda #eBossMode::FiresprayRecover
     sta Zp_RoomState + sState::Current_eBossMode
-    .assert kBossInitGoalX <> 0, error
-    lda #kBossInitGoalX
-    sta Zp_RoomState + sState::BossGoalX_u8
-    .assert kBossInitGoalY = 0, error
-    lda #2
-    sta Zp_RoomState + sState::BossModeParam_byte
     rts
 .ENDPROC
 
@@ -1167,6 +1202,18 @@ _Boss:
     jsr FuncA_Room_SetPointToBossBodyCenter
     pla  ; param: offset
     jmp Func_MovePointDownByA
+.ENDPROC
+
+;;; Determines if there is an egg projectile or solifuge baddie in the room.
+;;; @return C Clear if an egg and/or solifuge exists in the room, set if not.
+.PROC FuncA_Room_BossLava_DoesEggOrSolifugeExist
+    lda #eActor::ProjEgg  ; param: actor type to find
+    jsr Func_FindActorWithType  ; returns C
+    bcs @checkForSolifuge
+    rts
+    @checkForSolifuge:
+    lda #eActor::BadSolifuge  ; param: actor type to find
+    jmp Func_FindActorWithType  ; returns C
 .ENDPROC
 
 .PROC FuncA_Room_BossLavaBlaster_InitReset
