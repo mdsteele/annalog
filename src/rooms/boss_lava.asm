@@ -256,12 +256,15 @@ kPaletteObjBossLava = 1
     LeverRight_u8      .byte
     ;; What mode the boss is in.
     Current_eBossMode  .byte
-    ;; Mode-specific parameter/counter for the current boss mode.
-    ;; * For Scuttling mode, this is how many times to scuttle.
-    ;; * For FiresprayShoot mode, any negative value means sweep right to left,
-    ;;   and any non-negative value means sweep left to right.
-    ;; * For all other boss modes, this is ignored.
-    BossModeParam_byte .byte
+    ;; For Scuttling mode, this is how many times to scuttle before attacking.
+    ;; A new random value is chosen at the end of each scuttling sequence, and
+    ;; is persisted during other modes (this allows the value to be persisted
+    ;; if scuttling is temporarily interrupted by Hurt mode).
+    ScuttleCount_u8    .byte
+    ;; For FiresprayShoot mode, any negative value means sweep right to left,
+    ;; and any non-negative value means sweep left to right.  Ignored for other
+    ;; modes.
+    FiresprayDir_i8    .byte
     ;; How many more blaster hits are needed before the boss dies.
     BossHealth_u8      .byte
     ;; Timer that ticks down each frame when nonzero.  Used to time transitions
@@ -636,7 +639,7 @@ _BossFiresprayWindup:
     lda #$31
     sta Zp_RoomState + sState::BossCooldown_u8
     jsr Func_GetRandomByte  ; returns A
-    sta Zp_RoomState + sState::BossModeParam_byte
+    sta Zp_RoomState + sState::FiresprayDir_i8
     @done:
     rts
 _BossFlamestrikePrepare:
@@ -762,13 +765,6 @@ _BossHurt:
     bcc _StartFlamestrikeRetreat  ; a flamestrike exists in the room
     jsr FuncA_Room_BossLava_DoesEggOrSolifugeExist  ; returns C
     bcc _StartEggWait  ; an egg or solifuge exists in the room
-    fall _StartScuttling
-_StartScuttling:
-    ;; Choose a random number of times to scuttle, from 3-6.
-    jsr Func_GetRandomByte  ; returns A
-    mod #4
-    add #3
-    sta Zp_RoomState + sState::BossModeParam_byte
     fall _StartNextScuttle
 _StartNextScuttle:
     lda #eBossMode::Scuttling
@@ -795,7 +791,7 @@ _BossFiresprayShoot:
     jsr FuncA_Room_BossLava_SetPointBelowBossCenter
     lda Zp_RoomState + sState::BossCooldown_u8
     mul #2  ; clears the carry bit
-    bit Zp_RoomState + sState::BossModeParam_byte
+    bit Zp_RoomState + sState::FiresprayDir_i8
     bmi @sweepRightToLeft
     @sweepLeftToRight:
     adc #$10  ; param: aim angle
@@ -818,7 +814,7 @@ _BossFiresprayRecover:
     ;; Wait for cooldown, then start scuttling.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne FuncC_Boss_Lava_BossOpenJaws
-    beq _StartScuttling  ; unconditional
+    beq _StartNextScuttle  ; unconditional
 _BossScuttling:
     ;; Wait for cooldown.
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -831,19 +827,26 @@ _BossScuttling:
     ;; Set a cooldown before proceeding to the next goal position.
     lda #kBossScuttleCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
-    dec Zp_RoomState + sState::BossModeParam_byte
-    beq @attack
+    dec Zp_RoomState + sState::ScuttleCount_u8
+    beq _StartNewAttackSequence
     lda #60
     sta Zp_RoomState + sState::BossCooldown_u8
     bne _StartNextScuttle  ; unconditional
-    @attack:
-    ;; If the boss hasn't dropped enough eggs for this health level, drop one.
+_StartNewAttackSequence:
+    ;; Choose a random number of times to scuttle next time, from 3-6.
+    jsr Func_GetRandomByte  ; returns A
+    mod #4
+    add #3
+    sta Zp_RoomState + sState::ScuttleCount_u8
+    ;; If the boss hasn't dropped enough eggs for this health level, prepare to
+    ;; drop one.
     ldx Zp_RoomState + sState::BossHealth_u8
     lda Zp_RoomState + sState::BossEggsDropped_u8
     cmp _EggsToDrop_u8_arr, x
-    blt _StartEgg
-    bge _StartFlamestrike  ; unconditional
-_StartFlamestrike:
+    blt _StartEggPrepare
+    ;; Otherwise, prepare a flamestrike attack.
+    fall _StartFlamestrikePrepare
+_StartFlamestrikePrepare:
     ;; Choose a random valid position for firing a flamestrike (Y is 2, and X
     ;; is in in the range 3-6).
     lda #2
@@ -856,7 +859,7 @@ _StartFlamestrike:
     lda #eBossMode::FlamestrikePrepare
     sta Zp_RoomState + sState::Current_eBossMode
     rts
-_StartEgg:
+_StartEggPrepare:
     ;; Choose a random valid position for dropping an egg (Y is 0, and X is in
     ;; in the range 4-5).
     lda #0
@@ -1179,6 +1182,8 @@ _BossIsAlive:
     sta Zp_RoomState + sState::BossCooldown_u8
     lda #eBossMode::FiresprayRecover
     sta Zp_RoomState + sState::Current_eBossMode
+    lda #4
+    sta Zp_RoomState + sState::ScuttleCount_u8
     rts
 .ENDPROC
 
