@@ -31,7 +31,6 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
-.INCLUDE "mine_west.inc"
 
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT Data_Empty_sActor_arr
@@ -355,7 +354,7 @@ _Passages_sPassage_arr:
     jsr _DrawRope
     jsr FuncA_Objects_MoveShapeRightOneTile
     ;; Draw upper girder and spikes:
-    ldy #kPaletteObjHoistRope  ; param: object flags
+    ldy #kPaletteObjMineCage  ; param: object flags
     lda #kTileIdObjMineCageFirst  ; param: tile ID
     jsr FuncA_Objects_Draw2x2Shape  ; returns C and Y
     bcs @done

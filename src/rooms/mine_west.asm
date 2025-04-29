@@ -28,11 +28,11 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/girder.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
 .INCLUDE "../sample.inc"
-.INCLUDE "mine_west.inc"
 
 .IMPORT DataA_Room_Mine_sTileset
 .IMPORT FuncA_Machine_CraneMoveTowardGoal
@@ -102,14 +102,6 @@ kCageMaxTop = kCageMaxBottom - (kCagePlatformHeight * 2 + kCageInteriorHeight)
 
 ;;; How many frames the room shakes for when the cage hits the ground.
 kCageShakeFrames = 15
-
-;;; OBJ tile IDs for drawing the cage.
-kTileIdObjCageHandle = kTileIdObjMineCageFirst + 1
-kTileIdObjCageRods   = kTileIdObjMineCageFirst + 3
-
-;;; OBJ palette numbers for drawing the cage.
-kPaletteObjCageHandle = 0
-kPaletteObjCageRods   = 0
 
 ;;;=========================================================================;;;
 
@@ -267,8 +259,8 @@ _Passages_sPassage_arr:
     jsr FuncA_Objects_DrawGirderPlatform
     jsr FuncA_Objects_MoveShapeUpOneTile
     jsr FuncA_Objects_MoveShapeLeftOneTile
-    ldy #kPaletteObjCageHandle  ; param: object flags
-    lda #kTileIdObjCageHandle  ; param: tile ID
+    ldy #kPaletteObjMineCage  ; param: object flags
+    lda #kTileIdObjMineCageHandle  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape
     ldx #kCageLowerPlatformIndex
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -279,8 +271,8 @@ _DrawCageSide:
     ldx #4
     @loop:
     jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #kPaletteObjCageRods  ; param: object flags
-    lda #kTileIdObjCageRods  ; param: tile ID
+    ldy #kPaletteObjMineCage  ; param: object flags
+    lda #kTileIdObjMineCageRods  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X; returns C and Y
     dex
     bne @loop

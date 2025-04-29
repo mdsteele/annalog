@@ -114,7 +114,6 @@
 .INCLUDE "rooms/city_center.inc"
 .INCLUDE "rooms/factory_pass.inc"
 .INCLUDE "rooms/garden_tower.inc"
-.INCLUDE "rooms/mine_west.inc"
 .INCLUDE "upgrade.inc"
 
 ;;;=========================================================================;;;
@@ -1404,7 +1403,7 @@ _chr_begin:
     chr_inc "upgrade_ram",     kTileIdObjUpgradeRamFirst
     chr_inc "hoist_obj",       kTileIdObjHoistFirst
     chr_inc "mine_cage",       kTileIdObjMineCageFirst
-    chr_res $08
+    chr_res $06
     chr_inc "dirt",            kTileIdObjDirtFirst
     chr_res $02
     chr_inc "upgrade_opsync",  kTileIdObjUpgradeOpSyncFirst

@@ -27,6 +27,7 @@
 .INCLUDE "../machines/hoist.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/girder.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -38,12 +39,13 @@
 .IMPORT FuncA_Machine_HoistTryMove
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_WriteToLever
+.IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_DrawConveyorMachine
-.IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_DrawHoistMachine
 .IMPORT FuncA_Objects_DrawHoistPulley
 .IMPORT FuncA_Objects_DrawHoistRopeToPulley
 .IMPORT FuncA_Objects_MoveShapeLeftByA
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncA_Room_ResetLever
 .IMPORT Func_Noop
 .IMPORT Func_TryPushAvatarHorz
@@ -234,6 +236,7 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $01b0
     d_word Top_i16,   $00a8
     D_END
+    ;; Hoist machine:
     .assert * - :- = kHoistPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
@@ -399,15 +402,22 @@ _RegL:
 
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Mine_NorthHoist_Draw
+_Pulley:
     ldx #kHoistPulleyPlatformIndex  ; param: platform index
     ldy Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex  ; param: rope
     jsr FuncA_Objects_DrawHoistPulley
+_Girder:
     ldx #kHoistGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldy #kPaletteObjMineCage  ; param: object flags
+    lda #kTileIdObjMineCageSingleGirder  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+_RopeUpToPulley:
     lda #3  ; param: offset
     jsr FuncA_Objects_MoveShapeLeftByA
     ldx #kHoistPulleyPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawHoistRopeToPulley
+_Hoist:
     lda Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex  ; param: rope
     jmp FuncA_Objects_DrawHoistMachine
 .ENDPROC

@@ -28,6 +28,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/girder.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -40,13 +41,13 @@
 .IMPORT FuncA_Machine_LiftTryMove
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_Draw1x1Shape
-.IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_DrawHoistMachine
 .IMPORT FuncA_Objects_DrawHoistPulley
 .IMPORT FuncA_Objects_DrawHoistRopeToPulley
 .IMPORT FuncA_Objects_DrawLiftMachine
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjMine
@@ -62,9 +63,10 @@ kLiftMachineIndex  = 1
 ;;; The platform indices for the machines in this room.
 kHoistPlatformIndex       = 0
 kPulleyPlatformIndex      = 1
-kUpperGirderPlatformIndex = 2
-kLowerGirderPlatformIndex = 3
-kLiftPlatformIndex        = 4
+kGirderSpikePlatformIndex = 2
+kUpperGirderPlatformIndex = 3
+kLowerGirderPlatformIndex = 4
+kLiftPlatformIndex        = 5
 
 ;;; The initial and maximum permitted values for the hoist's Z-goal.
 kHoistInitGoalZ = 4
@@ -74,13 +76,13 @@ kHoistMaxGoalZ  = 9
 kGirderPlatformLeft = $009d
 
 ;;; The vertical distance between the tops of the two girder platforms.
-kGirderSpacingTiles = 5
+kGirderSpacingTiles = 4
 kGirderSpacingPx = kTileHeightPx * kGirderSpacingTiles
 
 ;;; The minimum and initial room pixel position for the top edge of the hoist
 ;;; girders.
 .LINECONT +
-kLowerGirderMinPlatformTop = $0080
+kLowerGirderMinPlatformTop = $0087
 kLowerGirderInitPlatformTop = \
     kLowerGirderMinPlatformTop + kBlockHeightPx * kHoistInitGoalZ
 kUpperGirderInitPlatformTop = kLowerGirderInitPlatformTop - kGirderSpacingPx
@@ -183,6 +185,14 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00a0
     d_word Top_i16,   $0020
+    D_END
+    .assert * - :- = kGirderSpikePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $06
+    d_byte HeightPx_u8, $08
+    d_word Left_i16, kGirderPlatformLeft + 1
+    d_word Top_i16, kUpperGirderInitPlatformTop - 2
     D_END
     .assert * - :- = kUpperGirderPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
@@ -294,7 +304,11 @@ _Pulley:
     jsr FuncA_Objects_DrawHoistPulley
 _LowerGirder:
     ldx #kLowerGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldy #kPaletteObjMineCage  ; param: object flags
+    lda #kTileIdObjMineCageSingleGirder  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+_RopeBetweenGirders:
     jsr FuncA_Objects_MoveShapeLeftHalfTile
     ldx #kGirderSpacingTiles - 1
     @loop:
@@ -306,7 +320,16 @@ _LowerGirder:
     bne @loop
 _UpperGirder:
     ldx #kUpperGirderPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_DrawGirderPlatform
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    ldy #kPaletteObjMineCage  ; param: object flags
+    lda #kTileIdObjMineCageSingleGirder  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape
+_GirderSpike:
+    jsr FuncA_Objects_MoveShapeUpOneTile
+    ldy #kPaletteObjMineCage  ; param: object flags
+    lda #kTileIdObjMineCageSingleSpikes  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+_RopeUpToPulley:
     jsr FuncA_Objects_MoveShapeLeftHalfTile
     ldx #kPulleyPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawHoistRopeToPulley
@@ -341,7 +364,11 @@ _Hoist:
     ldya #kLowerGirderMinPlatformTop  ; param: min platform top
     jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C and A
     jcs FuncA_Machine_ReachedGoal
+    pha  ; move by
     ldx #kUpperGirderPlatformIndex  ; param: platform index
+    jsr Func_MovePlatformVert
+    pla  ; param: move by
+    ldx #kGirderSpikePlatformIndex  ; param: platform index
     jmp Func_MovePlatformVert
 .ENDPROC
 

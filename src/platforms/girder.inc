@@ -20,4 +20,14 @@
 ;;; The OBJ tile ID used for FuncA_Objects_DrawGirderPlatform.
 kTileIdObjPlatformGirder = $80
 
+;;; OBJ tile IDs for drawing girder cages in Mine rooms.
+kTileIdObjMineCageFirst        = $88
+kTileIdObjMineCageHandle       = kTileIdObjMineCageFirst + 1
+kTileIdObjMineCageRods         = kTileIdObjMineCageFirst + 3
+kTileIdObjMineCageSingleSpikes = kTileIdObjMineCageFirst + 4
+kTileIdObjMineCageSingleGirder = kTileIdObjMineCageFirst + 5
+
+;;; OBJ palette numbers for drawing girder cages in Mine rooms.
+kPaletteObjMineCage = 0
+
 ;;;=========================================================================;;;
