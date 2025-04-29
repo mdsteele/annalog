@@ -333,6 +333,7 @@ _SetFlags:
     .byte eFlag::FlowerMine
     .byte eFlag::FactoryVaultTalkedToAlex
     .byte eFlag::FactoryEastCorraHelped
+    .byte eFlag::SewerFaucetEnteredUpperSewer
     .byte eFlag::FlowerLava
     .byte eFlag::PaperJerome05  ; room: SewerWest
     .byte eFlag::PaperJerome03  ; room: SewerPipe

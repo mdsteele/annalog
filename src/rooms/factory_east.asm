@@ -218,8 +218,8 @@ _Passages_sPassage_arr:
     ;; FactoryVault.
     flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
     beq @removeCorra
-    ;; Once you reach the city, Corra leaves this room.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterEnteredCity
+    ;; Once you reach the upper sewers, Corra leaves this room.
+    flag_bit Sram_ProgressFlags_arr, eFlag::SewerFaucetEnteredUpperSewer
     beq @keepCorra
     ;; To be safe, set the flag for Corra having helped here if you've already
     ;; reached the city (although normally, it is impossible to reach the city

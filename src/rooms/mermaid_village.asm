@@ -492,7 +492,7 @@ _CorraNotInCoreSouth_sDialog:
 _CorraNotInTempleEntry_sDialog:
     ;; If Corra is in FactoryEast, report that she went there.
     dlg_IfClear FactoryVaultTalkedToAlex, _CorraInVillage_sDialog
-    dlg_IfSet CityCenterEnteredCity, _CorraGone_sDialog
+    dlg_IfSet SewerFaucetEnteredUpperSewer, _CorraGone_sDialog
     dlg_Text MermaidFarmer, DataA_Text1_MermaidVillageFarmer_FactoryEast_u8_arr
     dlg_Done
 _CorraInVillage_sDialog:

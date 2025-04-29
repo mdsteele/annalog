@@ -183,6 +183,7 @@ kSaveMagicNumber = $b2
     PrisonUpperFreedKids
     PrisonUpperGateOpen
     PrisonUpperLoosenedBrick
+    SewerFaucetEnteredUpperSewer
     ShadowDrillClearedGoo
     ShadowHallGlassBroken
     ShadowHallInitialized

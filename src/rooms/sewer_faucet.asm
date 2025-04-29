@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/jelly.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
@@ -28,6 +29,7 @@
 .IMPORT DataA_Room_Sewer_sTileset
 .IMPORT Data_Empty_sDevice_arr
 .IMPORT Func_Noop
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjSewer
 
 ;;;=========================================================================;;;
@@ -55,7 +57,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, Data_Empty_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Sewer_Faucet_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
@@ -135,6 +137,11 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, $a1
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Sewer_Faucet_EnterRoom
+    ldx #eFlag::SewerFaucetEnteredUpperSewer  ; param: flag
+    jmp Func_SetFlag
 .ENDPROC
 
 ;;;=========================================================================;;;
