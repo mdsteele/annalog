@@ -30,10 +30,12 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/launcher.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_City_sTileset
 .IMPORT DataA_Text1_CityOutskirtsAlex_Part1_u8_arr
@@ -42,6 +44,8 @@
 .IMPORT DataA_Text1_CityOutskirtsAlex_Part4_u8_arr
 .IMPORT DataA_Text1_CityOutskirtsAlex_Part5_u8_arr
 .IMPORT DataA_Text1_CityOutskirtsAlex_Part6_u8_arr
+.IMPORT DataA_Text1_CityOutskirtsAlex_Part7_u8_arr
+.IMPORT FuncA_Cutscene_FaceAvatarTowardsActor
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_GenericTryMoveY
@@ -58,6 +62,7 @@
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxBaddieJump
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
@@ -65,14 +70,17 @@
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ppu_ChrObjCity
-.IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
+.IMPORT Ram_ActorVelY_i16_0_arr
+.IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
+.IMPORTZP Zp_Camera_bScroll
+.IMPORTZP Zp_ScrollGoalX_u16
 
 ;;;=========================================================================;;;
 
@@ -380,17 +388,91 @@ _Rocks:
 
 .EXPORT DataA_Cutscene_CityOutskirtsLook_sCutscene
 .PROC DataA_Cutscene_CityOutskirtsLook_sCutscene
+    ;; Make Alex face the city.
     act_SetActorState2 kAlexActorIndex, $ff
     act_SetActorFlags kAlexActorIndex, 0
-    act_ForkStart 1, _Look_sCutscene
-    act_ScrollSlowX $0090
+    ;; Scroll the city into view.  During the scrolling, make Anna face the
+    ;; city.
+    act_SetScrollFlags bScroll::LockVert | bScroll::LockMap
+    act_ForkStart 1, _MakeAnnaLookAtCity_sCutscene
+    act_ScrollSlowX $009c
     act_WaitFrames 30
+    act_SetScrollFlags bScroll::LockHorz | bScroll::LockVert | bScroll::LockMap
     act_RunDialog eDialog::CityOutskirtsAlex2
+    act_SetScrollFlags bScroll::LockVert | bScroll::LockMap
+    ;; Make Alex and Anna face each other again.
+    act_SetActorState2 kAlexActorIndex, $00
+    act_CallFunc _MakeAnnaFaceAlex
+    act_RunDialog eDialog::CityOutskirtsAlex3
+    ;; Make Alex walk to the edge of the roof (while Anna steps out of his
+    ;; way).
+    act_ForkStart 1, _WalkAvatar_sCutscene
+    act_MoveNpcAlexWalk kAlexActorIndex, $00b2
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 6
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
+    act_WaitFrames 10
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
+    act_WaitFrames 2
+    ;; Make Alex jump off the building.
+    act_CallFunc Func_PlaySfxBaddieJump
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexWalking1
+    act_SetActorVelX kAlexActorIndex, -$1d0
+    act_SetActorVelY kAlexActorIndex, -$200
+    act_SetCutsceneFlags bCutscene::TickAllActors
+    act_RepeatFunc 38, _ApplyAlexGravity
+    act_SetCutsceneFlags 0
+    act_SetActorVelX kAlexActorIndex, 0
+    act_SetActorVelY kAlexActorIndex, 0
+    act_SetActorPosY kAlexActorIndex, $00a8
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
+    act_WaitFrames 20
+    ;; Make Alex walk to the edge of the hill.
+    act_MoveNpcAlexWalk kAlexActorIndex, $0058
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexKneeling
+    act_WaitFrames 6
+    ;; Make Alex jump off the hill.
+    act_CallFunc Func_PlaySfxBaddieJump
+    act_SetActorState1 kAlexActorIndex, eNpcChild::AlexWalking1
+    act_SetActorVelX kAlexActorIndex, -$1d0
+    act_SetActorVelY kAlexActorIndex, -$180
+    act_SetCutsceneFlags bCutscene::TickAllActors
+    act_RepeatFunc 20, _ApplyAlexGravity
+    act_SetCutsceneFlags 0
+    act_CallFunc _RemoveAlex
+    act_WaitFrames 30
+    act_SetScrollFlags 0
     act_ContinueExploring
-_Look_sCutscene:
+_MakeAnnaLookAtCity_sCutscene:
     act_WaitFrames 20
     act_SetAvatarFlags 0 | kPaletteObjAvatarNormal
     act_ForkStop $ff
+_MakeAnnaFaceAlex:
+    ldya #$0040
+    stya Zp_ScrollGoalX_u16
+    ldx #kAlexActorIndex  ; param: actor index
+    jmp FuncA_Cutscene_FaceAvatarTowardsActor
+_WalkAvatar_sCutscene:
+    act_MoveAvatarWalk $00c8
+    act_SetAvatarPose eAvatar::Standing
+    act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
+    act_ForkStop $ff
+_ApplyAlexGravity:
+    lda #kAvatarGravity
+    add Ram_ActorVelY_i16_0_arr + kAlexActorIndex
+    sta Ram_ActorVelY_i16_0_arr + kAlexActorIndex
+    lda #0
+    adc Ram_ActorVelY_i16_1_arr + kAlexActorIndex
+    sta Ram_ActorVelY_i16_1_arr + kAlexActorIndex
+    rts
+_RemoveAlex:
+    lda #0
+    .assert eActor::None = 0, error
+    sta Ram_ActorType_eActor_arr + kAlexActorIndex
+    .assert eDevice::None = 0, error
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexLeft
+    sta Ram_DeviceType_eDevice_arr + kAlexDeviceIndexRight
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -401,7 +483,7 @@ _Look_sCutscene:
 .PROC DataA_Dialog_CityOutskirtsAlex1_sDialog
     .linecont +
     dlg_IfSet CityOutskirtsTalkedToAlex, \
-              DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
+              DataA_Dialog_CityOutskirtsAlex3_sDialog
     .linecont -
 _YouMadeIt_sDialog:
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part1_u8_arr
@@ -414,18 +496,20 @@ _YouMadeIt_sDialog:
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part3_u8_arr
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part4_u8_arr
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part5_u8_arr
-    dlg_Call _MakeAlexFaceAnna
-    dlg_Quest CityOutskirtsTalkedToAlex
-    dlg_Goto DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
-_MakeAlexFaceAnna:
-    lda #$00
-    sta Ram_ActorState2_byte_arr + kAlexActorIndex
-    rts
+    dlg_Done
 .ENDPROC
 
-.PROC DataA_Dialog_CityOutskirtsMeetAtHotSpring_sDialog
+.EXPORT DataA_Dialog_CityOutskirtsAlex3_sDialog
+.PROC DataA_Dialog_CityOutskirtsAlex3_sDialog
     dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part6_u8_arr
+    dlg_Quest CityOutskirtsTalkedToAlex
+    dlg_Text ChildAlex, DataA_Text1_CityOutskirtsAlex_Part7_u8_arr
+    dlg_Call _LockScrolling
     dlg_Done
+_LockScrolling:
+    lda #bScroll::LockHorz | bScroll::LockVert | bScroll::LockMap
+    sta Zp_Camera_bScroll
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

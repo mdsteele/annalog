@@ -128,6 +128,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     CityFlowerOrcCalm
     CityOutskirtsAlex1
     CityOutskirtsAlex2
+    CityOutskirtsAlex3
     CoreBossGrontaDying
     CoreBossGrontaGive1
     CoreBossGrontaGive2

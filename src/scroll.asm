@@ -24,7 +24,6 @@
 .INCLUDE "room.inc"
 .INCLUDE "scroll.inc"
 
-.IMPORT FuncA_Terrain_CallRoomFadeIn
 .IMPORT FuncA_Terrain_FillNametables
 .IMPORT FuncA_Terrain_TransferTileColumn
 .IMPORT FuncA_Terrain_UpdateAndMarkMinimap
@@ -225,7 +224,11 @@ _SetScrollGoalX:
     lda Zp_ScrollGoalY_u8
     sta Zp_RoomScrollY_u8
     @lockVert:
+    lda Zp_Camera_bScroll
+    and #bScroll::LockMap
+    bne @lockMap
     jsr FuncA_Terrain_UpdateAndMarkMinimap
+    @lockMap:
     ;; Calculate the index of the leftmost room tile column that should be in
     ;; the nametable.
     lda Zp_RoomScrollX_u16 + 0
@@ -240,7 +243,18 @@ _SetScrollGoalX:
     lda T0  ; param: left block column index
     ;; Populate the nametables.
     jsr FuncA_Terrain_FillNametables
-    jmp FuncA_Terrain_CallRoomFadeIn
+    fall FuncA_Terrain_CallRoomFadeIn
+.ENDPROC
+
+;;; Calls the current room's FadeIn_func_ptr function.
+.PROC FuncA_Terrain_CallRoomFadeIn
+    ldy #sRoomExt::FadeIn_func_ptr
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta T0
+    iny
+    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
+    sta T1
+    jmp (T1T0)
 .ENDPROC
 
 ;;; Sets the scroll goal from the player avatar's position, then updates the
@@ -464,7 +478,12 @@ _UpdateNametable:
     jsr FuncA_Terrain_TransferTileColumn
     @doneTransfer:
 _UpdateMinimap:
+    lda Zp_Camera_bScroll
+    and #bScroll::LockMap
+    bne @lockMap
     jmp FuncA_Terrain_UpdateAndMarkMinimap
+    @lockMap:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

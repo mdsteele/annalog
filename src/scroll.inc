@@ -21,6 +21,7 @@
 .SCOPE bScroll
     LockHorz = %10000000  ; if set, horizontal scrolling is locked
     LockVert = %01000000  ; if set, vertical scrolling is locked
+    LockMap  = %00100000  ; if set, the minimap won't be updated
 .ENDSCOPE
 
 ;;; If the room shake has at least this many frames left, the shake amplitude

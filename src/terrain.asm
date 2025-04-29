@@ -452,16 +452,4 @@ _Right:
     rts
 .ENDPROC
 
-;;; Calls the current room's FadeIn_func_ptr function.
-.EXPORT FuncA_Terrain_CallRoomFadeIn
-.PROC FuncA_Terrain_CallRoomFadeIn
-    ldy #sRoomExt::FadeIn_func_ptr
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta T0
-    iny
-    lda (Zp_Current_sRoom + sRoom::Ext_sRoomExt_ptr), y
-    sta T1
-    jmp (T1T0)
-.ENDPROC
-
 ;;;=========================================================================;;;

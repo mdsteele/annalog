@@ -1199,6 +1199,7 @@ _AnimatePose:
 ;;; Update Zp_AvatarFlags_bObj to make player avatar face the specified actor.
 ;;; @param X The actor index.
 ;;; @preserve X, Y, T0+
+.EXPORT FuncA_Cutscene_FaceAvatarTowardsActor
 .PROC FuncA_Cutscene_FaceAvatarTowardsActor
     lda Ram_ActorPosX_i16_0_arr, x
     cmp Zp_AvatarPosX_i16 + 0
