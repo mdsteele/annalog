@@ -46,7 +46,6 @@
 .IMPORT DataA_Text0_FactoryVaultScreen_Page2_u8_arr
 .IMPORT DataA_Text0_FactoryVaultScreen_Page3_u8_arr
 .IMPORT Func_Noop
-.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjVillage
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -208,17 +207,13 @@ _Passages_sPassage_arr:
     act_MoveNpcAlexWalk kAlexActorIndex, $0060
     act_SetActorState1 kAlexActorIndex, eNpcChild::AlexStanding
     act_SetActorState2 kAlexActorIndex, 0
-    act_CallFunc _SetFlag
-    act_RunDialog eDialog::FactoryVaultAlex1
+    act_RunDialog eDialog::FactoryVaultAlex4
     act_ContinueExploring
 _WalkAvatar_sCutscene:
     act_MoveAvatarWalk $0050 | kTalkRightAvatarOffset
     act_SetAvatarPose eAvatar::Standing
     act_SetAvatarFlags kPaletteObjAvatarNormal | 0
     act_ForkStop $ff
-_SetFlag:
-    ldx #eFlag::FactoryVaultTalkedToAlex  ; param: flag
-    jmp Func_SetFlag
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -227,16 +222,10 @@ _SetFlag:
 
 .EXPORT DataA_Dialog_FactoryVaultAlex1_sDialog
 .PROC DataA_Dialog_FactoryVaultAlex1_sDialog
-    dlg_IfSet FactoryVaultTalkedToAlex, _CityGoal_sDialog
-_LookAtThisPlace_sDialog:
+    dlg_IfSet FactoryVaultTalkedToAlex, DataA_Dialog_FactoryVaultAlex4_sDialog
     dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex1_Part1_u8_arr
     dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex1_Part2_u8_arr
     dlg_Cutscene eCutscene::FactoryVaultLookAtTank
-_CityGoal_sDialog:
-    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex4_Part1_u8_arr
-    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex4_Part2_u8_arr
-    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex4_Part3_u8_arr
-    dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_FactoryVaultAlex2_sDialog
@@ -260,6 +249,15 @@ _LookLeft:
     lda #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
     rts
+.ENDPROC
+
+.EXPORT DataA_Dialog_FactoryVaultAlex4_sDialog
+.PROC DataA_Dialog_FactoryVaultAlex4_sDialog
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex4_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex4_Part2_u8_arr
+    dlg_Quest FactoryVaultTalkedToAlex
+    dlg_Text ChildAlex, DataA_Text0_FactoryVaultAlex4_Part3_u8_arr
+    dlg_Done
 .ENDPROC
 
 .PROC FuncA_Dialog_FactoryVault_AlexStand

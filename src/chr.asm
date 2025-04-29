@@ -667,7 +667,6 @@ _chr_begin:
     chr_inc "upgrade_opsync"
     chr_res $06
     chr_inc "minicore1"
-    chr_res $04
     chr_inc "minicore2"
     chr_inc "paper"
     END_CHR_BANK

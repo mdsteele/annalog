@@ -57,6 +57,12 @@
     d_byte Not_eFlag, eFlag::CityOutskirtsTalkedToAlex
     D_END
     D_STRUCT sMarker
+    d_byte Row_u8, 2
+    d_byte Col_u8, 22  ; room: CityCenter
+    d_byte If_eFlag, eFlag::FactoryVaultTalkedToAlex
+    d_byte Not_eFlag, eFlag::CityCenterEnteredCity
+    D_END
+    D_STRUCT sMarker
     d_byte Row_u8, 3
     d_byte Col_u8, 20  ; room: CityFlower
     d_byte If_eFlag, 0
