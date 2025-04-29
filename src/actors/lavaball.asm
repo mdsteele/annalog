@@ -30,11 +30,12 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsActorNearlyOnScreenHorz
 .IMPORT FuncA_Actor_ZeroVelY
-.IMPORT FuncA_Objects_Alloc2x2Shape
-.IMPORT FuncA_Objects_SetShapePosToActorCenter
+.IMPORT FuncA_Objects_Draw2x2MirroredActor
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorWithState1
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_PlaySfxShootFire
+.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -44,6 +45,7 @@
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_Current_sRoom
+.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
@@ -94,6 +96,10 @@ _StartJumping:
     jsr Func_GetRandomByte  ; preserves X
     ora #$80
     sta Ram_ActorVelY_i16_0_arr, x
+    ;; Clear FlipV flag, and start with bObj::Pri as the lavaball exits the
+    ;; lava.
+    lda #bObj::Pri
+    sta Ram_ActorFlags_bObj_arr, x
     ;; Play a sound effect for the jump, but only if the lavaball is on screen
     ;; (or nearly so).
     jsr FuncA_Actor_IsActorNearlyOnScreenHorz  ; preserves X, returns C
@@ -114,19 +120,16 @@ _IsJumping:
     @tall:
     ldya #kLavaballStartYTall
     @checkPosition:
+    stya Zp_PointY_i16
     ;; If the lavaball is below its starting position, end the jump.
-    sta T0  ; starting Y-position (lo)
     cmp Ram_ActorPosY_i16_0_arr, x
-    tya     ; starting Y-position (hi)
+    tya  ; starting Y-position (hi)
     sbc Ram_ActorPosY_i16_1_arr, x
-    bmi _StopJumping
-_ContinueJumping:
-    jsr FuncA_Actor_ApplyGravity  ; preserves X
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
+    bpl _ContinueJumping
 _StopJumping:
-    lda T0  ; starting Y-position (lo)
+    lda Zp_PointY_i16 + 0  ; starting Y-position (lo)
     sta Ram_ActorPosY_i16_0_arr, x
-    tya     ; starting Y-position (hi)
+    tya                    ; starting Y-position (hi)
     sta Ram_ActorPosY_i16_1_arr, x
     jsr FuncA_Actor_ZeroVelY  ; preserves X
     ;; Set a random delay until the next jump.
@@ -135,6 +138,29 @@ _StopJumping:
     ora #$20
     sta Ram_ActorState2_byte_arr, x  ; jump delay
     rts
+_ContinueJumping:
+    ;; Set the bObj::Pri flag if the lavaball is only just above its start
+    ;; position (so that it will appear behind the lava, but in front of any
+    ;; background terrain higher up in the room).
+    ldy #bObj::FlipV
+    lda #$0c  ; param: offset
+    jsr Func_MovePointUpByA
+    lda Zp_PointY_i16 + 0
+    cmp Ram_ActorPosY_i16_0_arr, x
+    lda Zp_PointY_i16 + 1
+    sbc Ram_ActorPosY_i16_1_arr, x
+    bpl @noPri
+    ldy #bObj::FlipV | bObj::Pri
+    @noPri:
+    ;; Apply gravity, then update FlipV flag based on new Y-velocity.
+    jsr FuncA_Actor_ApplyGravity  ; preserves X and Y
+    lda Ram_ActorVelY_i16_1_arr, x
+    and #$80
+    .assert bObj::FlipV = $80, error
+    sty T0
+    eor T0
+    sta Ram_ActorFlags_bObj_arr, x
+    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -148,29 +174,19 @@ _StopJumping:
 .PROC FuncA_Objects_DrawActorBadLavaball
     lda Ram_ActorState2_byte_arr, x  ; jump delay
     bne @done  ; not jumping, so sitting invisible in lava
-    jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
-    lda Ram_ActorVelY_i16_1_arr, x
-    and #$80
-    .assert bObj::FlipV = $80, error
-    eor #bObj::FlipV | kPaletteObjLavaball  ; param: object flags
-    sta T2  ; object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X and T2+, returns C and Y
-    bcs @done
-    ;; Tile IDs:
     lda Ram_ActorState3_byte_arr, x  ; animation counter
     and #$06
     .assert kTileIdObjBadLavaballFirst .mod $08 = 0, error
-    ora #kTileIdObjBadLavaballFirst
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    adc #1  ; carry is already clear
+    ora #kTileIdObjBadLavaballFirst  ; param: tile ID
+    pha  ; first tile ID
+    ldy #kPaletteObjLavaball  ; param: base object flags
+    jsr FuncA_Objects_Draw2x2MirroredActor  ; preserves X, returns C and Y
+    pla  ; first tile ID
+    bcs @done
+    .assert kTileIdObjBadLavaballFirst .mod 2 = 0, error
+    ora #1
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    ;; Flags:
-    lda T2  ; object flags
-    eor #bObj::FlipH
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     @done:
     rts
 .ENDPROC

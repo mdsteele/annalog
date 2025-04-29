@@ -504,7 +504,7 @@ _NoHit:
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadJelly,        kBadJellyRadius
-    d_byte BadLavaball,      7
+    d_byte BadLavaball,      5
     d_byte BadOrc,          kOrcBoundingBoxUp
     d_byte BadRhino,         4
     d_byte BadRodent,        2
@@ -578,7 +578,7 @@ _NoHit:
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadJelly,        kBadJellyRadius
-    d_byte BadLavaball,      7
+    d_byte BadLavaball,      5
     d_byte BadOrc,          kOrcBoundingBoxDown
     d_byte BadRhino,         8
     d_byte BadRodent,        2
@@ -652,7 +652,7 @@ _NoHit:
     d_byte BadHotheadHorz,   6
     d_byte BadHotheadVert,   6
     d_byte BadJelly,        kBadJellyRadius
-    d_byte BadLavaball,      6
+    d_byte BadLavaball,      4
     d_byte BadOrc,          kOrcBoundingBoxSide
     d_byte BadRhino,        10
     d_byte BadRodent,        2

@@ -19,7 +19,8 @@
 
 ;;; State bytes for lavaball baddies:
 ;;;   * Param: Controls the jump height (1-9).
-;;;   * Flags: Unused.
+;;;   * Flags: The bObj::FlipV bit is set if the lavaball is falling, or
+;;;     cleared if it is rising.
 ;;;   * State1: Controls the jump height (1-9).
 ;;;   * State2: The number of frames until the next time the lavaball jumps, or
 ;;;     zero if the lavaball is currently jumping.
