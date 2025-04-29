@@ -185,7 +185,7 @@ kBossInitPosX = $a8
 kBossInitPosY = $78
 
 ;;; How many spikeball hits are needed to defeat the boss.
-kBossInitHealth = 4
+kBossInitHealth = 6
 
 ;;; The maximum speed of the boss, in pixels per frame.
 kBossMaxSpeedX = 2
@@ -645,10 +645,16 @@ _ChooseGoalXAndStartFiring:
     sta Zp_RoomState + sState::Current_eBossMode
     lda #60  ; 1.0 seconds
     sta Zp_RoomState + sState::BossCooldown_u8
-    ;; Randomly shoot either 3 or 4 fireballs.
+    ;; Randomly shoot a baseline of either 3 or 4 fireballs.
     jsr Func_GetRandomByte  ; returns A
     and #$01
     add #3
+    sta Zp_RoomState + sState::BossFireCount_u8
+    ;; Add additional fireballs as the boss loses health.
+    lda #kBossInitHealth
+    sub Zp_RoomState + sState::BossHealth_u8
+    div #2
+    add Zp_RoomState + sState::BossFireCount_u8
     sta Zp_RoomState + sState::BossFireCount_u8
     rts
 _StartStrafing:
