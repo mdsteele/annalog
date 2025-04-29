@@ -106,11 +106,8 @@ _StartJumping:
     bcc _Return
     jmp Func_PlaySfxShootFire  ; preserves X
 _IsJumping:
-    ;; If the lavaball is moving upwards, then continue the jump.
-    lda Ram_ActorVelY_i16_1_arr, x
-    bmi _ContinueJumping
     ;; Get the lavaball's starting Y-position (which depends on whether the
-    ;; room is short or tall), storing it in YA.
+    ;; room is short or tall), storing it in Zp_PointY_i16.
     bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Tall = bProc::Overflow, error
     bvs @tall
@@ -121,9 +118,14 @@ _IsJumping:
     ldya #kLavaballStartYTall
     @checkPosition:
     stya Zp_PointY_i16
-    ;; If the lavaball is below its starting position, end the jump.
+    ;; If the lavaball is moving upwards, then continue the jump.
+    lda Ram_ActorVelY_i16_1_arr, x
+    bmi _ContinueJumping
+    ;; Otherwise, the lavaball is moving downwards; if it is below its starting
+    ;; position, end the jump.
+    lda Zp_PointY_i16 + 0  ; starting Y-position (lo)
     cmp Ram_ActorPosY_i16_0_arr, x
-    tya  ; starting Y-position (hi)
+    tya                    ; starting Y-position (hi)
     sbc Ram_ActorPosY_i16_1_arr, x
     bpl _ContinueJumping
 _StopJumping:
