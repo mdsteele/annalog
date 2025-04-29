@@ -152,7 +152,7 @@ kGhostOrcActorIndex     = 1
 kFirstNonFinalGhostMode = eBossMode::Intro
 
 ;;; How many forcefield hits are needed to defeat the boss.
-kBossInitHealth = 8
+kBossInitHealth = 12
 
 ;;; How many frames the boss waits, after you first enter the room, before
 ;;; taking action.
