@@ -34,8 +34,10 @@
 .IMPORT Func_DivMod
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
+.IMPORT Func_PlaySfxFireBurning
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
@@ -148,14 +150,23 @@ _Moved:
     inx  ; param: platform index
     jsr Func_MovePlatformVert
     ldx Zp_MachineIndex_u8
+    ;; Set flame power to max when moving.
     lda #kJetMaxFlamePower
     sta Ram_MachineState1_byte_arr, x  ; flame power
+    ;; Play a sound periodically while moving.
+    lda Ram_MachineState2_byte_arr, x  ; move timer
+    mod #8
+    bne @noSound
+    jsr Func_PlaySfxFireBurning
+    @noSound:
+    inc Ram_MachineState2_byte_arr, x  ; move timer
     rts
 _ReachedGoal:
+    lda #0
+    sta Ram_MachineState2_byte_arr, x  ; move timer
     ;; Determine minimum flame power (0 if at min/max height, or
     ;; kJetMaxFlamePower/2 if hovering).
     ldx Zp_MachineIndex_u8
-    lda #0
     ldy Ram_MachineGoalVert_u8_arr, x
     beq @setMin  ; jet is at minimum height
     cpy #9

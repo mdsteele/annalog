@@ -27,7 +27,6 @@
 .IMPORT FuncA_Actor_CenterHitsTerrain
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_NegateVelX
-.IMPORT FuncA_Actor_PlaySfxFireBurning
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
@@ -35,6 +34,7 @@
 .IMPORT Func_InitActorSmokeParticle
 .IMPORT Func_InitActorWithState1
 .IMPORT Func_MovePointDownByA
+.IMPORT Func_PlaySfxFireBurning
 .IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
@@ -132,7 +132,7 @@ _Bounce:
 _Finish:
     dec Ram_ActorState3_byte_arr, x  ; SFX timer
     bne @noSound
-    jsr FuncA_Actor_PlaySfxFireBurning  ; preserves X
+    jsr Func_PlaySfxFireBurning  ; preserves X
     lda #kProjBreakfireSfxTimerRepeat
     sta Ram_ActorState3_byte_arr, x  ; SFX timer
     @noSound:

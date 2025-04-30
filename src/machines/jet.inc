@@ -22,7 +22,9 @@
 ;;;     set to kJetMaxFlamePower when the jet is moving; decrements when the
 ;;;     jet is not moving (down to kJetMaxFlamePower/2 if hovering, or down to
 ;;;     zero if at min/max height).
-;;;   * State2: Unused.
+;;;   * State2: Counter that increments each frame that the jet moves, but is
+;;;     reset to zero whenever it stops moving.  Used to drive sound effects
+;;;     for the jet flame.
 ;;;   * State3: Unused.
 
 ;;; The size of a jet machine's main platform, in pixels.

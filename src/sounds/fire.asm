@@ -65,14 +65,10 @@
     jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Actor"
-
 ;;; Starts playing the sound for a firey projectile continuing to burn.
 ;;; @preserve X, T0+
-.EXPORT FuncA_Actor_PlaySfxFireBurning
-.PROC FuncA_Actor_PlaySfxFireBurning
+.EXPORT Func_PlaySfxFireBurning
+.PROC Func_PlaySfxFireBurning
     ldya #Data_FireBurning_sSfx  ; param: sSfx pointer
     jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
 .ENDPROC

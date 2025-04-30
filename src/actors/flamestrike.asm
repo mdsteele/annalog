@@ -24,7 +24,6 @@
 .INCLUDE "flamestrike.inc"
 
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
-.IMPORT FuncA_Actor_PlaySfxFireBurning
 .IMPORT FuncA_Actor_SetVelXForward
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
@@ -33,6 +32,7 @@
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_InitActorWithFlags
 .IMPORT Func_MovePointDownByA
+.IMPORT Func_PlaySfxFireBurning
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
@@ -98,7 +98,7 @@ _Sweeping:
     lda Ram_ActorState3_byte_arr, x  ; timer
     mod #4
     bne @noSound
-    jsr FuncA_Actor_PlaySfxFireBurning  ; preserves X
+    jsr Func_PlaySfxFireBurning  ; preserves X
     @noSound:
     ;; Set speed based on the timer.
     inc Ram_ActorState3_byte_arr, x  ; timer
@@ -128,7 +128,7 @@ _Descending:
     dec Ram_ActorState3_byte_arr, x  ; timer
     rts
 _Lengthen:
-    jsr FuncA_Actor_PlaySfxFireBurning  ; preserves X
+    jsr Func_PlaySfxFireBurning  ; preserves X
     ;; Set a cooldown before we expand again.
     lda #kFlamestrikeDescendFrames
     sta Ram_ActorState3_byte_arr, x  ; timer
