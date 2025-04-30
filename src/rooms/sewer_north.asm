@@ -48,6 +48,7 @@
 .IMPORT FuncA_Room_ResetLever
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxSplash
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Ppu_ChrObjGarden
@@ -530,7 +531,8 @@ _StartNewWaterfall:
     jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     lda T0  ; param: platform index for water below
-    jmp FuncA_Room_InitActorSmokeWaterfall
+    jsr FuncA_Room_InitActorSmokeWaterfall
+    jmp Func_PlaySfxSplash
 _GetNextValve:
     lda Zp_RoomState + sState::ValveAngle_u8_arr, x
     inx

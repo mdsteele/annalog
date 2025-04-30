@@ -49,6 +49,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxLeverOn
 .IMPORT Func_PlaySfxSecretUnlocked
+.IMPORT Func_PlaySfxSplash
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -359,7 +360,7 @@ _FlipLeverFunc:
     jmp Func_SetFlag
 _TurnOnWaterfallFunc:
     dec Zp_RoomState + sState::Waterfall_bool  ; change from $00 to $ff
-    rts
+    jmp Func_PlaySfxSplash
 _RaiseWaterLevelFunc:
     lda Zp_FrameCounter_u8
     and #$03

@@ -78,13 +78,6 @@ _Platforms_sPlatform_arr:
     d_word Top_i16,   $00d0
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00d0
-    d_word Top_i16,   $00d8
-    D_END
-    D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Water
     d_word WidthPx_u16, $40
     d_byte HeightPx_u8, $20
