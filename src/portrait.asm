@@ -55,7 +55,8 @@
     d_byte OrcGrontaShout,     kChrBankPortraitGrontaTalk
     d_byte OrcMale,            kChrBankPortraitOrcRest
     d_byte OrcMaleShout,       kChrBankPortraitOrcTalk
-    d_byte Paper,              kChrBankPortraitPaper
+    d_byte PaperJerome,        kChrBankPortraitPaperJerome
+    d_byte PaperManual,        kChrBankPortraitPaperManual
     d_byte Plaque,             kChrBankPortraitPlaque
     d_byte Screen,             kChrBankPortraitScreen
     d_byte Sign,               kChrBankPortraitSign
@@ -92,7 +93,8 @@
     d_byte OrcGrontaShout,     kChrBankPortraitGrontaRest
     d_byte OrcMale,            kChrBankPortraitOrcTalk
     d_byte OrcMaleShout,       kChrBankPortraitOrcRest
-    d_byte Paper,              kChrBankPortraitPaper
+    d_byte PaperJerome,        kChrBankPortraitPaperJerome
+    d_byte PaperManual,        kChrBankPortraitPaperManual
     d_byte Plaque,             kChrBankPortraitPlaque
     d_byte Screen,             kChrBankPortraitScreen
     d_byte Sign,               kChrBankPortraitSign
@@ -128,7 +130,8 @@
     d_byte OrcGrontaShout,     kTileIdBgPortraitGrontaFirst
     d_byte OrcMale,            kTileIdBgPortraitOrcFirst
     d_byte OrcMaleShout,       kTileIdBgPortraitOrcFirst
-    d_byte Paper,              kTileIdBgPortraitPaperFirst
+    d_byte PaperJerome,        kTileIdBgPortraitPaperFirst
+    d_byte PaperManual,        kTileIdBgPortraitPaperFirst
     d_byte Plaque,             kTileIdBgPortraitPlaqueFirst
     d_byte Screen,             kTileIdBgPortraitScreenFirst
     d_byte Sign,               kTileIdBgPortraitSignFirst

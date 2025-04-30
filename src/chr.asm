@@ -89,6 +89,7 @@
 .INCLUDE "machines/shared.inc"
 .INCLUDE "machines/trombone.inc"
 .INCLUDE "machines/winch.inc"
+.INCLUDE "paper.inc"
 .INCLUDE "pause.inc"
 .INCLUDE "platforms/barrier.inc"
 .INCLUDE "platforms/chex.inc"
@@ -665,10 +666,11 @@ _chr_begin:
     chr_inc "upgrade_opskip"
     chr_inc "upgrade_oprest"
     chr_inc "upgrade_opsync"
-    chr_res $06
+    chr_res $02
+    chr_inc "paper_jerome",    kTileIdBgPaperJeromeFirst
     chr_inc "minicore1"
     chr_inc "minicore2"
-    chr_inc "paper"
+    chr_inc "paper_manual",    kTileIdBgPaperManualFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -680,8 +682,8 @@ _chr_begin:
     CHR1_BANK $c0
     .assert .bank(*) = kChrBankPortraitAlexRest, error
     chr_inc "portrait_alex_rest", kTileIdBgPortraitAlexFirst
-    .assert .bank(*) = kChrBankPortraitPaper, error
-    chr_inc "portrait_paper", kTileIdBgPortraitPaperFirst
+    .assert .bank(*) = kChrBankPortraitPaperJerome, error
+    chr_inc "portrait_paper_jerome", kTileIdBgPortraitPaperFirst
     .assert .bank(*) = kChrBankDiagramDebugger, error
     chr_inc "diagram_debugger"
     chr_inc "diagram_debugger"
@@ -950,7 +952,8 @@ _chr_begin:
     CHR1_BANK $c0
     .assert .bank(*) = kChrBankPortraitJeromeRest, error
     chr_inc "portrait_jerome_rest", kTileIdBgPortraitJeromeFirst
-    chr_res $10
+    .assert .bank(*) = kChrBankPortraitPaperManual, error
+    chr_inc "portrait_paper_manual", kTileIdBgPortraitPaperFirst
     .assert .bank(*) = kChrBankDiagramBlaster, error
     chr_inc "diagram_blaster", kTileIdBgDiagramBlasterFirst
     .assert .bank(*) = kChrBankDiagramDrums, error

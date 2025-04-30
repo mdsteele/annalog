@@ -131,7 +131,8 @@ _Initialize:
     d_byte OrcGrontaShout,     bSfxDialog::TypePulse18 | (3 << 3) | $3
     d_byte OrcMale,            bSfxDialog::TypePulse18 | (4 << 3) | $3
     d_byte OrcMaleShout,       bSfxDialog::TypePulse18 | (4 << 3) | $3
-    d_byte Paper,              bSfxDialog::TypeNoise
+    d_byte PaperJerome,        bSfxDialog::TypeNoise
+    d_byte PaperManual,        bSfxDialog::TypeNoise
     d_byte Plaque,             bSfxDialog::TypeNoise
     d_byte Screen,             bSfxDialog::TypeNoise
     d_byte Sign,               bSfxDialog::TypeNoise
@@ -167,7 +168,8 @@ _Initialize:
     d_byte OrcGrontaShout,     $00
     d_byte OrcMale,            $40
     d_byte OrcMaleShout,       $40
-    d_byte Paper,              $00  ; noise
+    d_byte PaperJerome,        $00  ; noise
+    d_byte PaperManual,        $00  ; noise
     d_byte Plaque,             $02  ; noise
     d_byte Screen,             $8a  ; noise
     d_byte Sign,               $01  ; noise

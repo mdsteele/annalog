@@ -24,6 +24,7 @@
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
+.INCLUDE "paper.inc"
 .INCLUDE "pause.inc"
 .INCLUDE "portrait.inc"
 .INCLUDE "ppu.inc"
@@ -160,10 +161,10 @@ Ppu_PortraitTopLeft := Ppu_WindowTopLeft + kScreenWidthTiles * 1 + 2
 .ASSERT kPaperGridCols * kPaperGridRows = kNumPaperFlags, error
 
 ;;; The BG tile IDs used for drawing collected papers.
-kTileIdBgPaperTopLeft      = $bc
-kTileIdBgPaperBottomLeft   = $bd
-kTileIdBgPaperTopRight     = $be
-kTileIdBgPaperBottomRight  = $bf
+kTileIdBgPaperTopLeft      = kTileIdBgPaperJeromeFirst + 0
+kTileIdBgPaperBottomLeft   = kTileIdBgPaperJeromeFirst + 1
+kTileIdBgPaperTopRight     = kTileIdBgPaperJeromeFirst + 2
+kTileIdBgPaperBottomRight  = kTileIdBgPaperJeromeFirst + 3
 
 ;;; The OBJ tile ID for drawing the papers window cursor.
 kTileIdObjPaperCursor = kTileIdObjPauseFirst + $0c
@@ -386,9 +387,9 @@ _InitCollectedPapers:
     ldx #0
     @rowLoop:
     jsr FuncA_Pause_DirectDrawWindowBlankLine  ; preserves X
-    ldy #kTileIdBgPaperTopLeft  ; param: paper left tile ID
+    lda #kTileIdBgPaperTopLeft  ; param: paper left tile ID
     jsr FuncA_Pause_DirectDrawPaperLine  ; preserves X
-    ldy #kTileIdBgPaperBottomLeft  ; param: paper left tile ID
+    lda #kTileIdBgPaperBottomLeft  ; param: paper left tile ID
     jsr FuncA_Pause_DirectDrawPaperLine  ; preserves X
     inx
     cpx #kPaperGridRows
@@ -402,14 +403,25 @@ _InitCollectedPapers:
 ;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
 ;;; @prereq Hw_PpuAddr_w2 is set to the start of the nametable row.
 ;;; @param X The paper grid row number (0-4).
-;;; @param Y The BG tile ID for the left side of each paper.
+;;; @param A The base BG tile ID for the left side of each paper.
 ;;; @preserve X
 .PROC FuncA_Pause_DirectDrawPaperLine
+    ;; In the last row of the paper grid, draw "manual" papers instead of
+    ;; "Jerome" papers.
+    cpx #4
+    bne @setTileId
+    .assert kTileIdBgPaperJeromeFirst | $20 = kTileIdBgPaperManualFirst, error
+    ora #$20
+    @setTileId:
+    sta T1  ; left tile ID
+    ;; Get the bitmask to use for testing Ram_CollectedPapers_u8_arr for this
+    ;; row of the paper grid.
     stx T0  ; paper grid row
-    sty T1  ; left tile ID
     lda Data_PowersOfTwo_u8_arr8, x
     sta T2  ; bitmask
+    ;; Draw (one tile row of) the left side of the window.
     jsr FuncA_Pause_DirectDrawWindowLineSide  ; preserves T0+
+    ;; Draw (one tile row of) each paper in this row of the paper grid.
     ldx #0  ; paper grid col
     beq @start  ; unconditional
     @loop:
@@ -436,6 +448,7 @@ _InitCollectedPapers:
     cpx #kPaperGridCols
     blt @loop
     ldx T0  ; paper grid row
+    ;; Draw (one tile row of) the right side of the window.
     jmp FuncA_Pause_DirectDrawWindowLineSide  ; preserves X and T0+
 .ENDPROC
 
@@ -682,326 +695,326 @@ _CheckIfMoved:
 
 .EXPORT DataA_Dialog_PaperJerome01_sDialog
 .PROC DataA_Dialog_PaperJerome01_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome01_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome01_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome01_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome01_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome02_sDialog
 .PROC DataA_Dialog_PaperJerome02_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome02_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome02_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome02_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome02_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome03_sDialog
 .PROC DataA_Dialog_PaperJerome03_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome03_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome03_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome03_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome03_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome04_sDialog
 .PROC DataA_Dialog_PaperJerome04_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome04_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome04_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome04_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome04_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome05_sDialog
 .PROC DataA_Dialog_PaperJerome05_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome05_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome05_Page2_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome05_Page3_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome05_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome05_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome05_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome06_sDialog
 .PROC DataA_Dialog_PaperJerome06_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome06_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome06_Page2_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome06_Page3_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome06_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome06_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome06_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome07_sDialog
 .PROC DataA_Dialog_PaperJerome07_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome07_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome07_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome07_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome07_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome08_sDialog
 .PROC DataA_Dialog_PaperJerome08_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome08_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome08_Page2_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome08_Page3_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome08_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome08_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome08_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome09_sDialog
 .PROC DataA_Dialog_PaperJerome09_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome09_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome09_Page2_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome09_Page3_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome09_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome09_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome09_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome10_sDialog
 .PROC DataA_Dialog_PaperJerome10_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome10_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome10_Page1_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome11_sDialog
 .PROC DataA_Dialog_PaperJerome11_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome11_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome11_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome11_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome11_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome12_sDialog
 .PROC DataA_Dialog_PaperJerome12_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome12_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome12_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome12_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome12_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome13_sDialog
 .PROC DataA_Dialog_PaperJerome13_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome13_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome13_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome13_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome13_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome14_sDialog
 .PROC DataA_Dialog_PaperJerome14_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome14_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome14_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome14_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome14_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome15_sDialog
 .PROC DataA_Dialog_PaperJerome15_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome15_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome15_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome15_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome15_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome16_sDialog
 .PROC DataA_Dialog_PaperJerome16_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome16_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome16_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome16_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome16_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome17_sDialog
 .PROC DataA_Dialog_PaperJerome17_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome17_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome17_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome17_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome17_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome18_sDialog
 .PROC DataA_Dialog_PaperJerome18_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome18_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome18_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome18_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome18_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome19_sDialog
 .PROC DataA_Dialog_PaperJerome19_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome19_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome19_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome19_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome19_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome20_sDialog
 .PROC DataA_Dialog_PaperJerome20_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome20_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome20_Page1_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome21_sDialog
 .PROC DataA_Dialog_PaperJerome21_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome21_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome21_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome21_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome21_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome22_sDialog
 .PROC DataA_Dialog_PaperJerome22_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome22_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome22_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome22_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome22_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome23_sDialog
 .PROC DataA_Dialog_PaperJerome23_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome23_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome23_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome23_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome23_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome24_sDialog
 .PROC DataA_Dialog_PaperJerome24_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome24_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome24_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome24_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome24_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome25_sDialog
 .PROC DataA_Dialog_PaperJerome25_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome25_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome25_Page2_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome25_Page3_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome25_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome25_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome25_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome26_sDialog
 .PROC DataA_Dialog_PaperJerome26_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome26_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome26_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome26_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome26_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome27_sDialog
 .PROC DataA_Dialog_PaperJerome27_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome27_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome27_Page2_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome27_Page3_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome27_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome27_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome27_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome28_sDialog
 .PROC DataA_Dialog_PaperJerome28_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome28_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome28_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome28_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome28_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome29_sDialog
 .PROC DataA_Dialog_PaperJerome29_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome29_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome29_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome29_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome29_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome30_sDialog
 .PROC DataA_Dialog_PaperJerome30_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome30_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome30_Page2_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome30_Page3_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome30_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome30_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome30_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome31_sDialog
 .PROC DataA_Dialog_PaperJerome31_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome31_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome31_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome31_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome31_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome32_sDialog
 .PROC DataA_Dialog_PaperJerome32_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome32_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome32_Page2_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome32_Page3_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome32_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome32_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome32_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome33_sDialog
 .PROC DataA_Dialog_PaperJerome33_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome33_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome33_Page2_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome33_Page3_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome33_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome33_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome33_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome34_sDialog
 .PROC DataA_Dialog_PaperJerome34_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome34_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome34_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome34_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome34_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome35_sDialog
 .PROC DataA_Dialog_PaperJerome35_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome35_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome35_Page2_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome35_Page3_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome35_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome35_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome35_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperJerome36_sDialog
 .PROC DataA_Dialog_PaperJerome36_sDialog
-    dlg_Text Paper, DataA_Text2_PaperJerome36_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome36_Page2_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperJerome36_Page3_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome36_Page1_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome36_Page2_u8_arr
+    dlg_Text PaperJerome, DataA_Text2_PaperJerome36_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperManual1_sDialog
 .PROC DataA_Dialog_PaperManual1_sDialog
-    dlg_Text Paper, DataA_Text2_PaperManual1_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperManual1_Page2_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual1_Page1_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual1_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperManual2_sDialog
 .PROC DataA_Dialog_PaperManual2_sDialog
-    dlg_Text Paper, DataA_Text2_PaperManual2_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperManual2_Page2_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual2_Page1_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual2_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperManual3_sDialog
 .PROC DataA_Dialog_PaperManual3_sDialog
-    dlg_Text Paper, DataA_Text2_PaperManual3_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperManual3_Page2_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual3_Page1_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual3_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperManual4_sDialog
 .PROC DataA_Dialog_PaperManual4_sDialog
-    dlg_Text Paper, DataA_Text2_PaperManual4_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperManual4_Page2_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual4_Page1_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual4_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperManual5_sDialog
 .PROC DataA_Dialog_PaperManual5_sDialog
-    dlg_Text Paper, DataA_Text2_PaperManual5_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperManual5_Page2_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperManual5_Page3_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual5_Page1_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual5_Page2_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual5_Page3_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperManual6_sDialog
 .PROC DataA_Dialog_PaperManual6_sDialog
-    dlg_Text Paper, DataA_Text2_PaperManual6_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperManual6_Page2_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual6_Page1_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual6_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperManual7_sDialog
 .PROC DataA_Dialog_PaperManual7_sDialog
-    dlg_Text Paper, DataA_Text2_PaperManual7_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperManual7_Page2_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual7_Page1_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual7_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperManual8_sDialog
 .PROC DataA_Dialog_PaperManual8_sDialog
-    dlg_Text Paper, DataA_Text2_PaperManual8_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperManual8_Page2_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual8_Page1_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual8_Page2_u8_arr
     dlg_Done
 .ENDPROC
 
 .EXPORT DataA_Dialog_PaperManual9_sDialog
 .PROC DataA_Dialog_PaperManual9_sDialog
-    dlg_Text Paper, DataA_Text2_PaperManual9_Page1_u8_arr
-    dlg_Text Paper, DataA_Text2_PaperManual9_Page2_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual9_Page1_u8_arr
+    dlg_Text PaperManual, DataA_Text2_PaperManual9_Page2_u8_arr
     dlg_Done
 .ENDPROC
 

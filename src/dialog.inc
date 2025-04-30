@@ -95,7 +95,8 @@ kDialogTextYesNo   = $ff
     OrcGrontaShout
     OrcMale
     OrcMaleShout
-    Paper
+    PaperJerome
+    PaperManual
     Plaque
     Screen
     Sign
