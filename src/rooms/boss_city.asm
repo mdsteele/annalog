@@ -254,7 +254,7 @@ kBossInitHealth = 8
 ;;; taking action.
 kBossInitCooldown = 120
 ;;; How many frames to wait in place when hurt.
-kBossHurtCooldown = 45
+kBossHurtCooldown = 60
 
 ;;; The delay duration between individual spines when shooting spines, in
 ;;; frames.
@@ -683,9 +683,20 @@ _BossHurt:
             .sizeof(DataC_Boss_CityBlinkTransfer_arr), error
     .linecont -
     jsr Func_BufferPpuTransfer
-    ;; Wait for the cooldown to expire.
+    ;; Vibrate in place until the cooldown expires.
     lda Zp_RoomState + sState::BossCooldown_u8
-    bne @done
+    beq @doneVibrate
+    and #1    ; param: signed delta
+    mul #2
+    bne @vibrate
+    lda #<-2  ; param: signed delta
+    @vibrate:
+    ldx #kBossBodyPlatformIndex  ; param: platform index
+    pha  ; signed delta
+    jsr Func_MovePlatformHorz
+    pla  ; param: signed delta
+    jmp FuncA_Room_BossCity_MoveOtherBossPlatformsHorzByA
+    @doneVibrate:
     ;; At the end of the hurt animation, if the boss's health is now zero, kill
     ;; the boss.
     lda Zp_RoomState + sState::BossHealth_u8
@@ -750,8 +761,8 @@ _BossClose:
     rts
 _BossWeaving:
     jsr FuncA_Room_BossCity_CloseShell
-    jsr FuncA_Room_BossCity_MoveBossHorz
-    jsr FuncA_Room_BossCity_MoveBossVert
+    jsr FuncA_Room_BossCity_MoveBossHorzSinusoid
+    jsr FuncA_Room_BossCity_MoveBossVertSinusoid
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
@@ -1070,7 +1081,7 @@ _TickBoss:
 .ENDPROC
 
 ;;; Moves the boss horizontally, with sinusoidal motion.
-.PROC FuncA_Room_BossCity_MoveBossHorz
+.PROC FuncA_Room_BossCity_MoveBossHorzSinusoid
     inc Zp_RoomState + sState::BossHorzTheta_u8
     ;; Store the horizontal goal position for the left of the boss's body
     ;; platform in Zp_PointX_i16.
@@ -1083,10 +1094,22 @@ _TickBoss:
     sta Zp_PointX_i16 + 0
     lda #0
     sta Zp_PointX_i16 + 1
-_MovePlatforms:
+    fall FuncA_Room_BossCity_MoveBossLeftToPointX
+.ENDPROC
+
+;;; Moves the boss horizontally, setting its left edge to Zp_PointX_i16
+;;; (assuming that it's already fairly near there).
+.PROC FuncA_Room_BossCity_MoveBossLeftToPointX
     ldx #kBossBodyPlatformIndex  ; param: platform index
     lda #127  ; param: max move by
     jsr Func_MovePlatformLeftTowardPointX  ; returns A
+    fall FuncA_Room_BossCity_MoveOtherBossPlatformsHorzByA
+.ENDPROC
+
+;;; Moves the boss's platforms, other than the main body platform, horizontally
+;;; by the specified delta.
+;;; @param A How many pixels to move the platforms by (signed).
+.PROC FuncA_Room_BossCity_MoveOtherBossPlatformsHorzByA
     pha  ; move delta
     ldx #kBossCorePlatformIndex  ; param: platform index
     jsr Func_MovePlatformHorz
@@ -1100,7 +1123,7 @@ _MovePlatforms:
 .ENDPROC
 
 ;;; Moves the boss vertically, with sinusoidal motion.
-.PROC FuncA_Room_BossCity_MoveBossVert
+.PROC FuncA_Room_BossCity_MoveBossVertSinusoid
     ;; Increase vertical speed as the boss takes damage.
     lda #kBossInitHealth + 4
     sub Zp_RoomState + sState::BossHealth_u8
