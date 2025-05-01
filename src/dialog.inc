@@ -76,6 +76,7 @@ kDialogTextYesNo   = $ff
     AdultSmith
     AdultWoman
     ChildAlex
+    ChildAlexHand
     ChildAlexShout
     ChildBruno
     ChildBrunoShout

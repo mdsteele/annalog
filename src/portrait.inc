@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; The CHR bank numbers containing various dialog portrait tiles.
+kChrBankPortraitAlexHand    = $13
 kChrBankPortraitAlexRest    = $01
 kChrBankPortraitAlexTalk    = $02
 kChrBankPortraitBrunoRest   = $0b

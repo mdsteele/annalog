@@ -983,7 +983,9 @@ _chr_begin:
 
 .PROC Ppu_ChrBgPortrait13
     CHR1_BANK $c0
-    chr_res $20
+    .assert .bank(*) = kChrBankPortraitAlexHand, error
+    chr_inc "portrait_alex_hand", kTileIdBgPortraitAlexFirst
+    chr_res $10
     .assert .bank(*) = kChrBankDiagramEmitterX, error
     chr_inc "diagram_emitter_x", kTileIdBgDiagramEmitterXFirst
     .assert .bank(*) = kChrBankDiagramEmitterY, error

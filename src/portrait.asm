@@ -36,6 +36,7 @@
     d_byte AdultSmith,         kChrBankPortraitManRest
     d_byte AdultWoman,         kChrBankPortraitWomanRest
     d_byte ChildAlex,          kChrBankPortraitAlexRest
+    d_byte ChildAlexHand,      kChrBankPortraitAlexHand
     d_byte ChildAlexShout,     kChrBankPortraitAlexTalk
     d_byte ChildBruno,         kChrBankPortraitBrunoRest
     d_byte ChildBrunoShout,    kChrBankPortraitBrunoTalk
@@ -74,6 +75,7 @@
     d_byte AdultSmith,         kChrBankPortraitManTalk
     d_byte AdultWoman,         kChrBankPortraitWomanTalk
     d_byte ChildAlex,          kChrBankPortraitAlexTalk
+    d_byte ChildAlexHand,      kChrBankPortraitAlexHand
     d_byte ChildAlexShout,     kChrBankPortraitAlexRest
     d_byte ChildBruno,         kChrBankPortraitBrunoTalk
     d_byte ChildBrunoShout,    kChrBankPortraitBrunoRest
@@ -111,6 +113,7 @@
     d_byte AdultSmith,         kTileIdBgPortraitManFirst
     d_byte AdultWoman,         kTileIdBgPortraitWomanFirst
     d_byte ChildAlex,          kTileIdBgPortraitAlexFirst
+    d_byte ChildAlexHand,      kTileIdBgPortraitAlexFirst
     d_byte ChildAlexShout,     kTileIdBgPortraitAlexFirst
     d_byte ChildBruno,         kTileIdBgPortraitBrunoFirst
     d_byte ChildBrunoShout,    kTileIdBgPortraitBrunoFirst

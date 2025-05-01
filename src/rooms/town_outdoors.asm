@@ -458,9 +458,9 @@ _DetectAvatarDeath:
 .EXPORT DataA_Dialog_TownOutdoorsAlex2_sDialog
 .PROC DataA_Dialog_TownOutdoorsAlex2_sDialog
     dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part1_u8_arr
-    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part2_u8_arr
     dlg_Call _AlexStanding
-    dlg_Text ChildAlex, DataA_Text0_TownOutdoorsAlex2_Part3_u8_arr
+    dlg_Text ChildAlexHand, DataA_Text0_TownOutdoorsAlex2_Part2_u8_arr
+    dlg_Text ChildAlexHand, DataA_Text0_TownOutdoorsAlex2_Part3_u8_arr
     dlg_Done
 _AlexStanding:
     lda #eNpcChild::AlexStanding
@@ -627,6 +627,7 @@ _SetFace:
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding
     act_ContinueExploring
 _Scroll_sCutscene:
+    act_WaitFrames 15
     act_ScrollSlowX $04c0
     act_ForkStop $ff
 _RemoveDevicesAndTownsfolk:
