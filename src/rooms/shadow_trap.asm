@@ -59,6 +59,7 @@
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToPlatformCenter
+.IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrObjShadow1
 .IMPORT Ram_ActorType_eActor_arr
@@ -67,6 +68,7 @@
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosY_i16
+.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
 
@@ -199,9 +201,9 @@ _Platforms_sPlatform_arr:
     .assert * - :- = kTrapZonePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $20
+    d_word WidthPx_u16, $60
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $0080
+    d_word Left_i16,  $0060
     d_word Top_i16,   $00a0
     D_END
     .assert * - :- = kWestBarrierPlatformIndex * .sizeof(sPlatform), error
@@ -225,7 +227,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $00
     d_byte HeightPx_u8, $00
-    d_word Left_i16,  $00f0
+    d_word Left_i16,  $00e8
     d_word Top_i16,   $0048
     D_END
     .assert * - :- = kTrapSpawnWestPlatformIndex * .sizeof(sPlatform), error
@@ -233,7 +235,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $00
     d_byte HeightPx_u8, $00
-    d_word Left_i16,  $0030
+    d_word Left_i16,  $0038
     d_word Top_i16,   $0068
     D_END
     ;; Acid:
@@ -376,8 +378,12 @@ _MaybeTripAlarm:
     sta Zp_RoomState + sState::AlarmCountdown_u8
     bne _CheckBarriers  ; unconditional
 _MaybeSpawnBaddies:
+    ;; Wait until machine console is closed.
+    lda Zp_ConsoleMachineIndex_u8
+    bpl @done  ; console is open
+    ;; Wait until the alarm countdown is finished.
     dec Zp_RoomState + sState::AlarmCountdown_u8
-    bne _CheckBarriers
+    bne @done
     ;; Spawn the baddies.
     ldy #kTrapSpawnEastPlatformIndex  ; param: platform index
     lda #bObj::FlipH  ; param: flags
@@ -385,6 +391,7 @@ _MaybeSpawnBaddies:
     ldy #kTrapSpawnWestPlatformIndex  ; param: platform index
     lda #0  ; param: flags
     jsr FuncA_Room_ShadowTrap_SpawnBaddie
+    @done:
 _CheckBarriers:
     bit Zp_RoomState + sState::AlarmCountdown_u8
     bmi _OpenBarriers
@@ -413,9 +420,10 @@ _OpenBarriers:
 ;;; @param Y The platform index for the zone to spawn the baddie in.
 .PROC FuncA_Room_ShadowTrap_SpawnBaddie
     sta T0  ; flags
-    jsr Func_FindEmptyActorSlot  ; preserves Y and T0+, returns C and X
+    jsr Func_SetPointToPlatformCenter  ; preserves T0+
+    jsr Func_SpawnExplosionAtPoint  ; preserves T0+
+    jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @done
-    jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     .assert kTrapBaddieType = eActor::BadFlydrop, error
     lda T0  ; param: flags
@@ -445,7 +453,7 @@ _OpenBarriers:
     ldy #0                         ; param: laser bottom (hi)
     jmp FuncA_Machine_LaserTryAct
 _LaserBottom_i16_0_arr:
-:   .byte $30, $c5, $c5, $c5, $b0, $b0, $c5, $c5, $c5, $30
+:   .byte $30, $c5, $b0, $c5, $b0, $b0, $c5, $b0, $c5, $30
     .assert * - :- = kLaserMaxGoalX + 1, error
 .ENDPROC
 
