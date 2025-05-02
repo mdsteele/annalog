@@ -401,29 +401,38 @@ _Quest3Func:
     ldya #_OtherRuins_sDialog
     rts
 _FirstMeeting_sDialog:
+    .linecont +
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FirstMeeting1_u8_arr
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FirstMeeting2_u8_arr
-    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FirstMeeting3_u8_arr
+    dlg_Text MermaidEireneSigh, \
+             DataA_Text0_MermaidHut1Queen_FirstMeeting3_u8_arr
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_FirstMeeting4_u8_arr
+    .linecont -
 _GrantAsylum_sDialog:
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_GrantAsylum_u8_arr
     dlg_Quest MermaidHut1MetQueen
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_HelpFarmers_u8_arr
     dlg_Done
 _GardenBossDead_sDialog:
+    .linecont +
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_GardenBossDead1_u8_arr
-    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_GardenBossDead2_u8_arr
+    dlg_Text MermaidEireneSigh, \
+             DataA_Text0_MermaidHut1Queen_GardenBossDead2_u8_arr
+    .linecont -
 _TempleProblem_sDialog:
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleProblem_u8_arr
     dlg_Quest TempleEntryPermission
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleEntry_u8_arr
     dlg_Done
 _TempleBossDead_sDialog:
+    .linecont +
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead1_u8_arr
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead2_u8_arr
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead3_u8_arr
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead4_u8_arr
-    dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_TempleBossDead5_u8_arr
+    dlg_Text MermaidEireneSigh, \
+             DataA_Text0_MermaidHut1Queen_TempleBossDead5_u8_arr
+    .linecont -
 _OtherRuins_sDialog:
     dlg_Text MermaidEirene, DataA_Text0_MermaidHut1Queen_OtherRuins_u8_arr
     dlg_Quest CoreSouthCorraWaiting

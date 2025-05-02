@@ -916,8 +916,8 @@ _chr_begin:
 
 .PROC Ppu_ChrBgPortrait0F
     CHR1_BANK $c0
-    .assert .bank(*) = kChrBankPortraitElderRest, error
-    chr_inc "portrait_elder_rest", kTileIdBgPortraitElderFirst
+    .assert .bank(*) = kChrBankPortraitEirene2Rest, error
+    chr_inc "portrait_eirene2_rest", kTileIdBgPortraitEireneFirst
     .assert .bank(*) = kChrBankPortraitFarmerRest, error
     chr_inc "portrait_farmer_rest", kTileIdBgPortraitFarmerFirst
     .assert .bank(*) = kChrBankDiagramRotor, error
@@ -933,8 +933,8 @@ _chr_begin:
 
 .PROC Ppu_ChrBgPortrait10
     CHR1_BANK $c0
-    .assert .bank(*) = kChrBankPortraitElderTalk, error
-    chr_inc "portrait_elder_talk", kTileIdBgPortraitElderFirst
+    .assert .bank(*) = kChrBankPortraitEirene2Talk, error
+    chr_inc "portrait_eirene2_talk", kTileIdBgPortraitEireneFirst
     .assert .bank(*) = kChrBankPortraitFarmerTalk, error
     chr_inc "portrait_farmer_talk", kTileIdBgPortraitFarmerFirst
     .assert .bank(*) = kChrBankDiagramAmmoRack, error
@@ -952,8 +952,8 @@ _chr_begin:
     CHR1_BANK $c0
     .assert .bank(*) = kChrBankPortraitJeromeRest, error
     chr_inc "portrait_jerome_rest", kTileIdBgPortraitJeromeFirst
-    .assert .bank(*) = kChrBankPortraitPaperManual, error
-    chr_inc "portrait_paper_manual", kTileIdBgPortraitPaperFirst
+    .assert .bank(*) = kChrBankPortraitElderRest, error
+    chr_inc "portrait_elder_rest", kTileIdBgPortraitElderFirst
     .assert .bank(*) = kChrBankDiagramBlaster, error
     chr_inc "diagram_blaster", kTileIdBgDiagramBlasterFirst
     .assert .bank(*) = kChrBankDiagramDrums, error
@@ -969,7 +969,8 @@ _chr_begin:
     CHR1_BANK $c0
     .assert .bank(*) = kChrBankPortraitJeromeTalk, error
     chr_inc "portrait_jerome_talk", kTileIdBgPortraitJeromeFirst
-    chr_res $10
+    .assert .bank(*) = kChrBankPortraitElderTalk, error
+    chr_inc "portrait_elder_talk", kTileIdBgPortraitElderFirst
     .assert .bank(*) = kChrBankDiagramOrgan, error
     chr_inc "diagram_organ", kTileIdBgDiagramOrganFirst
     .assert .bank(*) = kChrBankDiagramTrombone, error
@@ -985,7 +986,8 @@ _chr_begin:
     CHR1_BANK $c0
     .assert .bank(*) = kChrBankPortraitAlexHand, error
     chr_inc "portrait_alex_hand", kTileIdBgPortraitAlexFirst
-    chr_res $10
+    .assert .bank(*) = kChrBankPortraitPaperManual, error
+    chr_inc "portrait_paper_manual", kTileIdBgPortraitPaperFirst
     .assert .bank(*) = kChrBankDiagramEmitterX, error
     chr_inc "diagram_emitter_x", kTileIdBgDiagramEmitterXFirst
     .assert .bank(*) = kChrBankDiagramEmitterY, error

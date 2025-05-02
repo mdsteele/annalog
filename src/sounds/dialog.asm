@@ -122,6 +122,7 @@ _Initialize:
     d_byte MermaidDaphne,      bSfxDialog::TypePulse12 | (4 << 3) | $2
     d_byte MermaidEirene,      bSfxDialog::TypePulse12 | (5 << 3) | $2
     d_byte MermaidEireneShout, bSfxDialog::TypePulse12 | (5 << 3) | $2
+    d_byte MermaidEireneSigh,  bSfxDialog::TypePulse12 | (5 << 3) | $2
     d_byte MermaidFarmer,      bSfxDialog::TypePulse12 | (6 << 3) | $2
     d_byte MermaidFlorist,     bSfxDialog::TypePulse12 | (4 << 3) | $2
     d_byte MermaidGuardF,      bSfxDialog::TypePulse12 | (5 << 3) | $2
@@ -160,6 +161,7 @@ _Initialize:
     d_byte MermaidDaphne,      $60
     d_byte MermaidEirene,      $a0
     d_byte MermaidEireneShout, $a0
+    d_byte MermaidEireneSigh,  $a0
     d_byte MermaidFarmer,      $a0
     d_byte MermaidFlorist,     $a0
     d_byte MermaidGuardF,      $a0

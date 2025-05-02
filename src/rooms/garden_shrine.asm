@@ -198,15 +198,18 @@ _Passages_sPassage_arr:
 
 .EXPORT DataA_Dialog_GardenShrineBreakerMine1_sDialog
 .PROC DataA_Dialog_GardenShrineBreakerMine1_sDialog
+    .linecont +
     .assert kTileIdBgPortraitEireneFirst = kTileIdBgPortraitGrontaFirst, error
     dlg_Text MermaidEirene, DataA_Text0_GardenShrineBreakerMine1_Part1_u8_arr
     dlg_Text OrcGronta, DataA_Text0_GardenShrineBreakerMine1_Part2_u8_arr
     dlg_Text OrcGronta, DataA_Text0_GardenShrineBreakerMine1_Part3_u8_arr
     dlg_Text MermaidEirene, DataA_Text0_GardenShrineBreakerMine1_Part4_u8_arr
-    dlg_Text MermaidEirene, DataA_Text0_GardenShrineBreakerMine1_Part5_u8_arr
+    dlg_Text MermaidEireneSigh, \
+             DataA_Text0_GardenShrineBreakerMine1_Part5_u8_arr
     dlg_Text OrcGronta, DataA_Text0_GardenShrineBreakerMine1_Part6_u8_arr
     dlg_Text OrcGronta, DataA_Text0_GardenShrineBreakerMine1_Part7_u8_arr
     dlg_Done
+    .linecont -
 .ENDPROC
 
 .EXPORT DataA_Dialog_GardenShrineBreakerMine2_sDialog

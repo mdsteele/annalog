@@ -86,6 +86,7 @@ kDialogTextYesNo   = $ff
     MermaidDaphne
     MermaidEirene
     MermaidEireneShout
+    MermaidEireneSigh
     MermaidFarmer
     MermaidFlorist
     MermaidGuardF
