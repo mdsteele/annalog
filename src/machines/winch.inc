@@ -42,8 +42,9 @@ kChrBankDiagramWinch = $0d
 kTileIdBgDiagramWinchFirst = $e0
 
 ;;; Tile IDs for drawing winch machines.
-kTileIdObjCrusherFirst   = $e0
-kTileIdObjWeakFloorFirst = $c0
-kTileIdObjWinchFirst     = $e8
+kTileIdObjCrusherFirst     = $e0
+kTileIdObjWeakFloorFirst   = $c0
+kTileIdObjWinchFirst       = $e8
+kTileIdObjMachineWinchKnot = $81
 
 ;;;=========================================================================;;;

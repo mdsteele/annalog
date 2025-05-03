@@ -1273,19 +1273,20 @@ _chr_begin:
 .EXPORT Ppu_ChrObjCrypt
 .PROC Ppu_ChrObjCrypt
     CHR2_BANK $80
-    chr_inc "platform_girder", kTileIdObjPlatformGirder
-    chr_res $11
-    chr_inc "upgrade_opgoto",  kTileIdObjUpgradeOpGotoFirst
+    chr_inc "platform_girder",    kTileIdObjPlatformGirder
+    chr_inc "machine_winch_knot", kTileIdObjMachineWinchKnot
+    chr_res $10
+    chr_inc "upgrade_opgoto",     kTileIdObjUpgradeOpGotoFirst
     chr_res $08
-    chr_inc "bad_bat",         kTileIdObjBadBatFirst
+    chr_inc "bad_bat",            kTileIdObjBadBatFirst
     chr_res $18
-    chr_inc "breakable",       kTileIdObjWeakFloorFirst
+    chr_inc "breakable",          kTileIdObjWeakFloorFirst
     chr_res $02
-    chr_inc "bad_spider",      kTileIdObjBadSpiderFirst
+    chr_inc "bad_spider",         kTileIdObjBadSpiderFirst
     chr_res $04
-    chr_inc "bad_fish",        kTileIdObjBadFishFirst
-    chr_inc "crusher",         kTileIdObjCrusherFirst
-    chr_inc "winch",           kTileIdObjWinchFirst
+    chr_inc "bad_fish",           kTileIdObjBadFishFirst
+    chr_inc "crusher",            kTileIdObjCrusherFirst
+    chr_inc "winch",              kTileIdObjWinchFirst
     chr_res $14
     END_CHR_BANK
 .ENDPROC

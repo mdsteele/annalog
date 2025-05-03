@@ -33,6 +33,7 @@
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_Draw2x1Shape
+.IMPORT FuncA_Objects_Draw2x2Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_MoveShapeDownByA
@@ -349,10 +350,10 @@ _Done:
     jsr FuncA_Objects_DrawWinchMachine
     pla  ; spikeball platform index
     tax  ; param: spikeball platform index
-    jsr FuncA_Objects_SetShapePosToSpikeballCenter
     jsr FuncA_Objects_DrawWinchSpikeball
     jsr FuncA_Objects_MoveShapeUpOneTile
     jsr FuncA_Objects_MoveShapeLeftHalfTile
+    ldx #0  ; param: tiles until knot (zero for no knot)
     fall FuncA_Objects_DrawWinchChain
 .ENDPROC
 
@@ -361,8 +362,19 @@ _Done:
 ;;; top-left corner of the chain.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq The shape position is set to the bottom-left corner of the chain.
+;;; @param X How many tiles until the knot, or zero for no knot.
 .EXPORT FuncA_Objects_DrawWinchChain
 .PROC FuncA_Objects_DrawWinchChain
+    txa  ; length to knot
+    beq @doneKnot  ; no knot
+    dex
+    jsr FuncA_Objects_DrawChainWithLength
+    jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
+    ldy #kPaletteObjWinchChain  ; param: object flags
+    lda #kTileIdObjMachineWinchKnot  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+    @doneKnot:
+    ;; Get the main platform index for the winch machine.
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
     tax  ; winch platform index
@@ -421,37 +433,19 @@ _Done:
     rts
 .ENDPROC
 
-;;; Populates Zp_ShapePosX_i16 and Zp_ShapePosY_i16 with the screen position of
-;;; the center of the specified winch spikeball.
+;;; Draws a winch spikeball.
 ;;; @param X The spikeball platform index.
-;;; @preserve X, Y
-.EXPORT FuncA_Objects_SetShapePosToSpikeballCenter
-.PROC FuncA_Objects_SetShapePosToSpikeballCenter
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X and Y
-    lda #6  ; param: offset
-    jsr FuncA_Objects_MoveShapeRightByA
-    lda #6  ; param: offset
-    jmp FuncA_Objects_MoveShapeDownByA
-.ENDPROC
-
-;;; Allocates and populates OAM slots for a winch spikeball.
-;;; @prereq The shape position is set to the center of the spikeball.
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawWinchSpikeball
 .PROC FuncA_Objects_DrawWinchSpikeball
-    lda #kPaletteObjSpikeball  ; param: object flags
-    jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
-    bcs @done
-    lda #kTileIdObjSpikeballFirst + 0
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 0 + sObj::Tile_u8, y
-    lda #kTileIdObjSpikeballFirst + 1
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
-    lda #kTileIdObjSpikeballFirst + 2
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Tile_u8, y
-    lda #kTileIdObjSpikeballFirst + 3
-    sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
-    @done:
-    rts
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    lda #6  ; param: offset
+    jsr FuncA_Objects_MoveShapeRightByA
+    lda #6  ; param: offset
+    jsr FuncA_Objects_MoveShapeDownByA
+    lda #kTileIdObjSpikeballFirst  ; param: first tile ID
+    ldy #kPaletteObjSpikeball  ; param: object flags
+    jmp FuncA_Objects_Draw2x2Shape  ; preserves X
 .ENDPROC
 
 ;;; Allocates and populates OAM slots for a winch crusher.  When this returns,

@@ -42,7 +42,6 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
-.IMPORT FuncA_Objects_SetShapePosToSpikeballCenter
 .IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
@@ -252,7 +251,6 @@ _Passages_sPassage_arr:
 _Spikeballs:
     ldx #kSpikeball1PlatformIndex  ; param: platform index
     @loop:
-    jsr FuncA_Objects_SetShapePosToSpikeballCenter  ; preserves X
     jsr FuncA_Objects_DrawWinchSpikeball  ; preserves X
     inx
     cpx #kSpikeball1PlatformIndex + kNumSpikeballPlatforms
@@ -272,6 +270,7 @@ _Chains:
     jsr FuncA_Objects_DrawChainWithLength
     lda #kBlockHeightPx  ; param: offset
     jsr FuncA_Objects_MoveShapeUpByA
+    ldx #2  ; param: tiles until knot
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 

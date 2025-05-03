@@ -513,6 +513,7 @@ _ResetMachine:
     ;; Draw chain:
     jsr FuncA_Objects_MoveShapeUpOneTile
     jsr FuncA_Objects_MoveShapeLeftHalfTile
+    ldx #2  ; param: tiles until knot
     jmp FuncA_Objects_DrawWinchChain
 .ENDPROC
 
