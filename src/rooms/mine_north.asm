@@ -415,7 +415,8 @@ _Girder:
 _RopeUpToPulley:
     lda #3  ; param: offset
     jsr FuncA_Objects_MoveShapeLeftByA
-    ldx #kHoistPulleyPlatformIndex  ; param: platform index
+    lda #$23  ; param: distance to knot in pixels
+    ldx #kHoistPulleyPlatformIndex  ; param: pulley platform index
     jsr FuncA_Objects_DrawHoistRopeToPulley
 _Hoist:
     lda Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex  ; param: rope

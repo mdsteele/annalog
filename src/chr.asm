@@ -1404,28 +1404,28 @@ _chr_begin:
 .EXPORT Ppu_ChrObjMine
 .PROC Ppu_ChrObjMine
     CHR2_BANK $80
-    chr_inc "platform_girder", kTileIdObjPlatformGirder
-    chr_res $01
-    chr_inc "upgrade_ram",     kTileIdObjUpgradeRamFirst
-    chr_inc "hoist_obj",       kTileIdObjHoistFirst
-    chr_inc "mine_cage",       kTileIdObjMineCageFirst
+    chr_inc "platform_girder",    kTileIdObjPlatformGirder
+    chr_inc "machine_hoist_knot", kTileIdObjMachineHoistKnot
+    chr_inc "upgrade_ram",        kTileIdObjUpgradeRamFirst
+    chr_inc "machine_hoist_rope", kTileIdObjMachineHoistRopeFirst
+    chr_inc "mine_cage",          kTileIdObjMineCageFirst
     chr_res $06
-    chr_inc "dirt",            kTileIdObjDirtFirst
+    chr_inc "dirt",               kTileIdObjDirtFirst
     chr_res $02
-    chr_inc "upgrade_opsync",  kTileIdObjUpgradeOpSyncFirst
-    chr_inc "proj_fireblast",  kTileIdObjProjFireblastFirst
-    chr_inc "bad_grub",        kTileIdObjBadGrubFirst
-    chr_inc "bad_wasp",        kTileIdObjBadWaspFirst
-    chr_inc "boss_mine_eye",   kTileIdObjBossMineEyeFirst
-    chr_inc "bad_firefly",     kTileIdObjBadFireflyFirst
-    chr_inc "proj_fireball",   kTileIdObjProjFireballFirst
-    chr_inc "boulder",         kTileIdObjBoulderFirst
-    chr_inc "crane",           kTileIdObjCraneFirst
+    chr_inc "upgrade_opsync",     kTileIdObjUpgradeOpSyncFirst
+    chr_inc "proj_fireblast",     kTileIdObjProjFireblastFirst
+    chr_inc "bad_grub",           kTileIdObjBadGrubFirst
+    chr_inc "bad_wasp",           kTileIdObjBadWaspFirst
+    chr_inc "boss_mine_eye",      kTileIdObjBossMineEyeFirst
+    chr_inc "bad_firefly",        kTileIdObjBadFireflyFirst
+    chr_inc "proj_fireball",      kTileIdObjProjFireballFirst
+    chr_inc "boulder",            kTileIdObjBoulderFirst
+    chr_inc "crane",              kTileIdObjCraneFirst
     chr_res $04
-    chr_inc "bad_fish",        kTileIdObjBadFishFirst
-    chr_inc "bad_grub_roll",   kTileIdObjBadGrubRollFirst
+    chr_inc "bad_fish",           kTileIdObjBadFishFirst
+    chr_inc "bad_grub_roll",      kTileIdObjBadGrubRollFirst
     chr_res $08
-    chr_inc "breaker",         kTileIdObjBreakerFirst
+    chr_inc "breaker",            kTileIdObjBreakerFirst
     END_CHR_BANK
 .ENDPROC
 

@@ -35,10 +35,14 @@ kTileIdBgDiagramHoistLeftFirst  = $e0
 kTileIdBgDiagramHoistRightFirst = $f0
 
 ;;; Tile IDs for drawing hoist machines.
-kTileIdObjHoistFirst = $84
-kTileIdObjHoistRopeVert = kTileIdObjHoistFirst + 3
+kTileIdObjMachineHoistKnot      = $81
+kTileIdObjMachineHoistRopeFirst = $84
+kTileIdObjMachineHoistPulley    = kTileIdObjMachineHoistRopeFirst + 0
+kTileIdObjMachineHoistSpindle   = kTileIdObjMachineHoistRopeFirst + 1
+kTileIdObjMachineHoistRopeDiag  = kTileIdObjMachineHoistRopeFirst + 2
+kTileIdObjMachineHoistRopeVert  = kTileIdObjMachineHoistRopeFirst + 3
 
 ;;; The OBJ palette number to use for drawing hoist ropes.
-kPaletteObjHoistRope = 0
+kPaletteObjMachineHoistRope = 0
 
 ;;;=========================================================================;;;

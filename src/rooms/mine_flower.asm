@@ -321,7 +321,8 @@ _Passages_sPassage_arr:
     jsr FuncA_Objects_DrawHoistPulley
     ldx #kCageWestLowerPlatformIndex  ; param: platform index
     jsr FuncC_Mine_Flower_DrawCage
-    ldx #kPulleyWestPlatformIndex  ; param: platform index
+    lda #$03  ; param: distance to knot in pixels
+    ldx #kPulleyWestPlatformIndex  ; param: pulley platform index
     jsr FuncA_Objects_DrawHoistRopeToPulley
     lda Ram_PlatformTop_i16_0_arr + kCageWestUpperPlatformIndex  ; param: rope
     jmp FuncA_Objects_DrawHoistMachine
@@ -334,7 +335,8 @@ _Passages_sPassage_arr:
     jsr FuncA_Objects_DrawHoistPulley
     ldx #kCageEastLowerPlatformIndex  ; param: platform index
     jsr FuncC_Mine_Flower_DrawCage
-    ldx #kPulleyEastPlatformIndex  ; param: platform index
+    lda #$03  ; param: distance to knot in pixels
+    ldx #kPulleyEastPlatformIndex  ; param: pulley platform index
     jsr FuncA_Objects_DrawHoistRopeToPulley
     lda Ram_PlatformTop_i16_0_arr + kCageEastUpperPlatformIndex  ; param: rope
     jmp FuncA_Objects_DrawHoistMachine
@@ -366,8 +368,8 @@ _MoveUpLeft:
     jsr FuncA_Objects_MoveShapeLeftOneTile
     jmp FuncA_Objects_MoveShapeUpOneTile
 _DrawRope:
-    ldy #kPaletteObjHoistRope  ; param: object flags
-    lda #kTileIdObjHoistRopeVert  ; param: tile ID
+    ldy #kPaletteObjMachineHoistRope  ; param: object flags
+    lda #kTileIdObjMachineHoistRopeVert  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape
     jmp FuncA_Objects_MoveShapeUpOneTile
 .ENDPROC

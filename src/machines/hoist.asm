@@ -30,8 +30,12 @@
 .IMPORT FuncA_Objects_DrawGirderPlatform
 .IMPORT FuncA_Objects_DrawShapeTiles
 .IMPORT FuncA_Objects_GetMachineLightTileId
+.IMPORT FuncA_Objects_MoveShapeDownByA
 .IMPORT FuncA_Objects_MoveShapeDownOneTile
+.IMPORT FuncA_Objects_MoveShapeLeftHalfTile
+.IMPORT FuncA_Objects_MoveShapeRightHalfTile
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -58,11 +62,6 @@ kHoistMoveDownSlowdown = 2
 ;;; How many pixels above the bottom of a pulley platform the rope must extend
 ;;; in order to appear to feed into the pulley.
 kPulleyRopeOverlapPx = 4
-
-;;; OBJ tile IDs used for drawing various parts of hoist machines.
-kTileIdObjHoistPulley   = kTileIdObjHoistFirst + 0
-kTileIdObjHoistSpindle  = kTileIdObjHoistFirst + 1
-kTileIdObjHoistRopeDiag = kTileIdObjHoistFirst + 2
 
 ;;;=========================================================================;;;
 
@@ -156,7 +155,7 @@ _Spindle:
     lda #bObj::FlipH
     @noTurnSpindle:
     tay  ; param: object flags
-    lda #kTileIdObjHoistSpindle  ; param: tile ID
+    lda #kTileIdObjMachineHoistSpindle  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape  ; preserves T2+
 _MachineLight:
     jsr FuncA_Objects_SetShapePosToMachineTopLeft  ; preserves T0+
@@ -182,7 +181,7 @@ _MachineLight:
     and #$04
     mul #bObj::FlipH / $04
     tay  ; param: object flags
-    lda #kTileIdObjHoistPulley  ; param: tile ID
+    lda #kTileIdObjMachineHoistPulley  ; param: tile ID
     jmp FuncA_Objects_Draw1x1Shape
 .ENDPROC
 
@@ -200,22 +199,34 @@ _RopeTriangle_sShapeTile_arr:
     D_STRUCT sShapeTile
     d_byte DeltaX_i8, <-1
     d_byte DeltaY_i8, <-8
-    d_byte Flags_bObj, bObj::FlipH | kPaletteObjHoistRope
-    d_byte Tile_u8, kTileIdObjHoistRopeDiag
+    d_byte Flags_bObj, bObj::FlipH | kPaletteObjMachineHoistRope
+    d_byte Tile_u8, kTileIdObjMachineHoistRopeDiag
     D_END
     D_STRUCT sShapeTile
     d_byte DeltaX_i8, <-7
     d_byte DeltaY_i8, 0
-    d_byte Flags_bObj, kPaletteObjHoistRope | bObj::Final
-    d_byte Tile_u8, kTileIdObjHoistRopeDiag
+    d_byte Flags_bObj, kPaletteObjMachineHoistRope | bObj::Final
+    d_byte Tile_u8, kTileIdObjMachineHoistRopeDiag
     D_END
 .ENDPROC
 
 ;;; Draws a vertical rope that feeds into a hoist pulley.
 ;;; @prereq The shape position is set to the bottom-left corner of the rope.
+;;; @param A The distance up to the rope knot, in pixels.
 ;;; @param X The platform index for the pulley.
 .EXPORT FuncA_Objects_DrawHoistRopeToPulley
 .PROC FuncA_Objects_DrawHoistRopeToPulley
+    ;; First, move the shape position up and draw the rope knot, then move it
+    ;; back to where it was.
+    pha  ; distance to knot
+    jsr FuncA_Objects_MoveShapeUpByA  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
+    ldy #kPaletteObjMachineHoistRope | bObj::Pri  ; param: object flags
+    lda #kTileIdObjMachineHoistKnot  ; param: tile ID
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+    jsr FuncA_Objects_MoveShapeLeftHalfTile  ; preserves X
+    pla  ; param: distance to knot
+    jsr FuncA_Objects_MoveShapeDownByA  ; preserves X
     ;; Calculate the offset to the room-space platform bottom Y-position that
     ;; will give us the screen-space Y-position for the top of the rope.  Note
     ;; that we offset by an additional (kTileHeightPx - 1), so that when we
@@ -228,34 +239,36 @@ _RopeTriangle_sShapeTile_arr:
     ;; the lo byte in T0 and the hi byte in T1.
     lda Ram_PlatformBottom_i16_0_arr, x
     sub T0  ; offset
-    sta T0  ; screen-space chain top (lo)
+    sta T0  ; screen-space rope top (lo)
     lda Ram_PlatformBottom_i16_1_arr, x
     sbc #0
-    sta T1  ; screen-space chain top (hi)
+    sta T1  ; screen-space rope top (hi)
     ;; Calculate the length of the rope, in pixels, storing the lo byte in
     ;; T0 and the hi byte in A.
     lda Zp_ShapePosY_i16 + 0
-    sub T0  ; screen-space chain top (lo)
-    sta T0  ; chain pixel length (lo)
+    sub T0  ; screen-space rope top (lo)
+    sta T0  ; rope pixel length (lo)
     lda Zp_ShapePosY_i16 + 1
-    sbc T1  ; screen-space chain top (hi)
-    ;; Divide the chain pixel length by kTileHeightPx to get the length of the
-    ;; chain in tiles, storing it in X.  Because we added an additional
-    ;; (kTileHeightPx - 1) to the chain length above, this division will
+    sbc T1  ; screen-space rope top (hi)
+    ;; Divide the rope pixel length by kTileHeightPx to get the length of the
+    ;; rope in tiles, storing it in X.  Because we added an additional
+    ;; (kTileHeightPx - 1) to the rope length above, this division will
     ;; effectively round up instead of down.
     .assert kTileHeightPx = 8, error
     .repeat 3
     lsr a
-    ror T0  ; chain pixel length (lo)
+    ror T0  ; rope pixel length (lo)
     .endrepeat
-    ldx T0  ; param: chain length in tiles
+    ldx T0  ; param: rope length in tiles
+    beq _Return  ; zero tiles to draw
 _Loop:
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X
-    ldy #kPaletteObjHoistRope | bObj::Pri  ; param: object flags
-    lda #kTileIdObjHoistRopeVert  ; param: tile ID
+    ldy #kPaletteObjMachineHoistRope | bObj::Pri  ; param: object flags
+    lda #kTileIdObjMachineHoistRopeVert  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     dex
     bne _Loop
+_Return:
     rts
 .ENDPROC
 

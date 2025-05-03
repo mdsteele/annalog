@@ -313,8 +313,8 @@ _RopeBetweenGirders:
     ldx #kGirderSpacingTiles - 1
     @loop:
     jsr FuncA_Objects_MoveShapeUpOneTile
-    ldy #kPaletteObjHoistRope  ; param: object flags
-    lda #kTileIdObjHoistRopeVert  ; param: tile ID
+    ldy #kPaletteObjMachineHoistRope  ; param: object flags
+    lda #kTileIdObjMachineHoistRopeVert  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X
     dex
     bne @loop
@@ -331,7 +331,8 @@ _GirderSpike:
     jsr FuncA_Objects_Draw1x1Shape  ; preserves X
 _RopeUpToPulley:
     jsr FuncA_Objects_MoveShapeLeftHalfTile
-    ldx #kPulleyPlatformIndex  ; param: platform index
+    lda #$3a  ; param: distance to knot in pixels
+    ldx #kPulleyPlatformIndex  ; param: pulley platform index
     jsr FuncA_Objects_DrawHoistRopeToPulley
 _Hoist:
     lda Ram_PlatformTop_i16_0_arr + kUpperGirderPlatformIndex  ; param: rope

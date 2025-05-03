@@ -326,7 +326,8 @@ _Passages_sPassage_arr:
     jsr FuncA_Objects_DrawHoistPulley
     ldx #kHoistGirderPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawHoistGirder
-    ldx #kHoistPulleyPlatformIndex  ; param: platform index
+    lda #$33  ; param: distance to knot in pixels
+    ldx #kHoistPulleyPlatformIndex  ; param: pulley platform index
     jsr FuncA_Objects_DrawHoistRopeToPulley
     lda Ram_PlatformTop_i16_0_arr + kHoistGirderPlatformIndex  ; param: rope
     jmp FuncA_Objects_DrawHoistMachine
