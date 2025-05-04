@@ -271,7 +271,7 @@ _MovingLeft:
 ;;; Attempts to move the player avatar vertically by Zp_AvatarPushDelta_i8.
 ;;; Sets Zp_AvatarCollided_ePlatform to what kind of wall/platform was hit, if
 ;;; any; sets Zp_AvatarExit_ePassage if the avatar hits a passage.
-;;; @preserve X
+;;; @preserve X, T4+
 .EXPORT Func_TryPushAvatarVert
 .PROC Func_TryPushAvatarVert
     ldy #0
@@ -293,15 +293,15 @@ _Push:
     adc Zp_AvatarPosY_i16 + 1
     sta Zp_AvatarPosY_i16 + 1
 _DetectPassage:
-    jsr Func_AvatarDetectVertPassage  ; preserves X, returns Z and A
+    jsr Func_AvatarDetectVertPassage  ; preserves X and T1+, returns Z and A
     sta Zp_AvatarExit_ePassage
     bne _Done
 _DetectCollision:
     ;; Preserve X across these function calls that don't preserve it.
     txa
     pha
-    jsr Func_AvatarCollideWithTerrainVert
-    jsr Func_AvatarCollideWithAllPlatformsVert
+    jsr Func_AvatarCollideWithTerrainVert  ; preserves T4+
+    jsr Func_AvatarCollideWithAllPlatformsVert  ; preserves T2+
     pla
     tax
     lda Zp_AvatarCollided_ePlatform
@@ -315,9 +315,9 @@ _HandleCollision:
     sty Zp_AvatarVelY_i16 + 1
     ;; Check for special platform effects.
     cmp #ePlatform::Kill
-    jeq Func_KillAvatar  ; preserves X
+    jeq Func_KillAvatar  ; preserves X and T0+
     cmp #ePlatform::Harm
-    jeq Func_HarmAvatar  ; preserves X
+    jeq Func_HarmAvatar  ; preserves X and T0+
 _Done:
     rts
 .ENDPROC
@@ -325,7 +325,7 @@ _Done:
 ;;; Detects if the player avatar has hit a horizontal passage.
 ;;; @return Z Cleared if the player avatar hit a passage, set otherwise.
 ;;; @return A The ePassage that the player avatar hit, or ePassage::None.
-;;; @preserve X
+;;; @preserve X, T1+
 .PROC Func_AvatarDetectVertPassage
     ;; Check if the player avatar is moving up or down.
     bit Zp_AvatarPushDelta_i8
@@ -360,7 +360,7 @@ _Top:
     ;; If the avatar's Y-position is negative, then we definitely hit the top
     ;; passage (although this should not happen in practice).  On the other
     ;; hand, if the hi byte of the avatar's Y-position is greater than zero,
-    ;; then we definitely didn't hit the western passage.
+    ;; then we definitely didn't hit the top passage.
     lda Zp_AvatarPosY_i16 + 1
     bmi @hitPassage
     bne _NoHitPassage
@@ -381,10 +381,11 @@ _NoHitPassage:
 ;;; Checks for vertical collisions between the player avatar and the room
 ;;; terrain.  If any collision occurs, updates the avatar's Y-position and
 ;;; sets Zp_AvatarCollided_ePlatform to ePlatform::Solid.
+;;; @preserve T4+
 .PROC Func_AvatarCollideWithTerrainVert
     ;; Get the terrain pointer for the left side of the avatar, storing it in
     ;; T1T0.
-    jsr Func_GetAvatarLeftXAndTerrain
+    jsr Func_GetAvatarLeftXAndTerrain  ; preserves T0+
     ldax Zp_TerrainColumn_u8_arr_ptr
     stax T1T0
     ;; Get the terrain pointer for the right side of the avatar, storing it in

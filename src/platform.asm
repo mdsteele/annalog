@@ -428,7 +428,7 @@ _Return:
 ;;; @return A The pixel delta that the platform actually moved by (signed).
 ;;; @return N Set if the platform moved up, cleared otherwise.
 ;;; @return Z Cleared if the platform moved, set if it didn't.
-;;; @preserve X
+;;; @preserve X, T4+
 .EXPORT Func_MovePlatformTopTowardPointY
 .PROC Func_MovePlatformTopTowardPointY
     sta T0  ; max distance
@@ -459,7 +459,7 @@ _MoveUpByMax:
     sub T0  ; max distance
 _MoveByA:
     pha  ; move delta
-    jsr Func_MovePlatformVert  ; preserves X
+    jsr Func_MovePlatformVert  ; preserves X and T4+
     pla  ; move delta
     rts
 .ENDPROC
@@ -468,7 +468,7 @@ _MoveByA:
 ;;; push or carry the player avatar.
 ;;; @param A How many pixels to move the platform by (signed).
 ;;; @param X The platform index.
-;;; @preserve X
+;;; @preserve X, T4+
 .EXPORT Func_MovePlatformVert
 .PROC Func_MovePlatformVert
     ;; Sign-extend the move delta to 16 bits.
@@ -510,12 +510,12 @@ _CarryAvatarIfRiding:
     bne @notRidingDown
     bit Zp_AvatarPushDelta_i8
     bmi @notRidingDown
-    jmp Func_TryPushAvatarVert  ; preserves X
+    jmp Func_TryPushAvatarVert  ; preserves X and T4+
     @notRidingDown:
 _PushAvatarIfCollision:
     ;; If the avatar is fully to the left or to the right of the platform, then
     ;; the platform isn't pushing it, so we're done.
-    jsr Func_IsAvatarInPlatformHorz  ; preserves X, returns Z
+    jsr Func_IsAvatarInPlatformHorz  ; preserves X and T2+, returns Z
     beq _Return
     ;; Check if the platform is moving up or down.
     bit Zp_AvatarPushDelta_i8
@@ -523,32 +523,32 @@ _PushAvatarIfCollision:
 _PushAvatarUpIfCollision:
     ;; If the avatar is fully below the platform, then the platform isn't
     ;; pushing it, so we're done.
-    jsr Func_AvatarDepthIntoPlatformBottom  ; preserves X, returns Z and A
+    jsr Func_AvatarDepthIntoPlatformBottom  ; preserves X, T2+; returns Z, A
     beq _Return
     ;; If the avatar is fully above the platform, then the platform isn't
     ;; pushing it, so we're done.
-    jsr Func_AvatarDepthIntoPlatformTop  ; preserves X, returns Z
+    jsr Func_AvatarDepthIntoPlatformTop  ; preserves X and T2+, returns Z
     bne _PushAvatar
     rts
 _PushAvatarDownIfCollision:
     ;; If the avatar is fully above the platform, then the platform isn't
     ;; pushing it, so we're done.
-    jsr Func_AvatarDepthIntoPlatformTop  ; preserves X, returns Z
+    jsr Func_AvatarDepthIntoPlatformTop  ; preserves X and T2+, returns Z
     beq _Return
     ;; If the avatar is fully below the platform, then the platform isn't
     ;; pushing it, so we're done.
-    jsr Func_AvatarDepthIntoPlatformBottom  ; preserves X, returns Z and A
+    jsr Func_AvatarDepthIntoPlatformBottom  ; preserves X, T2+; returns Z, A
     beq _Return
 _PushAvatar:
     ;; Otherwise, try to push the avatar out of the platform.
     sta Zp_AvatarPushDelta_i8
-    jsr Func_TryPushAvatarVert  ; preserves X
+    jsr Func_TryPushAvatarVert  ; preserves X and T4+
     ;; If the platform squashed the avatar into something else solid, kill the
     ;; avatar.
     lda Zp_AvatarCollided_ePlatform
     .assert ePlatform::None = 0, error
     beq _Return
-    jmp Func_KillAvatar  ; preserves X
+    jmp Func_KillAvatar  ; preserves X and T0+
 _Return:
     rts
 .ENDPROC
@@ -557,6 +557,7 @@ _Return:
 ;;; platforms.  If any collision occurs, updates the avatar's X-position and
 ;;; sets Zp_AvatarCollided_ePlatform to the hit platform's type.
 ;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero horz delta for the avatar.
+;;; @preserve T2+
 .EXPORT Func_AvatarCollideWithAllPlatformsHorz
 .PROC Func_AvatarCollideWithAllPlatformsHorz
     ldx #kMaxPlatforms - 1
@@ -564,7 +565,7 @@ _Return:
     lda Ram_PlatformType_ePlatform_arr, x
     cmp #kFirstSolidPlatformType
     blt @continue
-    jsr Func_AvatarCollideWithOnePlatformHorz  ; preserves X
+    jsr Func_AvatarCollideWithOnePlatformHorz  ; preserves X and T2+
     @continue:
     dex
     .assert kMaxPlatforms <= $80, error
@@ -577,9 +578,9 @@ _Return:
 ;;; and sets Zp_AvatarCollided_ePlatform to the platform's type.
 ;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero horz delta for the avatar.
 ;;; @param X The platform index.
-;;; @preserve X
+;;; @preserve X, T2+
 .PROC Func_AvatarCollideWithOnePlatformHorz
-    jsr Func_IsAvatarInPlatformVert  ; preserves X, returns Z
+    jsr Func_IsAvatarInPlatformVert  ; preserves X and T2+, returns Z
     beq _Return
     ;; Check if the player avatar is moving to the left or to the right.
     bit Zp_AvatarPushDelta_i8
@@ -658,6 +659,7 @@ _Return:
 ;;; Zp_AvatarCollided_ePlatform to the hit platform's type.  Also updates
 ;;; Zp_AvatarPlatformIndex_u8.
 ;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero vert delta for the avatar.
+;;; @preserve T2+
 .EXPORT Func_AvatarCollideWithAllPlatformsVert
 .PROC Func_AvatarCollideWithAllPlatformsVert
     lda #$ff
@@ -667,7 +669,7 @@ _Return:
     lda Ram_PlatformType_ePlatform_arr, x
     cmp #kFirstSolidPlatformType
     blt @continue
-    jsr Func_AvatarCollideWithOnePlatformVert  ; preserves X
+    jsr Func_AvatarCollideWithOnePlatformVert  ; preserves X and T2+
     @continue:
     dex
     .assert kMaxPlatforms <= $80, error
@@ -680,9 +682,9 @@ _Return:
 ;;; Zp_AvatarCollided_ePlatform to the platform's type.
 ;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero vert delta for the avatar.
 ;;; @param X The platform index.
-;;; @preserve X
+;;; @preserve X, T2+
 .PROC Func_AvatarCollideWithOnePlatformVert
-    jsr Func_IsAvatarInPlatformHorz  ; preserves X, returns Z
+    jsr Func_IsAvatarInPlatformHorz  ; preserves X and T2+, returns Z
     beq _Return
     ;; Check if the player avatar is moving up or down.
     lda Zp_AvatarPushDelta_i8
@@ -784,13 +786,13 @@ _MovingDown:
 ;;; platform.
 ;;; @param X The platform index.
 ;;; @return Z Cleared if the avatar is within the platform vertically.
-;;; @preserve X
+;;; @preserve X, T2+
 .PROC Func_IsAvatarInPlatformVert
-    jsr Func_AvatarDepthIntoPlatformBottom  ; preserves X, returns Z
+    jsr Func_AvatarDepthIntoPlatformBottom  ; preserves X and T2+, returns Z
     bne @checkTop
     rts
     @checkTop:
-    fall Func_AvatarDepthIntoPlatformTop  ; preserves X, returns Z
+    fall Func_AvatarDepthIntoPlatformTop  ; preserves X and T2+, returns Z
 .ENDPROC
 
 ;;; Determines if the bottom of the avatar is below the top of the platform,
@@ -892,14 +894,14 @@ _MovingDown:
 ;;; the left of the right side of the platform.
 ;;; @param X The platform index.
 ;;; @return Z Cleared if the avatar is within the platform horizontally.
-;;; @preserve X
+;;; @preserve X, T2+
 .EXPORT Func_IsAvatarInPlatformHorz
 .PROC Func_IsAvatarInPlatformHorz
-    jsr Func_AvatarDepthIntoPlatformRight  ; preserves X, returns Z
+    jsr Func_AvatarDepthIntoPlatformRight  ; preserves X and T2+, returns Z
     bne @checkLeft
     rts
     @checkLeft:
-    fall Func_AvatarDepthIntoPlatformLeft  ; preserves X, returns Z
+    fall Func_AvatarDepthIntoPlatformLeft  ; preserves X and T2+, returns Z
 .ENDPROC
 
 ;;; Determines if the avatar's right side is to the right of the platform's

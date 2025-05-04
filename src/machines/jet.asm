@@ -105,8 +105,10 @@ kTileIdObjJetLowerMiddleFirst = kTileIdObjJetFirst + 1
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq Zp_Current_sProgram_ptr is initialized.
 ;;; @param AX The maximum platform top position for the jet machine.
+;;; @param Y The max Y-goal for this jet machine.
 .EXPORT FuncA_Machine_JetTick
 .PROC FuncA_Machine_JetTick
+    sty T4  ; max goal Y
     sta T0  ; max platform top (hi)
     ;; Get the machine's platform index.
     ldy #sMachine::MainPlatform_u8
@@ -132,7 +134,7 @@ kTileIdObjJetLowerMiddleFirst = kTileIdObjJetFirst + 1
     sta T3  ; goal delta (hi)
     ;; Calculate the desired Y-position for the top edge of the jet, in
     ;; room-space pixels, storing it in Zp_PointY_i16.
-    txa               ; max platform top (lo)
+    txa     ; max platform top (lo)
     sub T2  ; goal delta (lo)
     sta Zp_PointY_i16 + 0
     lda T0  ; max platform top (hi)
@@ -143,7 +145,7 @@ kTileIdObjJetLowerMiddleFirst = kTileIdObjJetFirst + 1
     jsr FuncA_Machine_DoubleIfResetting  ; preserves T0+, returns A
     ;; Move the jet vertically, as necessary.
     ldx T1  ; param: platform index
-    jsr Func_MovePlatformTopTowardPointY  ; preserves X, returns Z and A
+    jsr Func_MovePlatformTopTowardPointY  ; preserves X, T4+; returns Z, A
     beq _ReachedGoal
 _Moved:
     ;; Move the jet's flame platform to match.
@@ -169,8 +171,8 @@ _ReachedGoal:
     ldx Zp_MachineIndex_u8
     ldy Ram_MachineGoalVert_u8_arr, x
     beq @setMin  ; jet is at minimum height
-    cpy #9
-    beq @setMin  ; jet is at maximum height
+    cpy T4  ; max goal Y
+    bge @setMin  ; jet is at maximum height
     @hovering:
     lda #kJetMaxFlamePower / 2
     @setMin:

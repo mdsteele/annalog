@@ -115,14 +115,14 @@ kLowerJetPlatformIndex = 2
 kUpperJetInitGoalY = 9
 kUpperJetMaxGoalY = 9
 kLowerJetInitGoalY = 0
-kLowerJetMaxGoalY = 9
+kLowerJetMaxGoalY = 8
 
 ;;; The maximum and initial Y-positions for the top of the jet platforms.
 .LINECONT +
 kUpperJetMaxPlatformTop = $00a0
 kUpperJetInitPlatformTop = \
     kUpperJetMaxPlatformTop - kUpperJetInitGoalY * kJetMoveInterval
-kLowerJetMinPlatformTop = $0110
+kLowerJetMinPlatformTop = $0120
 kLowerJetMaxPlatformTop = \
     kLowerJetMinPlatformTop + kLowerJetMaxGoalY * kJetMoveInterval
 kLowerJetInitPlatformTop = \
@@ -241,7 +241,7 @@ _Platforms_sPlatform_arr:
     d_word WidthPx_u16, $80
     d_byte HeightPx_u8, $10
     d_word Left_i16,  $0050
-    d_word Top_i16,   $0100
+    d_word Top_i16,   $0110
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -250,7 +250,7 @@ _Actors_sActor_arr:
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcChild
     d_word PosX_i16, $00d0
-    d_word PosY_i16, $0128
+    d_word PosY_i16, $0138
     d_byte Param_byte, eNpcChild::BrunoStanding
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
@@ -271,28 +271,28 @@ _Devices_sDevice_arr:
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
-    d_byte BlockRow_u8, 16
+    d_byte BlockRow_u8, 17
     d_byte BlockCol_u8, 11
     d_byte Target_byte, kLowerJetMachineIndex
     D_END
     .assert * - :- = kLowerJetUpperLeverDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
-    d_byte BlockRow_u8, 16
+    d_byte BlockRow_u8, 17
     d_byte BlockCol_u8, 7
     d_byte Target_byte, sElevatorState::LowerJetUpperLever_u8
     D_END
     .assert * - :- = kBrunoDeviceIndexRight * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkRight
-    d_byte BlockRow_u8, 18
+    d_byte BlockRow_u8, 19
     d_byte BlockCol_u8, 12
     d_byte Target_byte, eDialog::FactoryElevatorBrunoHi
     D_END
     .assert * - :- = kBrunoDeviceIndexLeft * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::TalkLeft
-    d_byte BlockRow_u8, 18
+    d_byte BlockRow_u8, 19
     d_byte BlockCol_u8, 13
     d_byte Target_byte, eDialog::FactoryElevatorBrunoHi
     D_END
@@ -335,7 +335,7 @@ _Passages_sPassage_arr:
     d_byte Exit_bPassage, ePassage::Bottom | 0
     d_byte Destination_eRoom, eRoom::MermaidElevator
     d_byte SpawnBlock_u8, 9
-    d_byte SpawnAdjust_byte, $2f
+    d_byte SpawnAdjust_byte, $2e
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
@@ -408,9 +408,12 @@ _UpperShaft:
     lda Zp_Previous_eRoom
     cmp #eRoom::CoreElevator
     bne _Return
+    ;; Adjust the avatar's vertical position (so that it lines up with the jet
+    ;; platform, if riding it).
+    dec Zp_AvatarPosY_i16 + 0
     ;; Initialize the jet machine from its state in the previous room.
     ldx #kUpperJetMachineIndex  ; param: machine index
-    ldya #$ffff & -$16f  ; param: vertical offset
+    ldya #$ffff & -$170  ; param: vertical offset
     jmp FuncA_Room_InitElevatorJetState
 _LowerShaft:
     ;; If the player avatar didn't actually come from the MermaidElevator room
@@ -418,9 +421,13 @@ _LowerShaft:
     lda Zp_Previous_eRoom
     cmp #eRoom::MermaidElevator
     bne _Return
+    ;; Adjust the avatar's vertical position (so that it lines up with the jet
+    ;; platform, if riding it).
+    dec Zp_AvatarPosY_i16 + 0
+    dec Zp_AvatarPosY_i16 + 0
     ;; Initialize the jet machine from its state in the previous room.
     ldx #kLowerJetMachineIndex  ; param: machine index
-    ldya #$172  ; param: vertical offset
+    ldya #$170  ; param: vertical offset
     jmp FuncA_Room_InitElevatorJetState
 .ENDPROC
 
@@ -614,6 +621,7 @@ _WriteL:
 
 .PROC FuncA_Machine_FactoryElevatorUpperJet_Tick
     ldax #kUpperJetMaxPlatformTop  ; param: max platform top
+    ldy #kUpperJetMaxGoalY  ; param: max goal Y
     jmp FuncA_Machine_JetTick
 .ENDPROC
 
@@ -635,6 +643,7 @@ _WriteL:
 
 .PROC FuncA_Machine_FactoryElevatorLowerJet_Tick
     ldax #kLowerJetMaxPlatformTop  ; param: max platform top
+    ldy #kLowerJetMaxGoalY  ; param: max goal Y
     jmp FuncA_Machine_JetTick
 .ENDPROC
 

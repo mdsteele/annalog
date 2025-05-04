@@ -46,6 +46,7 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjFactory
 .IMPORT Ram_MachineGoalVert_u8_arr
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Previous_eRoom
 .IMPORTZP Zp_RoomState
 
@@ -282,9 +283,13 @@ _Passages_sPassage_arr:
     lda Zp_Previous_eRoom
     cmp #eRoom::FactoryElevator
     bne @done
+    ;; Adjust the avatar's vertical position (so that it lines up with the jet
+    ;; platform, if riding it).
+    dec Zp_AvatarPosY_i16 + 0
+    dec Zp_AvatarPosY_i16 + 0
     ;; Initialize the jet machine from its state in the previous room.
     ldx #kJetMachineIndex  ; param: machine index
-    ldya #$0172  ; param: vertical offset
+    ldya #$170  ; param: vertical offset
     jmp FuncA_Room_InitElevatorJetState
     @done:
     rts
@@ -331,6 +336,7 @@ _WriteL:
 
 .PROC FuncA_Machine_CoreElevatorJet_Tick
     ldax #kJetMaxPlatformTop  ; param: max platform top
+    ldy #kJetMaxGoalY  ; param: max goal Y
     jmp FuncA_Machine_JetTick
 .ENDPROC
 
