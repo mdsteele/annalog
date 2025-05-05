@@ -95,6 +95,7 @@ kSaveMagicNumber = $b2
     BreakerCity
     BreakerShadow
     ;; Each of these flags is set when that paper has been collected:
+    ;; @begin SORTED
     PaperJerome01
     PaperJerome02
     PaperJerome03
@@ -140,7 +141,9 @@ kSaveMagicNumber = $b2
     PaperManual7
     PaperManual8
     PaperManual9
+    ;; @end SORTED
     ;; Flags for persistent room state:
+    ;; @begin SORTED
     CityBuilding3BlastedCrates
     CityCenterDoorUnlocked
     CityCenterEnteredCity
@@ -198,6 +201,7 @@ kSaveMagicNumber = $b2
     TempleEntryTalkedToCorra
     TempleNaveAlexWaiting
     TempleNaveTalkedToAlex
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 .ASSERT eFlag::NUM_VALUES <= $100, error
