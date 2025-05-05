@@ -530,7 +530,6 @@ _SetFlagIfCratesDestroyed:
 .ENDPROC
 
 .PROC FuncA_Room_CityBuilding3_ResetLevers
-    ;; TODO: Also reset crates if puzzle not solved?
     ldx #kLeverLeftDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
     ldx #kLeverRightDeviceIndex  ; param: device index

@@ -451,7 +451,22 @@ _ReadR:
 ;;; Reset function for the BossCryptWinch machine.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_CryptWinch_Reset
-    ;; TODO: If not hurt/strafing, make boss change its goal position
+    ;; If in Firing mode, switch to Waiting mode.
+    ldx Zp_RoomState + sState::Current_eBossMode
+    cpx #eBossMode::Firing
+    bne @notFiring
+    .assert eBossMode::Firing - 1 = eBossMode::Waiting, error
+    dex
+    stx Zp_RoomState + sState::Current_eBossMode
+    @notFiring:
+    ;; If in Waiting mode, set cooldown to zero (so that the boss will
+    ;; immediately pick a new goal position).
+    cpx #eBossMode::Waiting
+    bne @notWaiting
+    lda #0
+    sta Zp_RoomState + sState::BossCooldown_u8
+    @notWaiting:
+    ;; Reset levers and begin machine reset sequence.
     ldx #kLeverLeftDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
     ldx #kLeverRightDeviceIndex  ; param: device index
@@ -481,7 +496,7 @@ _Inner:
     fall FuncC_Boss_CryptWinch_Init
 .ENDPROC
 
-;;; Reset function for the BossCryptWinch machine.  Note that no particular
+;;; Init function for the BossCryptWinch machine.  Note that no particular
 ;;; PRGA bank is guaranteed to be loaded when this is called, since this is
 ;;; also transitively called from FuncC_Boss_CryptWinch_Tick.
 .PROC FuncC_Boss_CryptWinch_Init
