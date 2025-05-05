@@ -146,9 +146,9 @@ _FadeIn:
     .byte "Adam Saltsman", $c8, "Hyell"
     .byte "CobraLad", $cd, "KJose"
     .byte "Daivuk", $c7, "Luke Sharples"
-    .byte "drotzruhn", $c3, "SamsterBirdies"
-    .byte "Exuin", $c6, "Walter Odington"
-    .byte "gpag1", $c0 | 21
+    .byte "drotzruhn", $ca, "qubodup"
+    .byte "Exuin", $c7, "SamsterBirdies"
+    .byte "gpag1", $c6, "Walter Odington"
     .byte $c0 | 26
     .byte $c4, "Thanks for playing!", $c3
     .byte $c0 | 26

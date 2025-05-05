@@ -703,9 +703,13 @@ _Done:
     bcc @done
     lda #kBlockWidthPx * 5  ; param: distance
     jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
-    bcs FuncA_Actor_TickBadOrc_StartChasing  ; preserves X
+    bcs _StartChasing
     @done:
     rts
+_StartChasing:
+    lda #eSample::QuackOrc  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves X
+    fall FuncA_Actor_TickBadOrc_StartChasing  ; preserves X
 .ENDPROC
 
 ;;; Puts an orc baddie actor into Chasing mode.

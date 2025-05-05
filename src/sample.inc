@@ -19,19 +19,23 @@
 
 ;;; Samples that can be played on the DMC as sound effects.
 .ENUM eSample
+    ;; @begin SORTED
     AnvilD      ; a metallic "clang"
     AnvilE      ; a metallic "clang"
     AnvilF      ; a metallic "clang" (highest)
+    BossHurtE   ; a boss gets hurt (deeper)
+    BossHurtF   ; a boss gets hurt (higher)
     BossRoar7   ; a boss's death roar (most bosses)
     BossRoar8   ; a boss's death roar (Gronta)
-    BossHurtD   ; a boss gets hurt (deepest)
-    BossHurtE   ; a boss gets hurt (medium)
-    BossHurtF   ; a boss gets hurt (highest)
     Death       ; when Anna dies
     Harm        ; when Anna gets hurt
     JumpAnna    ; when Anna jumps
     JumpGronta  ; when Gronta jumps
     KickDrum    ; used by game music and by drums machine
+    QuackDuck   ; a duck quack
+    QuackOrc    ; an orc bellow
+    QuackRhino  ; a rhino honk
+    ;; @end SORTED
     NUM_VALUES
 .ENDENUM
 

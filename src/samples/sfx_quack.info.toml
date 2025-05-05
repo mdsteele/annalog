@@ -1,0 +1,9 @@
+name = "Duck Quack"
+artist = "qubodup"
+license = "CC-BY 4.0"
+year = 2018
+url = "https://freesound.org/people/qubodup/sounds/442820/"
+comments = """
+The original sound contained a sequence of quacks; this file was trimmed to
+just the first quack in the sequence.
+"""

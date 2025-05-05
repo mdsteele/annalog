@@ -50,16 +50,18 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
     d_byte AnvilD,     $d
     d_byte AnvilE,     $e
     d_byte AnvilF,     $f
-    d_byte BossRoar7,  $7
-    d_byte BossRoar8,  $8
-    d_byte BossHurtD,  $d
     d_byte BossHurtE,  $e
     d_byte BossHurtF,  $f
+    d_byte BossRoar7,  $7
+    d_byte BossRoar8,  $8
     d_byte Death,      $e
     d_byte Harm,       $e
     d_byte JumpAnna,   $f
     d_byte JumpGronta, $e
     d_byte KickDrum,   $e
+    d_byte QuackDuck,  $e
+    d_byte QuackOrc,   $c
+    d_byte QuackRhino, $b
     D_END
 .ENDPROC
 
@@ -71,16 +73,18 @@ kSampleGap1Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
     d_byte AnvilD,     19
     d_byte AnvilE,     17
     d_byte AnvilF,     12
-    d_byte BossRoar7,  72
-    d_byte BossRoar8,  65
-    d_byte BossHurtD,  29
     d_byte BossHurtE,  24
     d_byte BossHurtF,  19
+    d_byte BossRoar7,  72
+    d_byte BossRoar8,  65
     d_byte Death,      17
     d_byte Harm,        5
     d_byte JumpAnna,    9
     d_byte JumpGronta, 12
     d_byte KickDrum,   13
+    d_byte QuackDuck,  17
+    d_byte QuackOrc,   15  ; intentionally play only part of the sample
+    d_byte QuackRhino, 20  ; intentionally play only part of the sample
     D_END
 .ENDPROC
 
@@ -164,9 +168,10 @@ _Wait:
     .assert (* - :-) .mod 16 = 1, error
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRG8"
+;;; We have some space before the next sample can begin, room enough for some
+;;; other data.
+SampleGap4:
+kSampleGap4Size = kDmcSampleAlign - (* .mod kDmcSampleAlign)
 
 ;;; The encoded start address for each sample.
 .PROC Data_SampleStart_u8_arr
@@ -174,18 +179,35 @@ _Wait:
     d_byte AnvilD,     <(Data_SampleAnvil_arr881 >> 6)
     d_byte AnvilE,     <(Data_SampleAnvil_arr881 >> 6)
     d_byte AnvilF,     <(Data_SampleAnvil_arr881 >> 6)
-    d_byte BossRoar7,  <(Data_SampleBoss_arr >> 6)
-    d_byte BossRoar8,  <(Data_SampleBoss_arr >> 6)
-    d_byte BossHurtD,  <(Data_SampleBoss_arr >> 6)
     d_byte BossHurtE,  <(Data_SampleBoss_arr >> 6)
     d_byte BossHurtF,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossRoar7,  <(Data_SampleBoss_arr >> 6)
+    d_byte BossRoar8,  <(Data_SampleBoss_arr >> 6)
     d_byte Death,      <(Data_SampleDeath_arr >> 6)
     d_byte Harm,       <(Data_SampleHarm_arr >> 6)
     d_byte JumpAnna,   <(Data_SampleJump_arr >> 6)
     d_byte JumpGronta, <(Data_SampleJump_arr >> 6)
     d_byte KickDrum,   <(Data_SampleKickDrum_arr657 >> 6)
+    d_byte QuackDuck,  <(Data_SampleQuack_arr >> 6)
+    d_byte QuackOrc,   <(Data_SampleQuack_arr >> 6)
+    d_byte QuackRhino, <(Data_SampleQuack_arr >> 6)
     D_END
 .ENDPROC
+
+;;; Align to the next sample, and make sure we didn't overshoot the gap.
+.ALIGN kDmcSampleAlign
+.ASSERT * - SampleGap4 = kSampleGap4Size, error
+
+;;; Delta modulated sample data for eSample::Quack.
+.PROC Data_SampleQuack_arr
+:   .assert * .mod kDmcSampleAlign = 0, error
+    .incbin "out/samples/sfx_quack.dm"
+    .assert (* - :-) .mod 16 = 1, error
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; The encoded byte length for each sample.
 .PROC Data_SampleLength_u8_arr
@@ -193,16 +215,18 @@ _Wait:
     d_byte AnvilD,     881 >> 4
     d_byte AnvilE,     881 >> 4
     d_byte AnvilF,     881 >> 4
-    d_byte BossRoar7,  .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossRoar8,  .sizeof(Data_SampleBoss_arr) >> 4
-    d_byte BossHurtD,  .sizeof(Data_SampleBoss_arr) >> 4
     d_byte BossHurtE,  .sizeof(Data_SampleBoss_arr) >> 4
     d_byte BossHurtF,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossRoar7,  .sizeof(Data_SampleBoss_arr) >> 4
+    d_byte BossRoar8,  .sizeof(Data_SampleBoss_arr) >> 4
     d_byte Death,      .sizeof(Data_SampleDeath_arr) >> 4
     d_byte Harm,       .sizeof(Data_SampleHarm_arr) >> 4
     d_byte JumpAnna,   .sizeof(Data_SampleJump_arr) >> 4
     d_byte JumpGronta, .sizeof(Data_SampleJump_arr) >> 4
     d_byte KickDrum,   657 >> 4
+    d_byte QuackDuck,  .sizeof(Data_SampleQuack_arr) >> 4
+    d_byte QuackOrc,   .sizeof(Data_SampleQuack_arr) >> 4
+    d_byte QuackRhino, .sizeof(Data_SampleQuack_arr) >> 4
     D_END
 .ENDPROC
 

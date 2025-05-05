@@ -20,6 +20,7 @@
 .INCLUDE "../actor.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "duck.inc"
 
 .IMPORT FuncA_Actor_FaceOppositeDir
@@ -30,6 +31,7 @@
 .IMPORT FuncA_Actor_ZeroVelX
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_GetRandomByte
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorPosX_i16_1_arr
@@ -89,6 +91,8 @@ _ContinueChasing:
     sta Ram_ActorState1_byte_arr, x  ; current eNpcDuck mode
     lda #kDuckEatingFrames
     sta Ram_ActorState2_byte_arr, x  ; mode timer
+    lda #eSample::QuackDuck  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves X
     jmp FuncA_Actor_ZeroVelX  ; preserves X
 _MoveTowardsFood:
     jsr FuncA_Actor_SetPointToOtherActorCenter  ; preserves X

@@ -20,6 +20,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../ppu.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "../tileset.inc"
 .INCLUDE "rhino.inc"
 
@@ -38,6 +39,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_PointHitsTerrain
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -157,7 +159,8 @@ _BecomeAngered:
     sta Ram_ActorState2_byte_arr, x  ; mode timer
     lda #eBadRhino::Angered
     sta Ram_ActorState1_byte_arr, x  ; eBadRhino mode
-    ;; TODO: play a sound for the rhino being angered
+    lda #eSample::QuackRhino  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves X
     jmp FuncA_Actor_ZeroVelX  ; preserves X
 _SetVelocity:
     inc Ram_ActorState3_byte_arr, x  ; animation counter
