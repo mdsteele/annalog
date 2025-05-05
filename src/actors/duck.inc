@@ -24,7 +24,8 @@
 ;;;   * State1: The eNpcDuck value for the duck's current behavior mode.
 ;;;   * State2: A timer for the current mode that decrements each frame when
 ;;;     nonzero.
-;;;   * State3: Unused.
+;;;   * State3: A cooldown timer for quacking.  Decrements each frame when
+;;;     nonzero.
 ;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing duck NPC actors.

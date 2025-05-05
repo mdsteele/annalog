@@ -25,6 +25,7 @@
 
 .IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_FaceTowardsPoint
+.IMPORT FuncA_Actor_IsCollidingWithAvatar
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_SetPointToOtherActorCenter
 .IMPORT FuncA_Actor_SetVelXForward
@@ -37,6 +38,7 @@
 .IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
+.IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 
 ;;;=========================================================================;;;
@@ -49,6 +51,9 @@ kDuckEatProximity = 3
 
 ;;; How long it takes a duck actor to eat a food, in frames.
 .DEFINE kDuckEatingFrames 32
+
+;;; The minimum delay between quacks, in frames.
+kDuckQuackCooldown = 60
 
 ;;; The OBJ palette number to use for duck NPC actors.
 kPaletteObjNpcDuck = 0
@@ -71,6 +76,16 @@ kPaletteObjNpcDuck = 0
 ;;; @preserve X
 .EXPORT FuncA_Actor_TickNpcDuck
 .PROC FuncA_Actor_TickNpcDuck
+    lda Ram_ActorState3_byte_arr, x  ; quack cooldown
+    beq @done
+    dec Ram_ActorState3_byte_arr, x  ; quack cooldown
+    @done:
+_QuackAtAvatar:
+    jsr FuncA_Actor_IsCollidingWithAvatar  ; preserves X, returns C
+    bcc @done
+    jsr _MaybeQuack  ; preserves X
+    @done:
+_CheckMode:
     lda Ram_ActorState1_byte_arr, x  ; current eNpcDuck mode
     .assert eNpcDuck::Wandering = 0, error
     beq _ContinueWandering
@@ -85,16 +100,16 @@ _ContinueChasing:
     cmp #kDuckEatProximity
     bge _MoveTowardsFood  ; food hasn't been reached yet
     ;; Start eating the food.
+    jsr _MaybeQuack  ; preserves X
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, y
     lda #eNpcDuck::Eating
     sta Ram_ActorState1_byte_arr, x  ; current eNpcDuck mode
     lda #kDuckEatingFrames
     sta Ram_ActorState2_byte_arr, x  ; mode timer
-    lda #eSample::QuackDuck  ; param: eSample to play
-    jsr Func_PlaySfxSample  ; preserves X
     jmp FuncA_Actor_ZeroVelX  ; preserves X
 _MoveTowardsFood:
+    jsr _MaybeQuack  ; preserves X
     jsr FuncA_Actor_SetPointToOtherActorCenter  ; preserves X
     jsr FuncA_Actor_FaceTowardsPoint  ; preserves X
     lda #$a0  ; param: speed (subpixels/frame)
@@ -149,6 +164,15 @@ _PickNewSpeed:
 _SetSpeed:
     ldy #0                 ; param: speed (hi)
     jmp FuncA_Actor_SetVelXForward  ; preserves X
+_MaybeQuack:
+    lda Ram_ActorState3_byte_arr, x  ; quack cooldown
+    bne @done  ; quacked recently
+    lda #kDuckQuackCooldown
+    sta Ram_ActorState3_byte_arr, x  ; quack cooldown
+    lda #eSample::QuackDuck  ; param: eSample to play
+    jmp Func_PlaySfxSample  ; preserves X
+    @done:
+    rts
 _Speed_u8_arr4:
     .byte $10, $20, $40, $60
 .ENDPROC

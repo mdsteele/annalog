@@ -665,7 +665,7 @@ _NoHit:
     d_byte NpcAdult,         5
     d_byte NpcBlinky,        1
     d_byte NpcChild,         5
-    d_byte NpcDuck,          3
+    d_byte NpcDuck,          6
     d_byte NpcOrc,          kOrcBoundingBoxSide
     d_byte NpcOrcSleeping,   5
     d_byte NpcQueen,         5
