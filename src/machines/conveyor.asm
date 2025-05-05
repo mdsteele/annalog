@@ -21,6 +21,7 @@
 .INCLUDE "../oam.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_PlaySfxConveyor
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
@@ -48,14 +49,19 @@ kConveyorGearCooldown = 15
 ;;; @param A The value to write (0-9).
 .EXPORT FuncA_Machine_ConveyorWriteReg
 .PROC FuncA_Machine_ConveyorWriteReg
+    ;; If the gear value is the same as before, do nothing (and don't make the
+    ;; machine wait for a cooldown).
     ldy Zp_MachineIndex_u8
     cmp Ram_MachineGoalHorz_u8_arr, y  ; conveyor gear
-    beq @done
+    bne @setGear
+    rts
+    ;; Change the gear value.
+    @setGear:
     sta Ram_MachineGoalHorz_u8_arr, y  ; conveyor gear
+    jsr FuncA_Machine_PlaySfxConveyor
+    ;; Make the machine wait a bit.
     lda #kConveyorGearCooldown  ; param: num frames
     jmp FuncA_Machine_StartWaiting
-    @done:
-    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
