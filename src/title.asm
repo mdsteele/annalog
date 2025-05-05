@@ -51,6 +51,7 @@
 .IMPORT Func_SignedDivFrac
 .IMPORT Func_Sine
 .IMPORT Func_Window_Disable
+.IMPORT MainC_Title_Credits
 .IMPORT MainC_Title_Prologue
 .IMPORT Main_Explore_SpawnInLastSafeRoom
 .IMPORT Ppu_ChrBgFontUpper
@@ -273,7 +274,7 @@ Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataC_Title_Letters_u8_arr)
 ;;; @prereq Rendering is disabled.
 .EXPORT MainC_Title_Menu
 .PROC MainC_Title_Menu
-    jsr FuncC_Title_InitAndFadeIn
+    jsr FuncC_Title_InitMenuAndFadeIn
 _GameLoop:
     jsr FuncC_Title_DrawMenu
     jsr Func_ClearRestOfOamAndProcessFrame
@@ -339,11 +340,14 @@ _HandleMenuItem:
     D_TABLE .enum, eTitle
     d_entry table, TopContinue, _MenuItemContinue
     d_entry table, TopNewGame,  _MenuItemNewGame
-    d_entry table, TopCredits,  _GameLoop  ; TODO
+    d_entry table, TopCredits,  _MenuItemCredits
     d_entry table, NewCancel,   _MenuItemCancel
     d_entry table, NewDelete,   _MenuItemDelete
     D_END
 .ENDREPEAT
+_MenuItemCredits:
+    jsr Func_FadeOutToBlack
+    jmp MainC_Title_Credits
 _MenuItemContinue:
     jsr Func_PlaySfxMenuConfirm
     jmp MainC_Title_BeginGame
@@ -458,10 +462,9 @@ _BeginNewGame:
     jmp Main_Explore_SpawnInLastSafeRoom
 .ENDPROC
 
-;;; Initializes title mode, then fades in the screen.
-;;; @prereq PRGC_Title is loaded.
+;;; Initializes title screen menu mode, then fades in the screen.
 ;;; @prereq Rendering is disabled.
-.PROC FuncC_Title_InitAndFadeIn
+.PROC FuncC_Title_InitMenuAndFadeIn
     jsr Func_Window_Disable
     main_chr08_bank Ppu_ChrBgTitle
     main_chr10_bank Ppu_ChrObjPause
@@ -537,6 +540,12 @@ _InitMenu:
     sta Zp_TitleMenuLinePosY_u8
     lda #0
     sta Zp_CheatSequenceIndex_u8
+    ldx #.sizeof(DataC_Title_Letters_u8_arr) - 1
+    @lettersLoop:
+    sta Ram_TitleLetterOffset_i8_arr, x
+    dex
+    .assert .sizeof(DataC_Title_Letters_u8_arr) <= $80, error
+    bpl @lettersLoop
 _FadeIn:
     jsr FuncC_Title_DrawMenu
     lda #bPpuMask::BgMain | bPpuMask::ObjMain

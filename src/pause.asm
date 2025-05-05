@@ -275,7 +275,7 @@ _FadeIn:
     jmp Func_FadeInFromBlackToNormal
 .ENDPROC
 
-;;; Directly fills PPU nametable 0 with BG tile data for the pause screen.
+;;; Directly fills both PPU nametables with BG tile data for the pause screen.
 ;;; @prereq Rendering is disabled.
 .PROC FuncA_Pause_DirectDrawBg
     lda #kPpuCtrlFlagsHorz
@@ -404,6 +404,7 @@ _FinishLowerNametable:
 ;;; @prereq Rendering is disabled.
 ;;; @param Y The number of blank tiles to draw.
 ;;; @preserve X, T0+
+.EXPORT FuncA_Pause_DirectDrawBlankTiles
 .PROC FuncA_Pause_DirectDrawBlankTiles
     lda #' '
     @loop:
@@ -556,6 +557,7 @@ _CircuitBreakers_byte_arr8_arr6:
 ;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
 ;;; @prereq Hw_PpuAddr_w2 is set to the start of the nametable row.
 ;;; @preserve T0+
+.EXPORT FuncA_Pause_DirectDrawWindowTopBorder
 .PROC FuncA_Pause_DirectDrawWindowTopBorder
     ldy #' '
     sty Hw_PpuData_rw
@@ -573,12 +575,13 @@ _CircuitBreakers_byte_arr8_arr6:
     rts
 .ENDPROC
 
-;;; Draws one row of nametable tiles, consiting of the top border of a pause
+;;; Draws one row of nametable tiles, consiting of the bottom border of a pause
 ;;; screen window.
 ;;; @prereq Rendering is disabled.
 ;;; @prereq Hw_PpuCtrl_wo is set to horizontal mode.
 ;;; @prereq Hw_PpuAddr_w2 is set to the start of the nametable row.
 ;;; @preserve T0+
+.EXPORT FuncA_Pause_DirectDrawWindowBottomBorder
 .PROC FuncA_Pause_DirectDrawWindowBottomBorder
     ldy #' '
     sty Hw_PpuData_rw

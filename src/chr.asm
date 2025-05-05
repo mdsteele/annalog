@@ -61,6 +61,7 @@
 .INCLUDE "actors/wasp.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "breaker.inc"
+.INCLUDE "charmap.inc"
 .INCLUDE "devices/breaker.inc"
 .INCLUDE "dialog.inc"
 .INCLUDE "machines/ammorack.inc"
@@ -507,7 +508,7 @@ _chr_begin:
     CHR1_BANK $00
     chr_inc "terrain_shared_0", $00
     chr_inc "terrain_shared_1", $10
-    chr_inc "font_lower"
+    chr_inc "font_lower",       kTileIdBgFontLowerFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -518,7 +519,7 @@ _chr_begin:
 .EXPORT Ppu_ChrBgFontUpper
 .PROC Ppu_ChrBgFontUpper
     CHR1_BANK $40
-    chr_inc "font_upper"
+    chr_inc "font_upper",       kTileIdBgFontUpperFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1092,7 +1093,9 @@ _chr_begin:
     chr_inc "title1"
     chr_inc "title2"
     chr_inc "title3"
-    chr_res $1a
+    chr_res $08
+    chr_inc "font_copyright", kTileIdBgFontCopyrightFirst
+    chr_res $10
     END_CHR_BANK
 .ENDPROC
 

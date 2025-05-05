@@ -17,6 +17,11 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; BG tile IDs for font characters.
+kTileIdBgFontLowerFirst     = $20
+kTileIdBgFontUpperFirst     = $40
+kTileIdBgFontCopyrightFirst = $ae
+
 .CHARMAP $20, $00  ; ' '
 .CHARMAP $60, $40  ; '`'
 .CHARMAP $21, $41  ; '!'
