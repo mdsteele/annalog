@@ -377,8 +377,8 @@ _MoveToMiddleRight:
 
 .PROC DataA_Room_ShadowHallMinigun_sIns_arr
     D_STRUCT sIns
-    d_byte Arg_byte, $00  ; REST
-    d_byte Op_byte, eOpcode::Rest << 4
+    d_byte Arg_byte, $00  ; REST 1
+    d_byte Op_byte, (eOpcode::Rest << 4) | 1
     D_END
     D_STRUCT sIns
     d_byte Arg_byte, $2f  ; IF Y>2

@@ -36,7 +36,7 @@
     Til   = $9  ; oper, r/i, r/i   Jumps to prev instruction if false.
     Act   = $a  ; (no args)        Performs machine action (e.g. firing gun).
     Move  = $b  ; dir              Moves machine in the specified direction.
-    Rest  = $c  ; (no args)        Pauses for a short time.
+    Rest  = $c  ; r/i              Pauses for N * 16 frames.
     Beep  = $d  ; r/i              Plays a sound with one of ten pitches.
     End   = $e  ; (no args)        Halts the program.
     Nop   = $f  ; (no args)        Does nothing (but still takes a cycle).

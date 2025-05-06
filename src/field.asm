@@ -68,7 +68,7 @@ _NumFields_u8_arr:
     d_byte Til,   4
     d_byte Act,   1
     d_byte Move,  2
-    d_byte Rest,  1
+    d_byte Rest,  2
     d_byte Beep,  2
     d_byte End,   1
     d_byte Nop,   1
@@ -102,6 +102,7 @@ _OpMul:
 _OpGoto:
 _OpSkip:
 _OpMove:
+_OpRest:
 _OpBeep:
     .byte 3, 0
 _OpIf:
@@ -112,7 +113,6 @@ _OpAct:
 _OpEnd:
     .byte 2
 _OpSync:
-_OpRest:
     .byte 3
 .ENDPROC
 
@@ -134,7 +134,6 @@ _OffsetTable_u8_arr:
 _OpEmpty:
 _OpSync:
 _OpAct:
-_OpRest:
 _OpEnd:
 _OpNop:
     .byte 0
@@ -147,6 +146,7 @@ _OpMul:
 _OpGoto:
 _OpSkip:
 _OpMove:
+_OpRest:
 _OpBeep:
     .byte 0, 5
 _OpIf:
@@ -174,7 +174,6 @@ _FieldTable_u8_arr:
 _OpEmpty:
 _OpSync:
 _OpAct:
-_OpRest:
 _OpEnd:
 _OpNop:
     .byte 0, 0, 0, 0, 0, 0, 0
@@ -187,6 +186,7 @@ _OpMul:
 _OpGoto:
 _OpSkip:
 _OpMove:
+_OpRest:
 _OpBeep:
     .byte 0, 0, 0, 0, 1, 1, 1
 _OpIf:
@@ -212,7 +212,6 @@ _TypeTable_u8_arr:
 _OpEmpty:
 _OpSync:
 _OpAct:
-_OpRest:
 _OpEnd:
 _OpNop:
     .byte eField::Opcode
@@ -226,6 +225,7 @@ _OpMul:
 _OpGoto:
     .byte eField::Opcode, eField::Address
 _OpSkip:
+_OpRest:
 _OpBeep:
     .byte eField::Opcode, eField::RValue
 _OpIf:
@@ -253,7 +253,6 @@ _SlotTable_u8_arr:
 _OpEmpty:
 _OpSync:
 _OpAct:
-_OpRest:
 _OpEnd:
 _OpNop:
     .byte 0
@@ -266,6 +265,7 @@ _OpMul:
 _OpGoto:
 _OpSkip:
 _OpMove:
+_OpRest:
 _OpBeep:
     .byte 0, 1
 _OpIf:
@@ -382,7 +382,6 @@ _OpEmpty:
 _OpSync:
 _OpGoto:
 _OpAct:
-_OpRest:
 _OpEnd:
 _OpNop:
     tya  ; new eOpcode value
@@ -505,6 +504,10 @@ _OpMove:
     @moveHorz:
     lda #eOpcode::Move * $10 + eDir::Right
     @setOp:
+    sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
+    bne _ZeroArgByteAndFieldNumber  ; unconditional
+_OpRest:
+    lda #eOpcode::Rest * $10 + $01
     sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     bne _ZeroArgByteAndFieldNumber  ; unconditional
 _OpBeep:

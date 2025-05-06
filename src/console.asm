@@ -899,7 +899,9 @@ _OpMove:
 _OpRest:
     ldya #@string
     jsr _WriteString5
-    jmp _Write2Spaces
+    lda T0  ; Op_byte
+    jsr _WriteLowRegisterOrImmediate
+    jmp _Write1Space
     @string: .byte "REST "
 _OpBeep:
     ldya #@string

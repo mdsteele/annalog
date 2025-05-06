@@ -555,6 +555,10 @@ _ExecInstruction:
     d_entry table, Nop,   FuncA_Machine_IncrementPc
     D_END
 .ENDREPEAT
+_OpEnd:
+    lda #eMachine::Halted
+    sta Ram_MachineStatus_eMachine_arr, x
+    jmp FuncA_Machine_PlaySfxEnd
 _OpAdd:
     jsr FuncA_Machine_GetBinopArgs  ; returns A and Y
     sty T0  ; right-hand value
@@ -676,13 +680,15 @@ _OpBeep:
     and #$0f  ; param: immediate value or register
     jsr Func_MachineRead  ; returns A
     jsr FuncA_Machine_PlaySfxBeep
-_OpRest:
     lda #$10  ; 16 frames = about a quarter second
     jmp FuncA_Machine_StartWaiting
-_OpEnd:
-    lda #eMachine::Halted
-    sta Ram_MachineStatus_eMachine_arr, x
-    jmp FuncA_Machine_PlaySfxEnd
+_OpRest:
+    lda Zp_Current_sIns + sIns::Op_byte
+    and #$0f  ; param: immediate value or register
+    jsr Func_MachineRead  ; returns A
+    mul #$10  ; 16 frames = about a quarter second
+    beq FuncA_Machine_IncrementPc
+    jmp FuncA_Machine_StartWaiting
 _OpSync:
     lda #eMachine::Syncing
     sta Ram_MachineStatus_eMachine_arr, x
