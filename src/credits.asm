@@ -48,6 +48,9 @@
 ;;; The number of tile rows between the top and bottom borders of the credits
 ;;; window.
 kNumCreditsRows = 24
+;;; The number of tile columns between the left and right borders/margins of
+;;; the credits window.
+kNumCreditsCols = 26
 
 ;;;=========================================================================;;;
 
@@ -124,24 +127,23 @@ _FadeIn:
     jmp Func_FadeInFromBlackToNormal
 .ENDPROC
 
-;;; Text for the title screen credits.  Each text row is 26 tiles wide
-;;; (kScreenWidthTiles minus a 3-tile margin on either side).  A sequence of N
-;;; spaces can be encoded as ($c0 | N) to save space.
+;;; Text for the title screen credits.  Each text row is kNumCreditsCols tiles
+;;; wide.  A sequence of N spaces can be encoded as ($c0 | N) to save space.
 .PROC DataA_Pause_CreditsText
-    .byte $c0 | 26
+    .byte $c0 | kNumCreditsCols
     .byte $c7, "- ANNALOG -", $c8
-    .byte $c0 | 26
+    .byte $c0 | kNumCreditsCols
     .byte " ", $ae, $af, "2022 Matthew D. Steele "
     .byte "  https://mdsteele.games/ "
-    .byte $c0 | 26
+    .byte $c0 | kNumCreditsCols
     .byte $c7, "PUBLISHED BY:", $c6
     .byte $ca, "<TBD>", $cb
     .byte $ca, "<URL>", $cb
-    .byte $c0 | 26
+    .byte $c0 | kNumCreditsCols
     .byte $ca, "MUSIC:", $ca
     .byte $c8, "Jon Moran", $c9
     .byte $c6, "Matthew Steele", $c6
-    .byte $c0 | 26
+    .byte $c0 | kNumCreditsCols
     .byte " CREATIVE COMMONS ASSETS: "
     .byte "Adam Saltsman", $c8, "Hyell"
     .byte "CobraLad", $cd, "KJose"
@@ -149,11 +151,14 @@ _FadeIn:
     .byte "drotzruhn", $ca, "qubodup"
     .byte "Exuin", $c7, "SamsterBirdies"
     .byte "gpag1", $c6, "Walter Odington"
-    .byte $c0 | 26
+    .byte $c0 | kNumCreditsCols
     .byte $c4, "Thanks for playing!", $c3
-    .byte $c0 | 26
+    .byte $c0 | kNumCreditsCols
+_Version:
     ;; This last row appears just below the window border:
-    .byte "v0.1.0", $c0 | 20
+    .include "../out/version"
+    .assert (* - _Version) < kNumCreditsCols, error
+    .byte $c0 | (kNumCreditsCols - (* - _Version))
 .ENDPROC
 
 ;;; Draws one row of the text for the credits window.

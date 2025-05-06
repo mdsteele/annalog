@@ -109,6 +109,9 @@ SIM65_BIN_FILES := \
 
 CFLAGS = -std=c99 -pedantic -Wall -Werror
 
+VERSION_FILE = $(OUTDIR)/version
+GIT_REV := $(shell git describe 2>/dev/null || git rev-parse --short HEAD)
+
 #=============================================================================#
 
 define compile-asm
@@ -258,6 +261,13 @@ $(ROM_BIN_FILE).3.nl: $(ROM_LABEL_FILE) $(LABEL2NL)
 	@mkdir -p $(@D)
 	@$(LABEL2NL) 8000 9fff c000 ffff < $< > $@
 
+FORCE:
+$(VERSION_FILE): FORCE
+	@mkdir -p $(@D)
+	@touch -a $@
+	@(printf '.byte "%s"\n' "$(GIT_REV)" | diff $@ - >/dev/null) || \
+	    (echo "Updating $@" && printf '.byte "%s"\n' "$(GIT_REV)" > $@)
+
 #=============================================================================#
 # ASM tests:
 
@@ -278,6 +288,9 @@ $(SIM65_OUT_DIR)/%: \
 # OBJ files:
 
 $(OBJDIR)/chr.o: src/chr.asm $(INC_FILES) $(TILE_CHR_FILES)
+	$(compile-asm)
+
+$(OBJDIR)/credits.o: src/credits.asm $(INC_FILES) $(VERSION_FILE)
 	$(compile-asm)
 
 $(OBJDIR)/inst.o: src/inst.asm $(INC_FILES) $(INST_DM_FILES)
