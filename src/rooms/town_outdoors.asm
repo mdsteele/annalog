@@ -84,7 +84,7 @@
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToDeviceCenter
 .IMPORT Func_SpawnExplosionAtPoint
-.IMPORT Main_Finale_StartNextStep
+.IMPORT MainA_Cutscene_StartNextFinaleStep
 .IMPORT Main_LoadPrisonCellAndStartCutscene
 .IMPORT Ppu_ChrObjFinale
 .IMPORT Ppu_ChrObjTown
@@ -729,7 +729,7 @@ _InitThurgAndGrunt:
     act_WaitFrames 40
     ;; TODO: animate the core tower rising out, with Gronta riding it
     act_WaitFrames 60
-    act_JumpToMain Main_Finale_StartNextStep
+    act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 .ENDPROC
 
 ;;; @prereq PRGC_Town is loaded.
@@ -740,7 +740,7 @@ _InitThurgAndGrunt:
     act_WaitFrames 40
     ;; TODO: animate the core tower rising out, with Anna riding it
     act_WaitFrames 60
-    act_JumpToMain Main_Finale_StartNextStep
+    act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 .ENDPROC
 
 ;;; A cutscene fork (to be started with act_ForkStart) for exploding the ground
@@ -868,7 +868,7 @@ _ExplodeGroundAtScreenCol:
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntThrowing1
     act_RunDialog eDialog::TownOutdoorsFinaleGaveRemote3
     act_WaitFrames 60
-    act_JumpToMain Main_Finale_StartNextStep
+    act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
@@ -881,7 +881,7 @@ _ExplodeGroundAtScreenCol:
     act_WaitFrames 30
     act_RunDialog eDialog::TownOutdoorsFinaleReactivate3
     act_WaitFrames 60
-    act_JumpToMain Main_Finale_StartNextStep
+    act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 .ENDPROC
 
 ;;; Initializes the Thrug actor as an orc NPC positioned at the door in
@@ -899,7 +899,7 @@ _ExplodeGroundAtScreenCol:
 .PROC DataA_Cutscene_TownOutdoorsFinaleGaveRemote5_sCutscene
     act_WaitFrames 120
     ;; TODO: humans protest, but Gronta shoots lasers at them
-    act_JumpToMain Main_Finale_StartNextStep
+    act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene
@@ -928,7 +928,7 @@ _ExplodeGroundAtScreenCol:
     act_SetCutsceneFlags bCutscene::TickAllActors
     act_CallFunc _ShootBeamAtThurg
     act_WaitFrames 120
-    act_JumpToMain Main_Finale_StartNextStep
+    act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 _ShootBeamAtThurg:
     ldx #kThurgActorIndex  ; param: actor index
     lda #bObj::FlipH  ; param: actor flags

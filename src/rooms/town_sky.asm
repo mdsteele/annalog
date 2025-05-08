@@ -61,7 +61,8 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetAndTransferFade
 .IMPORT Func_ShakeRoom
-.IMPORT Main_Finale_StartNextStep
+.IMPORT MainA_Cutscene_StartEpilogue
+.IMPORT MainA_Cutscene_StartNextFinaleStep
 .IMPORT Ppu_ChrObjFinale
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
@@ -454,7 +455,7 @@ _FinalTerminal:
     act_CallFunc _PlayInnerRumblingSound
     act_RepeatFunc $c0, _RaiseCoreInnerPlatform
     act_WaitFrames 120
-    act_JumpToMain Main_Finale_StartNextStep
+    act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 _PlayOuterRumblingSound:
     lda #$80  ; param: frames
     jmp FuncA_Cutscene_PlaySfxRumbling
@@ -514,7 +515,7 @@ _MoveInnerOnly:
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaAxeRaised
     act_RunDialog eDialog::TownSkyFinaleGaveRemote4
     act_WaitFrames 10
-    act_JumpToMain Main_Finale_StartNextStep
+    act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownSkyFinaleReactivate4_sCutscene
@@ -526,7 +527,7 @@ _MoveInnerOnly:
                    FuncA_Cutscene_TownSkyRevealJerome
     act_RunDialog eDialog::TownSkyFinaleReactivate4
     act_WaitFrames 60
-    act_JumpToMain Main_Finale_StartNextStep
+    act_JumpToMain MainA_Cutscene_StartNextFinaleStep
     .linecont -
 .ENDPROC
 
@@ -562,10 +563,7 @@ _MoveInnerOnly:
     act_CallFunc _FadeRoomToBlack
     act_WaitFrames 60
     act_RunDialog eDialog::TownSkyFinaleMaybeThisTime
-    ;; TODO: jump to credits
-    @loop:
-    act_WaitFrames 60
-    act_ForkStart 0, @loop
+    act_JumpToMain MainA_Cutscene_StartEpilogue
 _FadeRoomToBlack:
     jsr Func_FadeOutToBlack
     ;; Stop drawing special platforms for this room.

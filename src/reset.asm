@@ -51,7 +51,7 @@ kSharedBgColor = $0f  ; black
     ldx #0
     stx Hw_PpuCtrl_wo   ; disable VBlank NMI
     ;; Initialize stack pointer.
-    dex  ; now x is $ff
+    dex  ; now X is $ff
     txs
     ;; Initialize the MMC and load PRGC_Title.  Since all NMI/IRQ interrupts
     ;; are disabled at this point, we can just do this directly rather than

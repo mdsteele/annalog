@@ -27,8 +27,8 @@
     Calm
     City
     Core
-    Credits
     Crypt
+    Epilogue
     Factory
     Florist
     Garden

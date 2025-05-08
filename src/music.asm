@@ -34,7 +34,7 @@
 .IMPORT DataC_Prison_Prison_sMusic
 .IMPORT DataC_Sewer_Sewer_sMusic
 .IMPORT DataC_Temple_TemplePlaceholder_sMusic
-.IMPORT DataC_Title_Credits_sMusic
+.IMPORT DataC_Title_Epilogue_sMusic
 .IMPORT DataC_Title_Title_sMusic
 .IMPORT DataC_Town_Attack_sMusic
 .IMPORT DataC_Town_Town_sMusic
@@ -53,27 +53,27 @@
     D_TABLE_LO table, Data_Music_sMusic_ptr_0_arr
     D_TABLE_HI table, Data_Music_sMusic_ptr_1_arr
     D_TABLE .enum, eMusic
-    d_entry table, Silence, Data_Silence_sMusic
-    d_entry table, Attack,  DataC_Town_Attack_sMusic
-    d_entry table, Boss1,   DataC_Boss_Boss1_sMusic
-    d_entry table, Boss2,   DataC_Core_Boss2_sMusic
-    d_entry table, Calm,    Data_Calm_sMusic
-    d_entry table, City,    DataC_City_City_sMusic
-    d_entry table, Core,    DataC_Core_Core_sMusic
-    d_entry table, Credits, DataC_Title_Credits_sMusic
-    d_entry table, Crypt,   DataC_Crypt_Crypt_sMusic
-    d_entry table, Factory, DataC_Factory_Factory_sMusic
-    d_entry table, Florist, DataC_Mermaid_Florist_sMusic
-    d_entry table, Garden,  DataC_Garden_Garden_sMusic
-    d_entry table, Lava,    DataC_Lava_Lava_sMusic
-    d_entry table, Mermaid, DataC_Mermaid_Mermaid_sMusic
-    d_entry table, Mine,    DataC_Mine_Mine_sMusic
-    d_entry table, Prison,  DataC_Prison_Prison_sMusic
-    d_entry table, Sewer,   DataC_Sewer_Sewer_sMusic
-    d_entry table, Temple,  DataC_Temple_TemplePlaceholder_sMusic
-    d_entry table, Title,   DataC_Title_Title_sMusic
-    d_entry table, Town,    DataC_Town_Town_sMusic
-    d_entry table, Upgrade, Data_Upgrade_sMusic
+    d_entry table, Silence,  Data_Silence_sMusic
+    d_entry table, Attack,   DataC_Town_Attack_sMusic
+    d_entry table, Boss1,    DataC_Boss_Boss1_sMusic
+    d_entry table, Boss2,    DataC_Core_Boss2_sMusic
+    d_entry table, Calm,     Data_Calm_sMusic
+    d_entry table, City,     DataC_City_City_sMusic
+    d_entry table, Core,     DataC_Core_Core_sMusic
+    d_entry table, Crypt,    DataC_Crypt_Crypt_sMusic
+    d_entry table, Epilogue, DataC_Title_Epilogue_sMusic
+    d_entry table, Factory,  DataC_Factory_Factory_sMusic
+    d_entry table, Florist,  DataC_Mermaid_Florist_sMusic
+    d_entry table, Garden,   DataC_Garden_Garden_sMusic
+    d_entry table, Lava,     DataC_Lava_Lava_sMusic
+    d_entry table, Mermaid,  DataC_Mermaid_Mermaid_sMusic
+    d_entry table, Mine,     DataC_Mine_Mine_sMusic
+    d_entry table, Prison,   DataC_Prison_Prison_sMusic
+    d_entry table, Sewer,    DataC_Sewer_Sewer_sMusic
+    d_entry table, Temple,   DataC_Temple_TemplePlaceholder_sMusic
+    d_entry table, Title,    DataC_Title_Title_sMusic
+    d_entry table, Town,     DataC_Town_Town_sMusic
+    d_entry table, Upgrade,  Data_Upgrade_sMusic
     D_END
 .ENDREPEAT
 

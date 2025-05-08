@@ -17,10 +17,12 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "audio.inc"
 .INCLUDE "avatar.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "cutscene.inc"
 .INCLUDE "devices/console.inc"
+.INCLUDE "epilogue.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "music.inc"
@@ -37,6 +39,7 @@
 .IMPORT Func_FadeOutToBlackSlowly
 .IMPORT Func_ProcessFrame
 .IMPORT Func_WaitXFrames
+.IMPORT Main_Epilogue
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ppu_ChrBgFontUpper
 .IMPORTZP Zp_AvatarFlags_bObj
@@ -45,6 +48,7 @@
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_Next_eCutscene
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
@@ -83,26 +87,14 @@ Zp_Current_eFinale: .res 1
 
 .SEGMENT "PRG8"
 
-;;; Fades out the screen, increments Zp_Current_eFinale, and begins the next
-;;; finale step, starting the next cutscene after loading and entering its
+;;; Starts a finale step, starting its cutscene after loading and entering its
 ;;; room.
-;;; @prereq Zp_Current_eFinale is initialized.
-;;; @prereq Rendering is enabled.
-.EXPORT Main_Finale_StartNextStep
-.PROC Main_Finale_StartNextStep
-    jsr Func_FadeOutToBlack
-    ldy Zp_Current_eFinale
-    iny  ; param: finale step to start
-    fall Main_Finale_SetAndStartStep
-.ENDPROC
-
-;;; Sets Zp_Current_eFinale to the specified step and begins that finale step,
-;;; starting its cutscene after loading and entering its room.
 ;;; @prereq Rendering is disabled.
-;;; @param Y The eFinale value for the finale step to run.
-.PROC Main_Finale_SetAndStartStep
-    sty Zp_Current_eFinale
-    jsr_prga FuncA_Cutscene_GetFinaleCutsceneRoomAndMusic  ; returns X and Y
+;;; @prereq Zp_Current_eFinale is initialized.
+;;; @prereq Zp_Current_eRoom and Zp_Current_sRoom are initialized.
+;;; @param X The eRoom value for the room to load.
+;;; @param Y The eMusic value for the music to play in the new room.
+.PROC Main_Finale_LoadAndEnterRoom
     jsr FuncM_SwitchPrgcAndLoadRoomWithMusic
     jmp_prga MainA_Cutscene_EnterFinaleCutsceneRoom
 .ENDPROC
@@ -111,6 +103,29 @@ Zp_Current_eFinale: .res 1
 
 .SEGMENT "PRGA_Cutscene"
 
+;;; Fades out the screen, increments Zp_Current_eFinale, and begins the next
+;;; finale step, starting the next cutscene after loading and entering its
+;;; room.
+;;; @prereq Zp_Current_eFinale is initialized.
+;;; @prereq Rendering is enabled.
+.EXPORT MainA_Cutscene_StartNextFinaleStep
+.PROC MainA_Cutscene_StartNextFinaleStep
+    jsr Func_FadeOutToBlack
+    ldy Zp_Current_eFinale
+    iny  ; param: finale step to start
+    fall MainA_Cutscene_SetAndStartFinale
+.ENDPROC
+
+;;; Sets Zp_Current_eFinale to the specified step and begins that finale step,
+;;; starting its cutscene after loading and entering its room.
+;;; @prereq Rendering is disabled.
+;;; @param Y The eFinale value for the finale step to run.
+.PROC MainA_Cutscene_SetAndStartFinale
+    sty Zp_Current_eFinale
+    jsr FuncA_Cutscene_GetFinaleCutsceneRoomAndMusic  ; returns X and Y
+    jmp Main_Finale_LoadAndEnterRoom
+.ENDPROC
+
 ;;; Mode for transitioning to the cutscene that plays in TownOutdoors after
 ;;; giving the B-Remote to Gronta.
 ;;; @prereq Rendering is enabled.
@@ -118,7 +133,8 @@ Zp_Current_eFinale: .res 1
 .PROC MainA_Cutscene_FinaleGaveRemote
     jsr Func_FadeOutToBlackSlowly
     ldy #eFinale::GaveRemote1Outdoors  ; param: finale step to run
-    jmp Main_Finale_SetAndStartStep
+    .assert eFinale::GaveRemote1Outdoors < $80, error
+    bpl MainA_Cutscene_SetAndStartFinale  ; unconditional
 .ENDPROC
 
 ;;; Mode for transitioning to the cutscene that plays in TownOutdoors after
@@ -128,7 +144,39 @@ Zp_Current_eFinale: .res 1
 .PROC MainA_Cutscene_FinaleReactivate
     jsr Func_FadeOutToBlackSlowly
     ldy #eFinale::Reactivate1Outdoors  ; param: finale step to run
-    jmp Main_Finale_SetAndStartStep
+    .assert eFinale::Reactivate1Outdoors < $80, error
+    bpl MainA_Cutscene_SetAndStartFinale  ; unconditional
+.ENDPROC
+
+;;; Mode for transitioning from the end of a finale cutscene to the epilogue.
+;;; @prereq Rendering is enabled.
+.EXPORT MainA_Cutscene_StartEpilogue
+.PROC MainA_Cutscene_StartEpilogue
+    ;; Disable audio and rendering.
+    lda #0
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
+    sta Zp_Render_bPpuMask
+    jsr Func_ProcessFrame
+    ;; Start the appropriate epilogue for the current finale.
+    ldy Zp_Current_eFinale
+    ldx _FinaleEpilogues_eEpilogue_arr, y  ; param: epilogue to play
+    jmp Main_Epilogue
+_FinaleEpilogues_eEpilogue_arr:
+    D_ARRAY .enum, eFinale
+    d_byte GaveRemote1Outdoors, eEpilogue::OrcsAscend
+    d_byte GaveRemote2Sky,      eEpilogue::OrcsAscend
+    d_byte GaveRemote3Outdoors, eEpilogue::OrcsAscend
+    d_byte GaveRemote4Sky,      eEpilogue::OrcsAscend
+    d_byte GaveRemote5Outdoors, eEpilogue::OrcsAscend
+    d_byte GaveRemote6Sky,      eEpilogue::OrcsAscend
+    d_byte Reactivate1Outdoors, eEpilogue::HumansAscend
+    d_byte Reactivate2Sky,      eEpilogue::HumansAscend
+    d_byte Reactivate3Outdoors, eEpilogue::HumansAscend
+    d_byte Reactivate4Sky,      eEpilogue::HumansAscend
+    d_byte Reactivate5Outdoors, eEpilogue::HumansAscend
+    d_byte Reactivate6Sky,      eEpilogue::HumansAscend
+    d_byte YearsLater1Outdoors, eEpilogue::AlexSearches
+    D_END
 .ENDPROC
 
 ;;; Sets Zp_Next_eCutscene for the specified finale step, and returns the room
@@ -305,7 +353,7 @@ _AvatarFlags_bObj_arr:
 .PROC MainA_Cutscene_FinaleYearsLater
     jsr FuncA_Cutscene_FinaleYearsLater
     ldy #eFinale::YearsLater1Outdoors  ; param: finale step to run
-    jmp Main_Finale_SetAndStartStep
+    jmp MainA_Cutscene_SetAndStartFinale
 .ENDPROC
 
 ;;; Displays the "years later" text, then fades out the screen.
