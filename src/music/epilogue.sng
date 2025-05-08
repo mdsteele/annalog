@@ -1,14 +1,18 @@
 @PRGC_Title
 
-!SONG Epilogue "A|B"
+!SONG Epilogue "ABCD"
 
 =tempo q24
 =key 3b  % c minor
 
 !INST 1V PulseVibrato $09 d1/4
 !INST 2B PulseBasic   $08 d3/4  % bass
+!INST 2E PulseBasic   $06 d3/4  % echo 1
+!INST 2F PulseBasic   $04 d3/4  % echo 2
+!INST 2G PulseBasic   $02 d3/4  % echo 3
+!INST TC Constant     $ff
 !INST TK TriangleDrum $20       % kick drum
-!INST ND Staccato $0b           % drum
+!INST ND Staccato     $0b       % drum
 
 !PART A
 
@@ -34,6 +38,27 @@ N| p(iD x1e x2s x2 ' xAe x2s x2)NA :8 |
  | p1D :8 |
  | p(g3e gs g)1G :16 |
 T| pTA :30 |
- | c4e re :4 |
+ | p(iK c4e re)TX :4 |
 N| pNA :30 |
  | xAe x2s x2 :2 ' xAq :2 |
+
+!PART C
+
+1=:B1
+2=:B2
+T|   iC c5e re ' iK c4e re    :3 |
+ |   iC d5e re ' iK c4e re    :4 |
+ |   iC e5e re ' iK c4e re    :4 |
+ | p(iC f5e re ' iK c4e re)TF    |
+ | p(iC g5e re ' iK c4e re)TG :4 |
+ |   iC a5e re ' iK c4e re    :4 |
+ | pTG :3 pTF |
+ | pTG :6 |
+ | iC g5e re :3 pTX |
+N=:BN
+
+!PART D
+
+2| p1C :15                 ' c3e iE c | iF c iG c
+T| pTA :7  ' pTX :2                   |
+N| pNA :7  ' iD xAe x2s x2 ' xAq      |
