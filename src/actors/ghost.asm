@@ -17,8 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "../machines/emitter.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "adult.inc"
 .INCLUDE "ghost.inc"
@@ -45,6 +47,7 @@
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorProjFireball
 .IMPORT Func_InitActorWithState1
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxShootFire
@@ -65,6 +68,7 @@
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PointX_i16
@@ -296,11 +300,36 @@ _Flinch:
     ldy #kBadGhostGoalPosNumCols  ; param: divisor
     jsr Func_DivMod  ; preserves X and T2+, returns remainder in A
     add #kBadGhostGoalPosFirstCol
-    ;; TODO: Try again if this position is inside a solid forcefield platform.
     ;; Pack column and row into State4.
     mul #$10
     ora T2  ; goal row
     sta Ram_ActorState4_byte_arr, x  ; goal position
+_AvoidForcefield:
+    ;; If the emitter forcefield is solid, and the ghost's new goal position
+    ;; would be within the forcefield, then adjust the goal position
+    ;; horizontally by one block towards the center of the room.
+    lda Ram_PlatformType_ePlatform_arr + kEmitterForcefieldPlatformIndex
+    cmp #kFirstSolidPlatformType
+    blt @done  ; forcefield is not solid
+    jsr FuncA_Actor_TickBadGhost_SetPointToGoalPos  ; preserves X
+    ldy #kEmitterForcefieldPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; preserves X and Y, returns C
+    bcs @adjustGoal
+    lda #kBlockHeightPx  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves X and Y
+    jsr Func_IsPointInPlatform  ; preserves X, returns C
+    bcc @done
+    @adjustGoal:
+    lda Ram_ActorState4_byte_arr, x  ; goal position
+    bmi @adjustLeft
+    @adjustRight:
+    add #$10
+    bne @updateGoal  ; unconditional
+    @adjustLeft:
+    sub #$10
+    @updateGoal:
+    sta Ram_ActorState4_byte_arr, x
+    @done:
     rts
 .ENDPROC
 
