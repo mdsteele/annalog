@@ -26,7 +26,8 @@
 ;;;     frame, depending on the mode.
 ;;;   * State3: A mode-specific counter (e.g. how many more times to move, or
 ;;;     how many more fireballs to shoot).
-;;;   * State4: Unused.
+;;;   * State4: The ghost's current goal position.  The hi nibble stores the
+;;;     room block column, and the lo nibble stores the room block row.
 
 ;;;=========================================================================;;;
 

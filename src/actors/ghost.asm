@@ -102,6 +102,9 @@ kBadGhostGoalPosFirstRow =  3
 kBadGhostGoalPosNumCols  = 10
 kBadGhostGoalPosNumRows  =  7
 
+;;; How many blocks to move away horizontally when a ghost baddie gets injured.
+kBadGhostFlinchBlocks = 4
+
 ;;; OBJ palette numbers for drawing ghost baddies.
 kPaletteObjBadGhostNormal = 0
 kPaletteObjBadGhostHurt   = 1
@@ -192,7 +195,22 @@ _PlaySound:
     lda #eBadGhost::InjuredSpecWait
     @setState:
     sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
-    ;; TODO: set goal pos to current position plus offset towards room center
+_Flinch:
+    ;; Offset the goal position horizontally towards the center of the room by
+    ;; kBadGhostFlinchBlocks blocks.
+    lda Ram_ActorState4_byte_arr, x
+    bmi @moveLeft
+    @moveRight:
+    add #$10 * kBadGhostFlinchBlocks
+    ldy #bObj::FlipH
+    bne @setGoal  ; unconditional
+    @moveLeft:
+    sub #$10 * kBadGhostFlinchBlocks
+    ldy #0
+    @setGoal:
+    sta Ram_ActorState4_byte_arr, x
+    tya
+    sta Ram_ActorFlags_bObj_arr, x
     rts
 .ENDPROC
 
@@ -332,7 +350,6 @@ _PlaySound:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGhost_MoveTowardsGoalPos
-    jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
     jsr FuncA_Actor_TickBadGhost_SetPointToGoalPos  ; preserves X
 _AccelerateTowardGoalX:
     ;; Compute the (signed) delta from the boss's current X-position to its
@@ -450,8 +467,6 @@ _AccelerateTowardGoalY:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGhost_InjuredAttacking
-    ;; TODO: If timer is zero, pick a new goal position that's a bit to the
-    ;; side of the current goal position.
     jsr FuncA_Actor_TickBadGhost_MoveTowardsGoalPos  ; preserves X
 _IncrementTimer:
     inc Ram_ActorState2_byte_arr, x  ; mode timer
@@ -554,6 +569,7 @@ _DecrementTimer:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGhost_AttackMoving
+    jsr FuncA_Actor_FaceTowardsAvatar  ; preserves X
     jsr FuncA_Actor_TickBadGhost_MoveTowardsGoalPos  ; preserves X
     lda Ram_ActorState2_byte_arr, x  ; mode timer
     beq _TimerExpired
