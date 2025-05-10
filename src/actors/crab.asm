@@ -25,14 +25,12 @@
 
 .IMPORT FuncA_Actor_FaceOppositeDir
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
+.IMPORT FuncA_Actor_MoveForwardOnePixel
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_GetRandomByte
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_PointHitsTerrain
-.IMPORT Ram_ActorFlags_bObj_arr
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_TerrainColumn_u8_arr_ptr
@@ -57,23 +55,7 @@ kPaletteObjCrab = 0
     dec Ram_ActorState1_byte_arr, x
     cmp #$18
     blt _Return
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne _MoveLeft
-_MoveRight:
-    inc Ram_ActorPosX_i16_0_arr, x
-    bne @noCarry
-    inc Ram_ActorPosX_i16_1_arr, x
-    @noCarry:
-    jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
-_MoveLeft:
-    lda Ram_ActorPosX_i16_0_arr, x
-    bne @noBorrow
-    dec Ram_ActorPosX_i16_1_arr, x
-    @noBorrow:
-    dec Ram_ActorPosX_i16_0_arr, x
-_Return:
-    rts
+    jmp FuncA_Actor_MoveForwardOnePixel  ; preserves X
 _StartMove:
     ;; Check the terrain block just in front of the crab.  If it's solid, the
     ;; crab has to turn around.
@@ -100,6 +82,7 @@ _StartMove:
     @continueForward:
     lda #$1f
     sta Ram_ActorState1_byte_arr, x
+_Return:
     rts
 .ENDPROC
 

@@ -29,9 +29,9 @@
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
-.IMPORT FuncA_Actor_SetPointAboveOrBelowActor
+.IMPORT FuncA_Actor_LandOnTerrain
+.IMPORT FuncA_Actor_MoveForwardOnePixel
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
-.IMPORT FuncA_Actor_ZeroVelY
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT FuncA_Objects_Draw2x2MirroredActor
 .IMPORT Func_GetRandomByte
@@ -40,9 +40,6 @@
 .IMPORT Func_PointHitsTerrain
 .IMPORT Func_ShootFireballFromPoint
 .IMPORT Ram_ActorFlags_bObj_arr
-.IMPORT Ram_ActorPosX_i16_0_arr
-.IMPORT Ram_ActorPosX_i16_1_arr
-.IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
@@ -166,23 +163,7 @@ _CrawlOrAttack:
     dec Ram_ActorState1_byte_arr, x  ; crawl timer
     cmp #$18
     blt _Return
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne _MoveLeft
-_MoveRight:
-    inc Ram_ActorPosX_i16_0_arr, x
-    bne @noCarry
-    inc Ram_ActorPosX_i16_1_arr, x
-    @noCarry:
-    rts
-_MoveLeft:
-    lda Ram_ActorPosX_i16_0_arr, x
-    bne @noBorrow
-    dec Ram_ActorPosX_i16_1_arr, x
-    @noBorrow:
-    dec Ram_ActorPosX_i16_0_arr, x
-_Return:
-    rts
+    jmp FuncA_Actor_MoveForwardOnePixel  ; preserves X
 _StartMove:
     ;; Check the terrain block just in front of the grub.  If it's solid, the
     ;; grub has to turn around.
@@ -205,6 +186,7 @@ _StartMove:
     @continueForward:
     lda #$1f
     sta Ram_ActorState1_byte_arr, x  ; crawl timer
+_Return:
     rts
 .ENDPROC
 
@@ -215,26 +197,14 @@ _StartMove:
 .PROC FuncA_Actor_TickBadGrubRoll
     inc Ram_ActorState3_byte_arr, x  ; animation counter
     jsr FuncA_Actor_HarmAvatarIfCollision  ; preserves X
-    ;; We want to unroll the grub while its center is still in the empty
-    ;; terrain block above the solid terrain that it hits, so check far enough
-    ;; below the center of the grub roll to ensure that its center won't be
-    ;; inside the solid terrain next frame.
-    lda #kGrubRollTerminalVelocity
-    jsr FuncA_Actor_SetPointAboveOrBelowActor  ; preserves X
-    ;; If the grub roll lands on solid terrain, it will unroll.
-    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    ;; When the grub roll hits the ground, unroll into a grub.
+    lda #kBadGrubBoundingBoxDown  ; param: bounding box down
+    jsr FuncA_Actor_LandOnTerrain  ; preserves X, returns C
     bcs _Unroll
-    ;; Otherwise, keep falling.
+_KeepFalling:
     lda #kGrubRollTerminalVelocity  ; param: terminal velocity
     jmp FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
 _Unroll:
-    jsr FuncA_Actor_ZeroVelY  ; preserves X
-    ;; Align the actor to kBadGrubBoundingBoxDown pixels above this block.
-    lda Ram_ActorPosY_i16_0_arr, x
-    and #$f0
-    ora #$10 - kBadGrubBoundingBoxDown
-    sta Ram_ActorPosY_i16_0_arr, x
-    ;; Unroll the grub.
     lda #eActor::BadGrub
     sta Ram_ActorType_eActor_arr, x
     rts

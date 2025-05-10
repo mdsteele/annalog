@@ -29,6 +29,7 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarAboveOrBelow
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
+.IMPORT FuncA_Actor_MoveForwardOnePixel
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Objects_Draw2x2Actor
 .IMPORT Func_FindEmptyActorSlot
@@ -208,21 +209,7 @@ _AdjustPoint:
     eor #$80
     sta Ram_ActorState1_byte_arr, x
     bmi _NoTurn
-    ;; Check if the baddie is moving right or left.
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    bne _MoveLeft
-_MoveRight:
-    inc Ram_ActorPosX_i16_0_arr, x
-    bne _CheckForTurn
-    inc Ram_ActorPosX_i16_1_arr, x
-    jmp _CheckForTurn
-_MoveLeft:
-    lda Ram_ActorPosX_i16_0_arr, x
-    bne @noBorrow
-    dec Ram_ActorPosX_i16_1_arr, x
-    @noBorrow:
-    dec Ram_ActorPosX_i16_0_arr, x
+    jsr FuncA_Actor_MoveForwardOnePixel  ; preserves X
 _CheckForTurn:
     ;; Check the baddie's X-position mod kBlockWidthPx.
     lda Ram_ActorPosX_i16_0_arr, x

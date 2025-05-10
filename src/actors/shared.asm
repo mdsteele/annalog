@@ -804,12 +804,12 @@ _Positive:
 .EXPORT FuncA_Actor_LandOnTerrain
 .PROC FuncA_Actor_LandOnTerrain
     sta T0  ; bounding box down
-    jsr Func_SetPointToActorCenter  ; preserves X
+    jsr Func_SetPointToActorCenter  ; preserves X and T0+
     lda T0  ; param: bounding box down
     jsr Func_MovePointDownByA  ; preserves X and T0+
     jsr Func_PointHitsTerrain  ; preserves X and T0+, returns C
     bcc @noCollision
-    ;; Move the solifuge upwards to be on top of the floor.
+    ;; Move the actor upwards to be on top of the floor.
     lda #0
     sta Ram_ActorSubY_u8_arr
     lda Zp_PointY_i16 + 0
@@ -822,6 +822,29 @@ _Positive:
     jsr FuncA_Actor_ZeroVelY  ; preserves X
     sec  ; set C to indicate that a collision occurred
     @noCollision:
+    rts
+.ENDPROC
+
+;;; Moves the actor one pixel left or right, in the direction that it's facing.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Actor_MoveForwardOnePixel
+.PROC FuncA_Actor_MoveForwardOnePixel
+    lda Ram_ActorFlags_bObj_arr, x
+    and #bObj::FlipH
+    bne _MoveLeft
+_MoveRight:
+    inc Ram_ActorPosX_i16_0_arr, x
+    bne @noCarry
+    inc Ram_ActorPosX_i16_1_arr, x
+    @noCarry:
+    rts
+_MoveLeft:
+    lda Ram_ActorPosX_i16_0_arr, x
+    bne @noBorrow
+    dec Ram_ActorPosX_i16_1_arr, x
+    @noBorrow:
+    dec Ram_ActorPosX_i16_0_arr, x
     rts
 .ENDPROC
 
