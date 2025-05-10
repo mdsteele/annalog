@@ -59,6 +59,7 @@
 .IMPORT FuncA_Room_MachineEmitterYInitReset
 .IMPORT FuncA_Room_MakeBadGhostAppear
 .IMPORT FuncA_Room_MakeBadGhostAppearForAttack
+.IMPORT FuncA_Room_PlaySfxRumbling
 .IMPORT FuncA_Room_RemoveEmitterForcefield
 .IMPORT FuncA_Room_TickBoss
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
@@ -83,6 +84,7 @@
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomScrollY_u8
+.IMPORTZP Zp_RoomShake_u8
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -110,8 +112,7 @@ kLavaPlatformIndex = 5
 ;;; raised.
 kMaxLavaOffset = $27
 
-;;; How many frames it takes for the lava to rise/fall by one pixel.
-kLavaRiseSlowdown = 7
+;;; How many frames it takes for the lava to fall by one pixel.
 kLavaFallSlowdown = 4
 
 ;;; How many frames to wait between when the lava is fully raised and when it
@@ -531,21 +532,30 @@ _BossMode_LavaActive:
     @done:
     rts
 _BossMode_LavaRising:
+    ;; Shake the room continuously.
+    lda Zp_RoomShake_u8
+    bne @noShake
+    lda #4
+    jsr Func_ShakeRoom
+    lda #4
+    jsr FuncA_Room_PlaySfxRumbling
+    @noShake:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
     ;; Raise the lava.
+    @raiseLava:
     inc Zp_RoomState + sState::LavaOffset_u8
     ldx #kLavaPlatformIndex  ; param: platform index
     lda #<-1  ; param: move delta
     jsr Func_MovePlatformVert
-    lda Zp_RoomState + sState::LavaOffset_u8
-    cmp #kMaxLavaOffset
+    ldy Zp_RoomState + sState::LavaOffset_u8
+    cpy #kMaxLavaOffset
     bge @lavaFullyRaised
-    ;; If the lava isn't fully raised yet, shake the room and keep going.
-    lda #kLavaRiseSlowdown  ; param: num frames
+    ;; If the lava isn't fully raised yet, keep going after a cooldown.
+    lda _LavaRisingSlowdown_u8_arr, y
     sta Zp_RoomState + sState::BossCooldown_u8
-    jmp Func_ShakeRoom
+    rts
     ;; Once the lava is fully raised, set the cooldown and prepare to make the
     ;; lava fall.
     @lavaFullyRaised:
@@ -569,6 +579,8 @@ _BossMode_LavaFalling:
     ;; If the lava isn't fully lowered yet, shake the room and keep going.
     lda #kLavaFallSlowdown  ; param: num frames
     sta Zp_RoomState + sState::BossCooldown_u8
+    jsr FuncA_Room_PlaySfxRumbling
+    lda #kLavaFallSlowdown  ; param: num frames
     jmp Func_ShakeRoom
     ;; Once the lava is fully lowered, begin a new set of attack waves.
     @lavaFullyLowered:
@@ -682,6 +694,13 @@ _BeginSpecialGravityAttack:
     lda #30
     sta Zp_RoomState + sState::BossCooldown_u8
     rts
+_LavaRisingSlowdown_u8_arr:
+:   .byte 7, 7, 10, 13, 16, 120
+    .byte 7, 7, 10, 13, 16, 120
+    .byte 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+    .byte 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+    .byte 7, 7, 7, 7, 10, 13, 16
+    .assert * - :- = kMaxLavaOffset, error
 .ENDPROC
 
 ;;; Draw function for the BossShadow room.
