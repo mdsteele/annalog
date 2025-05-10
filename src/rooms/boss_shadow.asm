@@ -36,6 +36,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "boss_shadow.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
@@ -71,6 +72,7 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxSample
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
@@ -864,6 +866,8 @@ _MaybeHarmOrcAndMermaidGhosts:
     bcc @continue  ; forcefield isn't hitting the ghost's head
     ;; Injure the ghost and decrement boss health.
     @injure:
+    lda _GhostHurt_eSample_arr, x  ; param: eSample to play
+    jsr Func_PlaySfxSample  ; preserves X
     jsr FuncA_Machine_InjureBadGhost  ; preserves X
     lda Zp_RoomState + sState::BossHealth_u8
     beq @continue
@@ -883,6 +887,8 @@ _MaybeHarmFinalGhost:
     jsr Func_IsPointInPlatform  ; returns C
     bcc @done  ; forcefield isn't hitting the final ghost
     ;; Mortally wound the final ghost.
+    lda #eSample::Death  ; param: eSample to play
+    jsr Func_PlaySfxSample
     lda #eBossMode::FinalGhostDying
     sta Zp_RoomState + sState::Current_eBossMode
     lda #120
@@ -890,6 +896,11 @@ _MaybeHarmFinalGhost:
     @done:
 _Return:
     rts
+_GhostHurt_eSample_arr:
+    D_ARRAY 2
+    d_byte kGhostMermaidActorIndex, eSample::BossHurtF
+    d_byte kGhostOrcActorIndex,     eSample::BossHurtE
+    D_END
 .ENDPROC
 
 ;;;=========================================================================;;;
