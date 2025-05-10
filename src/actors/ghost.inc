@@ -36,10 +36,12 @@
     ;; Appearing/disappearing modes (ghost flickers, and cannot be injured):
     AppearForAttack   ; reappearing; will become AttackShooting
     AppearForMerge    ; reappearing; will become Absent
-    AppearForSpecial  ; reappearing; will become SpecialMoving
+    AppearForSpecial  ; reappearing; will become SpecialWaiting
     Disappearing      ; disappearing; will become Absent
     ;; Injured modes (ghost flashes, and cannot be injured):
-    Injured           ; flashing red; will become Disappearing
+    InjuredAttacking  ; injured while attacking; will become Disappearing
+    InjuredSpecMove   ; same as SpecialMoving, but injured and invincible
+    InjuredSpecWait   ; same as SpecialWaiting, but injured and invincible
     ;; Vulnerable modes (ghost is solid gray, and can be injured):
     AttackMoving      ; moving; will become Disappearing
     AttackShooting    ; shooting fire; will become AttackMoving
@@ -51,7 +53,7 @@
 ;;; eBadGhost values less this represent states where the ghost is absent,
 ;;; disappearing, or reappearing, and should thus be drawn flickering (if at
 ;;; all).
-kBadGhostFirstSolid = eBadGhost::Injured
+kBadGhostFirstSolid = eBadGhost::InjuredAttacking
 
 ;;; eBadGhost values less than this represent states where the ghost is
 ;;; invincible and cannot be injured.

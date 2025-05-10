@@ -136,7 +136,6 @@ kGhostOrcActorIndex     = 1
     LavaActive           ; orc ghost is starting a special lava attack
     LavaRising           ; lava is currently rising
     LavaFalling          ; lava is currently falling
-    SpecialCanceled      ; a ghost was injured while preparing a special attack
     SingleAttackPending  ; waiting to begin next attack (one ghost at a time)
     DoubleAttackPending  ; waiting to begin next attack (both ghosts at once)
     DoubleAttackHalf     ; one half of the double-ghost attack is in progress
@@ -414,7 +413,6 @@ _CheckMode:
     d_entry table, LavaActive,          _BossMode_LavaActive
     d_entry table, LavaRising,          _BossMode_LavaRising
     d_entry table, LavaFalling,         _BossMode_LavaFalling
-    d_entry table, SpecialCanceled,     _BossMode_SpecialCanceled
     d_entry table, SingleAttackPending, _BossMode_SingleAttackPending
     d_entry table, DoubleAttackPending, _BossMode_DoubleAttackPending
     d_entry table, DoubleAttackHalf,    _BossMode_DoubleAttackHalf
@@ -499,10 +497,6 @@ _BossMode_GravityActive:
     lda Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
     .assert eBadGhost::Absent = 0, error
     beq @reverseGravity
-    ;; Otherwise, if the mermaid ghost gets injured while preparing the special
-    ;; attack, cancel the special attack.
-    cmp #eBadGhost::Injured
-    beq _CancelSpecial
     rts
     ;; Reverse gravity.
     @reverseGravity:
@@ -511,10 +505,6 @@ _BossMode_GravityActive:
     sta Zp_AvatarFlags_bObj
     ;; Begin a new set of attack waves.
     jmp _BeginNewAttackWaves
-_CancelSpecial:
-    lda #eBossMode::SpecialCanceled
-    sta Zp_RoomState + sState::Current_eBossMode
-    rts
 _BossMode_LavaPending:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -533,16 +523,12 @@ _BossMode_LavaActive:
     ;; rising.
     lda Ram_ActorState1_byte_arr + kGhostOrcActorIndex  ; eBadGhost mode
     .assert eBadGhost::Absent = 0, error
-    beq @raiseLava
-    ;; Otherwise, if the orc ghost gets injured while preparing the special
-    ;; attack, cancel the special attack.
-    cmp #eBadGhost::Injured
-    beq _CancelSpecial
-    rts
+    bne @done
     ;; Switch main boss mode to make the lava start rising.
     @raiseLava:
     .assert eBossMode::LavaActive + 1 = eBossMode::LavaRising, error
     inc Zp_RoomState + sState::Current_eBossMode
+    @done:
     rts
 _BossMode_LavaRising:
     ;; Wait for the cooldown to expire.
@@ -637,20 +623,15 @@ _BossMode_AttackActive:
 _BossMode_Intro:
     ;; Wait for the cooldown to expire, then begin a new set of attack waves.
     lda Zp_RoomState + sState::BossCooldown_u8
-    beq _BeginNewAttackWaves
-    rts
-_BossMode_SpecialCanceled:
-    ;; Wait for ghosts to disappear, then begin the next set of attack waves.
-    .assert eBadGhost::Absent = 0, error
-    lda Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
-    ora Ram_ActorState1_byte_arr + kGhostOrcActorIndex      ; eBadGhost mode
     bne _Return
+    fall _BeginNewAttackWaves
 _BeginNewAttackWaves:
-    ;; Begin a new set of 4-7 attack waves.
+    ;; Begin a new set of 4-5 attack waves.
     jsr Func_GetRandomByte  ; returns A
-    mod #4
+    mod #2
     ora #4
     sta Zp_RoomState + sState::AttackWavesRemaining_u8
+    fall _BeginNextAttackWave
 _BeginNextAttackWave:
     ;; If boss health is zero, make final ghost appear.
     lda Zp_RoomState + sState::BossHealth_u8
@@ -688,6 +669,7 @@ _BeginSpecialAttack:
     ;; Otherwise, choose a special attack randomly.
     jsr Func_GetRandomByte  ; returns N
     bmi _BeginSpecialGravityAttack
+    fall _BeginSpecialLavaAttack
 _BeginSpecialLavaAttack:
     lda #eBossMode::LavaPending
     sta Zp_RoomState + sState::Current_eBossMode

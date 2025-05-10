@@ -164,14 +164,34 @@ _PlaySound:
 .SEGMENT "PRGA_Machine"
 
 ;;; Injures a ghost baddie.
+;;; @prereq The ghost baddie is in a vulnerable mode.
 ;;; @param X The actor index.
 ;;; @preserve X
 .EXPORT FuncA_Machine_InjureBadGhost
 .PROC FuncA_Machine_InjureBadGhost
-    lda #eBadGhost::Injured
-    sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
+    ;; If the ghost is currently doing a special attack, switch to the
+    ;; corresponding injured state (so that the special attack can continue
+    ;; depsite the injury).
+    lda Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
+    cmp #eBadGhost::SpecialMoving
+    beq @specialMoving
+    cmp #eBadGhost::SpecialWaiting
+    beq @specialWaiting
+    ;; In all other cases, switch to InjuredAttacking mode (and zero the mode
+    ;; timer), which will interrupt and cancel the ghost's attack pattern.
     lda #0
     sta Ram_ActorState2_byte_arr, x  ; mode timer
+    lda #eBadGhost::InjuredAttacking
+    .assert eBadGhost::InjuredAttacking <> 0, error
+    bne @setState  ; unconditional
+    @specialMoving:
+    lda #eBadGhost::InjuredSpecMove
+    .assert eBadGhost::InjuredSpecMove <> 0, error
+    bne @setState  ; unconditional
+    @specialWaiting:
+    lda #eBadGhost::InjuredSpecWait
+    @setState:
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
     ;; TODO: set goal pos to current position plus offset towards room center
     rts
 .ENDPROC
@@ -200,7 +220,9 @@ _PlaySound:
     d_entry t, AppearForMerge,   FuncA_Actor_TickBadGhost_AppearForMerge
     d_entry t, AppearForSpecial, FuncA_Actor_TickBadGhost_AppearForSpecial
     d_entry t, Disappearing,     FuncA_Actor_TickBadGhost_Disappearing
-    d_entry t, Injured,          FuncA_Actor_TickBadGhost_Injured
+    d_entry t, InjuredAttacking, FuncA_Actor_TickBadGhost_InjuredAttacking
+    d_entry t, InjuredSpecMove,  FuncA_Actor_TickBadGhostMermaid_SpecialMoving
+    d_entry t, InjuredSpecWait,  FuncA_Actor_TickBadGhost_SpecialWaiting
     d_entry t, AttackMoving,     FuncA_Actor_TickBadGhost_AttackMoving
     d_entry t, AttackShooting,   FuncA_Actor_TickBadGhostMermaid_AttackShooting
     d_entry t, SpecialMoving,    FuncA_Actor_TickBadGhostMermaid_SpecialMoving
@@ -229,7 +251,9 @@ _PlaySound:
     d_entry t, AppearForMerge,   FuncA_Actor_TickBadGhost_AppearForMerge
     d_entry t, AppearForSpecial, FuncA_Actor_TickBadGhost_AppearForSpecial
     d_entry t, Disappearing,     FuncA_Actor_TickBadGhost_Disappearing
-    d_entry t, Injured,          FuncA_Actor_TickBadGhost_Injured
+    d_entry t, InjuredAttacking, FuncA_Actor_TickBadGhost_InjuredAttacking
+    d_entry t, InjuredSpecMove,  FuncA_Actor_TickBadGhostOrc_SpecialMoving
+    d_entry t, InjuredSpecWait,  FuncA_Actor_TickBadGhost_SpecialWaiting
     d_entry t, AttackMoving,     FuncA_Actor_TickBadGhost_AttackMoving
     d_entry t, AttackShooting,   FuncA_Actor_TickBadGhostOrc_AttackShooting
     d_entry t, SpecialMoving,    FuncA_Actor_TickBadGhostOrc_SpecialMoving
@@ -425,7 +449,7 @@ _AccelerateTowardGoalY:
 ;;;     Disappearing mode.
 ;;; @param X The actor index.
 ;;; @preserve X
-.PROC FuncA_Actor_TickBadGhost_Injured
+.PROC FuncA_Actor_TickBadGhost_InjuredAttacking
     ;; TODO: If timer is zero, pick a new goal position that's a bit to the
     ;; side of the current goal position.
     jsr FuncA_Actor_TickBadGhost_MoveTowardsGoalPos  ; preserves X
@@ -721,12 +745,12 @@ _Times_u8_arr4:
 .ENDPROC
 
 ;;; Performs per-frame updates for a mermaid/orc ghost baddie actor that's in
-;;; AppearForAttack mode.
+;;; SpecialWaiting or InjuredSpecWait mode.
 ;;;   * When initializing this mode, set the State2 timer to zero.  The State3
 ;;;     counter is ignored.
 ;;;   * The State2 timer increments each frame from zero to
 ;;;     kBadGhostSpecialWaitingFrames, at which point the ghost switches to
-;;;     SpecialMoving mode.
+;;;     SpecialMoving or InjuredSpecMove mode.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGhost_SpecialWaiting
@@ -735,8 +759,10 @@ _Times_u8_arr4:
     lda Ram_ActorState2_byte_arr, x  ; mode timer
     cmp #kBadGhostSpecialWaitingFrames
     blt @done
-    ;; When the timer finishes, switch to SpecialMoving mode.
+    ;; When the timer finishes, switch to SpecialMoving (from SpecialWaiting)
+    ;; or InjuredSpecMove (from InjuredSpecWait) mode.
     .assert eBadGhost::SpecialWaiting - 1 = eBadGhost::SpecialMoving, error
+    .assert eBadGhost::InjuredSpecWait - 1 = eBadGhost::InjuredSpecMove, error
     dec Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
     @done:
     rts
@@ -763,7 +789,9 @@ _FirstTileId_u8_arr:
     d_byte AppearForMerge,   kTileIdObjMermaidGhostFirst + 0
     d_byte AppearForSpecial, kTileIdObjMermaidGhostFirst + 0
     d_byte Disappearing,     kTileIdObjMermaidGhostFirst + 0
-    d_byte Injured,          kTileIdObjMermaidGhostFirst + 6
+    d_byte InjuredAttacking, kTileIdObjMermaidGhostFirst + 6
+    d_byte InjuredSpecMove,  kTileIdObjMermaidGhostFirst + 6
+    d_byte InjuredSpecWait,  kTileIdObjMermaidGhostFirst + 0
     d_byte AttackMoving,     kTileIdObjMermaidGhostFirst + 0
     d_byte AttackShooting,   kTileIdObjMermaidGhostFirst + 6
     d_byte SpecialMoving,    kTileIdObjMermaidGhostFirst + 6
@@ -803,7 +831,9 @@ _FirstTileId_u8_arr:
     d_byte AppearForMerge,   kTileIdObjOrcGhostFirst + 4
     d_byte AppearForSpecial, kTileIdObjOrcGhostFirst + 4
     d_byte Disappearing,     kTileIdObjOrcGhostFirst + 4
-    d_byte Injured,          kTileIdObjOrcGhostFirst + 8
+    d_byte InjuredAttacking, kTileIdObjOrcGhostFirst + 8
+    d_byte InjuredSpecMove,  kTileIdObjOrcGhostFirst + 8
+    d_byte InjuredSpecWait,  kTileIdObjOrcGhostFirst + 4
     d_byte AttackMoving,     kTileIdObjOrcGhostFirst + 4
     d_byte AttackShooting,   kTileIdObjOrcGhostFirst + 8
     d_byte SpecialMoving,    kTileIdObjOrcGhostFirst + 8
@@ -864,8 +894,10 @@ _FirstTileId_u8_arr:
     pha  ; old A value
     lda #kPaletteObjBadGhostNormal
     ldy Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
-    cpy #eBadGhost::Injured
-    bne @finish
+    cpy #kBadGhostFirstSolid
+    blt @finish  ; ghost is appearing/disappearing/absent
+    cpy #kBadGhostFirstVulnerable
+    bge @finish  ; ghost is not injured
     lda Zp_FrameCounter_u8
     and #$02
     .assert kPaletteObjBadGhostNormal = 0, error
