@@ -44,6 +44,7 @@
 .IMPORT Func_DivMod
 .IMPORT Func_GetRandomByte
 .IMPORT Func_HarmAvatar
+.IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsAvatarInPlatformHorz
 .IMPORT Func_IsPointInPlatform
@@ -329,6 +330,35 @@ _Return:
     dex
     .assert kMaxActors <= $80, error
     bpl @loop
+    rts
+.ENDPROC
+
+;;; Checks if any fireball projectiles are within the forcefield platform, and
+;;; expires them if so.  Does nothing if the forcefield platform isn't solid.
+.EXPORT FuncA_Machine_BlockFireballsWithinEmitterForcefield
+.PROC FuncA_Machine_BlockFireballsWithinEmitterForcefield
+    lda Ram_PlatformType_ePlatform_arr + kEmitterForcefieldPlatformIndex
+    cmp #kFirstSolidPlatformType
+    blt @done
+    ldx #kMaxActors - 1
+    @loop:
+    ;; If this actor isn't a fireball projectile, skip it.
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::ProjFireball
+    bne @continue
+    ;; If the fireball isn't in the forcefield platform, skip it.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    ldy #kEmitterForcefieldPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; preserves X, returns C
+    bcc @continue
+    ;; Expire the fireball.
+    ldy #eActor::SmokeParticle  ; param: actor type
+    jsr Func_InitActorDefault  ; preserves X
+    @continue:
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
+    @done:
     rts
 .ENDPROC
 

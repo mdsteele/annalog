@@ -40,6 +40,7 @@
 .INCLUDE "boss_shadow.inc"
 
 .IMPORT DataA_Room_Shadow_sTileset
+.IMPORT FuncA_Machine_BlockFireballsWithinEmitterForcefield
 .IMPORT FuncA_Machine_EmitterTryAct
 .IMPORT FuncA_Machine_EmitterXWriteReg
 .IMPORT FuncA_Machine_EmitterYWriteReg
@@ -244,7 +245,7 @@ _Machines_sMachine_arr:
     d_addr WriteReg_func_ptr, FuncA_Machine_EmitterXWriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncA_Machine_BossShadowEmitter_TryAct
-    d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
+    d_addr Tick_func_ptr, FuncA_Machine_BossShadowEmitter_Tick
     d_addr Draw_func_ptr, FuncC_Boss_ShadowEmitterX_Draw
     d_addr Reset_func_ptr, FuncA_Room_BossShadowEmitterX_InitReset
     D_END
@@ -910,6 +911,11 @@ _GhostHurt_eSample_arr:
     d_byte kGhostMermaidActorIndex, eSample::BossHurtF
     d_byte kGhostOrcActorIndex,     eSample::BossHurtE
     D_END
+.ENDPROC
+
+.PROC FuncA_Machine_BossShadowEmitter_Tick
+    jsr FuncA_Machine_BlockFireballsWithinEmitterForcefield
+    jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
 ;;;=========================================================================;;;
