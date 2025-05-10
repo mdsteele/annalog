@@ -640,10 +640,19 @@ _BossMode_Intro:
     bne _Return
     fall _BeginNewAttackWaves
 _BeginNewAttackWaves:
-    ;; Begin a new set of 4-5 attack waves.
+    ;; Begin a new set of 4-5 attack waves (or 2-3 if gravity is reversed, so
+    ;; that it won't be too long before gravity is changed back to normal).
     jsr Func_GetRandomByte  ; returns A
     mod #2
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bmi @reverseGravity
+    @normalGravity:
     ora #4
+    bne @setNumAttackWaves  ; unconditional
+    @reverseGravity:
+    ora #2
+    @setNumAttackWaves:
     sta Zp_RoomState + sState::AttackWavesRemaining_u8
     fall _BeginNextAttackWave
 _BeginNextAttackWave:
