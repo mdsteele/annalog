@@ -100,14 +100,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $48
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kLiftPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_SewerTrapLift_InitReset
+    d_addr Init_func_ptr, FuncC_Sewer_TrapLift_InitReset
     d_addr ReadReg_func_ptr, FuncC_Sewer_TrapLift_ReadReg
     d_addr WriteReg_func_ptr, Func_Noop
     d_addr TryMove_func_ptr, FuncA_Machine_SewerTrapLift_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_SewerTrapLift_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawLiftMachine
-    d_addr Reset_func_ptr, FuncA_Room_SewerTrapLift_InitReset
+    d_addr Reset_func_ptr, FuncC_Sewer_TrapLift_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -200,11 +200,7 @@ _Passages_sPassage_arr:
     rts
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_SewerTrapLift_InitReset
+.PROC FuncC_Sewer_TrapLift_InitReset
     lda #kLiftInitGoalY
     sta Ram_MachineGoalVert_u8_arr + kLiftMachineIndex
     rts

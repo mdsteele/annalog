@@ -113,7 +113,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_SewerBasin_EnterRoom
+    d_addr Enter_func_ptr, FuncC_Sewer_Basin_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, FuncA_Room_SewagePushAvatar
     d_addr Draw_func_ptr, Func_Noop
@@ -132,14 +132,14 @@ _Machines_sMachine_arr:
     d_byte ScrollGoalY_u8, $30
     d_byte RegNames_u8_arr4, "J", 0, 0, "Y"
     d_byte MainPlatform_u8, kMultiplexerMainPlatformIndex
-    d_addr Init_func_ptr, FuncA_Room_SewerBasinMultiplexer_InitReset
+    d_addr Init_func_ptr, FuncC_Sewer_BasinMultiplexer_InitReset
     d_addr ReadReg_func_ptr, FuncC_Sewer_BasinMultiplexer_ReadReg
     d_addr WriteReg_func_ptr, FuncA_Machine_SewerBasinMultiplexer_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_SewerBasinMultiplexer_TryMove
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_SewerBasinMultiplexer_Tick
     d_addr Draw_func_ptr, FuncC_Sewer_BasinMultiplexer_Draw
-    d_addr Reset_func_ptr, FuncA_Room_SewerBasinMultiplexer_InitReset
+    d_addr Reset_func_ptr, FuncC_Sewer_BasinMultiplexer_InitReset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -274,11 +274,7 @@ _ReadY:
     jmp FuncA_Objects_DrawMultiplexerMachine
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_SewerBasin_EnterRoom
+.PROC FuncC_Sewer_Basin_EnterRoom
     flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
     beq @done
     lda #eDevice::None
@@ -287,7 +283,7 @@ _ReadY:
     rts
 .ENDPROC
 
-.PROC FuncA_Room_SewerBasinMultiplexer_InitReset
+.PROC FuncC_Sewer_BasinMultiplexer_InitReset
     lda #kMultiplexerInitGoalY
     ldx #kMultiplexerNumPlatforms - 1
     @loop:

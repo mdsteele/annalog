@@ -137,9 +137,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_SewerNorth_EnterRoom
+    d_addr Enter_func_ptr, FuncC_Sewer_North_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, FuncA_Room_SewerNorth_TickRoom
+    d_addr Tick_func_ptr, FuncC_Sewer_North_TickRoom
     d_addr Draw_func_ptr, FuncC_Sewer_North_DrawRoom
     D_END
 _TerrainData:
@@ -163,7 +163,7 @@ _Machines_sMachine_arr:
     d_addr TryAct_func_ptr, FuncA_Machine_Error
     d_addr Tick_func_ptr, FuncA_Machine_SewerNorthMultiplexer_Tick
     d_addr Draw_func_ptr, FuncC_Sewer_NorthMultiplexer_Draw
-    d_addr Reset_func_ptr, FuncA_Room_SewerNorthMultiplexer_Reset
+    d_addr Reset_func_ptr, FuncC_Sewer_NorthMultiplexer_Reset
     D_END
     .assert * - :- <= kMaxMachines * .sizeof(sMachine), error
 _Platforms_sPlatform_arr:
@@ -365,11 +365,7 @@ _ValveOffset_u8_arr:
     .byte $20, $30, $20, $20, $40, $30, $20, $30, $20, $00
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-.PROC FuncA_Room_SewerNorth_EnterRoom
+.PROC FuncC_Sewer_North_EnterRoom
     ;; Set active pipe/waterfall indices to $ff.
     dec Zp_RoomState + sState::ActivePipePlatformIndex_u8
     dec Zp_RoomState + sState::ActiveWaterfallActorIndex_u8
@@ -382,7 +378,7 @@ _ValveOffset_u8_arr:
 ;;; @return C Set if no waterfall actor is pouring into this water.
 ;;; @return X The actor index of the waterfall (if any).
 ;;; @preserve Y
-.PROC FuncA_Room_FindWaterfallPouringIntoWater
+.PROC FuncC_Sewer_FindWaterfallPouringIntoWater
     sty T0  ; water platform index
     ldx #kMaxActors - 1
     @loop:
@@ -407,8 +403,8 @@ _ValveOffset_u8_arr:
 ;;; Raises the water level of the specified water platform if a waterfall is
 ;;; pouring into it, otherwise lower it.
 ;;; @param Y The platform index of the water.
-.PROC FuncA_Room_SewerNorth_RaiseOrLowerWaterLevel
-    jsr FuncA_Room_FindWaterfallPouringIntoWater  ; preserves Y; returns C, X
+.PROC FuncC_Sewer_North_RaiseOrLowerWaterLevel
+    jsr FuncC_Sewer_FindWaterfallPouringIntoWater  ; preserves Y; returns C, X
     bcs _LowerWater
 _RaiseWater:
     lda Ram_PlatformTop_i16_0_arr, y
@@ -434,7 +430,8 @@ _LowerWater:
     rts
 .ENDPROC
 
-.PROC FuncA_Room_SewerNorth_TickRoom
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Sewer_North_TickRoom
     inc Ram_MachineState3_byte_arr + kMultiplexerMachineIndex  ; wqter slowdown
     lda Ram_MachineState3_byte_arr + kMultiplexerMachineIndex  ; water slowdown
     cmp #kPumpWaterSlowdown
@@ -442,9 +439,9 @@ _LowerWater:
     lda #0
     sta Ram_MachineState3_byte_arr + kMultiplexerMachineIndex  ; water slowdown
     ldy #kWestWaterPlatformIndex  ; param: water platform index
-    jsr FuncA_Room_SewerNorth_RaiseOrLowerWaterLevel
+    jsr FuncC_Sewer_North_RaiseOrLowerWaterLevel
     ldy #kEastWaterPlatformIndex  ; param: water platform index
-    jsr FuncA_Room_SewerNorth_RaiseOrLowerWaterLevel
+    jsr FuncC_Sewer_North_RaiseOrLowerWaterLevel
     @done:
 _UpdatePipe:
     ldx #0
@@ -543,7 +540,8 @@ _Return:
     rts
 .ENDPROC
 
-.PROC FuncA_Room_SewerNorthMultiplexer_Reset
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Sewer_NorthMultiplexer_Reset
     lda #0
     sta Ram_MachineState1_byte_arr + kMultiplexerMachineIndex  ; J register
     ldx #kNumValves - 1
