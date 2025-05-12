@@ -33,7 +33,6 @@
 .IMPORT FuncA_Room_MachineResetHalt
 .IMPORT FuncA_Room_PlaySfxBreakerRising
 .IMPORT FuncA_Room_SpawnUpgradeDevice
-.IMPORT FuncA_Room_UnlockDoorDevice
 .IMPORT Func_DivMod
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorDefault
@@ -71,17 +70,14 @@
 ;;;=========================================================================;;;
 
 ;;; How many frames to wait between explosions during the BossExploding phase.
-kFramesPerExplosion = 12
+kBossFramesPerExplosion = 12
 
 ;;; How many explosions to make during the BossExploding phase.
 kBossNumExplosions = 16
 
-;;; How many frames to wait between fade steps during the FlashWhite phase.
-kFlashWhiteFramesPerStep = 7
-
 ;;; How many fade steps are needed during the FlashWhite phase.
 .ASSERT eFade::White > eFade::Normal, error
-kFlashWhiteNumFadeSteps = eFade::White - eFade::Normal
+kBossFlashWhiteNumFadeSteps = eFade::White - eFade::Normal
 
 ;;;=========================================================================;;;
 
@@ -112,22 +108,25 @@ Zp_BossPhaseTimer_u8: .res 1
     ;; Clear the phase timer.
     lda #0
     sta Zp_BossPhaseTimer_u8
-    ;; Lock the door for now.
-    ldx #kBossDoorDeviceIndex  ; param: device index
-    jsr FuncA_Room_LockDoorDevice
     ;; Check if the boss has been defeated yet.
     ldy #sBoss::Boss_eFlag
     lda (Zp_Current_sBoss_ptr), y
     tax  ; param: boss flag
     jsr Func_IsFlagSet  ; returns Z
     bne _BossAlreadyDefeated
+    ;; Animate locking the door for the boss battle.
+    ldx #kBossDoorDeviceIndex  ; param: device index
+    jsr FuncA_Room_LockDoorDevice
     ;; Set and return the initial phase.
-    lda #eBossPhase::BossBattle
-    sta Zp_Boss_eBossPhase
-    rts
+    .assert eBossPhase::BossBattle = 0, error
+    lda #eBossPhase::BossBattle  ; sets Z to indicate boss is alive
+    beq _SetBossPhase  ; unconditional
 _BossAlreadyDefeated:
     jsr Func_MarkRoomSafe
     jsr FuncA_Room_DisableAllMachinesAndConsoles
+    ;; Set the door to locked.
+    lda #eDevice::Door1Locked
+    sta Ram_DeviceType_eDevice_arr + kBossDoorDeviceIndex
     ;; Check if the upgrade has been collected yet.
     ldx Ram_DeviceTarget_byte_arr + kBossUpgradeDeviceIndex  ; param: flag
     jsr Func_IsFlagSet  ; returns Z
@@ -137,9 +136,9 @@ _BossAlreadyDefeated:
     lda #30  ; 0.5 seconds
     sta Zp_BossPhaseTimer_u8
     ;; Set and return the initial phase.
-    lda #eBossPhase::SpawnUpgrade
-    sta Zp_Boss_eBossPhase
-    rts
+    .assert eBossPhase::SpawnUpgrade <> 0, error
+    lda #eBossPhase::SpawnUpgrade  ; clears Z to indicate boss is dead
+    bne _SetBossPhase  ; unconditional
 _UpgradeAlreadyCollected:
     ;; Check if the breaker has been activated yet.
     ldx Ram_DeviceTarget_byte_arr + kBossBreakerDeviceIndex  ; param: flag
@@ -151,18 +150,20 @@ _UpgradeAlreadyCollected:
     lda #30  ; 0.5 seconds
     sta Zp_BossPhaseTimer_u8
     ;; Set and return the initial phase.
-    lda #eBossPhase::SpawnBreaker
-    sta Zp_Boss_eBossPhase
-    rts
+    .assert eBossPhase::SpawnBreaker <> 0, error
+    lda #eBossPhase::SpawnBreaker  ; clears Z to indicate boss is dead
+    bne _SetBossPhase  ; unconditional
 _BreakerAlreadyDone:
     ;; Place the already-activated breaker.
     lda #eDevice::BreakerDone
     sta Ram_DeviceType_eDevice_arr + kBossBreakerDeviceIndex
-    ;; Unlock the door.
-    ldx #kBossDoorDeviceIndex  ; param: device index
-    jsr FuncA_Room_UnlockDoorDevice
+    ;; Set the door to unlocked.
+    lda #eDevice::Door1Unlocked
+    sta Ram_DeviceType_eDevice_arr + kBossDoorDeviceIndex
     ;; Set and return the initial phase.
-    lda #eBossPhase::Done
+    .assert eBossPhase::Done <> 0, error
+    lda #eBossPhase::Done  ; clears Z to indicate boss is dead
+_SetBossPhase:
     sta Zp_Boss_eBossPhase
     rts
 .ENDPROC
@@ -174,17 +175,12 @@ _BreakerAlreadyDone:
 ;;; @param A Zero if the boss is dead, nonzero otherwise.
 .EXPORT FuncA_Room_TickBoss
 .PROC FuncA_Room_TickBoss
-    ldy Zp_Boss_eBossPhase
-    ;; Don't tick the boss if a machine console is open, unless the eBossPhase
-    ;; is FlashWhite (since we don't want the screen to stay stuck on solid
-    ;; white while the console is open, to avoid confusing the player).
-    cpy #eBossPhase::FlashWhite
-    beq @done
+    ;; Don't tick the boss if a machine console is open.
     bit Zp_ConsoleMachineIndex_u8
     bpl _Return
-    @done:
 _HandleCurrentBossPhase:
     sta T2  ; zero if boss is dead
+    ldy Zp_Boss_eBossPhase
     lda _JumpTable_ptr_0_arr, y
     sta T0
     lda _JumpTable_ptr_1_arr, y
@@ -235,27 +231,25 @@ _BossBattle:
     ;; Reinitialize the timer and proceed to the next phase.
     lda #45  ; 0.75 seconds
     sta Zp_BossPhaseTimer_u8
-    lda #eBossPhase::BossBlinking
-    sta Zp_Boss_eBossPhase
-_Return:
-    rts
+    .assert eBossPhase::BossBattle + 1 = eBossPhase::BossBlinking, error
+    bne _IncrementPhase  ; unconditional
 _BossBlinking:
     ;; Wait for the phase timer to reach zero.
     dec Zp_BossPhaseTimer_u8
-    bne @done
+    bne _Return
     ;; Reinitialize the timer and proceed to the next phase.
-    lda #kFramesPerExplosion * kBossNumExplosions
+    lda #kBossFramesPerExplosion * kBossNumExplosions
     sta Zp_BossPhaseTimer_u8
-    lda #eBossPhase::BossExploding
-    sta Zp_Boss_eBossPhase
-    @done:
+    .assert eBossPhase::BossBlinking + 1 = eBossPhase::BossExploding, error
+    inc Zp_Boss_eBossPhase  ; now BossExploding
+_Return:
     rts
 _BossExploding:
     ;; Check if it's time to start another explosion.
     lda Zp_BossPhaseTimer_u8  ; param: dividend
-    ldy #kFramesPerExplosion  ; param: divisor
+    ldy #kBossFramesPerExplosion  ; param: divisor
     jsr Func_DivMod  ; returns quotient in Y and remainder in A
-    cmp #kFramesPerExplosion - 1
+    cmp #kBossFramesPerExplosion - 1
     bne @noExplosion
     ;; Choose a random position within the boss's body and spawn an explosion
     ;; there.
@@ -268,72 +262,59 @@ _BossExploding:
     @noExplosion:
     ;; Wait for the phase timer to reach zero.
     dec Zp_BossPhaseTimer_u8
-    bne @done
+    bne _Return
     ;; Flash the screen to white.
     ldy #eFade::White  ; param: eFade value
     jsr Func_SetAndTransferFade
     jsr Func_PlaySfxExplodeBig
     jsr FuncA_Room_ResetHaltAllMachines
     ;; Reinitialize the timer and proceed to the next phase.
-    lda #kFlashWhiteFramesPerStep * kFlashWhiteNumFadeSteps
+    lda #kBossFlashWhiteFramesPerStep * kBossFlashWhiteNumFadeSteps
     sta Zp_BossPhaseTimer_u8
-    lda #eBossPhase::FlashWhite
-    sta Zp_Boss_eBossPhase
-    @done:
-    rts
+    .assert eBossPhase::BossExploding + 1 = eBossPhase::FlashWhite, error
+    bne _IncrementPhase  ; unconditional
 _FlashWhite:
     ;; Fade the screen from white.
-    lda Zp_BossPhaseTimer_u8  ; param: dividend
-    ldy #kFlashWhiteFramesPerStep  ; param: divisor
-    jsr Func_DivMod  ; returns quotient in Y and remainder in A
-    cmp #1
-    bne @noTransfer
-    tya  ; quotient
-    add #eFade::Normal
-    tay  ; param: eFade value
-    jsr Func_SetAndTransferFade
-    @noTransfer:
+    lda Zp_BossPhaseTimer_u8  ; param: flash timer
+    jsr FuncA_Room_FlashWhiteFromTimer
     ;; Wait for the phase timer to reach zero.
     dec Zp_BossPhaseTimer_u8
-    bne @done
+    bne _Return
     ;; Start playing calm music.
     lda #eMusic::Calm
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
     ;; Reinitialize the timer and proceed to the next phase.
     lda #105  ; 1.75 seconds
     sta Zp_BossPhaseTimer_u8
-    lda #eBossPhase::SpawnUpgrade
-    sta Zp_Boss_eBossPhase
-    @done:
-    rts
+    .assert eBossPhase::FlashWhite + 1 = eBossPhase::SpawnUpgrade, error
+    bne _IncrementPhase  ; unconditional
 _SpawnUpgrade:
     ;; Wait for the phase timer to reach zero.
     dec Zp_BossPhaseTimer_u8
-    bne @done
+    bne _Return
     ;; Spawn the upgrade.
     ldy #kBossUpgradeDeviceIndex  ; param: device index
     jsr FuncA_Room_SpawnUpgradeDevice
     ;; Proceed to the next phase.
-    lda #eBossPhase::GetUpgrade
-    sta Zp_Boss_eBossPhase
-    @done:
+    .assert eBossPhase::SpawnUpgrade + 1 = eBossPhase::GetUpgrade, error
+    fall _IncrementPhase
+_IncrementPhase:
+    inc Zp_Boss_eBossPhase
     rts
 _GetUpgrade:
     ;; Wait until the player has collected the upgrade.
     lda Ram_DeviceType_eDevice_arr + kBossUpgradeDeviceIndex
     .assert eDevice::None = 0, error
-    bne @done
+    bne _Return
     ;; Reinitialize the timer and proceed to the next phase.
     lda #45  ; 0.75 seconds
     sta Zp_BossPhaseTimer_u8
-    lda #eBossPhase::SpawnBreaker
-    sta Zp_Boss_eBossPhase
-    @done:
-    rts
+    .assert eBossPhase::GetUpgrade + 1 = eBossPhase::SpawnBreaker, error
+    bne _IncrementPhase  ; unconditional
 _SpawnBreaker:
     ;; Wait for the phase timer to reach zero.
     dec Zp_BossPhaseTimer_u8
-    bne @done
+    bne _Return
     ;; Spawn the breaker.
     lda #eDevice::BreakerRising
     sta Ram_DeviceType_eDevice_arr + kBossBreakerDeviceIndex
@@ -341,32 +322,19 @@ _SpawnBreaker:
     sta Ram_DeviceAnim_u8_arr + kBossBreakerDeviceIndex
     jsr FuncA_Room_PlaySfxBreakerRising
     ;; Proceed to the next phase.
-    lda #eBossPhase::FlipBreaker
-    sta Zp_Boss_eBossPhase
-    @done:
+    .assert eBossPhase::SpawnBreaker + 1 = eBossPhase::FlipBreaker, error
+    inc Zp_Boss_eBossPhase  ; now FlipBreaker
     rts
 _FlipBreaker:
     ;; Shake the room continuously until the breaker finishes rising.
     lda Ram_DeviceType_eDevice_arr + kBossBreakerDeviceIndex
     cmp #eDevice::BreakerRising
-    bne @finishedRising
+    bne _Return
     lda Ram_DeviceAnim_u8_arr + kBossBreakerDeviceIndex
     mod #4
-    bne @done
+    bne _Return
     lda #6  ; param: num frames
     jmp Func_ShakeRoom
-    @finishedRising:
-    ;; Wait until the player has activated the breaker.
-    cmp #eDevice::BreakerDone
-    bne @done
-    ;; Unlock the door.
-    ldx #kBossDoorDeviceIndex  ; param: device index
-    jsr FuncA_Room_UnlockDoorDevice
-    ;; Proceed to the next phase.
-    lda #eBossPhase::Done
-    sta Zp_Boss_eBossPhase
-    @done:
-    rts
 .ENDPROC
 
 ;;; Sets Zp_Point*_i16 to a random room pixel position within the platform
@@ -440,6 +408,24 @@ _DisableConsoles:
     @while:
     cpx Zp_Current_sRoom + sRoom::NumMachines_u8
     blt @loop
+    rts
+.ENDPROC
+
+;;; Updates screen fade level during a white flash fade.  Call this each frame
+;;; during the fade, with the timer ranging counting down from
+;;; kBossFlashWhiteNumFadeSteps * 3 down to zero.
+;;; @param A The countdown timer.
+.EXPORT FuncA_Room_FlashWhiteFromTimer
+.PROC FuncA_Room_FlashWhiteFromTimer
+    ldy #kBossFlashWhiteFramesPerStep  ; param: divisor
+    jsr Func_DivMod  ; returns quotient in Y and remainder in A
+    cmp #1
+    bne @noTransfer
+    tya  ; quotient
+    add #eFade::Normal
+    tay  ; param: eFade value
+    jmp Func_SetAndTransferFade
+    @noTransfer:
     rts
 .ENDPROC
 

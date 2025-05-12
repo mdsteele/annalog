@@ -24,6 +24,7 @@
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../fade.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../irq.inc"
 .INCLUDE "../machine.inc"
@@ -56,6 +57,7 @@
 .IMPORT FuncA_Objects_DrawForcefieldPlatform
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_FlashWhiteFromTimer
 .IMPORT FuncA_Room_InitBoss
 .IMPORT FuncA_Room_MachineEmitterXInitReset
 .IMPORT FuncA_Room_MachineEmitterYInitReset
@@ -73,7 +75,9 @@
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_SetAndTransferFade
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
@@ -193,6 +197,9 @@ kPaletteObjFinalGhostHurt   = 1
     ;; True ($ff) if the mermaid ghost is the next to attack; false ($00) if
     ;; the orc ghost is the next to attack.
     IsMermaidNext_bool .byte
+    ;; Decrements each frame if nonzero, setting the screen fade from white
+    ;; down to normal.
+    FlashTimer_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -457,7 +464,11 @@ _BossMode_MergeActive:
     lda #eBossMode::FinalGhostWaiting
     sta Zp_RoomState + sState::Current_eBossMode
     jsr FuncA_Room_RemoveEmitterForcefield
-    ;; TODO: Flash the screen white
+    jsr Func_PlaySfxExplodeBig
+    ldy #eFade::White  ; param: eFade value
+    jsr Func_SetAndTransferFade
+    lda #kBossFlashWhiteFramesPerStep * 3
+    sta Zp_RoomState + sState::FlashTimer_u8
     ;; Switch gravity back to normal if it was reversed.
     lda Zp_AvatarFlags_bObj
     and #<~bObj::FlipV
@@ -815,6 +826,13 @@ _BossIsDead:
 .ENDPROC
 
 .PROC FuncA_Room_BossShadow_TickRoom
+_TickFlash:
+    lda Zp_RoomState + sState::FlashTimer_u8  ; param: flash timer
+    beq @done
+    jsr FuncA_Room_FlashWhiteFromTimer
+    dec Zp_RoomState + sState::FlashTimer_u8
+    @done:
+_TickBoss:
     .assert eBossMode::Dead = 0, error
     lda Zp_RoomState + sState::Current_eBossMode  ; param: zero if boss dead
     jmp FuncA_Room_TickBoss

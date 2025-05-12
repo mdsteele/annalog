@@ -448,7 +448,7 @@ _CheckMode:
     jsr Func_DivMod  ; returns remainder in A
     add #2  ; param: column to shoot at
     ldy Zp_RoomState + sState::BossActive_eEye  ; param: eye to shoot from
-    jsr FuncC_Boss_Garden_ShootFireballAtColumn
+    jsr FuncA_Room_BossGarden_ShootFireballAtColumn
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Zp_RoomState + sState::BossProjCount_u8
@@ -464,7 +464,7 @@ _CheckMode:
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_Garden_TickBossShoot
     ldy Zp_RoomState + sState::BossActive_eEye  ; param: eye to shoot from
-    jsr FuncC_Boss_Garden_ShootFireballAtAvatar
+    jsr FuncA_Room_BossGarden_ShootFireballAtAvatar
     ;; Decrement the projectile counter; if it reaches zero, return to waiting
     ;; mode.
     dec Zp_RoomState + sState::BossProjCount_u8
@@ -569,51 +569,6 @@ _StartShootMode:
     lda #eBossMode::Shoot
     sta Zp_RoomState + sState::Current_eBossMode
     rts
-.ENDPROC
-
-;;; Shoots a fireball from the specified eye, towards the player avatar.
-;;; @param Y Which eEye to shoot from.
-.PROC FuncC_Boss_Garden_ShootFireballAtAvatar
-    lda Zp_AvatarPosX_i16 + 0
-    div #kBlockWidthPx  ; param: column to shoot at
-    fall FuncC_Boss_Garden_ShootFireballAtColumn
-.ENDPROC
-
-;;; Shoots a fireball from the specified eye, towards the specified room block
-;;; column.
-;;; @param A Which room block column to shoot at.
-;;; @param Y Which eEye to shoot from.
-.PROC FuncC_Boss_Garden_ShootFireballAtColumn
-    pha  ; room block column
-    ;; Assert that we can use the eEye value as a platform index.
-    .assert kLeftEyePlatformIndex = eEye::Left, error
-    .assert kRightEyePlatformIndex = eEye::Right, error
-    ;; Init fireball position to the center of the eye we're shooting from.
-    jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
-    ;; Choose fireball angle based on target column.
-    pla  ; room block column
-    mul #2
-    ora Zp_RoomState + sState::BossActive_eEye
-    tay
-    lda _FireballAngle_u8_arr2_arr, y  ; param: aim angle
-    jmp Func_ShootFireballFromPoint
-_FireballAngle_u8_arr2_arr:
-    ;; Each pair has angles for left eye and right eye.
-    ;; There is one pair for each room block column.
-    .byte 64,  64
-    .byte 64,  64
-    .byte 91, 112  ; leftmost side of room
-    .byte 84, 108  ; left lever
-    .byte 76,  96  ; leftmost side of lowest floor
-    .byte 69,  92
-    .byte 64,  84  ; below left eye
-    .byte 59,  80  ; door
-    .byte 52,  72
-    .byte 47,  64  ; below right eye
-    .byte 40,  56  ; right lever
-    .byte 36,  44
-    .byte 28,  32  ; console
-    .byte 16,  12
 .ENDPROC
 
 .PROC FuncC_Boss_GardenCannon_ReadReg
@@ -936,6 +891,51 @@ _Close:
     dec Zp_RoomState + sState::BossEyeOpen_u8_arr2, x
     @done:
     rts
+.ENDPROC
+
+;;; Shoots a fireball from the specified eye, towards the player avatar.
+;;; @param Y Which eEye to shoot from.
+.PROC FuncA_Room_BossGarden_ShootFireballAtAvatar
+    lda Zp_AvatarPosX_i16 + 0
+    div #kBlockWidthPx  ; param: column to shoot at
+    fall FuncA_Room_BossGarden_ShootFireballAtColumn
+.ENDPROC
+
+;;; Shoots a fireball from the specified eye, towards the specified room block
+;;; column.
+;;; @param A Which room block column to shoot at.
+;;; @param Y Which eEye to shoot from.
+.PROC FuncA_Room_BossGarden_ShootFireballAtColumn
+    pha  ; room block column
+    ;; Assert that we can use the eEye value as a platform index.
+    .assert kLeftEyePlatformIndex = eEye::Left, error
+    .assert kRightEyePlatformIndex = eEye::Right, error
+    ;; Init fireball position to the center of the eye we're shooting from.
+    jsr Func_SetPointToPlatformCenter  ; preserves X and T0+
+    ;; Choose fireball angle based on target column.
+    pla  ; room block column
+    mul #2
+    ora Zp_RoomState + sState::BossActive_eEye
+    tay
+    lda _FireballAngle_u8_arr2_arr, y  ; param: aim angle
+    jmp Func_ShootFireballFromPoint
+_FireballAngle_u8_arr2_arr:
+    ;; Each pair has angles for left eye and right eye.
+    ;; There is one pair for each room block column.
+    .byte 64,  64
+    .byte 64,  64
+    .byte 91, 112  ; leftmost side of room
+    .byte 84, 108  ; left lever
+    .byte 76,  96  ; leftmost side of lowest floor
+    .byte 69,  92
+    .byte 64,  84  ; below left eye
+    .byte 59,  80  ; door
+    .byte 52,  72
+    .byte 47,  64  ; below right eye
+    .byte 40,  56  ; right lever
+    .byte 36,  44
+    .byte 28,  32  ; console
+    .byte 16,  12
 .ENDPROC
 
 ;;; Makes the garden boss enter waiting mode for a random amount of time

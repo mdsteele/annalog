@@ -27,6 +27,10 @@ kBossUpgradeDeviceIndex = 1
 ;;; the upgrade is collected.
 kBossBreakerDeviceIndex = 2
 
+;;; How many frames to wait between fade steps during the FlashWhite phase
+;;; after a boss is defeated.
+kBossFlashWhiteFramesPerStep = 7
+
 ;;;=========================================================================;;;
 
 ;;; Phases that a boss fight can be in.
