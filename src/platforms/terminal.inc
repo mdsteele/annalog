@@ -17,6 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; The size of a terminal platform, in pixels.
+kTerminalPlatformWidthPx  = $10
+kTerminalPlatformHeightPx = $10
+
 ;;; OBJ tile IDs for drawing monitor platforms.
 kTileIdObjPlatformMonitorFirst = $94
 

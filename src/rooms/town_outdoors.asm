@@ -27,6 +27,7 @@
 .INCLUDE "../cpu.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../devices/console.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../irq.inc"
 .INCLUDE "../macros.inc"
@@ -34,6 +35,8 @@
 .INCLUDE "../music.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/core.inc"
+.INCLUDE "../platforms/terminal.inc"
 .INCLUDE "../portrait.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
@@ -62,11 +65,18 @@
 .IMPORT DataA_Text2_TownOutdoorsFinaleGaveRemote3_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleReactivate3_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleReactivate5_u8_arr
-.IMPORT Data_Empty_sPlatform_arr
 .IMPORT FuncA_Cutscene_InitActorSmokeBeam
 .IMPORT FuncA_Cutscene_PlaySfxBeam
 .IMPORT FuncA_Cutscene_PlaySfxQuickWindup
+.IMPORT FuncA_Cutscene_PlaySfxRumbling
+.IMPORT FuncA_Objects_Draw1x1Shape
+.IMPORT FuncA_Objects_DrawCoreInnerPlatform
+.IMPORT FuncA_Objects_DrawCoreOuterPlatform
+.IMPORT FuncA_Objects_DrawTerminalPlatformInFront
+.IMPORT FuncA_Objects_MoveShapeRightHalfTile
+.IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT FuncC_Town_GetScreenTilePpuAddr
+.IMPORT FuncC_Town_RaiseCore
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_FindEmptyActorSlot
@@ -162,12 +172,22 @@ kThurgFlingVelY = -250
 
 ;;;=========================================================================;;;
 
+;;; The screen tile column for the leftmost BG tile of the core outer platform.
+kCoreOuterStartCol = $01
+
+;;; The initial room pixel position for the center of the top edge of the core
+;;; inner platform.
+kInitCoreTopCenterX = $0328
+kInitCoreTopCenterY = $0110
+
+;;;=========================================================================;;;
+
 ;;; Defines room-specific state data for this particular room.
 .STRUCT sState
     ;; Timer for making the second orc jump.
-    OrcJumpTimer_u8  .byte
+    OrcJumpTimer_u8   .byte
     ;; Timer for making Alex get knocked unconscious.
-    AlexSleepTimer_u8  .byte
+    AlexSleepTimer_u8 .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -192,7 +212,7 @@ kThurgFlingVelY = -250
 _Ext_sRoomExt:
     D_STRUCT sRoomExt
     d_addr Terrain_sTileset_ptr, DataA_Room_Outdoors_sTileset
-    d_addr Platforms_sPlatform_arr_ptr, Data_Empty_sPlatform_arr
+    d_addr Platforms_sPlatform_arr_ptr, _Platforms_sPlatform_arr
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, 0
@@ -206,6 +226,33 @@ _TerrainData:
     .incbin "out/rooms/town_outdoors2.room"
     .incbin "out/rooms/town_outdoors3.room"
     .assert * - :- = 96 * 15, error
+_Platforms_sPlatform_arr:
+:   .assert * - :- = kFinalTerminalPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, kTerminalPlatformWidthPx
+    d_byte HeightPx_u8, kTerminalPlatformHeightPx
+    d_word Left_i16, kInitCoreTopCenterX
+    d_word Top_i16, kInitCoreTopCenterY - kTerminalPlatformHeightPx
+    D_END
+    .assert * - :- = kCoreInnerPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, kCoreInnerPlatformWidthPx
+    d_byte HeightPx_u8, $10
+    d_word Left_i16, kInitCoreTopCenterX - kCoreInnerPlatformWidthPx / 2
+    d_word Top_i16, kInitCoreTopCenterY
+    D_END
+    .assert * - :- = kCoreOuterPlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, kCoreOuterPlatformWidthPx
+    d_byte HeightPx_u8, $10
+    d_word Left_i16, kInitCoreTopCenterX - kCoreOuterPlatformWidthPx / 2
+    d_word Top_i16, kInitCoreTopCenterY + kTileHeightPx
+    D_END
+    .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
+    .byte ePlatform::None
 _Actors_sActor_arr:
 :   .assert * - :- = kAlexActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
@@ -396,7 +443,9 @@ _DetectAvatarDeath:
 .ENDPROC
 
 ;;; Draw function for the TownOutdoors room.
+;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Town_Outdoors_DrawRoom
+_SetUpIrq:
     ;; Fix the horizontal scrolling position for the top of the screen, so that
     ;; the stars and moon don't scroll.
     lda #0
@@ -425,7 +474,17 @@ _DetectAvatarDeath:
     lsr T0
     ror a
     sta Zp_Buffered_sIrq + sIrq::Param1_byte  ; treeline scroll-X
-    rts
+_CorePlatforms:
+    jsr FuncA_Objects_DrawCoreOuterPlatform
+    jsr FuncA_Objects_DrawCoreInnerPlatform
+_FinalTerminal:
+    ldx #kFinalTerminalPlatformIndex  ; param: platform index
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
+    lda #kTileIdObjScreen  ; param: tile ID
+    ldy #kPaletteObjScreen ; param: object flags
+    jsr FuncA_Objects_Draw1x1Shape  ; preserves X
+    jmp FuncA_Objects_DrawTerminalPlatformInFront
 .ENDPROC
 
 ;;; Make the specified orc actor jump to the left.
@@ -721,32 +780,40 @@ _InitThurgAndGrunt:
     jmp Func_InitActorNpcOrc
 .ENDPROC
 
+;;; Called from DataA_Cutscene_TownOutdoorsFinaleGaveRemote1_sCutscene to
+;;; initialize the Gronta NPC actor.
+.PROC FuncA_Cutscene_TownOutdoors_InitGrontaForFinale
+    ldx #kGrontaActorIndex  ; param: actor index
+    lda #eNpcOrc::GrontaStanding  ; param: eNpcOrc value
+    jmp Func_InitActorNpcOrc
+.ENDPROC
+
 ;;; @prereq PRGC_Town is loaded.
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleGaveRemote1_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleGaveRemote1_sCutscene
-    act_WaitFrames 60
-    act_ForkStart 1, DataA_Cutscene_TownOutdoors_ExplodeGround_sCutscene
-    act_WaitFrames 40
-    ;; TODO: animate the core tower rising out, with Gronta riding it
-    act_WaitFrames 60
-    act_JumpToMain MainA_Cutscene_StartNextFinaleStep
+    act_SetActorPosX kGrontaActorIndex, $0320
+    act_SetActorPosY kGrontaActorIndex, $0108
+    act_CallFunc FuncA_Cutscene_TownOutdoors_InitGrontaForFinale
+    act_SetActorState2 kGrontaActorIndex, $ff
+    act_SetActorFlags kGrontaActorIndex, bObj::FlipH
+    fall DataA_Cutscene_TownOutdoorsFinaleReactivate1_sCutscene
 .ENDPROC
 
 ;;; @prereq PRGC_Town is loaded.
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate1_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleReactivate1_sCutscene
     act_WaitFrames 60
-    act_ForkStart 1, DataA_Cutscene_TownOutdoors_ExplodeGround_sCutscene
-    act_WaitFrames 40
-    ;; TODO: animate the core tower rising out, with Anna riding it
-    act_WaitFrames 60
+    act_ForkStart 1, _ExplodeGround_sCutscene
+    act_WaitFrames 15
+    act_SetAvatarPosX $0320
+    act_SetAvatarPosY $0108
+    act_RepeatFunc kCorePlatformSlowdown * 53, _RaiseCore
+    act_RepeatFunc kCorePlatformSlowdown * 53, _RaiseCore
     act_JumpToMain MainA_Cutscene_StartNextFinaleStep
-.ENDPROC
-
-;;; A cutscene fork (to be started with act_ForkStart) for exploding the ground
-;;; open so the core platform can rise out.
-;;; @prereq PRGC_Town is loaded.
-.PROC DataA_Cutscene_TownOutdoors_ExplodeGround_sCutscene
+_RaiseCore:
+    ldy #kCoreOuterStartCol  ; param: first screen tile column
+    jmp FuncC_Town_RaiseCore
+_ExplodeGround_sCutscene:
     act_CallFunc _ExplodeGround1
     act_WaitFrames 10
     act_CallFunc _ExplodeGround2
@@ -756,26 +823,36 @@ _InitThurgAndGrunt:
     act_CallFunc _ExplodeGround4
     act_WaitFrames 10
     act_CallFunc _ExplodeGround5
-    act_ForkStop $ff
+    act_WaitFrames 10
+    act_CallFunc _ExplodeGround6
+    act_WaitFrames 10
+    @rumble:
+    act_CallFunc _PlayRumblingSound
+    act_WaitFrames 4
+    act_ForkStart 1, @rumble
 _ExplodeGround1:
-    ldy #6  ; param: left-hand screen tile column
-    lda #7  ; param: right-hand screen tile column
+    ldy #4  ; param: left-hand screen tile column
+    lda #5  ; param: right-hand screen tile column
     bne _ExplodeGroundLeftAndRight  ; unconditional
 _ExplodeGround2:
-    ldy #5  ; param: left-hand screen tile column
-    lda #8  ; param: right-hand screen tile column
+    ldy #3  ; param: left-hand screen tile column
+    lda #6  ; param: right-hand screen tile column
     bne _ExplodeGroundLeftAndRight  ; unconditional
 _ExplodeGround3:
-    ldy #4  ; param: left-hand screen tile column
-    lda #9  ; param: right-hand screen tile column
+    ldy #2  ; param: left-hand screen tile column
+    lda #7  ; param: right-hand screen tile column
     bne _ExplodeGroundLeftAndRight  ; unconditional
 _ExplodeGround4:
-    ldy #3   ; param: left-hand screen tile column
-    lda #10  ; param: right-hand screen tile column
+    ldy #1  ; param: left-hand screen tile column
+    lda #8  ; param: right-hand screen tile column
     bne _ExplodeGroundLeftAndRight  ; unconditional
 _ExplodeGround5:
-    ldy #2   ; param: left-hand screen tile column
-    lda #11  ; param: right-hand screen tile column
+    ldy #0  ; param: left-hand screen tile column
+    lda #9  ; param: right-hand screen tile column
+    bne _ExplodeGroundLeftAndRight  ; unconditional
+_ExplodeGround6:
+    ldy #31  ; param: left-hand screen tile column
+    lda #10  ; param: right-hand screen tile column
     fall _ExplodeGroundLeftAndRight
 _ExplodeGroundLeftAndRight:
     pha     ; right-hand screen tile column
@@ -789,6 +866,7 @@ _ExplodeGroundLeftAndRight:
     ldx T3  ; left-hand screen tile column
     dex
     txa     ; param: screen tile column
+    mod #kScreenWidthTiles
     fall _AddRocksAtScreenCol
 _AddRocksAtScreenCol:
     ldx #27  ; param: first screen tile row
@@ -824,6 +902,9 @@ _ExplodeGroundAtScreenCol:
     jsr Func_MovePointDownByA
     jsr Func_SpawnExplosionAtPoint
     jmp Func_PlaySfxExplodeBig
+_PlayRumblingSound:
+    lda #60  ; param: frames
+    jmp FuncA_Cutscene_PlaySfxRumbling
 .ENDPROC
 
 ;;; Allocates a PPU transfer entry to draw BG tiles for one tile column of

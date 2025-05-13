@@ -38,6 +38,7 @@
 .INCLUDE "../music.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/terminal.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
@@ -506,8 +507,8 @@ _Platforms_sPlatform_arr:
     .assert * - :- = kFinalTerminalPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $10
-    d_byte HeightPx_u8, $10
+    d_word WidthPx_u16, kTerminalPlatformWidthPx
+    d_byte HeightPx_u8, kTerminalPlatformHeightPx
     d_word Left_i16,  $0110
     d_word Top_i16,   $0070
     D_END

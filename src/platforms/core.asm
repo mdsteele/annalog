@@ -28,6 +28,13 @@
 
 ;;;=========================================================================;;;
 
+.LINECONT +
+.ASSERT kCoreInnerPlatformWidthPx = \
+    kTileWidthPx * kCoreInnerPlatformWidthTiles, error
+.ASSERT kCoreOuterPlatformWidthPx = \
+    kTileWidthPx * kCoreOuterPlatformWidthTiles, error
+.LINECONT -
+
 ;;; OBJ tile IDs used for drawing core platforms.
 kTileIdObjCoreTop    = kTileIdObjMachineSurfaceHorz
 kTileIdObjCoreCorner = kTileIdObjPlatformCoreFirst + 0
@@ -46,13 +53,12 @@ kPaletteObjCoreLight    = 1
 .SEGMENT "PRGA_Objects"
 
 ;;; Draws objects for the top two tile rows of the power core inner platform.
-;;; @param X The platform index.
-;;; @preserve X
 .EXPORT FuncA_Objects_DrawCoreInnerPlatform
 .PROC FuncA_Objects_DrawCoreInnerPlatform
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    ldx #kCoreInnerPlatformIndex
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     ldya #_Tiles_sShapeTile_arr  ; param: sShapeTile arr ptr
-    jmp FuncA_Objects_DrawShapeTiles  ; preserves X
+    jmp FuncA_Objects_DrawShapeTiles
 _Tiles_sShapeTile_arr:
     ;; First row:
     D_STRUCT sShapeTile
@@ -131,13 +137,12 @@ _Tiles_sShapeTile_arr:
 .ENDPROC
 
 ;;; Draws objects for the top two tile rows of the power core outer platform.
-;;; @param X The platform index.
-;;; @preserve X
 .EXPORT FuncA_Objects_DrawCoreOuterPlatform
 .PROC FuncA_Objects_DrawCoreOuterPlatform
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
+    ldx #kCoreOuterPlatformIndex
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
     ldya #_Tiles_sShapeTile_arr  ; param: sShapeTile arr ptr
-    jmp FuncA_Objects_DrawShapeTiles  ; preserves X
+    jmp FuncA_Objects_DrawShapeTiles
 _Tiles_sShapeTile_arr:
     ;; First row:
     D_STRUCT sShapeTile

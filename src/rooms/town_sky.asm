@@ -29,6 +29,8 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
+.INCLUDE "../platforms/core.inc"
+.INCLUDE "../platforms/terminal.inc"
 .INCLUDE "../portrait.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
@@ -58,6 +60,8 @@
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeOutToBlack
+.IMPORT Func_FindActorWithType
+.IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_SetAndTransferFade
 .IMPORT Func_ShakeRoom
@@ -66,11 +70,13 @@
 .IMPORT Ppu_ChrObjFinale
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
+.IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
+.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
@@ -89,30 +95,41 @@ kUpperSquareActorIndex = 1
 kLowerSquareActorIndex = 2
 kGrontaActorIndex      = 3
 
-;;; Platform indices for various parts of the core.
-kFinalTerminalPlatformIndex = 0
-kCoreInnerPlatformIndex     = 1
-kCoreOuterPlatformIndex     = 2
-
 ;;; The screen tile column for the leftmost BG tile of the core inner/outer
 ;;; platform.
-kCoreInnerStartCol = $14
 kCoreOuterStartCol = $13
+kCoreInnerStartCol = kCoreOuterStartCol + 1
 
-;;; The width of each core platform.
-kCoreInnerPlatformWidthTiles = 6
-kCoreOuterPlatformWidthTiles = 8
-kCoreInnerPlatformWidthPx = kTileWidthPx * kCoreInnerPlatformWidthTiles
-kCoreOuterPlatformWidthPx = kTileWidthPx * kCoreOuterPlatformWidthTiles
+;;; The screen tile row for the top of the core inner/outer platform once fully
+;;; risen.
+kCoreInnerGoalRow = 15
+kCoreOuterGoalRow = 23
+;;; The room pixel Y-position for the top of the core inner/outer platform once
+;;; fully risen.
+kCoreInnerGoalTop = kCoreInnerGoalRow * kTileHeightPx
+kCoreOuterGoalTop = kCoreOuterGoalRow * kTileHeightPx
 
 ;;; The initial room pixel position for the center of the top edge of the core
 ;;; inner platform.
 kInitCoreTopCenterX = $00b8
 kInitCoreTopCenterY = $00d2
+kInitCoreOuterTop = kInitCoreTopCenterY + kTileHeightPx
+
+;;; How many pixels to raise each core platform in the cutscene.
+kOuterCoreRisePx = kInitCoreOuterTop - kCoreOuterGoalTop
+kInnerCoreRisePx = (kCoreOuterGoalTop - kTileHeightPx) - kCoreInnerGoalTop
+
+;;; How many frames to spend raising each core platform in the cutscene.
+kOuterCoreRiseFrames = kCorePlatformSlowdown * kOuterCoreRisePx
+kInnerCoreRiseFrames = kCorePlatformSlowdown * kInnerCoreRisePx
 
 ;;; The number of VBlank frames per pixel shown as Jerome's hologram is
 ;;; revealed.
-.DEFINE kRevealSlowdown 8
+.DEFINE kJeromeRevealSlowdown 8
+
+;;; The room pixel position for the center of the Jerome NPC actor.
+kJeromePosX = $0068
+kJeromePosY = kCoreInnerGoalTop - $19
 
 ;;;=========================================================================;;;
 
@@ -125,7 +142,9 @@ kInitCoreTopCenterY = $00d2
     InnerCoreTerrainStartRow_u8 .byte
     OuterCoreTerrainStartRow_u8 .byte
     ;; If false ($00), draw the room normally.  If true ($ff), this room's
-    ;; DrawRoom function becomes a no-op.
+    ;; DrawRoom function becomes a no-op.  This is used to disable drawing
+    ;; platforms in the room after the screen fades to black for Jerome's
+    ;; final dialog text.
     DoNotDraw_bool .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
@@ -167,16 +186,16 @@ _Platforms_sPlatform_arr:
 :   .assert * - :- = kFinalTerminalPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
-    d_word WidthPx_u16, $10
-    d_byte HeightPx_u8, $10
+    d_word WidthPx_u16, kTerminalPlatformWidthPx
+    d_byte HeightPx_u8, kTerminalPlatformHeightPx
     d_word Left_i16, kInitCoreTopCenterX
-    d_word Top_i16, kInitCoreTopCenterY - $10
+    d_word Top_i16, kInitCoreTopCenterY - kTerminalPlatformHeightPx
     D_END
     .assert * - :- = kCoreInnerPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, kCoreInnerPlatformWidthPx
-    d_byte HeightPx_u8, kScreenHeightPx - kInitCoreTopCenterY
+    d_byte HeightPx_u8, kTileHeightPx * 2
     d_word Left_i16, kInitCoreTopCenterX - kCoreInnerPlatformWidthPx / 2
     d_word Top_i16, kInitCoreTopCenterY
     D_END
@@ -184,9 +203,9 @@ _Platforms_sPlatform_arr:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, kCoreOuterPlatformWidthPx
-    d_byte HeightPx_u8, kScreenHeightPx - kInitCoreTopCenterY - kTileHeightPx
+    d_byte HeightPx_u8, kTileHeightPx * 2
     d_word Left_i16, kInitCoreTopCenterX - kCoreOuterPlatformWidthPx / 2
-    d_word Top_i16, kInitCoreTopCenterY + kTileHeightPx
+    d_word Top_i16, kInitCoreOuterTop
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
@@ -194,29 +213,29 @@ _Actors_sActor_arr:
 :   .assert * - :- = kJeromeActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
-    d_word PosX_i16, $0070
-    d_word PosY_i16, $0080
+    d_word PosX_i16, kJeromePosX
+    d_word PosY_i16, kJeromePosY
     d_byte Param_byte, eNpcAdult::GhostJerome
     D_END
     .assert * - :- = kUpperSquareActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcSquare
-    d_word PosX_i16, $0070
-    d_word PosY_i16, $0074
+    d_word PosX_i16, kJeromePosX
+    d_word PosY_i16, kJeromePosY - $0c
     d_byte Param_byte, 0  ; ignored
     D_END
     .assert * - :- = kLowerSquareActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcSquare
-    d_word PosX_i16, $0070
-    d_word PosY_i16, $0084
+    d_word PosX_i16, kJeromePosX
+    d_word PosY_i16, kJeromePosY + $04
     d_byte Param_byte, 0  ; ignored
     D_END
     .assert * - :- = kGrontaActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcOrc
     d_word PosX_i16, $00b0
-    d_word PosY_i16, $00ca
+    d_word PosY_i16, kInitCoreTopCenterY - kOrcBoundingBoxDown
     d_byte Param_byte, eNpcOrc::GrontaStanding
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
@@ -250,17 +269,17 @@ _RemoveNpcSquares:
     sta Ram_ActorType_eActor_arr + kUpperSquareActorIndex
     sta Ram_ActorType_eActor_arr + kLowerSquareActorIndex
 _AlreadyRisen:
-    lda #$80
+    lda #kCoreInnerGoalTop - kOrcBoundingBoxDown
     sta Ram_ActorPosY_i16_0_arr + kGrontaActorIndex
-    lda #15 * kTileHeightPx
+    lda #kCoreInnerGoalTop - kTerminalPlatformHeightPx
     sta Ram_PlatformTop_i16_0_arr + kFinalTerminalPlatformIndex
-    lda #17 * kTileHeightPx
+    lda #kCoreInnerGoalTop
     sta Ram_PlatformBottom_i16_0_arr + kFinalTerminalPlatformIndex
     sta Ram_PlatformTop_i16_0_arr + kCoreInnerPlatformIndex
-    lda #24 * kTileHeightPx
+    lda #kCoreOuterGoalTop
     sta Ram_PlatformTop_i16_0_arr + kCoreOuterPlatformIndex
-    ldy #19  ; inner core terrain start row
-    lda #26  ; outer core terrain start row
+    ldy #kCoreInnerGoalRow + 2  ; inner core terrain start row
+    lda #kCoreOuterGoalRow + 2  ; outer core terrain start row
     bne _SetStartRows  ; unconditional
 _Rising:
     ldy #29  ; inner core terrain start row
@@ -320,13 +339,8 @@ _SetUpDirectTransfer:
     bpl @draw
     rts
     @draw:
-_OuterPlatform:
-    ldx #kCoreOuterPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawCoreOuterPlatform
-_InnerPlatform:
-    ldx #kCoreInnerPlatformIndex  ; param: platform index
     jsr FuncA_Objects_DrawCoreInnerPlatform
-_FinalTerminal:
     ldx #kFinalTerminalPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
     jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
@@ -336,11 +350,116 @@ _FinalTerminal:
     jmp FuncA_Objects_DrawTerminalPlatformInFront
 .ENDPROC
 
+;;; Function that can be called via act_RepeatFunc to raise the outer and inner
+;;; core platforms together in a cutscene in TownSky.
+;;; @param X The repeat count.
+.PROC FuncC_Town_Sky_RaiseCore
+    ldy #kCoreOuterStartCol  ; param: first screen tile column
+    fall FuncC_Town_RaiseCore
+.ENDPROC
+
+;;; Function that can be called via act_RepeatFunc to raise the outer and inner
+;;; core platforms together in a cutscene.
+;;; @param X The repeat count.
+;;; @param Y THe screen tile column for the left side of the outer core.
+.EXPORT FuncC_Town_RaiseCore
+.PROC FuncC_Town_RaiseCore
+    sty T4  ; first screen tile column
+    txa  ; repeat count
+    mod #kCorePlatformSlowdown
+    bne @done
+    lda #kCorePlatformSlowdown  ; param: shake frames
+    jsr Func_ShakeRoom  ; preserves T0+
+    jsr FuncC_Town_MoveCorePlatforms  ; preserves T4+
+    lda Ram_PlatformTop_i16_1_arr + kCoreOuterPlatformIndex
+    bne @done  ; outer core is still offscreen
+    ldy Ram_PlatformTop_i16_0_arr + kCoreOuterPlatformIndex
+    tya  ; platform top
+    mod #kTileHeightPx
+    bne @done
+    tya  ; platform top
+    div #kTileHeightPx
+    tax
+    inx  ; param: tile row
+    cpx #kScreenHeightTiles
+    bge @done  ; BG tiles are still offscreen
+    ldy T4  ; param: first screen tile column
+    jmp FuncC_Town_TransferCoreOuterPlatformRow
+    @done:
+    rts
+.ENDPROC
+
+;;; Function that can be called via act_RepeatFunc to raise only the inner core
+;;; platform in a cutscene in TownSky.
+;;; @param X The repeat count.
+.PROC FuncC_Town_Sky_RaiseInnerCore
+    txa  ; repeat count
+    mod #kCorePlatformSlowdown
+    bne @done
+    lda #kCorePlatformSlowdown  ; param: shake frames
+    jsr Func_ShakeRoom  ; preserves T0+
+    jsr FuncC_Town_MoveInnerCorePlatform  ; preserves T4+
+    ldy Ram_PlatformTop_i16_0_arr + kCoreInnerPlatformIndex
+    tya  ; platform top
+    mod #kTileHeightPx
+    bne @done
+    tya  ; platform top
+    div #kTileHeightPx
+    tax
+    inx  ; param: tile row
+    ldy #kCoreInnerStartCol  ; param: first screen tile column
+    jmp FuncC_Town_TransferCoreInnerPlatformRow
+    @done:
+    rts
+.ENDPROC
+
+;;; Move the inner and outer core platforms up by one pixel, carrying the final
+;;; terminal and avatar/Gronta with them.
+;;; @preserve T4+
+.PROC FuncC_Town_MoveCorePlatforms
+    ldx #kCoreOuterPlatformIndex  ; param: platform index
+    lda #<-1  ; param: move by (signed)
+    jsr Func_MovePlatformVert  ; preserves T4+
+    fall FuncC_Town_MoveInnerCorePlatform  ; preserves T4+
+.ENDPROC
+
+;;; Move the inner core platform up by one pixel, carrying the final terminal
+;;; and avatar/Gronta with it.
+;;; @preserve T4+
+.PROC FuncC_Town_MoveInnerCorePlatform
+    ;; The inner core platform is solid, so this will carry the player avatar
+    ;; up with it.
+    ldx #kCoreInnerPlatformIndex  ; param: platform index
+    lda #<-1  ; param: move by (signed)
+    jsr Func_MovePlatformVert  ; preserves T4+
+_FinalTerminal:
+    ldx #kFinalTerminalPlatformIndex  ; param: platform index
+    lda #<-1  ; param: move by (signed)
+    jsr Func_MovePlatformVert  ; preserves T4+
+_Avatar:
+    lda Zp_AvatarPosY_i16 + 0
+    bne @noBorrow
+    dec Zp_AvatarPosY_i16 + 1
+    @noBorrow:
+    dec Zp_AvatarPosY_i16 + 0
+_Gronta:
+    lda #eActor::NpcOrc  ; param: actor type to find
+    jsr Func_FindActorWithType  ; preserves T0+, returns C and X
+    bcs @done  ; no Gronta in this cutscene
+    lda Ram_ActorPosY_i16_0_arr, x
+    bne @noBorrow
+    dec Ram_ActorPosY_i16_1_arr, x
+    @noBorrow:
+    dec Ram_ActorPosY_i16_0_arr, x
+    @done:
+    rts
+.ENDPROC
+
 ;;; Buffers a PPU transfer to draw BG tiles for one row of the core inner
 ;;; platform in this room.
 ;;; @param X The screen tile row.
+;;; @param Y THe screen tile column for the left side.
 .PROC FuncC_Town_TransferCoreInnerPlatformRow
-    ldy #kCoreInnerStartCol  ; param: first screen tile column
     lda #kCoreInnerPlatformWidthTiles  ; param: platform width in tiles
     jsr FuncC_Town_AllocateCorePlatformTransferEntry  ; returns X and Y
     @loop:
@@ -355,8 +474,8 @@ _FinalTerminal:
 ;;; Buffers a PPU transfer to draw BG tiles for one row of the core outer
 ;;; platform in this room.
 ;;; @param X The screen tile row.
+;;; @param Y THe screen tile column for the left side.
 .PROC FuncC_Town_TransferCoreOuterPlatformRow
-    ldy #kCoreOuterStartCol  ; param: first screen tile column
     lda #kCoreOuterPlatformWidthTiles  ; param: platform width in tiles
     jsr FuncC_Town_AllocateCorePlatformTransferEntry  ; returns X and Y
     @loop:
@@ -451,62 +570,17 @@ _FinalTerminal:
 .EXPORT DataA_Cutscene_TownSkyFinaleReactivate2_sCutscene
 .PROC DataA_Cutscene_TownSkyFinaleReactivate2_sCutscene
     act_CallFunc _PlayOuterRumblingSound
-    act_RepeatFunc $80, _RaiseCoreOuterPlatform
+    act_RepeatFunc kOuterCoreRiseFrames, FuncC_Town_Sky_RaiseCore
     act_CallFunc _PlayInnerRumblingSound
-    act_RepeatFunc $c0, _RaiseCoreInnerPlatform
+    act_RepeatFunc kInnerCoreRiseFrames, FuncC_Town_Sky_RaiseInnerCore
     act_WaitFrames 120
     act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 _PlayOuterRumblingSound:
-    lda #$80  ; param: frames
+    lda #kOuterCoreRiseFrames  ; param: frames
     jmp FuncA_Cutscene_PlaySfxRumbling
 _PlayInnerRumblingSound:
-    lda #$c0  ; param: frames
+    lda #kInnerCoreRiseFrames  ; param: frames
     jmp FuncA_Cutscene_PlaySfxRumbling
-_RaiseCoreOuterPlatform:
-    txa  ; repeat count
-    mod #4
-    bne @done
-    lda #4  ; param: shake frames
-    jsr Func_ShakeRoom
-    jsr _MoveInnerAndOuter
-    ldy Ram_PlatformTop_i16_0_arr + kCoreOuterPlatformIndex
-    tya  ; platform top
-    mod #kTileHeightPx
-    bne @done
-    tya  ; platform top
-    div #kTileHeightPx
-    tax
-    inx  ; param: tile row
-    jmp FuncC_Town_TransferCoreOuterPlatformRow
-    @done:
-    rts
-_RaiseCoreInnerPlatform:
-    txa  ; repeat count
-    mod #4
-    bne @done
-    lda #4  ; param: shake frames
-    jsr Func_ShakeRoom
-    jsr _MoveInnerOnly
-    ldy Ram_PlatformTop_i16_0_arr + kCoreInnerPlatformIndex
-    tya  ; platform top
-    mod #kTileHeightPx
-    bne @done
-    tya  ; platform top
-    div #kTileHeightPx
-    tax
-    inx  ; param: tile row
-    jmp FuncC_Town_TransferCoreInnerPlatformRow
-    @done:
-    rts
-_MoveInnerAndOuter:
-    dec Ram_PlatformTop_i16_0_arr + kCoreOuterPlatformIndex
-_MoveInnerOnly:
-    dec Ram_PlatformTop_i16_0_arr + kCoreInnerPlatformIndex
-    dec Ram_PlatformTop_i16_0_arr + kFinalTerminalPlatformIndex
-    dec Ram_PlatformBottom_i16_0_arr + kFinalTerminalPlatformIndex
-    dec Zp_AvatarPosY_i16 + 0
-    dec Ram_ActorPosY_i16_0_arr + kGrontaActorIndex
-    rts
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownSkyFinaleGaveRemote4_sCutscene
@@ -523,7 +597,7 @@ _MoveInnerOnly:
     .linecont +
     act_WaitFrames 60
     ;; TODO: play a sound for Jerome's hologram appearing
-    act_RepeatFunc kBlockHeightPx * kRevealSlowdown, \
+    act_RepeatFunc kBlockHeightPx * kJeromeRevealSlowdown, \
                    FuncA_Cutscene_TownSkyRevealJerome
     act_RunDialog eDialog::TownSkyFinaleReactivate4
     act_WaitFrames 60
@@ -536,7 +610,7 @@ _MoveInnerOnly:
     .linecont +
     act_WaitFrames 60
     ;; TODO: play a sound for Jerome's hologram appearing
-    act_RepeatFunc kBlockHeightPx * kRevealSlowdown, \
+    act_RepeatFunc kBlockHeightPx * kJeromeRevealSlowdown, \
                    FuncA_Cutscene_TownSkyRevealJerome
     act_RunDialog eDialog::TownSkyFinaleGaveRemote6
     act_WaitFrames 60
@@ -563,6 +637,7 @@ _MoveInnerOnly:
     act_CallFunc _FadeRoomToBlack
     act_WaitFrames 60
     act_RunDialog eDialog::TownSkyFinaleMaybeThisTime
+    act_WaitFrames 30
     act_JumpToMain MainA_Cutscene_StartEpilogue
 _FadeRoomToBlack:
     jsr Func_FadeOutToBlack
@@ -607,7 +682,7 @@ _FadeRoomToBlack:
 ;;; @param X The repeat counter.
 .PROC FuncA_Cutscene_TownSkyRevealJerome
     txa  ; repeat counter
-    mod #kRevealSlowdown
+    mod #kJeromeRevealSlowdown
     bne @done
     dec Ram_ActorPosY_i16_0_arr + kUpperSquareActorIndex
     inc Ram_ActorPosY_i16_0_arr + kLowerSquareActorIndex

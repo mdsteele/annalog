@@ -17,6 +17,20 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+;;; The number of VBlank frames per pixel moved when a core platform is rising.
+.DEFINE kCorePlatformSlowdown 4
+
+;;; Platform indices for various parts of the core.
+kFinalTerminalPlatformIndex = 0
+kCoreInnerPlatformIndex     = 1
+kCoreOuterPlatformIndex     = 2
+
+;;; The width of each core platform.
+kCoreInnerPlatformWidthTiles = 6
+kCoreOuterPlatformWidthTiles = 8
+kCoreInnerPlatformWidthPx = $30
+kCoreOuterPlatformWidthPx = $40
+
 ;;; OBJ tile IDs for drawing power core platforms.
 kTileIdObjPlatformCoreFirst = $80
 

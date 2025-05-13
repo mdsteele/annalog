@@ -290,12 +290,12 @@ _AvatarPosY_i16_0_arr:
     d_byte GaveRemote4Sky,      $ca  ; this value doesn't really matter
     d_byte GaveRemote5Outdoors, $c8  ; this value doesn't really matter
     d_byte GaveRemote6Sky,      $ca  ; this value doesn't really matter
-    d_byte Reactivate1Outdoors, $c8
+    d_byte Reactivate1Outdoors, $f8  ; riding core platform
     d_byte Reactivate2Sky,      $ca  ; riding core platform
     d_byte Reactivate3Outdoors, $c8
-    d_byte Reactivate4Sky,      $80  ; riding core platform
+    d_byte Reactivate4Sky,      $70  ; riding core platform
     d_byte Reactivate5Outdoors, $28  ; high up, to avoid actor collisions
-    d_byte Reactivate6Sky,      $80  ; riding core platform
+    d_byte Reactivate6Sky,      $70  ; riding core platform
     d_byte YearsLater1Outdoors, $c8
     D_END
 _AvatarPose_eAvatar_arr:
@@ -306,7 +306,7 @@ _AvatarPose_eAvatar_arr:
     d_byte GaveRemote4Sky,      eAvatar::Hidden
     d_byte GaveRemote5Outdoors, eAvatar::Hidden
     d_byte GaveRemote6Sky,      eAvatar::Hidden
-    d_byte Reactivate1Outdoors, eAvatar::Hidden
+    d_byte Reactivate1Outdoors, eAvatar::Standing  ; riding core platform
     d_byte Reactivate2Sky,      eAvatar::Standing  ; riding core platform
     d_byte Reactivate3Outdoors, eAvatar::Hidden
     d_byte Reactivate4Sky,      eAvatar::Standing  ; riding core platform
