@@ -535,7 +535,7 @@ _chr_begin:
     chr_inc "jungle3"
     chr_inc "arch"
     chr_inc "drawbridge"
-    chr_res $0a
+    chr_res $08
     END_CHR_BANK
 .ENDPROC
 
