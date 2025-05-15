@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actors/adult.inc"
 .INCLUDE "actors/child.inc"
 .INCLUDE "actors/orc.inc"
 .INCLUDE "audio.inc"
@@ -427,10 +428,12 @@ _InitMainFork:
     d_entry table, MoveNpcAlexWalk,   _MoveNpcAlexWalk
     d_entry table, MoveNpcBrunoWalk,  _MoveNpcBrunoWalk
     d_entry table, MoveNpcGrontaWalk, _MoveNpcGrontaWalk
+    d_entry table, MoveNpcManWalk,    _MoveNpcManWalk
     d_entry table, MoveNpcMarieWalk,  _MoveNpcMarieWalk
     d_entry table, MoveNpcNinaWalk,   _MoveNpcNinaWalk
     d_entry table, MoveNpcNoraWalk,   _MoveNpcNoraWalk
     d_entry table, MoveNpcOrcWalk,    _MoveNpcOrcWalk
+    d_entry table, MoveNpcWomanWalk,  _MoveNpcWomanWalk
     d_entry table, PlayMusic,         _PlayMusic
     d_entry table, PlaySfxSample,     _PlaySfxSample
     d_entry table, RepeatFunc,        _RepeatFunc
@@ -834,6 +837,12 @@ _MoveNpcGrontaWalk:
     jsr FuncA_Cutscene_AnimateNpcGrontaWalking
     clc  ; cutscene should continue
     rts
+_MoveNpcManWalk:
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
+    jsr FuncA_Cutscene_AnimateNpcManWalking
+    clc  ; cutscene should continue
+    rts
 _MoveNpcMarieWalk:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
@@ -857,6 +866,12 @@ _MoveNpcOrcWalk:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcOrcWalking
+    clc  ; cutscene should continue
+    rts
+_MoveNpcWomanWalk:
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
+    jsr FuncA_Cutscene_AnimateNpcWomanWalking
     clc  ; cutscene should continue
     rts
 _StartMoveNpc:
@@ -1111,6 +1126,30 @@ _AnimatePose:
     rts
 .ENDPROC
 
+;;; Updates the flags and state of the specified AdultMan NPC actor for a
+;;; walking animation.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateNpcManWalking
+    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
+    lda #$ff
+    sta Ram_ActorState2_byte_arr, x
+_AnimatePose:
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @walk2
+    @walk1:
+    lda #eNpcAdult::HumanManWalking1
+    .assert eNpcAdult::HumanManWalking1 > 0, error
+    bne @setState  ; unconditional
+    @walk2:
+    lda #eNpcAdult::HumanManWalking2
+    @setState:
+    sta Ram_ActorState1_byte_arr, x
+    rts
+.ENDPROC
+
 ;;; Updates the flags and state of the specified Marie NPC actor for a walking
 ;;; animation.
 ;;; @param N If set, the actor will face left; otherwise, it will face right.
@@ -1161,6 +1200,30 @@ _AnimatePose:
     div #08
     and #$03
     .assert eNpcOrc::GruntRunning1 = 0, error
+    sta Ram_ActorState1_byte_arr, x
+    rts
+.ENDPROC
+
+;;; Updates the flags and state of the specified AdultWoman NPC actor for a
+;;; walking animation.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateNpcWomanWalking
+    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
+    lda #$ff
+    sta Ram_ActorState2_byte_arr, x
+_AnimatePose:
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @walk2
+    @walk1:
+    lda #eNpcAdult::HumanWomanWalking1
+    .assert eNpcAdult::HumanWomanWalking1 > 0, error
+    bne @setState  ; unconditional
+    @walk2:
+    lda #eNpcAdult::HumanWomanWalking2
+    @setState:
     sta Ram_ActorState1_byte_arr, x
     rts
 .ENDPROC

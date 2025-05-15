@@ -91,7 +91,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0080
     d_word PosY_i16, $00c8
-    d_byte Param_byte, eNpcAdult::HumanWoman
+    d_byte Param_byte, eNpcAdult::HumanWomanStanding
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None

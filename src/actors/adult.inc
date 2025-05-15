@@ -37,10 +37,14 @@
     ;; NPCs that sit/stand on dry land:
     HumanElder1
     HumanElder2
-    HumanMan
+    HumanManStanding
+    HumanManWalking1
+    HumanManWalking2
     HumanSmith1
     HumanSmith2
-    HumanWoman
+    HumanWomanStanding
+    HumanWomanWalking1
+    HumanWomanWalking2
     MermaidFlorist
     ;; NPCs that float, bobbing up and down in the water/air:
     GhostJerome
@@ -69,12 +73,14 @@ kFirstFloatingNpcAdult = eNpcAdult::GhostJerome
 kFirst2x4NpcAdult = eNpcAdult::CorraSwimmingUp1
 
 ;;; The first tile IDs for various human adults.
-kTileIdObjAdultElderFirst  = $c4
-kTileIdObjAdultGhostFirst  = $e4
-kTileIdObjAdultJeromeFirst = $98
-kTileIdObjAdultManFirst    = $d6
-kTileIdObjAdultSmithFirst  = $b8
-kTileIdObjAdultWomanFirst  = $d0
+kTileIdObjAdultElderFirst         = $c4
+kTileIdObjAdultGhostFirst         = $e4
+kTileIdObjAdultJeromeFirst        = $98
+kTileIdObjAdultManStandingFirst   = $d6
+kTileIdObjAdultManWalkingFirst    = $f0
+kTileIdObjAdultSmithFirst         = $b8
+kTileIdObjAdultWomanStandingFirst = $d0
+kTileIdObjAdultWomanWalkingFirst  = $e0
 
 ;;; The first tile IDs for various mermaids.
 kTileIdObjCorraSwimmingDownFirst = $e0

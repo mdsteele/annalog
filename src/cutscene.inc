@@ -142,10 +142,12 @@ kMaxForks = 4
     MoveNpcAlexWalk    ; args: actor index, goal X-position (2 bytes)
     MoveNpcBrunoWalk   ; args: actor index, goal X-position (2 bytes)
     MoveNpcGrontaWalk  ; args: actor index, goal X-position (2 bytes)
+    MoveNpcManWalk     ; args: actor index, goal X-position (2 bytes)
     MoveNpcMarieWalk   ; args: actor index, goal X-position (2 bytes)
     MoveNpcNinaWalk    ; args: actor index, goal X-position (2 bytes)
     MoveNpcNoraWalk    ; args: actor index, goal X-position (2 bytes)
     MoveNpcOrcWalk     ; args: actor index, goal X-position (2 bytes)
+    MoveNpcWomanWalk   ; args: actor index, goal X-position (2 bytes)
     ;; Queues up the specified music/SFX to play next, then the current
     ;; cutscene fork immediately continues on to the next action.
     PlayMusic          ; args: eMusic value
@@ -279,6 +281,11 @@ kMaxForks = 4
     .word GOALX
 .ENDMACRO
 
+.MACRO act_MoveNpcManWalk INDEX, GOALX
+    .byte eAction::MoveNpcManWalk, INDEX
+    .word GOALX
+.ENDMACRO
+
 .MACRO act_MoveNpcMarieWalk INDEX, GOALX
     .byte eAction::MoveNpcMarieWalk, INDEX
     .word GOALX
@@ -296,6 +303,11 @@ kMaxForks = 4
 
 .MACRO act_MoveNpcOrcWalk INDEX, GOALX
     .byte eAction::MoveNpcOrcWalk, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_MoveNpcWomanWalk INDEX, GOALX
+    .byte eAction::MoveNpcWomanWalk, INDEX
     .word GOALX
 .ENDMACRO
 

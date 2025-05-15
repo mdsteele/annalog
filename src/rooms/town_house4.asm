@@ -46,7 +46,7 @@
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxThump
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
-.IMPORT Ppu_ChrObjTown
+.IMPORT Ppu_ChrObjFinale
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
 .IMPORT Ram_ActorState1_byte_arr
@@ -89,7 +89,7 @@ Ppu_MartinBgStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjTown)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjFinale)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -113,14 +113,14 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0050
     d_word PosY_i16, $00c8
-    d_byte Param_byte, eNpcAdult::HumanWoman
+    d_byte Param_byte, eNpcAdult::HumanWomanStanding
     D_END
     .assert * - :- = kMartinActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $00b0
     d_word PosY_i16, $00c8
-    d_byte Param_byte, eNpcAdult::HumanMan
+    d_byte Param_byte, eNpcAdult::HumanManStanding
     D_END
     .assert * - :- = kThurgActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
@@ -233,7 +233,9 @@ _Devices_sDevice_arr:
     act_RunDialog eDialog::TownHouse4BreakerLava1
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntThrowing1
     act_CallFunc Func_PlaySfxThump
+    act_SetActorState1 kLauraActorIndex, eNpcAdult::HumanWomanWalking1
     act_RepeatFunc 9, _LauraKnockback
+    act_SetActorState1 kLauraActorIndex, eNpcAdult::HumanWomanStanding
     act_RunDialog eDialog::TownHouse4BreakerLava2
     act_WaitFrames 60
     act_CallFunc Func_PlaySfxExplodeBig

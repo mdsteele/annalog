@@ -69,27 +69,31 @@ kPaletteObjMermaid = 0
     bge FuncA_Objects_Draw2x4TownsfolkShape  ; preserves X, unconditional
 _FirstTileId_u8_arr:
     D_ARRAY .enum, eNpcAdult
-    d_byte HumanElder1,        kTileIdObjAdultElderFirst        + 0
-    d_byte HumanElder2,        kTileIdObjAdultElderFirst        + 6
-    d_byte HumanMan,           kTileIdObjAdultManFirst          + 0
-    d_byte HumanSmith1,        kTileIdObjAdultSmithFirst        + 0
-    d_byte HumanSmith2,        kTileIdObjAdultSmithFirst        + 6
-    d_byte HumanWoman,         kTileIdObjAdultWomanFirst        + 0
-    d_byte MermaidFlorist,     kTileIdObjMermaidFloristFirst    + 0
-    d_byte GhostJerome,        kTileIdObjAdultJeromeFirst       + 0
-    d_byte GhostMan,           kTileIdObjAdultGhostFirst        + 6
-    d_byte GhostWoman,         kTileIdObjAdultGhostFirst        + 0
-    d_byte MermaidCorra,       kTileIdObjMermaidCorraFirst      + 0
-    d_byte MermaidDaphne,      kTileIdObjMermaidDaphneFirst     + 0
-    d_byte MermaidFarmer,      kTileIdObjMermaidFarmerFirst     + 0
-    d_byte MermaidGhost,       kTileIdObjMermaidGhostFirst      + 0
-    d_byte MermaidGuardF,      kTileIdObjMermaidGuardFFirst     + 0
-    d_byte MermaidGuardM,      kTileIdObjMermaidGuardMFirst     + 0
-    d_byte MermaidPhoebe,      kTileIdObjMermaidPhoebeFirst     + 0
-    d_byte CorraSwimmingDown1, kTileIdObjCorraSwimmingDownFirst + 0
-    d_byte CorraSwimmingDown2, kTileIdObjCorraSwimmingDownFirst + 6
-    d_byte CorraSwimmingUp1,   kTileIdObjCorraSwimmingUpFirst   + 0
-    d_byte CorraSwimmingUp2,   kTileIdObjCorraSwimmingUpFirst   + 8
+    d_byte HumanElder1,        kTileIdObjAdultElderFirst         + 0
+    d_byte HumanElder2,        kTileIdObjAdultElderFirst         + 6
+    d_byte HumanManStanding,   kTileIdObjAdultManStandingFirst   + 0
+    d_byte HumanManWalking1,   kTileIdObjAdultManWalkingFirst    + 0
+    d_byte HumanManWalking2,   kTileIdObjAdultManWalkingFirst    + 6
+    d_byte HumanSmith1,        kTileIdObjAdultSmithFirst         + 0
+    d_byte HumanSmith2,        kTileIdObjAdultSmithFirst         + 6
+    d_byte HumanWomanStanding, kTileIdObjAdultWomanStandingFirst + 0
+    d_byte HumanWomanWalking1, kTileIdObjAdultWomanWalkingFirst  + 0
+    d_byte HumanWomanWalking2, kTileIdObjAdultWomanWalkingFirst  + 6
+    d_byte MermaidFlorist,     kTileIdObjMermaidFloristFirst     + 0
+    d_byte GhostJerome,        kTileIdObjAdultJeromeFirst        + 0
+    d_byte GhostMan,           kTileIdObjAdultGhostFirst         + 6
+    d_byte GhostWoman,         kTileIdObjAdultGhostFirst         + 0
+    d_byte MermaidCorra,       kTileIdObjMermaidCorraFirst       + 0
+    d_byte MermaidDaphne,      kTileIdObjMermaidDaphneFirst      + 0
+    d_byte MermaidFarmer,      kTileIdObjMermaidFarmerFirst      + 0
+    d_byte MermaidGhost,       kTileIdObjMermaidGhostFirst       + 0
+    d_byte MermaidGuardF,      kTileIdObjMermaidGuardFFirst      + 0
+    d_byte MermaidGuardM,      kTileIdObjMermaidGuardMFirst      + 0
+    d_byte MermaidPhoebe,      kTileIdObjMermaidPhoebeFirst      + 0
+    d_byte CorraSwimmingDown1, kTileIdObjCorraSwimmingDownFirst  + 0
+    d_byte CorraSwimmingDown2, kTileIdObjCorraSwimmingDownFirst  + 6
+    d_byte CorraSwimmingUp1,   kTileIdObjCorraSwimmingUpFirst    + 0
+    d_byte CorraSwimmingUp2,   kTileIdObjCorraSwimmingUpFirst    + 8
     D_END
 .ENDPROC
 

@@ -62,7 +62,10 @@
 .IMPORT DataA_Text0_TownOutdoorsSandra_Part1_u8_arr
 .IMPORT DataA_Text0_TownOutdoorsSandra_Part2_u8_arr
 .IMPORT DataA_Text0_TownOutdoorsSign_u8_arr
-.IMPORT DataA_Text2_TownOutdoorsFinaleGaveRemote3_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleGaveRemote3A_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleGaveRemote3B_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleGaveRemote5_Part1_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleGaveRemote5_Part2_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleReactivate3_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleReactivate5_u8_arr
 .IMPORT FuncA_Cutscene_InitActorSmokeBeam
@@ -83,6 +86,7 @@
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorNpcOrc
+.IMPORT Func_InitActorWithState1
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
@@ -145,8 +149,10 @@ kSandraActorIndex = 2
 kOrc1ActorIndex   = 1
 kOrc2ActorIndex   = 2
 kThurgActorIndex  = 3
-kGrontaActorIndex = 5
-kOrc3ActorIndex   = 4
+kHobokActorIndex  = 4
+kLauraActorIndex  = 5
+kMartinActorIndex = 6
+kGrontaActorIndex = 7
 
 ;;; The device index for the door that leads into TownHouse4.
 kTownHouse4DoorDeviceIndex = 4
@@ -163,7 +169,10 @@ kOrc2InitPosX   = $05f9
 kThurgInitPosX  = $0608
 
 ;;; Room pixel positions for actors during the finale cutscenes.
-kThurgFinalePosX = $02ac
+kHobokFinalePosX  = $0264
+kLauraFinalePosX  = $0284
+kMartinFinalePosX = $0276
+kThurgFinalePosX  = $02ac
 
 ;;; The velocity applied to Thurg when he gets flung by the beam blast, in
 ;;; subpixels per frame.
@@ -266,14 +275,14 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $02f0
     d_word PosY_i16, $00c8
-    d_byte Param_byte, eNpcAdult::HumanMan
+    d_byte Param_byte, eNpcAdult::HumanManStanding
     D_END
     .assert * - :- = kSandraActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0350
     d_word PosY_i16, $00c8
-    d_byte Param_byte, eNpcAdult::HumanWoman
+    d_byte Param_byte, eNpcAdult::HumanWomanStanding
     D_END
     .assert * - :- = kThurgActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
@@ -281,6 +290,27 @@ _Actors_sActor_arr:
     d_word PosX_i16, kThurgFinalePosX
     d_word PosY_i16, $00c8
     d_byte Param_byte, eNpcOrc::GruntStanding
+    D_END
+    .assert * - :- = kHobokActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcOrc
+    d_word PosX_i16, kHobokFinalePosX
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, eNpcOrc::GruntStanding
+    D_END
+    .assert * - :- = kLauraActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcAdult
+    d_word PosX_i16, kLauraFinalePosX
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, eNpcAdult::HumanWomanStanding
+    D_END
+    .assert * - :- = kMartinActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcAdult
+    d_word PosX_i16, kMartinFinalePosX
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, eNpcAdult::HumanManStanding
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -369,32 +399,45 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 .PROC FuncC_Town_Outdoors_EnterRoom
-    lda #$ff
-    sta Ram_ActorState2_byte_arr + kThurgActorIndex
+    ;; These actors should always face to the right, rather than facing the
+    ;; player avatar.
+    dec Ram_ActorState2_byte_arr + kHobokActorIndex   ; now $ff
+    dec Ram_ActorState2_byte_arr + kIvanActorIndex    ; now $ff
+    dec Ram_ActorState2_byte_arr + kLauraActorIndex   ; now $ff
+    dec Ram_ActorState2_byte_arr + kMartinActorIndex  ; now $ff
+    dec Ram_ActorState2_byte_arr + kThurgActorIndex   ; now $ff
     ;; Check if a cutscene is playing as the room is entered.  If so, it's for
     ;; the finale.
-    lda Zp_Next_eCutscene
+    ldx Zp_Next_eCutscene
     .assert eCutscene::None = 0, error
     bne _SetUpFinaleCutscene
-    ;; Otherwise, set up for normal exploration of this room.
+    ;; Otherwise, set up for normal exploration of this room by removing the
+    ;; finale-only actors.
     .assert eActor::None = 0, error
-    sta Ram_ActorType_eActor_arr + kThurgActorIndex
-    lda #$ff
-    sta Ram_ActorState2_byte_arr + kIvanActorIndex
+    stx Ram_ActorType_eActor_arr + kHobokActorIndex
+    stx Ram_ActorType_eActor_arr + kLauraActorIndex
+    stx Ram_ActorType_eActor_arr + kMartinActorIndex
+    stx Ram_ActorType_eActor_arr + kThurgActorIndex
     rts
 _SetUpFinaleCutscene:
-    ;; Remove the Thurg actor for anything other than the FinaleReactivate5
-    ;; cutscene.
-    cmp #eCutscene::TownOutdoorsFinaleReactivate5
-    beq @keepThurg
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr + kThurgActorIndex
-    @keepThurg:
-    ;; Remove the townsfolk actors for all finale cutscenes.
+    ;; Remove the Alex, Ivan, and Sandra actors for all finale cutscenes.
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kAlexActorIndex
     sta Ram_ActorType_eActor_arr + kIvanActorIndex
     sta Ram_ActorType_eActor_arr + kSandraActorIndex
+    ;; Remove the Thurg actor for anything other than the FinaleReactivate5 or
+    ;; FinaleGaveRemote5 cutscenes, and remove the Hobok, Laura, and Martin
+    ;; actors for anything other than the FinaleGaveRemote5 cutscene.
+    cpx #eCutscene::TownOutdoorsFinaleGaveRemote5
+    beq @keepAll
+    cpx #eCutscene::TownOutdoorsFinaleReactivate5
+    beq @keepThurg
+    sta Ram_ActorType_eActor_arr + kThurgActorIndex
+    @keepThurg:
+    sta Ram_ActorType_eActor_arr + kHobokActorIndex
+    sta Ram_ActorType_eActor_arr + kLauraActorIndex
+    sta Ram_ActorType_eActor_arr + kMartinActorIndex
+    @keepAll:
     ;; Change the room's CHR18 bank so that different OBJ tiles can be used for
     ;; the finale than are used normally for this room.
     lda #<.bank(Ppu_ChrObjFinale)
@@ -634,10 +677,27 @@ _SetFace:
     rts
 .ENDPROC
 
-.EXPORT DataA_Dialog_TownOutdoorsFinaleGaveRemote3_sDialog
-.PROC DataA_Dialog_TownOutdoorsFinaleGaveRemote3_sDialog
-    dlg_Text OrcMaleShout, DataA_Text2_TownOutdoorsFinaleGaveRemote3_u8_arr
+.EXPORT DataA_Dialog_TownOutdoorsFinaleGaveRemote3A_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleGaveRemote3A_sDialog
+    dlg_Text OrcMaleShout, DataA_Text2_TownOutdoorsFinaleGaveRemote3A_u8_arr
     dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownOutdoorsFinaleGaveRemote3B_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleGaveRemote3B_sDialog
+    dlg_Text AdultWoman, DataA_Text2_TownOutdoorsFinaleGaveRemote3B_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownOutdoorsFinaleGaveRemote5_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleGaveRemote5_sDialog
+    .linecont +
+    dlg_Text AdultWomanShout, \
+             DataA_Text2_TownOutdoorsFinaleGaveRemote5_Part1_u8_arr
+    dlg_Text OrcGrontaShout, \
+             DataA_Text2_TownOutdoorsFinaleGaveRemote5_Part2_u8_arr
+    dlg_Done
+    .linecont -
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownOutdoorsFinaleReactivate3_sDialog
@@ -747,11 +807,11 @@ _InitOrcs:
     act_CallFunc Func_PlaySfxThump
     act_SetAvatarPose eAvatar::Sleeping
     act_WaitFrames 30
-    act_CallFunc _InitThurgAndGrunt
+    act_CallFunc _InitThurgAndHobok
     act_MoveNpcOrcWalk kThurgActorIndex, kOrc1InitPosX
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
-    act_MoveNpcOrcWalk kOrc3ActorIndex, kOrc2InitPosX
-    act_SetActorState1 kOrc3ActorIndex, eNpcOrc::GruntStanding
+    act_MoveNpcOrcWalk kHobokActorIndex, kOrc2InitPosX
+    act_SetActorState1 kHobokActorIndex, eNpcOrc::GruntStanding
     act_WaitFrames 60
     act_RunDialog eDialog::TownOutdoorsGronta
     act_JumpToMain Main_LoadPrisonCellAndStartCutscene
@@ -763,10 +823,10 @@ _SetHarmTimer:
     lda #kAvatarHarmHealFrames - kAvatarHarmInvincibleFrames - 1
     sta Zp_AvatarHarmTimer_u8
     rts
-_InitThurgAndGrunt:
+_InitThurgAndHobok:
     ldx #kThurgActorIndex  ; param: actor index
     jsr @init
-    ldx #kOrc3ActorIndex  ; param: actor index
+    ldx #kHobokActorIndex  ; param: actor index
     @init:
     lda #<kThurgInitPosX
     sta Ram_ActorPosX_i16_0_arr, x
@@ -941,20 +1001,52 @@ _PlayRumblingSound:
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleGaveRemote3_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleGaveRemote3_sCutscene
     act_WaitFrames 60
+    ;; Thurg exits the house and walks forward, then calls out a greeting to
+    ;; Gronta.
     act_CallFunc FuncA_Cutscene_InitThurgAtHouseDoor4
     act_WaitFrames 30
     act_MoveNpcOrcWalk kThurgActorIndex, kThurgFinalePosX
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
     act_WaitFrames 20
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntThrowing1
-    act_RunDialog eDialog::TownOutdoorsFinaleGaveRemote3
+    act_RunDialog eDialog::TownOutdoorsFinaleGaveRemote3A
+    act_WaitFrames 60
+    ;; Hobok exits the house, and stands aside to let the humans out.
+    act_CallFunc FuncA_Cutscene_InitHobokAtHouseDoor4
+    act_WaitFrames 10
+    act_MoveNpcOrcWalk kHobokActorIndex, $0248
+    act_SetActorState1 kHobokActorIndex, eNpcOrc::GruntStanding
+    act_SetActorFlags kHobokActorIndex, 0
+    act_WaitFrames 20
+    ;; Laura and Martin exit the house and walk forward.
+    act_ForkStart 1, _LauraExitsHouse_sCutscene
+    act_WaitFrames 16
+    act_ForkStart 2, _MartinExitsHouse_sCutscene
+    ;; Hobok moves forward to stay behind the humans.
+    act_MoveNpcOrcWalk kHobokActorIndex, kHobokFinalePosX
+    act_SetActorState1 kHobokActorIndex, eNpcOrc::GruntStanding
+    ;; Laura speaks up, asking what's happening.
+    act_WaitFrames 30
+    act_RunDialog eDialog::TownOutdoorsFinaleGaveRemote3B
     act_WaitFrames 60
     act_JumpToMain MainA_Cutscene_StartNextFinaleStep
+_LauraExitsHouse_sCutscene:
+    act_CallFunc FuncA_Cutscene_InitLauraAtHouseDoor4
+    act_MoveNpcWomanWalk kLauraActorIndex, kLauraFinalePosX
+    act_SetActorState1 kLauraActorIndex, eNpcAdult::HumanWomanStanding
+    act_ForkStop $ff
+_MartinExitsHouse_sCutscene:
+    act_CallFunc FuncA_Cutscene_InitMartinAtHouseDoor4
+    act_MoveNpcManWalk kMartinActorIndex, kMartinFinalePosX
+    act_SetActorState1 kMartinActorIndex, eNpcAdult::HumanManStanding
+    act_ForkStop $ff
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
     act_WaitFrames 60
+    ;; Thurg exits the house and walks forward, then demands to know what's
+    ;; happening.
     act_CallFunc FuncA_Cutscene_InitThurgAtHouseDoor4
     act_WaitFrames 30
     act_MoveNpcOrcWalk kThurgActorIndex, kThurgFinalePosX
@@ -965,22 +1057,108 @@ _PlayRumblingSound:
     act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 .ENDPROC
 
+;;; Initializes the Hobok actor as an orc NPC positioned at the door in
+;;; TownOutdoors that leads from TownHouse4.
+.PROC FuncA_Cutscene_InitHobokAtHouseDoor4
+    ldx #kHobokActorIndex  ; param: actor index
+    .assert kHobokActorIndex < $80, error
+    bpl FuncA_Cutscene_InitOrcAtHouseDoor4  ; unconditional
+.ENDPROC
+
 ;;; Initializes the Thrug actor as an orc NPC positioned at the door in
 ;;; TownOutdoors that leads from TownHouse4.
 .PROC FuncA_Cutscene_InitThurgAtHouseDoor4
-    ldy #kTownHouse4DoorDeviceIndex  ; param: device index
-    jsr Func_SetPointToDeviceCenter
     ldx #kThurgActorIndex  ; param: actor index
+    fall FuncA_Cutscene_InitOrcAtHouseDoor4
+.ENDPROC
+
+;;; Initializes an orc NPC actor positioned at the door in TownOutdoors that
+;;; leads from TownHouse4.
+;;; @param X The actor index.
+.PROC FuncA_Cutscene_InitOrcAtHouseDoor4
+    ldy #kTownHouse4DoorDeviceIndex  ; param: device index
+    jsr Func_SetPointToDeviceCenter  ; preserves X
     jsr Func_SetActorCenterToPoint  ; preserves X
     lda #eNpcOrc::GruntStanding  ; param: eNpcOrc value
     jmp Func_InitActorNpcOrc
 .ENDPROC
 
+;;; Initializes the Laura actor as an adult NPC positioned at the door in
+;;; TownOutdoors that leads from TownHouse4.
+.PROC FuncA_Cutscene_InitLauraAtHouseDoor4
+    lda #eNpcAdult::HumanWomanStanding  ; param: eNpcAdult value
+    ldx #kLauraActorIndex  ; param: actor index
+    .assert kLauraActorIndex < $80, error
+    bpl FuncA_Cutscene_InitAdultAtHouseDoor4  ; unconditional
+.ENDPROC
+
+;;; Initializes the Margin actor as an adult NPC positioned at the door in
+;;; TownOutdoors that leads from TownHouse4.
+.PROC FuncA_Cutscene_InitMartinAtHouseDoor4
+    lda #eNpcAdult::HumanManStanding  ; param: eNpcAdult value
+    ldx #kMartinActorIndex  ; param: actor index
+    fall FuncA_Cutscene_InitAdultAtHouseDoor4
+.ENDPROC
+
+;;; Initializes an adult NPC actor positioned at the door in TownOutdoors that
+;;; leads from TownHouse4.
+;;; @param A The eNpcAdult value.
+;;; @param X The actor index.
+.PROC FuncA_Cutscene_InitAdultAtHouseDoor4
+    pha  ; eNpcAdult value
+    ldy #kTownHouse4DoorDeviceIndex  ; param: device index
+    jsr Func_SetPointToDeviceCenter  ; preserves X
+    jsr Func_SetActorCenterToPoint  ; preserves X
+    pla  ; param: eNpcAdult value
+    ldy #eActor::NpcAdult  ; param: actor type
+    jmp Func_InitActorWithState1
+.ENDPROC
+
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleGaveRemote5_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleGaveRemote5_sCutscene
-    act_WaitFrames 120
-    ;; TODO: humans protest, but Gronta shoots lasers at them
+    ;; Laura protests, and Gronta shouts at them to leave.
+    act_WaitFrames 30
+    act_RunDialog eDialog::TownOutdoorsFinaleGaveRemote5
+    ;; Thurg turns around to glare at the humans.
+    act_WaitFrames 15
+    act_SetActorFlags kThurgActorIndex, bObj::FlipH
+    act_WaitFrames 45
+    ;; Hobok pushes Martin back.
+    act_ForkStart 1, _MartinGetsPushed_sCutscene
+    act_MoveNpcOrcWalk kHobokActorIndex, kMartinFinalePosX + 0
+    act_SetActorState1 kHobokActorIndex, eNpcOrc::GruntStanding
+    act_SetActorFlags kHobokActorIndex, bObj::FlipH
+    act_WaitFrames 20
+    ;; Hobok pushes Laura back.
+    act_ForkStart 2, _LauraGetsPushed_sCutscene
+    act_MoveNpcOrcWalk kHobokActorIndex, kLauraFinalePosX + 8
+    act_SetActorState1 kHobokActorIndex, eNpcOrc::GruntStanding
+    act_SetActorFlags kHobokActorIndex, bObj::FlipH
+    act_WaitFrames 60
+    ;; Martin retreats, followed by Laura, as Hobok shoos them away.
+    act_ForkStart 1, _HobokShoosHumans_sCutscene
+    act_ForkStart 2, _MartinLeaves_sCutscene
+    act_MoveNpcWomanWalk kLauraActorIndex, $0200
+    act_WaitFrames 90
     act_JumpToMain MainA_Cutscene_StartNextFinaleStep
+_MartinGetsPushed_sCutscene:
+    act_MoveNpcManWalk kMartinActorIndex, kMartinFinalePosX - 14
+    act_SetActorState1 kMartinActorIndex, eNpcAdult::HumanManStanding
+    act_SetActorFlags kMartinActorIndex, 0
+    act_ForkStop $ff
+_LauraGetsPushed_sCutscene:
+    act_MoveNpcWomanWalk kLauraActorIndex, kLauraFinalePosX - 8
+    act_SetActorState1 kLauraActorIndex, eNpcAdult::HumanWomanStanding
+    act_SetActorFlags kLauraActorIndex, 0
+    act_ForkStop $ff
+_MartinLeaves_sCutscene:
+    act_WaitFrames 5
+    act_MoveNpcManWalk kMartinActorIndex, $0200
+    act_ForkStop $ff
+_HobokShoosHumans_sCutscene:
+    act_MoveNpcOrcWalk kHobokActorIndex, kHobokFinalePosX
+    act_SetActorState1 kHobokActorIndex, eNpcOrc::GruntStanding
+    act_ForkStop $ff
 .ENDPROC
 
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene

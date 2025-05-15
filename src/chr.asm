@@ -1321,22 +1321,24 @@ _chr_begin:
 .EXPORT Ppu_ChrObjFinale
 .PROC Ppu_ChrObjFinale
     CHR2_BANK $80
-    chr_inc "platform_core",       kTileIdObjPlatformCoreFirst
+    chr_inc "platform_core",        kTileIdObjPlatformCoreFirst
     chr_res $02
-    chr_inc "orc_grunt_standing",  kTileIdObjOrcGruntStandingFirst
-    chr_inc "smoke_beam",          kTileIdObjSmokeBeamFirst
+    chr_inc "orc_grunt_standing",   kTileIdObjOrcGruntStandingFirst
+    chr_inc "smoke_beam",           kTileIdObjSmokeBeamFirst
     chr_res $01
-    chr_inc "orc_grunt_kneeling",  kTileIdObjOrcGruntKneelingFirst
-    chr_inc "adult_jerome", kTileIdObjAdultJeromeFirst
+    chr_inc "orc_grunt_kneeling",   kTileIdObjOrcGruntKneelingFirst
+    chr_inc "adult_jerome",         kTileIdObjAdultJeromeFirst
     chr_res $02
-    chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
-    chr_inc "orc_grunt_running",   kTileIdObjOrcGruntRunningFirst
-    chr_inc "orc_grunt_throwing",  kTileIdObjOrcGruntThrowingFirst
-    chr_inc "adult_woman",         kTileIdObjAdultWomanFirst
-    chr_inc "adult_man",           kTileIdObjAdultManFirst
-    chr_inc "orc_grunt_sleeping",  kTileIdObjOrcGruntSleepingFirst
-    chr_res $1c
-    chr_inc "platform_terminal",   kTileIdObjPlatformTerminalFirst
+    chr_inc "orc_gronta_standing",  kTileIdObjOrcGrontaStandingFirst
+    chr_inc "orc_grunt_running",    kTileIdObjOrcGruntRunningFirst
+    chr_inc "orc_grunt_throwing",   kTileIdObjOrcGruntThrowingFirst
+    chr_inc "adult_woman_standing", kTileIdObjAdultWomanStandingFirst
+    chr_inc "adult_man_standing",   kTileIdObjAdultManStandingFirst
+    chr_inc "orc_grunt_sleeping",   kTileIdObjOrcGruntSleepingFirst
+    chr_inc "adult_woman_walking",  kTileIdObjAdultWomanWalkingFirst
+    chr_res $04
+    chr_inc "adult_man_walking",    kTileIdObjAdultManWalkingFirst
+    chr_inc "platform_terminal",    kTileIdObjPlatformTerminalFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1579,22 +1581,22 @@ _chr_begin:
 .EXPORT Ppu_ChrObjTown
 .PROC Ppu_ChrObjTown
     CHR2_BANK $80
-    chr_inc "toddler",             kTileIdObjToddlerFirst
-    chr_inc "stepstone",           kTileIdObjStepstone
-    chr_inc "gate",                kTileIdObjGateFirst
-    chr_inc "orc_grunt_standing",  kTileIdObjOrcGruntStandingFirst
-    chr_inc "launcher_vert",       kTileIdObjLauncherVertFirst
-    chr_inc "orc_grunt_kneeling",  kTileIdObjOrcGruntKneelingFirst
-    chr_inc "platform_rocks",      kTileIdObjPlatformRocksFirst
-    chr_inc "child_sleep",         kTileIdObjChildSleepFirst
+    chr_inc "toddler",              kTileIdObjToddlerFirst
+    chr_inc "stepstone",            kTileIdObjStepstone
+    chr_inc "gate",                 kTileIdObjGateFirst
+    chr_inc "orc_grunt_standing",   kTileIdObjOrcGruntStandingFirst
+    chr_inc "launcher_vert",        kTileIdObjLauncherVertFirst
+    chr_inc "orc_grunt_kneeling",   kTileIdObjOrcGruntKneelingFirst
+    chr_inc "platform_rocks",       kTileIdObjPlatformRocksFirst
+    chr_inc "child_sleep",          kTileIdObjChildSleepFirst
     chr_res $04
-    chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
-    chr_inc "orc_grunt_running",   kTileIdObjOrcGruntRunningFirst
-    chr_inc "orc_grunt_throwing",  kTileIdObjOrcGruntThrowingFirst
-    chr_inc "adult_woman",         kTileIdObjAdultWomanFirst
-    chr_inc "adult_man",           kTileIdObjAdultManFirst
-    chr_inc "orc_grunt_sleeping",  kTileIdObjOrcGruntSleepingFirst
-    chr_inc "child_stand",         kTileIdObjChildStandFirst
+    chr_inc "orc_gronta_standing",  kTileIdObjOrcGrontaStandingFirst
+    chr_inc "orc_grunt_running",    kTileIdObjOrcGruntRunningFirst
+    chr_inc "orc_grunt_throwing",   kTileIdObjOrcGruntThrowingFirst
+    chr_inc "adult_woman_standing", kTileIdObjAdultWomanStandingFirst
+    chr_inc "adult_man_standing",   kTileIdObjAdultManStandingFirst
+    chr_inc "orc_grunt_sleeping",   kTileIdObjOrcGruntSleepingFirst
+    chr_inc "child_stand",          kTileIdObjChildStandFirst
     END_CHR_BANK
 .ENDPROC
 

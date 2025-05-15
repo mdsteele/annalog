@@ -111,6 +111,7 @@ _Initialize:
     d_byte AdultMan,           bSfxDialog::TypePulse14 | (6 << 3) | $2
     d_byte AdultSmith,         bSfxDialog::TypePulse14 | (6 << 3) | $2
     d_byte AdultWoman,         bSfxDialog::TypePulse14 | (5 << 3) | $2
+    d_byte AdultWomanShout,    bSfxDialog::TypePulse14 | (5 << 3) | $2
     d_byte ChildAlex,          bSfxDialog::TypePulse14 | (5 << 3) | $1
     d_byte ChildAlexHand,      bSfxDialog::TypePulse14 | (5 << 3) | $1
     d_byte ChildAlexShout,     bSfxDialog::TypePulse14 | (5 << 3) | $1
@@ -150,6 +151,7 @@ _Initialize:
     d_byte AdultMan,           $a0
     d_byte AdultSmith,         $b0
     d_byte AdultWoman,         $00
+    d_byte AdultWomanShout,    $00
     d_byte ChildAlex,          $60
     d_byte ChildAlexHand,      $60
     d_byte ChildAlexShout,     $60

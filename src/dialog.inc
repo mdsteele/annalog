@@ -75,6 +75,7 @@ kDialogTextYesNo   = $ff
     AdultMan
     AdultSmith
     AdultWoman
+    AdultWomanShout
     ChildAlex
     ChildAlexHand
     ChildAlexShout
@@ -256,7 +257,9 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     TownOutdoorsAlex1
     TownOutdoorsAlex2
     TownOutdoorsAlex3
-    TownOutdoorsFinaleGaveRemote3
+    TownOutdoorsFinaleGaveRemote3A
+    TownOutdoorsFinaleGaveRemote3B
+    TownOutdoorsFinaleGaveRemote5
     TownOutdoorsFinaleReactivate3
     TownOutdoorsFinaleReactivate5
     TownOutdoorsGronta

@@ -564,9 +564,20 @@ For example:
   :MOVE {kTileIdBgArrowRight}
   :TIL X{kTileIdBgCmpGe}5#
 
-@TownOutdoorsFinaleGaveRemote3
+@TownOutdoorsFinaleGaveRemote3A
 Chief Gronta! You have
 returned!#
+
+@TownOutdoorsFinaleGaveRemote3B
+What is going on?#
+
+@TownOutdoorsFinaleGaveRemote5_Part1
+But this town is our
+home! Where do you
+expect us to go!?#
+
+@TownOutdoorsFinaleGaveRemote5_Part2
+Out! Begone!#
 
 @TownSkyFinaleGronta_Banished
 Humans, you are hereby
