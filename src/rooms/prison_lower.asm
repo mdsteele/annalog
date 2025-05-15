@@ -89,8 +89,8 @@ _Actors_sActor_arr:
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Paper
-    d_byte BlockRow_u8, 4
-    d_byte BlockCol_u8, 12
+    d_byte BlockRow_u8, 5
+    d_byte BlockCol_u8, 13
     d_byte Target_byte, eFlag::PaperJerome15
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error

@@ -166,7 +166,7 @@ _Devices_sDevice_arr:
     D_END
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Paper
-    d_byte BlockRow_u8, 3
+    d_byte BlockRow_u8, 4
     d_byte BlockCol_u8, 2
     d_byte Target_byte, eFlag::PaperJerome18
     D_END
