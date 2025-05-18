@@ -622,12 +622,12 @@ _PlayInnerRumblingSound:
 .PROC DataA_Cutscene_TownSkyFinaleReactivate6_sCutscene
     act_WaitFrames 30
     act_RunDialog eDialog::TownSkyFinaleReactivate6A
-    act_WaitFrames 30
-    act_SetActorFlags kJeromeActorIndex, 0
-    act_WaitFrames 30
+    act_WaitFrames 15
     act_MoveAvatarWalk $00b0
     act_SetAvatarPose eAvatar::Standing
-    act_WaitFrames 30
+    act_WaitFrames 60
+    act_SetActorFlags kJeromeActorIndex, 0
+    act_WaitFrames 60
     act_RunDialog eDialog::TownSkyFinaleReactivate6B
     act_WaitFrames 60
     fall DataA_Cutscene_TownSkyFinaleMaybeThisTime_sCutscene

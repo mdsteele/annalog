@@ -67,7 +67,8 @@
 .IMPORT DataA_Text2_TownOutdoorsFinaleGaveRemote5_Part1_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleGaveRemote5_Part2_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleReactivate3_u8_arr
-.IMPORT DataA_Text2_TownOutdoorsFinaleReactivate5_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleReactivate5A_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleReactivate5B_u8_arr
 .IMPORT FuncA_Cutscene_InitActorSmokeBeam
 .IMPORT FuncA_Cutscene_PlaySfxBeam
 .IMPORT FuncA_Cutscene_PlaySfxQuickWindup
@@ -88,6 +89,7 @@
 .IMPORT Func_InitActorNpcOrc
 .IMPORT Func_InitActorWithState1
 .IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxMenuConfirm
@@ -176,8 +178,12 @@ kThurgFinalePosX  = $02ac
 
 ;;; The velocity applied to Thurg when he gets flung by the beam blast, in
 ;;; subpixels per frame.
-kThurgFlingVelX = -600
-kThurgFlingVelY = -250
+kThurgFlingVelX = -400
+kThurgFlingVelY = -450
+
+;;; The velocity applied to Hobok when he flinches from the beam blast, in
+;;; subpixels per frame.
+kHobokFlinchVelX = -400
 
 ;;;=========================================================================;;;
 
@@ -706,9 +712,15 @@ _SetFace:
     dlg_Done
 .ENDPROC
 
-.EXPORT DataA_Dialog_TownOutdoorsFinaleReactivate5_sDialog
-.PROC DataA_Dialog_TownOutdoorsFinaleReactivate5_sDialog
-    dlg_Text OrcMaleShout, DataA_Text2_TownOutdoorsFinaleReactivate5_u8_arr
+.EXPORT DataA_Dialog_TownOutdoorsFinaleReactivate5A_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleReactivate5A_sDialog
+    dlg_Text OrcMaleShout, DataA_Text2_TownOutdoorsFinaleReactivate5A_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownOutdoorsFinaleReactivate5B_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleReactivate5B_sDialog
+    dlg_Text AdultWoman, DataA_Text2_TownOutdoorsFinaleReactivate5B_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -1167,7 +1179,12 @@ _HobokShoosHumans_sCutscene:
     act_WaitFrames 30
     act_MoveNpcOrcWalk kThurgActorIndex, $02b4
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntThrowing1
-    act_RunDialog eDialog::TownOutdoorsFinaleReactivate5
+    act_RunDialog eDialog::TownOutdoorsFinaleReactivate5A
+    ;; Hobok exits the house as well.
+    act_WaitFrames 10
+    act_CallFunc FuncA_Cutscene_InitHobokAtHouseDoor4
+    act_MoveNpcOrcWalk kHobokActorIndex, $0274
+    act_SetActorState1 kHobokActorIndex, eNpcOrc::GruntStanding
     act_WaitFrames 30
     ;; Play sounds for Anna operating the final terminal off-screen.
     act_CallFunc Func_PlaySfxMenuConfirm
@@ -1180,15 +1197,54 @@ _HobokShoosHumans_sCutscene:
     act_WaitFrames 10
     act_CallFunc Func_PlaySfxMenuConfirm
     act_WaitFrames 30
-    ;; Animate the core shooting a laser beam at Thurg, and him falling to the
-    ;; ground.
+    ;; A laser beam strikes Thurg from the sky, and he falls to the ground as
+    ;; Hobok flinches and runs away.
     act_CallFunc FuncA_Cutscene_PlaySfxQuickWindup
     act_WaitFrames 32
     act_SetCutsceneFlags bCutscene::TickAllActors
     act_CallFunc _ShootBeamAtThurg
-    act_WaitFrames 120
+    act_WaitFrames 32
+    act_CallFunc FuncA_Cutscene_PlaySfxQuickWindup
+    act_WaitFrames 32
+    act_CallFunc _ShootBeamNearHobok
+    act_WaitFrames 170
+    ;; Laura exits the house to see what's happening, then looks around.
+    act_CallFunc FuncA_Cutscene_InitLauraAtHouseDoor4
+    act_WaitFrames 60
+    act_MoveNpcWomanWalk kLauraActorIndex, $026a
+    act_SetActorState1 kLauraActorIndex, eNpcAdult::HumanWomanStanding
+    act_WaitFrames 30
+    act_SetActorFlags kLauraActorIndex, bObj::FlipH
+    act_WaitFrames 30
+    act_SetActorFlags kLauraActorIndex, 0
+    act_WaitFrames 90
+    act_RunDialog eDialog::TownOutdoorsFinaleReactivate5B
+    act_WaitFrames 15
+    ;; Martin exists the house and looks towards where Hobok ran way, then
+    ;; turns back.
+    act_CallFunc FuncA_Cutscene_InitMartinAtHouseDoor4
+    act_WaitFrames 45
+    act_MoveNpcManWalk kMartinActorIndex, $0238
+    act_SetActorState1 kMartinActorIndex, eNpcAdult::HumanManStanding
+    act_WaitFrames 60
+    act_MoveNpcManWalk kMartinActorIndex, $0248
+    act_SetActorState1 kMartinActorIndex, eNpcAdult::HumanManStanding
+    act_WaitFrames 100
     act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 _ShootBeamAtThurg:
+    ;; Make Hobok flinch and run away.
+    ldx #kHobokActorIndex  ; param: actor index
+    lda #bObj::FlipH  ; param: actor flags
+    jsr Func_InitActorBadOrc  ; preserves X
+    lda #eBadOrc::Flinching
+    sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
+    lda #60
+    sta Ram_ActorState2_byte_arr, x  ; mode timer
+    lda #<kHobokFlinchVelX
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda #>kHobokFlinchVelX
+    sta Ram_ActorVelX_i16_1_arr, x
+    ;; Make Thurg go flying.
     ldx #kThurgActorIndex  ; param: actor index
     lda #bObj::FlipH  ; param: actor flags
     jsr Func_InitActorBadOrc  ; preserves X
@@ -1202,7 +1258,15 @@ _ShootBeamAtThurg:
     sta Ram_ActorVelY_i16_0_arr, x
     lda #>kThurgFlingVelY
     sta Ram_ActorVelY_i16_1_arr, x
+    ;; Shoot a laser beam at Thurg.
     jsr Func_SetPointToActorCenter
+    jmp _ShootBeamAtPoint
+_ShootBeamNearHobok:
+    ldx #kHobokActorIndex  ; param: actor index
+    jsr Func_SetPointToActorCenter
+    lda #7  ; param: offset
+    jsr Func_MovePointRightByA
+    fall _ShootBeamAtPoint
 _ShootBeamAtPoint:
     jsr Func_FindEmptyActorSlot  ; sets C on failure, returns X
     bcs @done  ; no more actor slots available

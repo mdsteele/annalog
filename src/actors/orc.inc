@@ -93,7 +93,7 @@ kBadGrontaMaxJumpUpBlocks = 2
     Chasing        ; chasing the player avatar
     Collapsing     ; falling over after a grievous injury
     Escaping       ; running out of the room
-    Flinching      ; stunned by a rocket blast before escaping
+    Flinching      ; stunned by a weapon blast before escaping
     Patrolling     ; running to and fro after losing sight of the player avatar
     Punching       ; pausing for a short time after hitting the player avatar
     Jumping        ; jumping towards the player avatar

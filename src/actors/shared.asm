@@ -734,6 +734,35 @@ _Positive:
     rts
 .ENDPROC
 
+;;; Decelerates the actor horizontally, down to a minimum speed of zero.
+;;; @param A The maximum change to velocity, in subpixels per frame (unsigned).
+;;; @param X The actor index.
+;;; @preserve X, Y
+.EXPORT FuncA_Actor_DecelerateHorz
+.PROC FuncA_Actor_DecelerateHorz
+    sta T0  ; deceleration
+    lda Ram_ActorVelX_i16_1_arr, x
+    bpl @movingRight
+    @movingLeft:
+    lda Ram_ActorVelX_i16_0_arr, x
+    add T0  ; deceleration
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda Ram_ActorVelX_i16_1_arr, x
+    adc #0
+    bpl FuncA_Actor_ZeroVelX
+    bmi @setVelHi  ; unconditional
+    @movingRight:
+    lda Ram_ActorVelX_i16_0_arr, x
+    sub T0  ; deceleration
+    sta Ram_ActorVelX_i16_0_arr, x
+    lda Ram_ActorVelX_i16_1_arr, x
+    sbc #0
+    bmi FuncA_Actor_ZeroVelX
+    @setVelHi:
+    sta Ram_ActorVelX_i16_1_arr, x
+    rts
+.ENDPROC
+
 ;;; Accelerates the actor horizontally in the direction the actor is facing.
 ;;; @param A The change to velocity, in subpixels per frame (unsigned).
 ;;; @param X The actor index.

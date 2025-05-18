@@ -620,10 +620,8 @@ _RocketImpact:
     sta Ram_ActorVelY_i16_1_arr, x
     ;; Make orc #2 (on the right side) flinch and run away.
     ldx #kOrc2ActorIndex  ; param: actor index
-    lda #bObj::FlipH  ; param: actor flags
+    lda #0  ; param: actor flags
     jsr Func_InitActorBadOrc  ; preserves X
-    lda #0
-    sta Ram_ActorFlags_bObj_arr, x
     lda #eBadOrc::Flinching
     sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
     lda #60

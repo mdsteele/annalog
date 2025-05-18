@@ -604,11 +604,15 @@ It seems that humans
 have reactivated the
 complex.#
 
-@TownOutdoorsFinaleReactivate5
+@TownOutdoorsFinaleReactivate5A
 No!! I am Thurg, son
 of Gurg! I will not
 stand by as humans
 take away what ours!#
+
+@TownOutdoorsFinaleReactivate5B
+Are they...are they
+all gone?#
 
 @TownSkyFinaleJerome_HopedBetter
 The orcs...my dear,

@@ -30,6 +30,7 @@
 .IMPORT FuncA_Actor_AccelerateForward
 .IMPORT FuncA_Actor_ApplyGravityWithTerminalVelocity
 .IMPORT FuncA_Actor_ClampVelX
+.IMPORT FuncA_Actor_DecelerateHorz
 .IMPORT FuncA_Actor_FaceTowardsAvatar
 .IMPORT FuncA_Actor_FaceTowardsPoint
 .IMPORT FuncA_Actor_FaceTowardsVelXDir
@@ -663,24 +664,15 @@ _Done:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadOrc_Flinching
-    ;; Decelerate.
-    lda Ram_ActorVelX_i16_0_arr, x
-    sub #15
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda Ram_ActorVelX_i16_1_arr, x
-    sbc #0
-    bpl @setVelHi
-    lda #0
-    sta Ram_ActorVelX_i16_0_arr, x
-    @setVelHi:
-    sta Ram_ActorVelX_i16_1_arr, x
     ;; Once the mode timer expires, run out of the room.
     lda Ram_ActorState2_byte_arr, x  ; mode timer
     bne @done
     lda #eBadOrc::Escaping
     sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
     @done:
-    rts
+_Decelerate:
+    lda #15  ; param: deceleration
+    jmp FuncA_Actor_DecelerateHorz  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for an orc baddie actor that's in Standing mode.
