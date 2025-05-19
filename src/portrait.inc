@@ -21,6 +21,8 @@
 kChrBankPortraitAlexHand    = $13
 kChrBankPortraitAlexRest    = $01
 kChrBankPortraitAlexTalk    = $02
+kChrBankPortraitBorisRest   = $14
+kChrBankPortraitBorisTalk   = $15
 kChrBankPortraitBrunoRest   = $0b
 kChrBankPortraitBrunoTalk   = $0c
 kChrBankPortraitCorraRest   = $09
@@ -61,6 +63,7 @@ kChrBankPortraitWomanTalk   = $0e
 
 ;;; BG tile IDs for various dialog portraits.
 kTileIdBgPortraitAlexFirst    = $c0
+kTileIdBgPortraitBorisFirst   = $c0
 kTileIdBgPortraitBrunoFirst   = $d0
 kTileIdBgPortraitCorraFirst   = $c0
 kTileIdBgPortraitEireneFirst  = $c0

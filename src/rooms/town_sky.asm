@@ -36,6 +36,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Outdoors_sTileset
+.IMPORT DataA_Text2_MaybeThisTimeWillBeDifferent_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleGaveRemote6_Part2_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleGronta_Banished_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleGronta_WeAreBetter_u8_arr
@@ -43,7 +44,6 @@
 .IMPORT DataA_Text2_TownSkyFinaleJerome_HopedBetter_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleJerome_HumanDesires_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleJerome_LockedAway_u8_arr
-.IMPORT DataA_Text2_TownSkyFinaleJerome_MaybeThisTime_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleJerome_OrcDesires_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleJerome_Recorded_u8_arr
 .IMPORT DataA_Text2_TownSkyFinaleJerome_ToreApart_u8_arr
@@ -65,6 +65,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_SetAndTransferFade
 .IMPORT Func_ShakeRoom
+.IMPORT Func_Window_Disable
 .IMPORT MainA_Cutscene_StartEpilogue
 .IMPORT MainA_Cutscene_StartNextFinaleStep
 .IMPORT Ppu_ChrObjFinale
@@ -77,6 +78,7 @@
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
@@ -141,11 +143,6 @@ kJeromePosY = kCoreInnerGoalTop - $19
     ;; OuterCoreTerrainStartRow_u8 <= kScreenHeightTiles.
     InnerCoreTerrainStartRow_u8 .byte
     OuterCoreTerrainStartRow_u8 .byte
-    ;; If false ($00), draw the room normally.  If true ($ff), this room's
-    ;; DrawRoom function becomes a no-op.  This is used to disable drawing
-    ;; platforms in the room after the screen fades to black for Jerome's
-    ;; final dialog text.
-    DoNotDraw_bool .byte
 .ENDSTRUCT
 .ASSERT .sizeof(sState) <= kRoomStateSize, error
 
@@ -335,12 +332,16 @@ _SetUpDirectTransfer:
 
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Town_Sky_DrawRoom
-    bit Zp_RoomState + sState::DoNotDraw_bool
-    bpl @draw
+    ;; Don't draw the core platforms if they've been removed.
+    lda Ram_PlatformType_ePlatform_arr + kCoreOuterPlatformIndex
+    .assert ePlatform::None = 0, error
+    bne @draw
     rts
     @draw:
+    ;; Draw core platforms.
     jsr FuncA_Objects_DrawCoreOuterPlatform
     jsr FuncA_Objects_DrawCoreInnerPlatform
+    ;; Draw final terminal.
     ldx #kFinalTerminalPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
     jsr FuncA_Objects_MoveShapeRightHalfTile  ; preserves X
@@ -634,25 +635,33 @@ _PlayInnerRumblingSound:
 .ENDPROC
 
 .PROC DataA_Cutscene_TownSkyFinaleMaybeThisTime_sCutscene
-    act_CallFunc _FadeRoomToBlack
+    act_CallFunc FuncA_Cutscene_Finale_FadeRoomToBlack
     act_WaitFrames 60
     act_RunDialog eDialog::TownSkyFinaleMaybeThisTime
     act_WaitFrames 30
     act_JumpToMain MainA_Cutscene_StartEpilogue
-_FadeRoomToBlack:
+.ENDPROC
+
+;;; Fades out the screen, then hides the player avatar, removes all actors and
+;;; platforms, and erases all terrain tiles in the upper nametable before
+;;; re-enabling rendering.
+.EXPORT FuncA_Cutscene_Finale_FadeRoomToBlack
+.PROC FuncA_Cutscene_Finale_FadeRoomToBlack
     jsr Func_FadeOutToBlack
-    ;; Stop drawing special platforms for this room.
-    dec Zp_RoomState + sState::DoNotDraw_bool  ; now $ff
+    jsr Func_Window_Disable
     ;; Stop drawing the player avatar.
     lda #eAvatar::Hidden
     sta Zp_AvatarPose_eAvatar
-    ;; Remove all actors.
+    ;; Remove all actors and platforms.
     .assert eAvatar::Hidden = eActor::None, error
+    .assert eAvatar::Hidden = ePlatform::None, error
+    .assert kMaxActors = kMaxPlatforms, error
     ldx #kMaxActors - 1
-    @actorLoop:
+    @removeLoop:
     sta Ram_ActorType_eActor_arr, x
+    sta Ram_PlatformType_ePlatform_arr, x
     dex
-    bpl @actorLoop
+    bpl @removeLoop
     ;; Clear BG tiles in upper nametable.
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
@@ -750,7 +759,7 @@ _LowerGrontaAxe:
 .EXPORT DataA_Dialog_TownSkyFinaleMaybeThisTime_sDialog
 .PROC DataA_Dialog_TownSkyFinaleMaybeThisTime_sDialog
     dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_Well_u8_arr
-    dlg_Text AdultJerome, DataA_Text2_TownSkyFinaleJerome_MaybeThisTime_u8_arr
+    dlg_Text AdultJerome, DataA_Text2_MaybeThisTimeWillBeDifferent_u8_arr
     dlg_Done
 .ENDPROC
 

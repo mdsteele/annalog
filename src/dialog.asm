@@ -178,6 +178,11 @@
 .IMPORT DataA_Dialog_TownOutdoorsFinaleReactivate3_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsFinaleReactivate5A_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsFinaleReactivate5B_sDialog
+.IMPORT DataA_Dialog_TownOutdoorsFinaleYearsLater1_sDialog
+.IMPORT DataA_Dialog_TownOutdoorsFinaleYearsLater2_sDialog
+.IMPORT DataA_Dialog_TownOutdoorsFinaleYearsLater3_sDialog
+.IMPORT DataA_Dialog_TownOutdoorsFinaleYearsLater4_sDialog
+.IMPORT DataA_Dialog_TownOutdoorsFinaleYearsLater5_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsGronta_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsIvan_sDialog
 .IMPORT DataA_Dialog_TownOutdoorsSandra_sDialog
@@ -630,6 +635,16 @@ _Finish:
             DataA_Dialog_TownOutdoorsFinaleReactivate5A_sDialog
     d_entry t, TownOutdoorsFinaleReactivate5B, \
             DataA_Dialog_TownOutdoorsFinaleReactivate5B_sDialog
+    d_entry t, TownOutdoorsFinaleYearsLater1, \
+            DataA_Dialog_TownOutdoorsFinaleYearsLater1_sDialog
+    d_entry t, TownOutdoorsFinaleYearsLater2, \
+            DataA_Dialog_TownOutdoorsFinaleYearsLater2_sDialog
+    d_entry t, TownOutdoorsFinaleYearsLater3, \
+            DataA_Dialog_TownOutdoorsFinaleYearsLater3_sDialog
+    d_entry t, TownOutdoorsFinaleYearsLater4, \
+            DataA_Dialog_TownOutdoorsFinaleYearsLater4_sDialog
+    d_entry t, TownOutdoorsFinaleYearsLater5, \
+            DataA_Dialog_TownOutdoorsFinaleYearsLater5_sDialog
     d_entry t, TownOutdoorsGronta,   DataA_Dialog_TownOutdoorsGronta_sDialog
     d_entry t, TownOutdoorsIvan,     DataA_Dialog_TownOutdoorsIvan_sDialog
     d_entry t, TownOutdoorsSandra,   DataA_Dialog_TownOutdoorsSandra_sDialog

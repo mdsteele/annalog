@@ -1003,12 +1003,28 @@ _chr_begin:
 .PROC Ppu_ChrBgPortrait14
     .linecont +
     CHR1_BANK $c0
-    chr_res $20
+    .assert .bank(*) = kChrBankPortraitBorisRest, error
+    chr_inc "portrait_boris_rest", kTileIdBgPortraitBorisFirst
+    chr_res $10
     .assert .bank(*) = kChrBankDiagramMultiplexerPlatform, error
     chr_inc "diagram_multiplexer_platform", \
             kTileIdBgDiagramMultiplexerPlatformFirst
     .assert .bank(*) = kChrBankDiagramMultiplexerValve, error
     chr_inc "diagram_multiplexer_valve", kTileIdBgDiagramMultiplexerValveFirst
+    END_CHR_BANK
+    .linecont -
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait15"
+
+.PROC Ppu_ChrBgPortrait15
+    .linecont +
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitBorisTalk, error
+    chr_inc "portrait_boris_talk", kTileIdBgPortraitBorisFirst
+    chr_res $30
     END_CHR_BANK
     .linecont -
 .ENDPROC

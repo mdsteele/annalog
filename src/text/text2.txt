@@ -564,6 +564,107 @@ For example:
   :MOVE {kTileIdBgArrowRight}
   :TIL X{kTileIdBgCmpGe}5#
 
+@TownOutdoorsFinaleYearsLater1_Part1
+I just...I still can't
+believe we threw away
+the opportunity, Anna.#
+
+@TownOutdoorsFinaleYearsLater1_Part2
+All that technology
+was there for us to
+reclaim. And now, it's
+all lost again.#
+
+@TownOutdoorsFinaleYearsLater1_Part3
+I know the mermaids
+think we're better off
+this way. And...maybe
+they're even right.#
+
+@TownOutdoorsFinaleYearsLater1_Part4
+I just hate the idea
+that that door is shut
+to us forever now.#
+
+@TownOutdoorsFinaleYearsLater1_Part5
+...At least now the
+orcs don't have any
+reason to bother us
+anymore.#
+
+@TownOutdoorsFinaleYearsLater2_Part1
+Alex! Anna! Your
+father is home!#
+
+@TownOutdoorsFinaleYearsLater2_Part2
+Dad's back from sea!?#
+
+@TownOutdoorsFinaleYearsLater3_Part1
+Ho ho! It was a long,
+long expedition. You
+two have grown so much
+since I left!#
+
+@TownOutdoorsFinaleYearsLater3_Part2
+Yeah. A lot...a lot
+happened while you
+were gone.#
+
+@TownOutdoorsFinaleYearsLater3_Part3
+But I'm glad you're
+back. We missed you,
+Dad.#
+
+@TownOutdoorsFinaleYearsLater3_Part4
+You too, kids. It's
+good to be home.#
+
+@TownOutdoorsFinaleYearsLater4_Part1
+You know, I saw some
+amazing things in the
+land across the sea.#
+
+@TownOutdoorsFinaleYearsLater4_Part2
+Strange ruins from
+centuries past. And
+stranger relics. I
+even brought you one.#
+
+@TownOutdoorsFinaleYearsLater4_Part3
+Is that...#
+
+@TownOutdoorsFinaleYearsLater4_Part4
+...from one of those
+machines!?#
+
+@TownOutdoorsFinaleYearsLater4_Part5
+You like it? There's
+more where that came
+from.#
+
+@TownOutdoorsFinaleYearsLater4_Part6
+We're already planning
+a second expedition.
+You'd be old enough to
+join now, if you want.#
+
+@TownOutdoorsFinaleYearsLater4_Part7
+Yes! Of course I'll
+join you!#
+
+@TownOutdoorsFinaleYearsLater4_Part8
+Anna, do you realize
+what this means?#
+
+@TownOutdoorsFinaleYearsLater4_Part9
+There are other cities
+out there, with more
+technology! We can
+still revive it!#
+
+@TownOutdoorsFinaleYearsLater4_Part10
+And maybe...#
+
 @TownOutdoorsFinaleGaveRemote3A
 Chief Gronta! You have
 returned!#
@@ -660,7 +761,7 @@ orcs instead.#
 @TownSkyFinaleJerome_Well
 Well...#
 
-@TownSkyFinaleJerome_MaybeThisTime
+@MaybeThisTimeWillBeDifferent
 ...maybe this time
 will be different.#
 

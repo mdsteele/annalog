@@ -62,6 +62,7 @@
 .IMPORT DataA_Text0_TownOutdoorsSandra_Part1_u8_arr
 .IMPORT DataA_Text0_TownOutdoorsSandra_Part2_u8_arr
 .IMPORT DataA_Text0_TownOutdoorsSign_u8_arr
+.IMPORT DataA_Text2_MaybeThisTimeWillBeDifferent_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleGaveRemote3A_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleGaveRemote3B_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleGaveRemote5_Part1_u8_arr
@@ -69,6 +70,28 @@
 .IMPORT DataA_Text2_TownOutdoorsFinaleReactivate3_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleReactivate5A_u8_arr
 .IMPORT DataA_Text2_TownOutdoorsFinaleReactivate5B_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater1_Part1_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater1_Part2_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater1_Part3_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater1_Part4_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater1_Part5_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater2_Part1_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater2_Part2_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater3_Part1_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater3_Part2_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater3_Part3_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater3_Part4_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater4_Part10_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater4_Part1_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater4_Part2_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater4_Part3_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater4_Part4_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater4_Part5_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater4_Part6_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater4_Part7_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater4_Part8_u8_arr
+.IMPORT DataA_Text2_TownOutdoorsFinaleYearsLater4_Part9_u8_arr
+.IMPORT FuncA_Cutscene_Finale_FadeRoomToBlack
 .IMPORT FuncA_Cutscene_InitActorSmokeBeam
 .IMPORT FuncA_Cutscene_PlaySfxBeam
 .IMPORT FuncA_Cutscene_PlaySfxQuickWindup
@@ -100,6 +123,7 @@
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToDeviceCenter
 .IMPORT Func_SpawnExplosionAtPoint
+.IMPORT MainA_Cutscene_StartEpilogue
 .IMPORT MainA_Cutscene_StartNextFinaleStep
 .IMPORT Main_LoadPrisonCellAndStartCutscene
 .IMPORT Ppu_ChrObjFinale
@@ -698,6 +722,7 @@ _SetFace:
 .EXPORT DataA_Dialog_TownOutdoorsFinaleGaveRemote5_sDialog
 .PROC DataA_Dialog_TownOutdoorsFinaleGaveRemote5_sDialog
     .linecont +
+    .assert kTileIdBgPortraitWomanFirst = kTileIdBgPortraitGrontaFirst, error
     dlg_Text AdultWomanShout, \
              DataA_Text2_TownOutdoorsFinaleGaveRemote5_Part1_u8_arr
     dlg_Text OrcGrontaShout, \
@@ -721,6 +746,63 @@ _SetFace:
 .EXPORT DataA_Dialog_TownOutdoorsFinaleReactivate5B_sDialog
 .PROC DataA_Dialog_TownOutdoorsFinaleReactivate5B_sDialog
     dlg_Text AdultWoman, DataA_Text2_TownOutdoorsFinaleReactivate5B_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownOutdoorsFinaleYearsLater1_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleYearsLater1_sDialog
+    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part3_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part4_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part5_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownOutdoorsFinaleYearsLater2_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleYearsLater2_sDialog
+    .linecont +
+    .assert kTileIdBgPortraitWomanFirst = kTileIdBgPortraitAlexFirst, error
+    dlg_Text AdultWomanShout, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater2_Part1_u8_arr
+    dlg_Text ChildAlexShout, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater2_Part2_u8_arr
+    dlg_Done
+    .linecont -
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownOutdoorsFinaleYearsLater3_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleYearsLater3_sDialog
+    .assert kTileIdBgPortraitBorisFirst = kTileIdBgPortraitAlexFirst, error
+    dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater3_Part1_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater3_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater3_Part3_u8_arr
+    dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater3_Part4_u8_arr
+    dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownOutdoorsFinaleYearsLater4_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleYearsLater4_sDialog
+    .linecont +
+    .assert kTileIdBgPortraitBorisFirst = kTileIdBgPortraitAlexFirst, error
+    dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part1_u8_arr
+    dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part2_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part3_u8_arr
+    dlg_Text ChildAlexHand, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater4_Part4_u8_arr
+    dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part5_u8_arr
+    dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part6_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part7_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part8_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part9_u8_arr
+    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part10_u8_arr
+    dlg_Done
+    .linecont -
+.ENDPROC
+
+.EXPORT DataA_Dialog_TownOutdoorsFinaleYearsLater5_sDialog
+.PROC DataA_Dialog_TownOutdoorsFinaleYearsLater5_sDialog
+    dlg_Text ChildAlex, DataA_Text2_MaybeThisTimeWillBeDifferent_u8_arr
     dlg_Done
 .ENDPROC
 
@@ -1282,9 +1364,19 @@ _ShootBeamAtPoint:
 
 .EXPORT DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
-    ;; TODO: Implement TownOutdoorsYearsLater cutscene.
+    act_WaitFrames 120
+    act_RunDialog eDialog::TownOutdoorsFinaleYearsLater1
+    act_WaitFrames 120
+    act_RunDialog eDialog::TownOutdoorsFinaleYearsLater2
     act_WaitFrames 60
-    act_ForkStart 0, DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
+    act_RunDialog eDialog::TownOutdoorsFinaleYearsLater3
+    act_WaitFrames 120
+    act_RunDialog eDialog::TownOutdoorsFinaleYearsLater4
+    act_CallFunc FuncA_Cutscene_Finale_FadeRoomToBlack
+    act_WaitFrames 30
+    act_RunDialog eDialog::TownOutdoorsFinaleYearsLater5
+    act_WaitFrames 30
+    act_JumpToMain MainA_Cutscene_StartEpilogue
 .ENDPROC
 
 ;;;=========================================================================;;;

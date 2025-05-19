@@ -30,6 +30,7 @@
 .EXPORT DataA_Dialog_PortraitRestBank_u8_arr
 .PROC DataA_Dialog_PortraitRestBank_u8_arr
     D_ARRAY .enum, ePortrait
+    d_byte AdultBoris,         kChrBankPortraitBorisRest
     d_byte AdultElder,         kChrBankPortraitElderRest
     d_byte AdultJerome,        kChrBankPortraitJeromeRest
     d_byte AdultMan,           kChrBankPortraitManRest
@@ -71,6 +72,7 @@
 .EXPORT DataA_Dialog_PortraitAnimBank_u8_arr
 .PROC DataA_Dialog_PortraitAnimBank_u8_arr
     D_ARRAY .enum, ePortrait
+    d_byte AdultBoris,         kChrBankPortraitBorisTalk
     d_byte AdultElder,         kChrBankPortraitElderTalk
     d_byte AdultJerome,        kChrBankPortraitJeromeTalk
     d_byte AdultMan,           kChrBankPortraitManTalk
@@ -111,6 +113,7 @@
 .EXPORT DataA_Dialog_PortraitFirstTileId_u8_arr
 .PROC DataA_Dialog_PortraitFirstTileId_u8_arr
     D_ARRAY .enum, ePortrait
+    d_byte AdultBoris,         kTileIdBgPortraitBorisFirst
     d_byte AdultElder,         kTileIdBgPortraitElderFirst
     d_byte AdultJerome,        kTileIdBgPortraitJeromeFirst
     d_byte AdultMan,           kTileIdBgPortraitManFirst

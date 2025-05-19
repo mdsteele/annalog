@@ -33,6 +33,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetAndTransferFade
+.IMPORT Func_Window_Disable
 .IMPORT Func_WriteToUpperAttributeTable
 .IMPORT Ppu_ChrBgFontUpper
 .IMPORTZP Zp_Chr04Bank_u8
@@ -80,6 +81,7 @@ kEpilogueSceneFrames = 24 * 8
     CreditPublishing
     CreditSpecialThanks
     CreditDedication
+    Placeholder  ; TODO: replace this with real cutscenes
     NUM_VALUES
 .ENDENUM
 
@@ -157,6 +159,12 @@ _GameLoop:
     jmp _GameLoop
 .ENDPROC
 
+;;; PPU transfer entries for eEpilogueScene::Placeholder.
+;;; TODO: Remove this.
+.PROC DataC_Title_EpiloguePlaceholderTransfer_arr
+    TEXT_ROW 16, "TODO: cutscene"
+.ENDPROC
+
 ;;; PPU transfer entries for eEpilogueScene::Title.
 .PROC DataC_Title_EpilogueTitleTransfer_arr
     TEXT_ROW 15, "ANNALOG"
@@ -230,6 +238,7 @@ _GameLoop:
     sta Zp_PpuScrollX_u8
     sta Zp_PpuScrollY_u8
     sta Zp_FrameCounter_u8
+    jsr Func_Window_Disable
 _ClearUpperNametable:
     ldxy #Ppu_Nametable0_sName  ; param: nametable addr
     jsr FuncC_Title_ClearNametableTiles
@@ -256,8 +265,13 @@ _SceneSpecificInit:
     d_entry table, CreditPublishing,    _CreditPublishing
     d_entry table, CreditSpecialThanks, _CreditSpecialThanks
     d_entry table, CreditDedication,    _CreditDedication
+    d_entry table, Placeholder,         _Placeholder
     D_END
 .ENDREPEAT
+_Placeholder:
+    ldax #DataC_Title_EpiloguePlaceholderTransfer_arr  ; param: data pointer
+    ldy #.sizeof(DataC_Title_EpiloguePlaceholderTransfer_arr)  ; param: length
+    jmp _DrawCredits
 _Title:
     ldax #DataC_Title_EpilogueTitleTransfer_arr  ; param: data pointer
     ldy #.sizeof(DataC_Title_EpilogueTitleTransfer_arr)  ; param: data length
@@ -356,6 +370,7 @@ _SceneSpecificTick:
     d_entry table, CreditPublishing,    Func_Noop
     d_entry table, CreditSpecialThanks, Func_Noop
     d_entry table, CreditDedication,    Func_Noop
+    d_entry table, Placeholder,         Func_Noop
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -383,6 +398,7 @@ _SceneSpecificTick:
     d_entry table, CreditPublishing,    Func_Noop
     d_entry table, CreditSpecialThanks, Func_Noop
     d_entry table, CreditDedication,    Func_Noop
+    d_entry table, Placeholder,         Func_Noop
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -415,21 +431,21 @@ _HumansAscend_eEpilogueScene_arr:  ; TODO
 _OrcsAscend_eEpilogueScene_arr:
 :   .byte eEpilogueScene::Title
     .byte eEpilogueScene::AGameBy
-    .byte eEpilogueScene::Title  ; TODO
+    .byte eEpilogueScene::Placeholder
     .byte eEpilogueScene::CreditDesign
-    .byte eEpilogueScene::Title  ; TODO
+    .byte eEpilogueScene::Placeholder
     .byte eEpilogueScene::CreditMusic
-    .byte eEpilogueScene::Title  ; TODO
+    .byte eEpilogueScene::Placeholder
     .byte eEpilogueScene::CreditAsstArtDir
-    .byte eEpilogueScene::Title  ; TODO
+    .byte eEpilogueScene::Placeholder
     .byte eEpilogueScene::CreditBetaTesting
-    .byte eEpilogueScene::Title  ; TODO
+    .byte eEpilogueScene::Placeholder
     .byte eEpilogueScene::CreditTbd
-    .byte eEpilogueScene::Title  ; TODO
+    .byte eEpilogueScene::Placeholder
     .byte eEpilogueScene::CreditPublishing
-    .byte eEpilogueScene::Title  ; TODO
+    .byte eEpilogueScene::Placeholder
     .byte eEpilogueScene::CreditSpecialThanks
-    .byte eEpilogueScene::Title  ; TODO
+    .byte eEpilogueScene::Placeholder
     .byte eEpilogueScene::CreditDedication
     .assert * - :- = kEpilogueNumScenes, error
 .ENDPROC
