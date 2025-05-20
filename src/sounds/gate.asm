@@ -25,25 +25,21 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGE_Sfx"
+.SEGMENT "PRGC_Prison"
 
 ;;; SFX data for the "prison gate" sound effect.
 ;;; @thread AUDIO
-.PROC Data_PrisonGate_sSfx
+.PROC DataC_Prison_Gate_sSfx
     sfx_SetEnvTimer bEnvelope::NoLength | 0, $0002
     sfx_Wait 2
     sfx_End
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGC_Prison"
-
 ;;; Starts playing the sound for when a prison gate platform opens/closes.
 ;;; @preserve X, T0+
 .EXPORT FuncC_Prison_PlaySfxPrisonGate
 .PROC FuncC_Prison_PlaySfxPrisonGate
-    ldya #Data_PrisonGate_sSfx
+    ldya #DataC_Prison_Gate_sSfx
     jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
 .ENDPROC
 

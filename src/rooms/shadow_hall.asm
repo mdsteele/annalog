@@ -42,11 +42,11 @@
 .IMPORT FuncA_Machine_MinigunTryAct
 .IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Objects_DrawMinigunRightMachine
-.IMPORT FuncA_Room_PlaySfxAlarm
 .IMPORT FuncA_Room_PlaySfxCrack
 .IMPORT FuncA_Room_SpawnParticleAtPoint
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT FuncC_Shadow_DrawGlassPlatform
+.IMPORT FuncC_Shadow_PlaySfxAlarm
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointUpByA
@@ -394,6 +394,7 @@ _MoveToMiddleRight:
     D_END
 .ENDPROC
 
+;;; @prereq PRGC_Shadow is loaded.
 ;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncA_Room_ShadowHall_EnterRoom
 _FixGravity:
@@ -419,7 +420,7 @@ _InitProgram:
     ldx #eFlag::ShadowHallInitialized  ; param: flag
     jsr Func_SetFlag  ; returns C
     bcs @done
-    jsr FuncA_Room_PlaySfxAlarm
+    jsr FuncC_Shadow_PlaySfxAlarm
     ldx #.sizeof(DataA_Room_ShadowHallMinigun_sIns_arr) - 1
     ;; Enable writes to SRAM.
     ldy #bMmc3PrgRam::Enable

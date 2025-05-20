@@ -21,15 +21,15 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
-.IMPORT Func_PlaySfxOnPulse2Channel
+.IMPORT Func_PlaySfxOnPulse1Channel
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGE_Sfx"
+.SEGMENT "PRGC_Shadow"
 
 ;;; SFX data for the "alarm" sound effect.
 ;;; @thread AUDIO
-.PROC Data_Alarm_sSfx
+.PROC DataC_Shadow_Alarm_sSfx
     .linecont +
     sfx_SetAll (bEnvelope::Duty14 | bEnvelope::NoLength | \
                 bEnvelope::ConstVol | 12), \
@@ -43,16 +43,12 @@
     .linecont -
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
 ;;; Starts playing the sound for when an alarm goes off in the Shadow Labs.
 ;;; @preserve T0+
-.EXPORT FuncA_Room_PlaySfxAlarm
-.PROC FuncA_Room_PlaySfxAlarm
-    ldya #Data_Alarm_sSfx
-    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
+.EXPORT FuncC_Shadow_PlaySfxAlarm
+.PROC FuncC_Shadow_PlaySfxAlarm
+    ldya #DataC_Shadow_Alarm_sSfx
+    jmp Func_PlaySfxOnPulse1Channel  ; preserves T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

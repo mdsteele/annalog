@@ -44,8 +44,8 @@
 .IMPORT FuncA_Room_InitActorBadFlydrop
 .IMPORT FuncA_Room_IsPointInLaserBeam
 .IMPORT FuncA_Room_MachineLaserReset
-.IMPORT FuncA_Room_PlaySfxAlarm
 .IMPORT FuncC_Shadow_DrawBarrierPlatform
+.IMPORT FuncC_Shadow_PlaySfxAlarm
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
@@ -327,6 +327,7 @@ _InitAlarm:
     rts
 .ENDPROC
 
+;;; @prereq PRGC_Shadow is loaded.
 .PROC FuncA_Room_ShadowTrap_TickRoom
     ldx #kLaserMachineIndex
     jsr Func_SetMachineIndex
@@ -373,7 +374,7 @@ _MaybeTripAlarm:
     jsr Func_IsPointInPlatform  ; returns C
     bcc _CheckBarriers
     ;; Trip the alarm.
-    jsr FuncA_Room_PlaySfxAlarm
+    jsr FuncC_Shadow_PlaySfxAlarm
     lda #40
     sta Zp_RoomState + sState::AlarmCountdown_u8
     bne _CheckBarriers  ; unconditional
