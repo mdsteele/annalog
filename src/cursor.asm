@@ -31,6 +31,7 @@
 .IMPORT FuncA_Console_GetCurrentInstNumFields
 .IMPORT FuncA_Console_IsPrevInstructionEmpty
 .IMPORT FuncA_Console_SetFieldForNominalOffset
+.IMPORT FuncA_Console_UpdateMenuNominalCol
 .IMPORT Func_AllocObjects
 .IMPORT Func_AllocOneObject
 .IMPORT Func_PlaySfxMenuMove
@@ -228,6 +229,7 @@ _MoveCursorLeft:
     beq @noLeft
     ldy #sMenu::OnLeft_func_ptr
     jsr _MenuFunc
+    jsr FuncA_Console_UpdateMenuNominalCol
     @noLeft:
 _MoveCursorRight:
     lda Zp_P1ButtonsPressed_bJoypad
@@ -235,6 +237,7 @@ _MoveCursorRight:
     beq @noRight
     ldy #sMenu::OnRight_func_ptr
     jsr _MenuFunc
+    jsr FuncA_Console_UpdateMenuNominalCol
     @noRight:
 _CheckIfMoved:
     pla  ; prev menu item

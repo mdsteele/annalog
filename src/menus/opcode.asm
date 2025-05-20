@@ -32,6 +32,7 @@
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sMenu_ptr
 .IMPORTZP Zp_MenuItem_u8
+.IMPORTZP Zp_MenuNominalCol_u8
 
 ;;;=========================================================================;;;
 
@@ -119,15 +120,16 @@ _OnRight:
     bpl @loop
     ;; If no such item exists, then try moving to the lowest item in the
     ;; right-hand column.
-    ldx Zp_MenuItem_u8
-    lda #kOpcodeMenuRightCol
+    lda #kOpcodeMenuRightCol  ; param: menu col
     bne _UpFromCol  ; unconditional
 _OnUp:
-    ldx Zp_MenuItem_u8
-    lda Ram_MenuCols_u8_arr, x
+    lda Zp_MenuNominalCol_u8  ; param: menu col
+    fall _UpFromCol
 _UpFromCol:
     sta T1  ; current menu col
+    ldx Zp_MenuItem_u8
     lda Ram_MenuRows_u8_arr, x
+    beq @wrapAroundToBottom
     sta T0  ; current menu row
     lda #0
     sta T2  ; best new row so far
@@ -153,11 +155,14 @@ _UpFromCol:
     ;; If we found any such item, set it as the new selected item.
     lda T3  ; best new item so far
     bmi @doNotSet
+    @wrapAroundToBottom:
     sta Zp_MenuItem_u8
     @doNotSet:
     rts
 _OnDown:
     ldx Zp_MenuItem_u8
+    .assert eOpcode::Empty = 0, error
+    beq _WrapAroundToTop
     lda Ram_MenuRows_u8_arr, x
     sta T0  ; current menu row
     lda Ram_MenuCols_u8_arr, x
@@ -187,8 +192,30 @@ _OnDown:
     dex
     bpl @loop
     ;; Set whatever we found as the new selected item.
-    lda T3  ; best new item so far
-    sta Zp_MenuItem_u8
+    ldx T3  ; best new item so far
+    stx Zp_MenuItem_u8
+    rts
+_WrapAroundToTop:
+    lda #eOpcode::Empty
+    sta T3  ; best new item so far
+    ;; Check all menu items, and pick one in the top row (there are at most two
+    ;; such items).  If possible, prefer the one with whose column matches
+    ;; Zp_MenuNominalCol_u8.
+    ldx #kMaxMenuItems - 1
+    @loop:
+    lda Ram_MenuRows_u8_arr, x
+    bne @continue  ; not in top row
+    lda Ram_MenuCols_u8_arr, x
+    cmp Zp_MenuNominalCol_u8
+    beq @isBest
+    stx T3  ; best new item so far
+    @continue:
+    dex
+    bpl @loop
+    ;; Set whatever we found as the new selected item.
+    ldx T3  ; best new item so far
+    @isBest:
+    stx Zp_MenuItem_u8
     rts
 _OnLeft:
     ldx Zp_MenuItem_u8

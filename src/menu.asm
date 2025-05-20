@@ -72,6 +72,14 @@ Zp_Current_sMenu_ptr: .res 2
 .EXPORTZP Zp_MenuItem_u8
 Zp_MenuItem_u8: .res 1
 
+;;; The current "nominal" menu column (0-7).  When moving the cursor
+;;; left/right, this is automatically set to the actual column of the newly
+;;; selected menu item field.  When moving the cursor up/down, this stays the
+;;; same, and may optionally be used by the specific menu implementation to
+;;; choose whichever item in each row has roughly this column.
+.EXPORTZP Zp_MenuNominalCol_u8
+Zp_MenuNominalCol_u8: .res 1
+
 ;;;=========================================================================;;;
 
 .SEGMENT "RAM_Menu"
@@ -105,6 +113,34 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 ;;; Initializes Zp_Current_sMenu_ptr, Zp_MenuItem_u8, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for editing the currently-selected field.
 .PROC FuncA_Console_SetUpCurrentFieldMenu
+    ;; Initialize Zp_Current_sMachine_ptr (since some of the
+    ;; field-type-specific setup functions require this).
+    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
+    jsr Func_SetMachineIndex
+    ;; Call field-type-specific setup function.
+    jsr FuncA_Console_GetCurrentFieldType  ; returns Y (param: field type)
+    jsr FuncA_Console_SetUpMenuForFieldType
+    ;; Set current menu item.
+    jsr FuncA_Console_GetCurrentFieldValue  ; returns A
+    sta Zp_MenuItem_u8
+    fall FuncA_Console_UpdateMenuNominalCol
+.ENDPROC
+
+;;; Sets the menu nominal column to the actual column of the currently-selected
+;;; menu item.
+.EXPORT FuncA_Console_UpdateMenuNominalCol
+.PROC FuncA_Console_UpdateMenuNominalCol
+    ldx Zp_MenuItem_u8
+    lda Ram_MenuCols_u8_arr, x
+    sta Zp_MenuNominalCol_u8
+    rts
+.ENDPROC
+
+;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
+;;; Ram_MenuCols_u8_arr appropriately for the specified field type.
+;;; @prereq Zp_Current_sMachine_ptr is initialized.
+;;; @param Y The eField value for the field type.
+.PROC FuncA_Console_SetUpMenuForFieldType
     ;; Clear items.
     lda #$ff
     ldx #kMaxMenuItems - 1
@@ -112,15 +148,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
     sta Ram_MenuRows_u8_arr, x
     dex
     bpl @loop
-    ;; Set current menu item.
-    jsr FuncA_Console_GetCurrentFieldValue  ; returns A
-    sta Zp_MenuItem_u8
-    ;; Initialize Zp_Current_sMachine_ptr (since some of the
-    ;; field-type-specific setup functions require this).
-    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
-    jsr Func_SetMachineIndex
-    ;; Jump to field-type-specific setup function.
-    jsr FuncA_Console_GetCurrentFieldType  ; returns Y
+    ;; Call field-type-specific setup function.
     lda _JumpTable_ptr_0_arr, y
     sta T0
     lda _JumpTable_ptr_1_arr, y
