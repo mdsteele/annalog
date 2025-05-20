@@ -27,7 +27,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "drip" sound effect.
 ;;; @thread AUDIO
@@ -58,6 +58,10 @@ _TimerLo_u8_arr3:
     sfx_End
     .linecont -
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Starts playing the sound for dripping acid.
 ;;; @preserve X, T0+

@@ -25,7 +25,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "wing flap" sound effect.
 ;;; @thread AUDIO

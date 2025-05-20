@@ -25,7 +25,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "console turn on" sound effect.
 ;;; @thread AUDIO
@@ -36,6 +36,10 @@
     sfx_Wait 12
     sfx_End
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Starts playing the sound for when an alarm goes off in the Shadow Labs.
 ;;; @preserve T0+

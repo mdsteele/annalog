@@ -30,7 +30,7 @@ kSfxLaunchDurationFrames = $1c
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "lever off" sound effect.
 ;;; @thread AUDIO
@@ -47,6 +47,10 @@ kSfxLaunchDurationFrames = $1c
     sfx_Wait 3
     sfx_End
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Starts playing the sound for flipping a lever to the off position.
 ;;; @preserve X, T0+

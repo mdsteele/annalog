@@ -37,7 +37,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; @thread AUDIO
 .PROC Data_Explode_sSfx
@@ -78,6 +78,10 @@ _NoisePeriod_u8_arr:
     .byte $8b, $88, $82, $80, $89, $03, $0c, $02
     .byte $00, $8d, $06, $00, $8e, $06, $00, $89
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Starts playing a small explosion sound.
 ;;; @preserve X, Y, T0+

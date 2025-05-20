@@ -25,7 +25,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "metallic ding" sound effect.
 ;;; @thread AUDIO
@@ -34,6 +34,10 @@
     sfx_Wait 4
     sfx_End
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Starts playing a metallic "ding" sound.
 ;;; @preserve X, T0+

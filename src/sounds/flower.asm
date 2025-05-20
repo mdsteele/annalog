@@ -27,7 +27,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "break flower" sound effect.
 ;;; @thread AUDIO
@@ -54,6 +54,10 @@
     sfx_Wait 9
     sfx_End
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Starts playing the sound for when the player avatar breaks a flower.
 ;;; @preserve X, Y, T0+

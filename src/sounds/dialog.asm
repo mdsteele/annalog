@@ -41,7 +41,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for dialog text sounds.  Param1_byte should hold the TimerLo
 ;;; value, and Param2_byte should hold the bSfxDialog value.

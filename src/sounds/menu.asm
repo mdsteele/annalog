@@ -25,7 +25,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX sequence data for the "menu cancel" sound effect.
 ;;; @thread AUDIO
@@ -54,6 +54,10 @@
     sfx_Wait 3
     sfx_End
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Starts playing the sound for cancelling in a menu.
 ;;; @preserve T0+

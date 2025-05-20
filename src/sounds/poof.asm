@@ -26,7 +26,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the pulse channel portion of the "poof" sound effect.
 ;;; @thread AUDIO
@@ -47,6 +47,10 @@
     sfx_Wait 15
     sfx_End
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Starts playing the sound for a poof of smoke e.g. when an upgrade spawns,
 ;;; or a chain is broken, or an egg hatches.

@@ -26,7 +26,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "small thud" sound effect.
 ;;; @thread AUDIO
@@ -55,6 +55,10 @@
     sfx_End
     .linecont -
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Starts playing the sound for when a softer object gets hit (e.g. the player
 ;;; avatar flops face down on the ground, or an orc punches someone, or a boss

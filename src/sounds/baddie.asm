@@ -26,7 +26,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "baddie death" sound effect.
 ;;; @thread AUDIO
@@ -51,6 +51,10 @@
     sfx_End
     .linecont -
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Starts playing the sound for when a baddie dies.
 ;;; @preserve X, T0+

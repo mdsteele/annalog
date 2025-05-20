@@ -26,7 +26,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "laser" sound effect.
 ;;; @thread AUDIO

@@ -38,7 +38,7 @@ kCircuitBaseVol = 9
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "circuit trace" sound effect.
 ;;; @thread AUDIO

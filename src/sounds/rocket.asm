@@ -31,7 +31,7 @@ kSfxLaunchDurationFrames = $1c
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "rocket launch" sound effect.
 ;;; @thread AUDIO

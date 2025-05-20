@@ -25,7 +25,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "window close" sound effect.
 ;;; @thread AUDIO
@@ -50,6 +50,10 @@
     sfx_End
     .linecont -
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Starts playing the sound for closing the UI window.
 ;;; @preserve T0+

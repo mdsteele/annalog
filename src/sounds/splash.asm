@@ -25,7 +25,7 @@
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "splash" sound effect.
 ;;; @thread AUDIO
@@ -81,6 +81,10 @@ _EnvUp:
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::Envelope_wo, x
     rts
 .ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
 
 ;;; Starts playing the sound for when the player avatar splashes into water.
 ;;; @preserve X, T0+

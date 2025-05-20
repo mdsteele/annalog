@@ -39,7 +39,7 @@ kTromboneEnvFlags = \
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRG8"
+.SEGMENT "PRGE_Sfx"
 
 ;;; SFX data for the "beep" sound effect.
 ;;; @thread AUDIO
