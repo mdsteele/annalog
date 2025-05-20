@@ -450,7 +450,8 @@ _MachineLight:
 .ENDPROC
 
 .PROC FuncA_Machine_MermaidHut6Trombone_TryAct
-    lda Ram_MachineGoalHorz_u8_arr + kTromboneMachineIndex  ; param: tone
+    lda #9
+    sub Ram_MachineGoalHorz_u8_arr + kTromboneMachineIndex  ; param: tone
     jsr FuncA_Machine_PlaySfxTrombone
     lda #$0b
     sta Ram_MachineSlowdown_u8_arr + kTromboneMachineIndex
