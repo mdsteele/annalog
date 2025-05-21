@@ -40,6 +40,7 @@
 .IMPORT DataC_Town_Town_sMusic
 .IMPORT Data_Calm_sMusic
 .IMPORT Data_Empty_bMusic_arr
+.IMPORT Data_Suspense_sMusic
 .IMPORT Data_Upgrade_sMusic
 
 ;;;=========================================================================;;;
@@ -70,6 +71,7 @@
     d_entry table, Mine,     DataC_Mine_Mine_sMusic
     d_entry table, Prison,   DataC_Prison_Prison_sMusic
     d_entry table, Sewer,    DataC_Sewer_Sewer_sMusic
+    d_entry table, Suspense, Data_Suspense_sMusic
     d_entry table, Temple,   DataC_Temple_TemplePlaceholder_sMusic
     d_entry table, Title,    DataC_Title_Title_sMusic
     d_entry table, Town,     DataC_Town_Town_sMusic

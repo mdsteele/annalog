@@ -30,18 +30,25 @@
 ;;; SFX data for the "secret unlocked" sound effect.
 ;;; @thread AUDIO
 .PROC Data_SecretUnlocked_sSfx
+    ;; F4
     sfx_SetAll bEnvelope::Duty14 | bEnvelope::NoLength | 4, kNoSweep, $013f
     sfx_Wait 7
+    ;; D#4
     sfx_SetTimer $0167
     sfx_Wait 7
+    ;; A#3
     sfx_SetTimer $01df
     sfx_Wait 7
+    ;; F3
     sfx_SetTimer $0280
     sfx_Wait 7
+    ;; F#4
     sfx_SetEnvTimer bEnvelope::Duty18 | bEnvelope::NoLength | 4, $012d
     sfx_Wait 7
+    ;; F4
     sfx_SetTimer $013f
     sfx_Wait 7
+    ;; D#4
     sfx_SetEnvTimer bEnvelope::Duty18 | bEnvelope::NoLength | 6, $0167
     sfx_Wait 28
     sfx_End

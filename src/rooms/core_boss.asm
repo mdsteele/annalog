@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/orc.inc"
+.INCLUDE "../audio.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../breaker.inc"
 .INCLUDE "../charmap.inc"
@@ -174,6 +175,7 @@
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Next_eCutscene
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
@@ -2003,7 +2005,6 @@ _BeginFight_sCutscene:
     act_CallFunc _ChangeGrontaFromNpcToBad
     act_ContinueExploring
 _GiveUpRemote_sCutscene:
-    act_PlayMusic eMusic::Silence
     ;; Animate Anna tossing the remote to Gronta.
     act_WaitFrames 20
     act_SetAvatarPose eAvatar::Kneeling
@@ -2316,6 +2317,7 @@ _Return:
 .PROC DataA_Dialog_CoreBossGrontaIntro_sDialog
     dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_Part1_u8_arr
     dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_Part2_u8_arr
+    dlg_Call _SilenceMusic
     dlg_Text OrcGronta, DataA_Text1_CoreBossGrontaIntro_Demand_u8_arr
     dlg_IfYes _HandItOverQuestion_sDialog
 _PreparedToFightQuestion_sDialog:
@@ -2331,6 +2333,10 @@ _BeginFight_sDialog:
 _TossRemote_sDialog:
     dlg_Call _TossRemote
     dlg_Done
+_SilenceMusic:
+    lda #eMusic::Silence
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    rts
 _TossRemote:
     lda #eGrontaPhase::GettingRemote
     sta Zp_RoomState + sState::Current_eGrontaPhase

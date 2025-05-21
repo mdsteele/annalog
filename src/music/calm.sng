@@ -21,7 +21,7 @@
 1| iA   rq. c4e ge. fe. ce+ | +h |
 2| iE re+q. c4e ge. fe. ce. iF ce. iG ce. iH ce. iI ce. |
 T| iB c3w | a2w |  b2w | g2w |
-N| rw+q+e+s | ; iF x3t iE x3t iD x3e+t :2 |
+N| rw+q+e+s | p(iF x3t iE x3t iD x3e+t)NA :2 |
 
 !PART B
 
@@ -29,3 +29,36 @@ N| rw+q+e+s | ; iF x3t iE x3t iD x3e+t :2 |
 2| iE re+q. c4e ge. fe. ae. iF ae. iG ae. iH ae. iI ae. |
 T=:AT
 N=:AN
+
+!SONG Suspense "|CCABAB"
+
+=tempo q32
+=key 0N %1b  % d minor
+
+!INST 1A PulseViolin  $06 d1/4
+!INST 2A PulsePluck   $07 d1/4
+!INST 2E PulsePluck   $03 d1/4  % echo 1
+!INST 2F PulsePluck   $02 d1/4  % echo 2
+!INST 2G PulsePluck   $01 d1/4  % echo 3
+!INST TV TriangleVibrato
+!INST ND Staccato     $07       % drum 1
+!INST NE Staccato     $05       % drum 2
+!INST NF Staccato     $04       % drum 3
+
+!PART A
+
+1| iA d3w.. |
+2| p(iA e4e iE e ' iA d4e iE d)1A ' iA a3e iE a ' iA e3e iE e |
+ | iA f4e iE f ' p1A ' iF d4e iG d |
+T| iV d2w :2 |
+
+!PART B
+
+1=:A1
+T=:AT
+N| rq+e+s pNA :2 |
+
+!PART C
+
+1=:B1
+T=:BT

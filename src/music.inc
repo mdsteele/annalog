@@ -37,6 +37,7 @@
     Mine
     Prison
     Sewer
+    Suspense
     Temple
     Title
     Town

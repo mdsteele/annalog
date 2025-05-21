@@ -19,12 +19,14 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/adult.inc"
+.INCLUDE "../audio.inc"
 .INCLUDE "../cutscene.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../devices/lever.inc"
 .INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../music.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../platforms/water.inc"
@@ -63,6 +65,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_FrameCounter_u8
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -234,7 +237,11 @@ _Passages_sPassage_arr:
     .assert eDevice::None = 0, error
     sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexLeft
     sta Ram_DeviceType_eDevice_arr + kCorraDeviceIndexRight
+    beq @done  ; unconditional
     @keepCorra:
+    lda #eMusic::Suspense
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    @done:
 _Lever:
     ;; If Corra has already helped you in this room, flip the lever and raise
     ;; the water level.

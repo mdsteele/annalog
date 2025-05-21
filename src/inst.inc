@@ -27,6 +27,7 @@
     PulsePiano
     PulsePluck
     PulseVibrato
+    PulseViolin
     Staccato
     TriangleDrum
     TriangleSlide

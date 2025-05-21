@@ -367,7 +367,7 @@ _PrisonMusic:
     d_byte CityOutskirts,   eMusic::City
     d_byte CitySinkhole,    eMusic::City
     d_byte CityWest,        eMusic::City
-    d_byte CoreBoss,        eMusic::Silence
+    d_byte CoreBoss,        eMusic::Suspense
     d_byte CoreEast,        eMusic::Core
     d_byte CoreElevator,    eMusic::Core
     d_byte CoreFlower,      eMusic::Core
@@ -391,13 +391,13 @@ _PrisonMusic:
     d_byte FactoryAccess,   eMusic::Factory
     d_byte FactoryBridge,   eMusic::Factory
     d_byte FactoryCenter,   eMusic::Factory
-    d_byte FactoryEast,     eMusic::Silence
+    d_byte FactoryEast,     eMusic::Factory
     d_byte FactoryElevator, eMusic::Factory
     d_byte FactoryFlower,   eMusic::Factory
     d_byte FactoryLock,     eMusic::Factory
     d_byte FactoryPass,     eMusic::Factory
     d_byte FactoryUpper,    eMusic::Factory
-    d_byte FactoryVault,    eMusic::Silence
+    d_byte FactoryVault,    eMusic::Suspense
     d_byte FactoryWest,     eMusic::Factory
     d_byte GardenCrossroad, eMusic::Garden
     d_byte GardenEast,      eMusic::Garden
