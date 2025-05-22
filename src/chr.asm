@@ -1332,10 +1332,10 @@ _chr_begin:
 
 ;;;=========================================================================;;;
 
-.SEGMENT "CHR_ObjFinale"
+.SEGMENT "CHR_ObjFinale1"
 
-.EXPORT Ppu_ChrObjFinale
-.PROC Ppu_ChrObjFinale
+.EXPORT Ppu_ChrObjFinale1
+.PROC Ppu_ChrObjFinale1
     CHR2_BANK $80
     chr_inc "platform_core",        kTileIdObjPlatformCoreFirst
     chr_res $02
@@ -1355,6 +1355,20 @@ _chr_begin:
     chr_res $04
     chr_inc "adult_man_walking",    kTileIdObjAdultManWalkingFirst
     chr_inc "platform_terminal",    kTileIdObjPlatformTerminalFirst
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_ObjFinale2"
+
+.EXPORT Ppu_ChrObjFinale2
+.PROC Ppu_ChrObjFinale2
+    CHR2_BANK $80
+    chr_inc "adult_anna",  kTileIdObjAdultAnnaFirst
+    chr_inc "adult_alex",  kTileIdObjAdultAlexFirst
+    chr_inc "adult_boris", kTileIdObjAdultBorisFirst
+    chr_res $62
     END_CHR_BANK
 .ENDPROC
 

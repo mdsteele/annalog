@@ -37,8 +37,8 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ palette numbers to use for drawing various townsfolks NPC actors.
-kPaletteObjAdult   = 0
-kPaletteObjMermaid = 0
+kPaletteObjAdultGray = 0
+kPaletteObjAdultRed  = 1
 
 ;;;=========================================================================;;;
 
@@ -52,10 +52,14 @@ kPaletteObjMermaid = 0
     jsr FuncA_Objects_SetShapePosToActorCenter  ; preserves X
     ;; Determine the object flags to use when drawing the NPC.
     jsr FuncA_Objects_GetNpcActorFlags  ; preserves X, returns A
-    .assert kPaletteObjAdult = 0, error
+    ldy Ram_ActorState1_byte_arr, x  ; eNpcAdult value
+    .assert kPaletteObjAdultGray = 0, error
+    cpy #kFirstNonRedNpcAdult
+    bge @setObjFlags
+    ora #kPaletteObjAdultRed
+    @setObjFlags:
     sta T1  ; object flags
     ;; If this NPC should float in the water/air, bob its position up and down.
-    ldy Ram_ActorState1_byte_arr, x  ; eNpcAdult value
     cpy #kFirstFloatingNpcAdult
     blt @notFloating
     jsr FuncA_Objects_BobActorShapePosUpAndDown  ; preserves X and T1+
@@ -69,6 +73,11 @@ kPaletteObjMermaid = 0
     bge FuncA_Objects_Draw2x4TownsfolkShape  ; preserves X, unconditional
 _FirstTileId_u8_arr:
     D_ARRAY .enum, eNpcAdult
+    d_byte HumanAlexSad,       kTileIdObjAdultAlexFirst          + 6
+    d_byte HumanAlexStanding,  kTileIdObjAdultAlexFirst          + 0
+    d_byte HumanAlexTaking,    kTileIdObjAdultAlexFirst          + 12
+    d_byte HumanAnna,          kTileIdObjAdultAnnaFirst          + 0
+    d_byte HumanBoris,         kTileIdObjAdultBorisFirst         + 0
     d_byte HumanElder1,        kTileIdObjAdultElderFirst         + 0
     d_byte HumanElder2,        kTileIdObjAdultElderFirst         + 6
     d_byte HumanManStanding,   kTileIdObjAdultManStandingFirst   + 0

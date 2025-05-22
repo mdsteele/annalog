@@ -66,9 +66,9 @@
 .IMPORT DataA_Cutscene_TownOutdoorsFinaleReactivate1_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene
+.IMPORT DataA_Cutscene_TownOutdoorsFinaleYearsLater_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
 .IMPORT DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
-.IMPORT DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
 .IMPORT DataA_Cutscene_TownSkyFinaleGaveRemote2_sCutscene
 .IMPORT DataA_Cutscene_TownSkyFinaleGaveRemote4_sCutscene
 .IMPORT DataA_Cutscene_TownSkyFinaleGaveRemote6_sCutscene
@@ -295,12 +295,12 @@ _Finish:
             DataA_Cutscene_TownOutdoorsFinaleReactivate3_sCutscene
     d_entry table, TownOutdoorsFinaleReactivate5, \
             DataA_Cutscene_TownOutdoorsFinaleReactivate5_sCutscene
+    d_entry table, TownOutdoorsFinaleYearsLater, \
+            DataA_Cutscene_TownOutdoorsFinaleYearsLater_sCutscene
     d_entry table, TownOutdoorsGetCaught, \
             DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
     d_entry table, TownOutdoorsOrcAttack, \
             DataA_Cutscene_TownOutdoorsOrcAttack_sCutscene
-    d_entry table, TownOutdoorsYearsLater, \
-            DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
     d_entry table, TownSkyFinaleGaveRemote2, \
             DataA_Cutscene_TownSkyFinaleGaveRemote2_sCutscene
     d_entry table, TownSkyFinaleGaveRemote4, \
@@ -426,6 +426,7 @@ _InitMainFork:
     d_entry table, MoveAvatarWalk,    _MoveAvatarWalk
     d_entry table, MoveNpcAlexSwim,   _MoveNpcAlexSwim
     d_entry table, MoveNpcAlexWalk,   _MoveNpcAlexWalk
+    d_entry table, MoveNpcBorisWalk,  _MoveNpcBorisWalk
     d_entry table, MoveNpcBrunoWalk,  _MoveNpcBrunoWalk
     d_entry table, MoveNpcGrontaWalk, _MoveNpcGrontaWalk
     d_entry table, MoveNpcManWalk,    _MoveNpcManWalk
@@ -824,6 +825,13 @@ _MoveNpcAlexWalk:
     jsr FuncA_Cutscene_FaceAvatarTowardsActor
     clc  ; cutscene should continue
     rts
+_MoveNpcBorisWalk:
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
+    jsr FuncA_Cutscene_AnimateNpcBorisWalking  ; preserves X
+    jsr FuncA_Cutscene_FaceAvatarTowardsActor
+    clc  ; cutscene should continue
+    rts
 _MoveNpcBrunoWalk:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
@@ -1079,6 +1087,18 @@ _AnimatePose:
     lda #eNpcChild::AlexWalking2
     @setState:
     sta Ram_ActorState1_byte_arr, x
+    rts
+.ENDPROC
+
+;;; Updates the flags and state of the specified Boris NPC actor for a walking
+;;; animation.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.PROC FuncA_Cutscene_AnimateNpcBorisWalking
+    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
+    lda #$ff
+    sta Ram_ActorState2_byte_arr, x
     rts
 .ENDPROC
 

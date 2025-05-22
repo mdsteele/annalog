@@ -126,7 +126,8 @@
 .IMPORT MainA_Cutscene_StartEpilogue
 .IMPORT MainA_Cutscene_StartNextFinaleStep
 .IMPORT Main_LoadPrisonCellAndStartCutscene
-.IMPORT Ppu_ChrObjFinale
+.IMPORT Ppu_ChrObjFinale1
+.IMPORT Ppu_ChrObjFinale2
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosX_i16_0_arr
@@ -178,7 +179,9 @@ kThurgActorIndex  = 3
 kHobokActorIndex  = 4
 kLauraActorIndex  = 5
 kMartinActorIndex = 6
-kGrontaActorIndex = 7
+kAnnaActorIndex   = 7
+kBorisActorIndex  = 8
+kGrontaActorIndex = 9
 
 ;;; The device index for the door that leads into TownHouse4.
 kTownHouse4DoorDeviceIndex = 4
@@ -342,6 +345,20 @@ _Actors_sActor_arr:
     d_word PosY_i16, $00c8
     d_byte Param_byte, eNpcAdult::HumanManStanding
     D_END
+    .assert * - :- = kAnnaActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcAdult
+    d_word PosX_i16, $0338
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, eNpcAdult::HumanAnna
+    D_END
+    .assert * - :- = kBorisActorIndex * .sizeof(sActor), error
+    D_STRUCT sActor
+    d_byte Type_eActor, eActor::NpcAdult
+    d_word PosX_i16, $0288
+    d_word PosY_i16, $00c8
+    d_byte Param_byte, eNpcAdult::HumanBoris
+    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
@@ -444,6 +461,8 @@ _Devices_sDevice_arr:
     ;; Otherwise, set up for normal exploration of this room by removing the
     ;; finale-only actors.
     .assert eActor::None = 0, error
+    stx Ram_ActorType_eActor_arr + kAnnaActorIndex
+    stx Ram_ActorType_eActor_arr + kBorisActorIndex
     stx Ram_ActorType_eActor_arr + kHobokActorIndex
     stx Ram_ActorType_eActor_arr + kLauraActorIndex
     stx Ram_ActorType_eActor_arr + kMartinActorIndex
@@ -455,6 +474,13 @@ _SetUpFinaleCutscene:
     sta Ram_ActorType_eActor_arr + kAlexActorIndex
     sta Ram_ActorType_eActor_arr + kIvanActorIndex
     sta Ram_ActorType_eActor_arr + kSandraActorIndex
+    ;; The YearsLater cutscene is handled a bit differently than the others.
+    cpx #eCutscene::TownOutdoorsFinaleYearsLater
+    beq _SetUpYearsLaterCutscene
+_SetUpGaveRemoteOrReactivateCutscene:
+    ;; Remove the Anna and Boris actors for these cutscenes.
+    sta Ram_ActorType_eActor_arr + kAnnaActorIndex
+    sta Ram_ActorType_eActor_arr + kBorisActorIndex
     ;; Remove the Thurg actor for anything other than the FinaleReactivate5 or
     ;; FinaleGaveRemote5 cutscenes, and remove the Hobok, Laura, and Martin
     ;; actors for anything other than the FinaleGaveRemote5 cutscene.
@@ -470,7 +496,27 @@ _SetUpFinaleCutscene:
     @keepAll:
     ;; Change the room's CHR18 bank so that different OBJ tiles can be used for
     ;; the finale than are used normally for this room.
-    lda #<.bank(Ppu_ChrObjFinale)
+    lda #<.bank(Ppu_ChrObjFinale1)
+    sta Zp_Current_sRoom + sRoom::Chr18Bank_u8
+    rts
+_SetUpYearsLaterCutscene:
+    ;; Remove unneeded actors.
+    sta Ram_ActorType_eActor_arr + kThurgActorIndex
+    sta Ram_ActorType_eActor_arr + kHobokActorIndex
+    sta Ram_ActorType_eActor_arr + kLauraActorIndex
+    sta Ram_ActorType_eActor_arr + kMartinActorIndex
+    ;; Turn Alex's actor into an adult NPC.
+    ldya #$02f8
+    sta Ram_ActorPosX_i16_0_arr + kAlexActorIndex
+    sty Ram_ActorPosX_i16_1_arr + kAlexActorIndex
+    ldx #kAlexActorIndex
+    lda #eNpcAdult::HumanAlexStanding  ; param: eNpcAdult value
+    ldy #eActor::NpcAdult  ; param: actor type
+    jsr Func_InitActorWithState1
+    dec Ram_ActorState2_byte_arr + kAlexActorIndex  ; now $ff
+    ;; Change the room's CHR18 bank so that different OBJ tiles can be used for
+    ;; the finale than are used normally for this room.
+    lda #<.bank(Ppu_ChrObjFinale2)
     sta Zp_Current_sRoom + sRoom::Chr18Bank_u8
     rts
 .ENDPROC
@@ -753,8 +799,11 @@ _SetFace:
 .PROC DataA_Dialog_TownOutdoorsFinaleYearsLater1_sDialog
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part1_u8_arr
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part2_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexFaceLeft
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part3_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexFaceRight
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part4_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexSad
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part5_u8_arr
     dlg_Done
 .ENDPROC
@@ -765,6 +814,8 @@ _SetFace:
     .assert kTileIdBgPortraitWomanFirst = kTileIdBgPortraitAlexFirst, error
     dlg_Text AdultWomanShout, \
              DataA_Text2_TownOutdoorsFinaleYearsLater2_Part1_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexStand
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexFaceLeft
     dlg_Text ChildAlexShout, \
              DataA_Text2_TownOutdoorsFinaleYearsLater2_Part2_u8_arr
     dlg_Done
@@ -775,7 +826,9 @@ _SetFace:
 .PROC DataA_Dialog_TownOutdoorsFinaleYearsLater3_sDialog
     .assert kTileIdBgPortraitBorisFirst = kTileIdBgPortraitAlexFirst, error
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater3_Part1_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexSad
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater3_Part2_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexStand
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater3_Part3_u8_arr
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater3_Part4_u8_arr
     dlg_Done
@@ -787,14 +840,18 @@ _SetFace:
     .assert kTileIdBgPortraitBorisFirst = kTileIdBgPortraitAlexFirst, error
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part1_u8_arr
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part2_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexTake
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part3_u8_arr
     dlg_Text ChildAlexHand, \
              DataA_Text2_TownOutdoorsFinaleYearsLater4_Part4_u8_arr
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part5_u8_arr
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part6_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexStand
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part7_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexFaceRight
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part8_u8_arr
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part9_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexFaceLeft
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part10_u8_arr
     dlg_Done
     .linecont -
@@ -804,6 +861,41 @@ _SetFace:
 .PROC DataA_Dialog_TownOutdoorsFinaleYearsLater5_sDialog
     dlg_Text ChildAlex, DataA_Text2_MaybeThisTimeWillBeDifferent_u8_arr
     dlg_Done
+.ENDPROC
+
+;;; Sets the Alex actor's flags to bObj::FlipH.
+.PROC FuncA_Dialog_TownOutdoors_MakeAlexFaceLeft
+    lda #bObj::FlipH
+    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
+    rts
+.ENDPROC
+
+;;; Sets the Alex actor's flags to 0.
+.PROC FuncA_Dialog_TownOutdoors_MakeAlexFaceRight
+    lda #0
+    sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
+    rts
+.ENDPROC
+
+;;; Sets the Alex actor's State1 to eNpcAdult::HumanAlexSad.
+.PROC FuncA_Dialog_TownOutdoors_MakeAlexSad
+    lda #eNpcAdult::HumanAlexSad
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    rts
+.ENDPROC
+
+;;; Sets the Alex actor's State1 to eNpcAdult::HumanAlexStanding.
+.PROC FuncA_Dialog_TownOutdoors_MakeAlexStand
+    lda #eNpcAdult::HumanAlexStanding
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    rts
+.ENDPROC
+
+;;; Sets the Alex actor's State1 to eNpcAdult::HumanAlexTaking.
+.PROC FuncA_Dialog_TownOutdoors_MakeAlexTake
+    lda #eNpcAdult::HumanAlexTaking
+    sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -1362,12 +1454,14 @@ _ShootBeamAtPoint:
     jmp Func_PlaySfxExplodeBig
 .ENDPROC
 
-.EXPORT DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
-.PROC DataA_Cutscene_TownOutdoorsYearsLater_sCutscene
+.EXPORT DataA_Cutscene_TownOutdoorsFinaleYearsLater_sCutscene
+.PROC DataA_Cutscene_TownOutdoorsFinaleYearsLater_sCutscene
     act_WaitFrames 120
     act_RunDialog eDialog::TownOutdoorsFinaleYearsLater1
     act_WaitFrames 120
     act_RunDialog eDialog::TownOutdoorsFinaleYearsLater2
+    act_WaitFrames 60
+    act_MoveNpcBorisWalk kBorisActorIndex, $02d8
     act_WaitFrames 60
     act_RunDialog eDialog::TownOutdoorsFinaleYearsLater3
     act_WaitFrames 120

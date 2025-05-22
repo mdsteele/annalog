@@ -206,7 +206,7 @@ _Finale_eCutscene_arr:
     d_byte Reactivate4Sky,      eCutscene::TownSkyFinaleReactivate4
     d_byte Reactivate5Outdoors, eCutscene::TownOutdoorsFinaleReactivate5
     d_byte Reactivate6Sky,      eCutscene::TownSkyFinaleReactivate6
-    d_byte YearsLater1Outdoors, eCutscene::TownOutdoorsYearsLater
+    d_byte YearsLater1Outdoors, eCutscene::TownOutdoorsFinaleYearsLater
     D_END
 _Finale_eRoom_arr:
     D_ARRAY .enum, eFinale

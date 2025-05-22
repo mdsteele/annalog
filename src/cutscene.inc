@@ -77,9 +77,9 @@ kMaxForks = 4
     TownOutdoorsFinaleReactivate1
     TownOutdoorsFinaleReactivate3
     TownOutdoorsFinaleReactivate5
+    TownOutdoorsFinaleYearsLater
     TownOutdoorsGetCaught
     TownOutdoorsOrcAttack
-    TownOutdoorsYearsLater
     TownSkyFinaleGaveRemote2
     TownSkyFinaleGaveRemote4
     TownSkyFinaleGaveRemote6
@@ -140,6 +140,7 @@ kMaxForks = 4
     ;; the goal position.
     MoveNpcAlexSwim    ; args: actor index, goal X-position (2 bytes)
     MoveNpcAlexWalk    ; args: actor index, goal X-position (2 bytes)
+    MoveNpcBorisWalk   ; args: actor index, goal X-position (2 bytes)
     MoveNpcBrunoWalk   ; args: actor index, goal X-position (2 bytes)
     MoveNpcGrontaWalk  ; args: actor index, goal X-position (2 bytes)
     MoveNpcManWalk     ; args: actor index, goal X-position (2 bytes)
@@ -268,6 +269,11 @@ kMaxForks = 4
 
 .MACRO act_MoveNpcAlexWalk INDEX, GOALX
     .byte eAction::MoveNpcAlexWalk, INDEX
+    .word GOALX
+.ENDMACRO
+
+.MACRO act_MoveNpcBorisWalk INDEX, GOALX
+    .byte eAction::MoveNpcBorisWalk, INDEX
     .word GOALX
 .ENDMACRO
 

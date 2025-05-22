@@ -34,6 +34,12 @@
 
 ;;; Possible values for an adult NPC actor's State1 byte.
 .ENUM eNpcAdult
+    ;; NPCs that sit/stand on dry land AND use a red palette:
+    HumanAlexSad
+    HumanAlexStanding
+    HumanAlexTaking
+    HumanAnna
+    HumanBoris
     ;; NPCs that sit/stand on dry land:
     HumanElder1
     HumanElder2
@@ -65,6 +71,10 @@
     NUM_VALUES
 .ENDENUM
 
+;;; eNpcAdult values less than this are drawn with a red palette instead of a
+;;; gray palette.
+kFirstNonRedNpcAdult = eNpcAdult::HumanElder1
+
 ;;; eNpcAdult values greater than or equal to this are for NPCs that float.
 kFirstFloatingNpcAdult = eNpcAdult::GhostJerome
 
@@ -73,6 +83,9 @@ kFirstFloatingNpcAdult = eNpcAdult::GhostJerome
 kFirst2x4NpcAdult = eNpcAdult::CorraSwimmingUp1
 
 ;;; The first tile IDs for various human adults.
+kTileIdObjAdultAlexFirst          = $86
+kTileIdObjAdultAnnaFirst          = $80
+kTileIdObjAdultBorisFirst         = $98
 kTileIdObjAdultElderFirst         = $c4
 kTileIdObjAdultGhostFirst         = $e4
 kTileIdObjAdultJeromeFirst        = $98

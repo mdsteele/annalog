@@ -68,7 +68,7 @@
 .IMPORT Func_Window_Disable
 .IMPORT MainA_Cutscene_StartEpilogue
 .IMPORT MainA_Cutscene_StartNextFinaleStep
-.IMPORT Ppu_ChrObjFinale
+.IMPORT Ppu_ChrObjFinale1
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
@@ -161,7 +161,7 @@ kJeromePosY = kCoreInnerGoalTop - $19
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 0
     d_addr Machines_sMachine_arr_ptr, 0
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjFinale)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjFinale1)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
