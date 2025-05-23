@@ -225,7 +225,7 @@ Ppu_BossBodyAttrs = Ppu_Nametable3_sName + sName::Attrs_u8_arr64 + \
 .ENDENUM
 
 ;;; How many blaster hits are needed to defeat the boss.
-kBossInitHealth = 8
+kBossInitHealth = 6
 
 ;;; How many frames the boss waits, after you first enter the room, before
 ;;; taking action.
@@ -833,10 +833,10 @@ _BossScuttling:
     sta Zp_RoomState + sState::BossCooldown_u8
     bne _StartNextScuttle  ; unconditional
 _StartNewAttackSequence:
-    ;; Choose a random number of times to scuttle next time, from 3-6.
+    ;; Choose a random number of times to scuttle next time, from 2-3.
     jsr Func_GetRandomByte  ; returns A
-    mod #4
-    add #3
+    mod #2
+    ora #2
     sta Zp_RoomState + sState::ScuttleCount_u8
     ;; If the boss hasn't dropped enough eggs for this health level, prepare to
     ;; drop one.
@@ -873,10 +873,10 @@ _StartEggPrepare:
     sta Zp_RoomState + sState::Current_eBossMode
     rts
 _EggsToDrop_u8_arr:
-    ;; The boss should drop its first egg at 6 health remaining, and another
-    ;; one when at 3 health.  (At zero health, don't drop any more, since the
+    ;; The boss should drop its first egg at 4 health remaining, and another
+    ;; one when at 2 health.  (At zero health, don't drop any more, since the
     ;; boss is about to die.)
-:   .byte 0, 2, 2, 2, 1, 1, 1, 0, 0
+:   .byte 0, 2, 2, 1, 1, 0, 0
     .assert * - :- = kBossInitHealth + 1, error
 .ENDPROC
 
@@ -1384,7 +1384,7 @@ _ValvePipePlatformIndex_u8_arr4:
     bpl @loop
     rts
 _OffsetFromEnd_u8_arr:
-:   .byte 4, 10, 1, 12, 2, 11, 3, 9
+:   .byte 4, 10, 11, 2, 12, 3
     .assert * - :- = kBossInitHealth, error
 .ENDPROC
 
