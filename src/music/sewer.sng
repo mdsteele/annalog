@@ -8,6 +8,7 @@
 
 !INST 1A PulseEcho  $28 d1/4
 !INST 2A PulseEcho  $26 d1/2
+!INST 2B PulseEcho  $26 d1/8
 !INST TV TriangleVibrato
 !INST ND Staccato   $08  % drum (bass and hi hat)
 !INST NS NoiseSnare $28  % snare drum
@@ -60,11 +61,11 @@ N| p(iD x9s    x2 x2 x2)NA p(iS x4s x4 iD x2    x2)NB '
 T| p(eb2e eb3)TE :8                               |
 N| pNA pNB ' pNA pNC | pND pNB ' pNA pNC |
 
-1| d5w | g5w | c6w+ | +w '
-2| f4e  f6s  a c7 a6 f4e+  ' +e f6s  a c7 a6 f4e  '
- | a4e  f6s  a d7 a6 a4e+  ' +e f6s  a d7 a6 a4e  '
- | eb5e eb6s a c7 a6 eb5e+ ' +e eb6s a c7 a6 eb5e '
- | eb5e eb6s a c7 a6 eb5e+ ' +e eb6s a c7 a6 eb5e '
+1| d5w | g5w | c6w+ | +s a5s g f ' eb a g f ' eb c eb c ' a4 g f eb '
+2| f4e  f6s  a c7 a6 f4e+  ' +e f6s  a c7 a6 f4e   |
+ | a4e  f6s  a d7 a6 a4e+  ' +e f6s  a d7 a6 a4e   |
+ | eb5e eb6s a c7 a6 eb5e+ ' +e eb6s a c7 a6 eb5e+ | +s
+  iB f5s eb c ' a4 f5 eb c ' a4 g c5 a4 ' f4 eb ce '
 T| pTF :16                                        '
 N| pNA pNB ' pNA pNC | pND pNB ' pNA pNC |
  | pNA pNB ' pNA pNC | pND pNB ' pNA pNC '
