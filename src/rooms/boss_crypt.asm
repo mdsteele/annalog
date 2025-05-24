@@ -60,6 +60,7 @@
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_BufferPpuTransfer
+.IMPORT Func_DirectPpuTransfer
 .IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_DivMod
 .IMPORT Func_FindEmptyActorSlot
@@ -773,19 +774,16 @@ _GoalPosX_u8_arr6:
 
 ;;; A template (with unset payload bytes) for a pair of PPU transfer entries
 ;;; for changing the BG tiles of the boss's eye.
-.PROC DataC_Boss_CryptEyeTransferTemplate_arr
+.PROC DataC_Boss_CryptEyeTemplate_sXfer_arr
     .assert kBossWidthTiles = 6, error
     .assert kBossHeightTiles = 4, error
     ;; Column 2:
-    .byte kPpuCtrlFlagsVert
-    .dbyt Ppu_BossRow1Start + 2  ; transfer destination
-    .byte 2                      ; transfer length
-    .res 2
+    d_xfer_header kPpuCtrlFlagsVert, Ppu_BossRow1Start + 2
+    d_xfer_data 0, 0
     ;; Column 3:
-    .byte kPpuCtrlFlagsVert
-    .dbyt Ppu_BossRow1Start + 3  ; transfer destination
-    .byte 2                      ; transfer length
-    .res 2
+    d_xfer_header kPpuCtrlFlagsVert, Ppu_BossRow1Start + 3
+    d_xfer_data 0, 0
+    d_xfer_terminator
 .ENDPROC
 
 ;;; Draw function for the crypt boss.
@@ -882,8 +880,7 @@ _TransferBossEye:
     ;; leaving X as the index for the start of the transfer entries.
     lda Zp_PpuTransferLen_u8
     pha     ; transfer start
-    ldax #DataC_Boss_CryptEyeTransferTemplate_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Boss_CryptEyeTransferTemplate_arr)  ; param: data length
+    ldax #DataC_Boss_CryptEyeTemplate_sXfer_arr  ; param: data pointer
     jsr Func_BufferPpuTransfer  ; preserves T3+
     pla     ; transfer start
     tax     ; transfer start
@@ -1236,47 +1233,39 @@ _Return:
 
 .SEGMENT "PRGA_Terrain"
 
-.PROC DataA_Terrain_BossCryptInitTransfer_arr
+.PROC DataA_Terrain_BossCryptInit_sXfer_arr
     .assert kBossWidthTiles = 6, error
     .assert kBossHeightTiles = 4, error
     ;; Row 0:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow0Start  ; transfer destination
-    .byte 6
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow0Start
     .assert kTileIdBgAnimBossCryptFirst = $48, error
-    .byte $48, $49, $4a, $4b, $4c, $4d
+    d_xfer_data $48, $49, $4a, $4b, $4c, $4d
     ;; Row 1:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow1Start  ; transfer destination
-    .byte 6
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow1Start
     .assert kTileIdBgBossCryptEyeWhiteFirst = $a4, error
-    .byte $4e, $4f, $a8, $aa, $50, $51
+    d_xfer_data $4e, $4f, $a8, $aa, $50, $51
     ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow2Start  ; transfer destination
-    .byte 6
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow2Start
     .assert kTileIdBgBossCryptEyeWhiteFirst = $a4, error
-    .byte $58, $59, $a9, $ab, $5a, $5b
+    d_xfer_data $58, $59, $a9, $ab, $5a, $5b
     ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow3Start  ; transfer destination
-    .byte 6
-    .byte $52, $53, $54, $55, $56, $57
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow3Start
+    d_xfer_data $52, $53, $54, $55, $56, $57
     ;; Nametable attributes to color eyeball red:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossEyeAttrs  ; transfer destination
-    .byte 1
-    .byte $04
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossEyeAttrs
+    d_xfer_data $04
+    d_xfer_terminator
 .ENDPROC
 
+;;; @prereq Rendering is disabled.
+;;; @prereq Rendering is disabled.
 .PROC FuncA_Terrain_BossCrypt_FadeInRoom
     ldx #4    ; param: num bytes to write
     ldy #$50  ; param: attribute value
     lda #$32  ; param: initial byte offset
     jsr Func_WriteToUpperAttributeTable
-    ldax #DataA_Terrain_BossCryptInitTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Terrain_BossCryptInitTransfer_arr)  ; param: data length
-    jmp Func_BufferPpuTransfer
+    ldax #DataA_Terrain_BossCryptInit_sXfer_arr  ; param: data pointer
+    jmp Func_DirectPpuTransfer
 .ENDPROC
 
 ;;;=========================================================================;;;

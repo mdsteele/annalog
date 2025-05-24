@@ -667,35 +667,26 @@ _Finish:
 
 ;;; The PPU transfer entry for setting nametable attributes for the dialog
 ;;; portrait.
-.PROC DataA_Dialog_PortraitAttrTransfer_arr
-    .byte kPpuCtrlFlagsHorz       ; control flags
-    .dbyt Ppu_PortraitAttrStart   ; destination address
-    .byte @dataEnd - @dataStart   ; transfer length
-    @dataStart:
-    .byte $44, $11
-    @dataEnd:
+.PROC DataA_Dialog_PortraitAttr_sXfer_arr
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_PortraitAttrStart
+    d_xfer_data $44, $11
+    d_xfer_terminator
 .ENDPROC
 
 ;;; The PPU transfer entry for undoing the nametable attributes changes made by
-;;; DataA_Dialog_PortraitAttrTransfer_arr above.
-.PROC DataA_Dialog_UndoPortraitAttrTransfer_arr
-    .byte kPpuCtrlFlagsHorz       ; control flags
-    .dbyt Ppu_PortraitAttrStart   ; destination address
-    .byte @dataEnd - @dataStart   ; transfer length
-    @dataStart:
-    .byte $00, $00
-    @dataEnd:
+;;; DataA_Dialog_PortraitAttr_sXfer_arr above.
+.PROC DataA_Dialog_UndoPortraitAttr_sXfer_arr
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_PortraitAttrStart
+    d_xfer_data $00, $00
+    d_xfer_terminator
 .ENDPROC
 
 ;;; The PPU transfer entry for drawing the "yes"/"no" options for a yes-or-no
 ;;; dialog question.
-.PROC DataA_Dialog_YesNoTransfer_arr
-    .byte kPpuCtrlFlagsHorz      ; control flags
-    .dbyt Ppu_DialogYesNoStart   ; destination address
-    .byte @dataEnd - @dataStart  ; transfer length
-    @dataStart:
-    .byte "YES   NO"
-    @dataEnd:
+.PROC DataA_Dialog_YesNo_sXfer_arr
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_DialogYesNoStart
+    d_xfer_data "YES   NO"
+    d_xfer_terminator
 .ENDPROC
 
 ;;; Initializes text for dialog mode.  If the dialog is not empty, then the
@@ -1008,8 +999,7 @@ _ScrollWindow:
     blt _StillClosing
 _ResetBgAttributes:
     ;; Buffer PPU transfer to reset nametable attributes for the portrait.
-    ldax #DataA_Dialog_UndoPortraitAttrTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Dialog_UndoPortraitAttrTransfer_arr)  ; param: length
+    ldax #DataA_Dialog_UndoPortraitAttr_sXfer_arr  ; param: data pointer
     jsr Func_BufferPpuTransfer
 _StillClosing:
     clc
@@ -1123,8 +1113,7 @@ _Interior:
 _BgAttributes:
     inc Zp_WindowNextRowToTransfer_u8
     ;; Buffer PPU transfer to set nametable attributes for the portrait
-    ldax #DataA_Dialog_PortraitAttrTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Dialog_PortraitAttrTransfer_arr)  ; param: data length
+    ldax #DataA_Dialog_PortraitAttr_sXfer_arr  ; param: data pointer
     jmp Func_BufferPpuTransfer
 .ENDPROC
 
@@ -1204,8 +1193,7 @@ _YesNoQuestion:
     lda #$ff
     sta Zp_DialogAnsweredYes_bool
     ;; Buffer a PPU transfer to draw the "yes"/"no" options.
-    ldax #DataA_Dialog_YesNoTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Dialog_YesNoTransfer_arr)  ; param: data length
+    ldax #DataA_Dialog_YesNo_sXfer_arr  ; param: data pointer
     jmp Func_BufferPpuTransfer
 .ENDPROC
 

@@ -240,21 +240,21 @@ Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataC_Title_Letters_u8_arr)
 
 ;;; The PPU transfer entry for displaying the confirmation message for deleting
 ;;; a saved game.
-.PROC DataC_Title_AreYouSureTransfer_arr
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TitleAreYouSureStart  ; transfer destination
+.PROC DataC_Title_AreYouSure_sXfer_arr
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TitleAreYouSureStart
     .byte kAreYouSureLength         ; transfer length
 :   .byte "DELETE EXISTING SAVE DATA?"
     .assert * - :- = kAreYouSureLength, error
+    d_xfer_terminator
 .ENDPROC
 
 ;;; The PPU transfer entry for hiding the confirmation message for deleting a
 ;;; saved game.
-.PROC DataC_Title_DoneConfirmTransfer_arr
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TitleAreYouSureStart  ; transfer destination
+.PROC DataC_Title_DoneConfirm_sXfer_arr
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TitleAreYouSureStart
     .byte kAreYouSureLength         ; transfer length
     .res kAreYouSureLength, ' '
+    d_xfer_terminator
 .ENDPROC
 
 ;;; The sequence of button presses need for the New Game cheat code.
@@ -358,8 +358,7 @@ _MenuItemNewGame:
     cmp #kSaveMagicNumber
     bne _BeginNewGame
     ;; Otherwise, ask for confirmation before erasing the saved game.
-    ldax #DataC_Title_AreYouSureTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_AreYouSureTransfer_arr)  ; param: data length
+    ldax #DataC_Title_AreYouSure_sXfer_arr  ; param: data pointer
     jsr Func_BufferPpuTransfer
     lda #eTitle::NewCancel
     sta Zp_Current_eTitle
@@ -386,8 +385,7 @@ _MenuItemDelete:
 _MenuItemCancel:
     jsr Func_PlaySfxMenuCancel
 _ExitEraseMenu:
-    ldax #DataC_Title_DoneConfirmTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_DoneConfirmTransfer_arr)  ; param: data length
+    ldax #DataC_Title_DoneConfirm_sXfer_arr  ; param: data pointer
     jsr Func_BufferPpuTransfer
     ldx #eTitle::TopCredits
     stx Zp_Last_eTitle

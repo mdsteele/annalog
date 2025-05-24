@@ -73,6 +73,7 @@
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_BufferPpuTransfer
+.IMPORT Func_DirectPpuTransfer
 .IMPORT Func_DistanceSensorRightDetectPoint
 .IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_DivMod
@@ -1291,64 +1292,52 @@ _ValvePipePlatformIndex_u8_arr4:
 
 .SEGMENT "PRGA_Terrain"
 
-.PROC DataA_Terrain_BossLavaLegsTransfer_arr
+.PROC DataA_Terrain_BossLavaLegs_sXfer_arr
     .assert kBossFullWidthTiles = 8, error
     .assert kBossHeightTiles = 4, error
     .assert kTileIdBgAnimBossLavaFirst = $68, error
-    ;; Nametable attributes to color body injuries red:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossBodyAttrs  ; transfer destination
-    .byte 1
-    .byte $55
     ;; Row 0:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow0Start  ; transfer destination
-    .byte 8
-    .byte $68, $6c, $70, $00, $00, $74, $78, $7c
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow0Start
+    d_xfer_data $68, $6c, $70, $00, $00, $74, $78, $7c
     ;; Row 1:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow1Start  ; transfer destination
-    .byte 8
-    .byte $69, $6d, $71, $00, $00, $75, $79, $7d
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow1Start
+    d_xfer_data $69, $6d, $71, $00, $00, $75, $79, $7d
     ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow2Start  ; transfer destination
-    .byte 8
-    .byte $6a, $6e, $72, $00, $00, $76, $7a, $7e
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow2Start
+    d_xfer_data $6a, $6e, $72, $00, $00, $76, $7a, $7e
     ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow3Start  ; transfer destination
-    .byte 8
-    .byte $6b, $6f, $73, $00, $00, $77, $7b, $7f
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow3Start
+    d_xfer_data $6b, $6f, $73, $00, $00, $77, $7b, $7f
+    ;; Nametable attributes to color body injuries red:
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossBodyAttrs
+    d_xfer_data $55
+    d_xfer_terminator
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Boss"
 
-.PROC DataC_Boss_BossLavaBodyTransfer_arr
+.PROC DataC_Boss_BossLavaBody_sXfer_arr
     .assert kBossFullWidthTiles = 8, error
     .assert kBossHeightTiles = 4, error
     .assert kTileIdBgTerrainBossLavaFirst = $a8, error
     ;; Col 3:
-    .byte kPpuCtrlFlagsVert
-    .dbyt Ppu_BossRow0Start + 3  ; transfer destination
-    .byte 4
-    .byte $a8, $aa, $ac, $ae
+    d_xfer_header kPpuCtrlFlagsVert, Ppu_BossRow0Start + 3
+    d_xfer_data $a8, $aa, $ac, $ae
     ;; Col 4:
-    .byte kPpuCtrlFlagsVert
-    .dbyt Ppu_BossRow0Start + 4  ; transfer destination
-    .byte 4
-    .byte $a9, $ab, $ad, $af
+    d_xfer_header kPpuCtrlFlagsVert, Ppu_BossRow0Start + 4
+    d_xfer_data $a9, $ab, $ad, $af
+    d_xfer_terminator
 .ENDPROC
 
 ;;; @prereq PRGA_Terrain is loaded.
+;;; @prereq Rendering is disabled.
 .PROC FuncC_Boss_Lava_FadeInRoom
     jsr FuncA_Terrain_FadeInShortRoomWithLava
     ;; Transfer BG tiles for the boss's legs.
-    ldax #DataA_Terrain_BossLavaLegsTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Terrain_BossLavaLegsTransfer_arr)  ; param: data length
-    jsr Func_BufferPpuTransfer
+    ldax #DataA_Terrain_BossLavaLegs_sXfer_arr  ; param: data pointer
+    jsr Func_DirectPpuTransfer
     ;; Transfer BG tiles for the boss's body.
     fall FuncC_Boss_Lava_TransferBossBodyTiles
 .ENDPROC
@@ -1356,11 +1345,10 @@ _ValvePipePlatformIndex_u8_arr4:
 ;;; Buffers a PPU transfer to draw the BG tiles for the lava boss's body,
 ;;; taking its current health into account. Note that this is called from both
 ;;; room fade-in and boss tick functions, so no particular PRGA bank is
-;;; guaranteed to be loaded.
+;;; guaranteed to be loaded (and rendering may or may not be enabled).
 .PROC FuncC_Boss_Lava_TransferBossBodyTiles
     ;; Buffer a transfer for the boss's body at full health.
-    ldax #DataC_Boss_BossLavaBodyTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Boss_BossLavaBodyTransfer_arr)  ; param: data length
+    ldax #DataC_Boss_BossLavaBody_sXfer_arr  ; param: data pointer
     jsr Func_BufferPpuTransfer
     ;; For each point of damage on the boss, alter one of the body tiles in the
     ;; transfer buffer to be injured.

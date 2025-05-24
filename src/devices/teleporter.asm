@@ -151,144 +151,99 @@ _InitCutsceneState:
 
 .SEGMENT "PRGA_Objects"
 
-.PROC DataA_Objects_TeleportTransferBlank_arr
+.PROC DataA_Objects_TeleportBlank_sXfer_arr
     ;; Row 0:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow0Start + 1  ; transfer destination
-    .byte 3
-    .byte 0, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow0Start + 1
+    d_xfer_data 0, 0, 0
     ;; Row 1:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow1Start + 1  ; transfer destination
-    .byte 6
-    .byte 0, 0, 0, 0, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow1Start + 1
+    d_xfer_data 0, 0, 0, 0, 0, 0
     ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow2Start + 0  ; transfer destination
-    .byte 8
-    .byte 0, 0, 0, 0, 0, 0, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow2Start + 0
+    d_xfer_data 0, 0, 0, 0, 0, 0, 0, 0
     ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow3Start + 0  ; transfer destination
-    .byte 8
-    .byte 0, 0, 0, 0, 0, 0, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow3Start + 0
+    d_xfer_data 0, 0, 0, 0, 0, 0, 0, 0
     ;; Row 4:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow4Start + 3  ; transfer destination
-    .byte 4
-    .byte 0, 0, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow4Start + 3
+    d_xfer_data 0, 0, 0, 0
+    d_xfer_terminator
 .ENDPROC
 
-.PROC DataA_Objects_TeleportTransferBolt1_arr
+.PROC DataA_Objects_TeleportBolt1_sXfer_arr
     ;; Row 0:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow0Start + 1  ; transfer destination
-    .byte 3
-    .byte 0, $48, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow0Start + 1
+    d_xfer_data 0, $48, 0
     ;; Row 1:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow1Start + 1  ; transfer destination
-    .byte 6
-    .byte $49, $4a, 0, 0, $4b, $4c
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow1Start + 1
+    d_xfer_data $49, $4a, 0, 0, $4b, $4c
     ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow2Start + 0  ; transfer destination
-    .byte 8
-    .byte $4d, $4e, $4f, $50, $51, $52, $53, $54
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow2Start + 0
+    d_xfer_data $4d, $4e, $4f, $50, $51, $52, $53, $54
     ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow3Start + 0  ; transfer destination
-    .byte 8
-    .byte $55, 0, 0, $56, $57, 0, 0, $58
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow3Start + 0
+    d_xfer_data $55, 0, 0, $56, $57, 0, 0, $58
     ;; Row 4:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow4Start + 3  ; transfer destination
-    .byte 4
-    .byte $59, 0, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow4Start + 3
+    d_xfer_data $59, 0, 0, 0
+    d_xfer_terminator
 .ENDPROC
 
-.PROC DataA_Objects_TeleportTransferBolt2_arr
+.PROC DataA_Objects_TeleportBolt2_sXfer_arr
     ;; Row 0:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow0Start + 1  ; transfer destination
-    .byte 3
-    .byte 0, 0, $5a
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow0Start + 1
+    d_xfer_data 0, 0, $5a
     ;; Row 1:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow1Start + 1  ; transfer destination
-    .byte 6
-    .byte 0, $5b, $5c, $5d, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow1Start + 1
+    d_xfer_data 0, $5b, $5c, $5d, 0, 0
     ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow2Start + 0  ; transfer destination
-    .byte 8
-    .byte $5e, 0, $5f, $60, $61, $62, 0, $63
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow2Start + 0
+    d_xfer_data $5e, 0, $5f, $60, $61, $62, 0, $63
     ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow3Start + 0  ; transfer destination
-    .byte 8
-    .byte $64, $65, $66, 0, $67, $68, $69, $6a
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow3Start + 0
+    d_xfer_data $64, $65, $66, 0, $67, $68, $69, $6a
     ;; Row 4:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow4Start + 3  ; transfer destination
-    .byte 4
-    .byte 0, 0, $6b, $6c
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow4Start + 3
+    d_xfer_data 0, 0, $6b, $6c
+    d_xfer_terminator
 .ENDPROC
 
-.PROC DataA_Objects_TeleportTransferDisp1_arr
+.PROC DataA_Objects_TeleportDisp1_sXfer_arr
     ;; Row 0:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow0Start + 1  ; transfer destination
-    .byte 3
-    .byte $6d, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow0Start + 1
+    d_xfer_data $6d, 0, 0
     ;; Row 1:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow1Start + 1  ; transfer destination
-    .byte 6
-    .byte $6e, $6f, 0, 0, 0, $70
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow1Start + 1
+    d_xfer_data $6e, $6f, 0, 0, 0, $70
     ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow2Start + 0  ; transfer destination
-    .byte 8
-    .byte 0, 0, 0, 0, 0, $71, $72, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow2Start + 0
+    d_xfer_data 0, 0, 0, 0, 0, $71, $72, 0
     ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow3Start + 0  ; transfer destination
-    .byte 8
-    .byte 0, 0, 0, $73, $74, 0, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow3Start + 0
+    d_xfer_data 0, 0, 0, $73, $74, 0, 0, 0
     ;; Row 4:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow4Start + 3  ; transfer destination
-    .byte 4
-    .byte $75, 0, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow4Start + 3
+    d_xfer_data $75, 0, 0, 0
+    d_xfer_terminator
 .ENDPROC
 
-.PROC DataA_Objects_TeleportTransferDisp2_arr
+.PROC DataA_Objects_TeleportDisp2_sXfer_arr
     ;; Row 0:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow0Start + 1  ; transfer destination
-    .byte 3
-    .byte $76, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow0Start + 1
+    d_xfer_data $76, 0, 0
     ;; Row 1:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow1Start + 1  ; transfer destination
-    .byte 6
-    .byte $77, $78, 0, 0, $79, $7a
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow1Start + 1
+    d_xfer_data $77, $78, 0, 0, $79, $7a
     ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow2Start + 0  ; transfer destination
-    .byte 8
-    .byte 0, 0, 0, 0, 0, 0, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow2Start + 0
+    d_xfer_data 0, 0, 0, 0, 0, 0, 0, 0
     ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow3Start + 0  ; transfer destination
-    .byte 8
-    .byte 0, 0, 0, $7b, 0, 0, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow3Start + 0
+    d_xfer_data 0, 0, 0, $7b, 0, 0, 0, 0
     ;; Row 4:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_TeleportZapRow4Start + 3  ; transfer destination
-    .byte 4
-    .byte 0, 0, 0, 0
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_TeleportZapRow4Start + 3
+    d_xfer_data 0, 0, 0, 0
+    d_xfer_terminator
 .ENDPROC
 
 ;;; Draws a teleporter device.
@@ -328,34 +283,22 @@ _TransferBgTiles:
     stx T3  ; teleporter device index
     div #kTeleportZapSlowdown
     tay
-    ldx _Transfer_arr_ptr_0_arr, y  ; param: data pointer (lo)
-    lda _Transfer_arr_ptr_1_arr, y  ; param: data pointer (hi)
-    ;; The transfer entries we're choosing between are all the same size.
-    .linecont +
-    .assert .sizeof(DataA_Objects_TeleportTransferBolt1_arr) = \
-            .sizeof(DataA_Objects_TeleportTransferBlank_arr), error
-    .assert .sizeof(DataA_Objects_TeleportTransferBolt2_arr) = \
-            .sizeof(DataA_Objects_TeleportTransferBlank_arr), error
-    .assert .sizeof(DataA_Objects_TeleportTransferDisp1_arr) = \
-            .sizeof(DataA_Objects_TeleportTransferBlank_arr), error
-    .assert .sizeof(DataA_Objects_TeleportTransferDisp2_arr) = \
-            .sizeof(DataA_Objects_TeleportTransferBlank_arr), error
-    .linecont -
-    ldy #.sizeof(DataA_Objects_TeleportTransferBlank_arr)  ; param: data len
+    ldx _Teleport_sXfer_arr_ptr_0_arr, y  ; param: data pointer (lo)
+    lda _Teleport_sXfer_arr_ptr_1_arr, y  ; param: data pointer (hi)
     jsr Func_BufferPpuTransfer  ; preserves T3+
     ldx T3  ; teleporter device index
     @done:
     rts
 .REPEAT 2, table
-    D_TABLE_LO table, _Transfer_arr_ptr_0_arr
-    D_TABLE_HI table, _Transfer_arr_ptr_1_arr
+    D_TABLE_LO table, _Teleport_sXfer_arr_ptr_0_arr
+    D_TABLE_HI table, _Teleport_sXfer_arr_ptr_1_arr
     D_TABLE kTeleportZapNumAnimShapes
-    d_entry table, 0, DataA_Objects_TeleportTransferBlank_arr
-    d_entry table, 1, DataA_Objects_TeleportTransferDisp2_arr
-    d_entry table, 2, DataA_Objects_TeleportTransferBlank_arr
-    d_entry table, 3, DataA_Objects_TeleportTransferDisp1_arr
-    d_entry table, 4, DataA_Objects_TeleportTransferBolt2_arr
-    d_entry table, 5, DataA_Objects_TeleportTransferBolt1_arr
+    d_entry table, 0, DataA_Objects_TeleportBlank_sXfer_arr
+    d_entry table, 1, DataA_Objects_TeleportDisp2_sXfer_arr
+    d_entry table, 2, DataA_Objects_TeleportBlank_sXfer_arr
+    d_entry table, 3, DataA_Objects_TeleportDisp1_sXfer_arr
+    d_entry table, 4, DataA_Objects_TeleportBolt2_sXfer_arr
+    d_entry table, 5, DataA_Objects_TeleportBolt1_sXfer_arr
     D_END
 .ENDREPEAT
 .ENDPROC

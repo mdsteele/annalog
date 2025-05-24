@@ -42,7 +42,7 @@
 .IMPORT FuncA_Objects_DrawLiftMachineBg
 .IMPORT FuncA_Room_MakeNpcGhostDisappear
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
-.IMPORT Func_BufferPpuTransfer
+.IMPORT Func_DirectPpuTransfer
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorDefault
 .IMPORT Func_IsPointInPlatform
@@ -443,40 +443,30 @@ _Return:
 
 .SEGMENT "PRGA_Terrain"
 
-.PROC DataA_Terrain_ShadowOfficeTransfer_arr
+.PROC DataA_Terrain_ShadowOffice_sXfer_arr
     ;; Row 0:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_WallRow0Start  ; transfer destination
-    .byte 6
-    .byte $14, $8a, $8a, $8a, $8a, $15
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_WallRow0Start
+    d_xfer_data $14, $8a, $8a, $8a, $8a, $15
     ;; Row 1:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_WallRow1Start  ; transfer destination
-    .byte 6
-    .byte $88, $87, $8b, $8b, $86, $89
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_WallRow1Start
+    d_xfer_data $88, $87, $8b, $8b, $86, $89
     ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_WallRow2Start  ; transfer destination
-    .byte 6
-    .byte $16, $17, $14, $15, $88, $89
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_WallRow2Start
+    d_xfer_data $16, $17, $14, $15, $88, $89
     ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_WallRow3Start  ; transfer destination
-    .byte 6
-    .byte $14, $8a, $84, $89, $88, $89
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_WallRow3Start
+    d_xfer_data $14, $8a, $84, $89, $88, $89
     ;; Row 4:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_WallRow4Start  ; transfer destination
-    .byte 6
-    .byte $16, $8b, $8b, $17, $16, $17
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_WallRow4Start
+    d_xfer_data $16, $8b, $8b, $17, $16, $17
+    d_xfer_terminator
 .ENDPROC
 
 .PROC FuncA_Terrain_ShadowOffice_FadeInRoom
     flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeRemovedWall
     bne @noGhostWall
-    ldax #DataA_Terrain_ShadowOfficeTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Terrain_ShadowOfficeTransfer_arr)  ; param: data length
-    jsr Func_BufferPpuTransfer
+    ldax #DataA_Terrain_ShadowOffice_sXfer_arr  ; param: data pointer
+    jsr Func_DirectPpuTransfer
     @noGhostWall:
     jmp FuncA_Terrain_FadeInShortRoomWithLava
 .ENDPROC

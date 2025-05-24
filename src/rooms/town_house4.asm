@@ -41,7 +41,7 @@
 .IMPORT DataA_Text0_TownHouse4Laura_Waiting2_u8_arr
 .IMPORT DataA_Text0_TownHouse4Martin_u8_arr
 .IMPORT Data_Empty_sPlatform_arr
-.IMPORT Func_BufferPpuTransfer
+.IMPORT Func_DirectPpuTransfer
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxThump
@@ -201,13 +201,13 @@ _Devices_sDevice_arr:
 
 .SEGMENT "PRGA_Terrain"
 
-.PROC DataA_Terrain_TownHouse4MartinTransfer_arr
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_MartinBgStart  ; transfer destination
-    .byte 3
-    .byte $95, $96, $97
+.PROC DataA_Terrain_TownHouse4Martin_sXfer_arr
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_MartinBgStart
+    d_xfer_data $95, $96, $97
+    d_xfer_terminator
 .ENDPROC
 
+;;; @prereq Rendering is disabled.
 .PROC FuncA_Terrain_TownHouse4_FadeInRoom
     ;; If the Martin NPC actor is not here (because the BreakerLava cutscene is
     ;; playing), draw him unconscious with BG tiles.
@@ -216,9 +216,8 @@ _Devices_sDevice_arr:
     beq @drawMartinUnconscious
     rts
     @drawMartinUnconscious:
-    ldax #DataA_Terrain_TownHouse4MartinTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Terrain_TownHouse4MartinTransfer_arr)  ; param: data len
-    jmp Func_BufferPpuTransfer
+    ldax #DataA_Terrain_TownHouse4Martin_sXfer_arr  ; param: data pointer
+    jmp Func_DirectPpuTransfer
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -27,8 +27,8 @@
 .INCLUDE "ppu.inc"
 
 .IMPORT FuncC_Title_ClearNametableTiles
-.IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
+.IMPORT Func_DirectPpuTransfer
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_Noop
 .IMPORT Func_ProcessFrame
@@ -42,19 +42,6 @@
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
-
-;;;=========================================================================;;;
-
-.MACRO TEXT_ROW ROW, TEXT
-    .scope
-_row_start = Ppu_Nametable0_sName + kScreenWidthTiles * (ROW)
-_text_start = _row_start + (kScreenWidthTiles - .strlen(TEXT)) / 2
-    .byte kPpuCtrlFlagsHorz
-    .dbyt _text_start
-    .byte .strlen(TEXT)
-    .byte TEXT
-    .endscope
-.ENDMACRO
 
 ;;;=========================================================================;;;
 
@@ -161,68 +148,81 @@ _GameLoop:
 
 ;;; PPU transfer entries for eEpilogueScene::Placeholder.
 ;;; TODO: Remove this.
-.PROC DataC_Title_EpiloguePlaceholderTransfer_arr
-    TEXT_ROW 16, "TODO: cutscene"
+.PROC DataC_Title_EpiloguePlaceholder_sXfer_arr
+    d_xfer_text_row 16, "TODO: cutscene"
+    d_xfer_terminator
 .ENDPROC
 
 ;;; PPU transfer entries for eEpilogueScene::Title.
-.PROC DataC_Title_EpilogueTitleTransfer_arr
-    TEXT_ROW 15, "ANNALOG"
+.PROC DataC_Title_EpilogueTitle_sXfer_arr
+    d_xfer_text_row 15, "ANNALOG"
+    d_xfer_terminator
 .ENDPROC
 
 ;;; PPU transfer entries for eEpilogueScene::AGameBy.
-.PROC DataC_Title_EpilogueAGameByTransfer_arr
-    TEXT_ROW 15, "a game by mdsteele"
+.PROC DataC_Title_EpilogueAGameBy_sXfer_arr
+    d_xfer_text_row 15, "a game by mdsteele"
+    d_xfer_terminator
 .ENDPROC
 
 ;;; PPU transfer entries for eEpilogueScene::CreditDesign.
-.PROC DataC_Title_EpilogueDesignTransfer_arr
-    TEXT_ROW 14, "DESIGN/PROGRAMMING"
-    TEXT_ROW 16, "Matthew Steele"
+.PROC DataC_Title_EpilogueDesign_sXfer_arr
+    d_xfer_text_row 14, "DESIGN/PROGRAMMING"
+    d_xfer_text_row 16, "Matthew Steele"
+    d_xfer_terminator
 .ENDPROC
 
 ;;; PPU transfer entries for eEpilogueScene::CreditMusic.
-.PROC DataC_Title_EpilogueMusicTransfer_arr
-    TEXT_ROW 14, "MUSIC"
-    TEXT_ROW 16, "Jon Moran"
-    TEXT_ROW 17, "Matthew Steele"
+.PROC DataC_Title_EpilogueMusic_sXfer_arr
+    d_xfer_text_row 14, "MUSIC"
+    d_xfer_text_row 16, "Jon Moran"
+    d_xfer_text_row 17, "Matthew Steele"
+    d_xfer_terminator
 .ENDPROC
 
 ;;; PPU transfer entries for eEpilogueScene::CreditAsstArtDir.
-.PROC DataC_Title_EpilogueAsstArtTransfer_arr
-    TEXT_ROW 14, "ASST. ART DIRECTOR"
-    TEXT_ROW 16, "Stephanie Steele"
+.PROC DataC_Title_EpilogueAsstArt_sXfer_arr
+    d_xfer_text_row 14, "ASST. ART DIRECTOR"
+    d_xfer_text_row 16, "Stephanie Steele"
+    d_xfer_terminator
 .ENDPROC
 
 ;;; PPU transfer entries for eEpilogueScene::CreditBetaTesting.
-.PROC DataC_Title_EpilogueTestingTransfer_arr
-    TEXT_ROW 14, "BETA TESTING"
-    TEXT_ROW 16, "David Couzelis"
-    TEXT_ROW 17, "<TBD>"
+.PROC DataC_Title_EpilogueTesting_sXfer_arr
+    d_xfer_text_row 14, "BETA TESTING"
+    d_xfer_text_row 16, "Christopher DuBois"
+    d_xfer_text_row 17, "David Couzelis"
+    d_xfer_text_row 18, "Jon Moran"
+    d_xfer_text_row 19, "Mitch Foley"
+    d_xfer_terminator
 .ENDPROC
 
 ;;; PPU transfer entries for eEpilogueScene::CreditTbd.
-.PROC DataC_Title_EpilogueTbdTransfer_arr
-    TEXT_ROW 14, "<TBD>"
-    TEXT_ROW 16, "<TBD>"
+.PROC DataC_Title_EpilogueTbd_sXfer_arr
+    d_xfer_text_row 14, "<TBD>"
+    d_xfer_text_row 16, "<TBD>"
+    d_xfer_terminator
 .ENDPROC
 
 ;;; PPU transfer entries for eEpilogueScene::CreditPublishing.
-.PROC DataC_Title_EpiloguePublishingTransfer_arr
-    TEXT_ROW 14, "PUBLISHING"
-    TEXT_ROW 16, "<TBD>"
+.PROC DataC_Title_EpiloguePublishing_sXfer_arr
+    d_xfer_text_row 14, "PUBLISHING"
+    d_xfer_text_row 16, "<TBD>"
+    d_xfer_terminator
 .ENDPROC
 
 ;;; PPU transfer entries for eEpilogueScene::CreditSpecialThanks.
-.PROC DataC_Title_EpilogueThanksTransfer_arr
-    TEXT_ROW 14, "SPECIAL THANKS"
-    TEXT_ROW 16, "Holly and Emily"
-    TEXT_ROW 17, "NesDev.org"
+.PROC DataC_Title_EpilogueThanks_sXfer_arr
+    d_xfer_text_row 14, "SPECIAL THANKS"
+    d_xfer_text_row 16, "Holly and Emily"
+    d_xfer_text_row 17, "NesDev.org"
+    d_xfer_terminator
 .ENDPROC
 
 ;;; PPU transfer entries for eEpilogueScene::CreditDedication.
-.PROC DataC_Title_EpilogueDedicationTransfer_arr
-    TEXT_ROW 15, "FOR GREAT JUSTIN"
+.PROC DataC_Title_EpilogueDedication_sXfer_arr
+    d_xfer_text_row 15, "FOR GREAT JUSTIN"
+    d_xfer_terminator
 .ENDPROC
 
 ;;; Initializes the current epilogue scene, in particular setting up the
@@ -269,51 +269,40 @@ _SceneSpecificInit:
     D_END
 .ENDREPEAT
 _Placeholder:
-    ldax #DataC_Title_EpiloguePlaceholderTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_EpiloguePlaceholderTransfer_arr)  ; param: length
+    ldax #DataC_Title_EpiloguePlaceholder_sXfer_arr  ; param: data pointer
     jmp _DrawCredits
 _Title:
-    ldax #DataC_Title_EpilogueTitleTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_EpilogueTitleTransfer_arr)  ; param: data length
+    ldax #DataC_Title_EpilogueTitle_sXfer_arr  ; param: data pointer
     jmp _DrawCredits
 _AGameBy:
-    ldax #DataC_Title_EpilogueAGameByTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_EpilogueAGameByTransfer_arr)  ; param: data length
-    jmp Func_BufferPpuTransfer
+    ldax #DataC_Title_EpilogueAGameBy_sXfer_arr  ; param: data pointer
+    jmp Func_DirectPpuTransfer
 _CreditDesign:
-    ldax #DataC_Title_EpilogueDesignTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_EpilogueDesignTransfer_arr)  ; param: data length
+    ldax #DataC_Title_EpilogueDesign_sXfer_arr  ; param: data pointer
     jmp _DrawCredits
 _CreditMusic:
-    ldax #DataC_Title_EpilogueMusicTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_EpilogueMusicTransfer_arr)  ; param: data length
+    ldax #DataC_Title_EpilogueMusic_sXfer_arr  ; param: data pointer
     jmp _DrawCredits
 _CreditAsstArtDir:
-    ldax #DataC_Title_EpilogueAsstArtTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_EpilogueAsstArtTransfer_arr)  ; param: data length
+    ldax #DataC_Title_EpilogueAsstArt_sXfer_arr  ; param: data pointer
     jmp _DrawCredits
 _CreditBetaTesting:
-    ldax #DataC_Title_EpilogueTestingTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_EpilogueTestingTransfer_arr)  ; param: data length
+    ldax #DataC_Title_EpilogueTesting_sXfer_arr  ; param: data pointer
     jmp _DrawCredits
 _CreditTbd:
-    ldax #DataC_Title_EpilogueTbdTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_EpilogueTbdTransfer_arr)  ; param: data length
+    ldax #DataC_Title_EpilogueTbd_sXfer_arr  ; param: data pointer
     jmp _DrawCredits
 _CreditPublishing:
-    ldax #DataC_Title_EpiloguePublishingTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_EpiloguePublishingTransfer_arr)  ; param: data len
+    ldax #DataC_Title_EpiloguePublishing_sXfer_arr  ; param: data pointer
     jmp _DrawCredits
 _CreditSpecialThanks:
-    ldax #DataC_Title_EpilogueThanksTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_EpilogueThanksTransfer_arr)  ; param: data length
+    ldax #DataC_Title_EpilogueThanks_sXfer_arr  ; param: data pointer
     jmp _DrawCredits
 _CreditDedication:
-    ldax #DataC_Title_EpilogueDedicationTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_EpilogueDedicationTransfer_arr)  ; param: data len
-    jmp Func_BufferPpuTransfer
+    ldax #DataC_Title_EpilogueDedication_sXfer_arr  ; param: data pointer
+    jmp Func_DirectPpuTransfer
 _DrawCredits:
-    jsr Func_BufferPpuTransfer
+    jsr Func_DirectPpuTransfer
     ldx #$06  ; param: num bytes to write
     ldy #$50  ; param: attribute value
     lda #$19  ; param: initial byte offset

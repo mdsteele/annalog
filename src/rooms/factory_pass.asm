@@ -193,31 +193,25 @@ _Passages_sPassage_arr:
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
 .ENDPROC
 
-;;; The PPU transfer entry for changing the rocks terrain when the rocks are
+;;; The PPU transfer entries for changing the rocks terrain when the rocks are
 ;;; halfway lowered.
-.PROC DataC_Factory_PassTransfer1_arr
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_FactoryPassRocksRow0  ; transfer destination
-    .byte 8
-    .byte $00, $00, $00, $00, $00, $00, $00, $00
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_FactoryPassRocksRow1  ; transfer destination
-    .byte 8
+.PROC DataC_Factory_PassRocks1_sXfer_arr
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_FactoryPassRocksRow0
+    d_xfer_data $00, $00, $00, $00, $00, $00, $00, $00
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_FactoryPassRocksRow1
     .assert kTileIdBgAnimRocksFallFirst = $40, error
-    .byte $41, $40, $41, $40, $41, $40, $41, $40
+    d_xfer_data $41, $40, $41, $40, $41, $40, $41, $40
+    d_xfer_terminator
 .ENDPROC
 
-;;; The PPU transfer entry for changing the rocks terrain when the rocks are
+;;; The PPU transfer entries for changing the rocks terrain when the rocks are
 ;;; fully lowered.
-.PROC DataC_Factory_PassTransfer2_arr
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_FactoryPassRocksRow0  ; transfer destination
-    .byte 8
-    .byte $00, $00, $00, $00, $00, $00, $00, $00
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_FactoryPassRocksRow1  ; transfer destination
-    .byte 8
-    .byte $00, $00, $00, $00, $00, $00, $00, $00
+.PROC DataC_Factory_PassRocks2_sXfer_arr
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_FactoryPassRocksRow0
+    d_xfer_data $00, $00, $00, $00, $00, $00, $00, $00
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_FactoryPassRocksRow1
+    d_xfer_data $00, $00, $00, $00, $00, $00, $00, $00
+    d_xfer_terminator
 .ENDPROC
 
 .PROC FuncC_Factory_Pass_EnterRoom
@@ -339,12 +333,10 @@ _MaybeDoTransfer:
     beq _DoTransfer1
     rts
 _DoTransfer1:
-    ldax #DataC_Factory_PassTransfer1_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Factory_PassTransfer1_arr)  ; param: data length
+    ldax #DataC_Factory_PassRocks1_sXfer_arr  ; param: data pointer
     bne _DoTransfer  ; unconditional
 _DoTransfer2:
-    ldax #DataC_Factory_PassTransfer2_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Factory_PassTransfer2_arr)  ; param: data length
+    ldax #DataC_Factory_PassRocks2_sXfer_arr  ; param: data pointer
 _DoTransfer:
     jmp Func_BufferPpuTransfer
 _ShiftHorz_i8_arr6:

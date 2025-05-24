@@ -182,40 +182,22 @@ _StopDebugging:
 
 ;;; The PPU transfer entry for setting nametable attributes for the debugger
 ;;; diagram.
-.PROC DataA_Console_DebugAttrTransfer_arr
-_Row1:
-    .byte kPpuCtrlFlagsHorz      ; control flags
-    .dbyt Ppu_DebugAttrStart1    ; destination address
-    .byte @dataEnd - @dataStart  ; transfer length
-    @dataStart:
-    .byte $44
-    @dataEnd:
-_Row2:
-    .byte kPpuCtrlFlagsHorz      ; control flags
-    .dbyt Ppu_DebugAttrStart2    ; destination address
-    .byte @dataEnd - @dataStart  ; transfer length
-    @dataStart:
-    .byte $44
-    @dataEnd:
+.PROC DataA_Console_DebugAttr_sXfer_arr
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_DebugAttrStart1
+    d_xfer_data $44
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_DebugAttrStart2
+    d_xfer_data $44
+    d_xfer_terminator
 .ENDPROC
 
 ;;; The PPU transfer entry for undoing the nametable attributes changes made by
-;;; DataA_Console_DebugAttrTransfer_arr above.
-.PROC DataA_Console_UndoDebugAttrTransfer_arr
-_Row1:
-    .byte kPpuCtrlFlagsHorz      ; control flags
-    .dbyt Ppu_DebugAttrStart1    ; destination address
-    .byte @dataEnd - @dataStart  ; transfer length
-    @dataStart:
-    .byte $00
-    @dataEnd:
-_Row2:
-    .byte kPpuCtrlFlagsHorz      ; control flags
-    .dbyt Ppu_DebugAttrStart2    ; destination address
-    .byte @dataEnd - @dataStart  ; transfer length
-    @dataStart:
-    .byte $00
-    @dataEnd:
+;;; DataA_Console_DebugAttr_sXfer_arr above.
+.PROC DataA_Console_UndoDebugAttr_sXfer_arr
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_DebugAttrStart1
+    d_xfer_data $00
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_DebugAttrStart2
+    d_xfer_data $00
+    d_xfer_terminator
 .ENDPROC
 
 ;;; Initializes debug mode.
@@ -237,8 +219,7 @@ _SaveProgram:
 _ChangeDiagram:
     main_chr0c #kChrBankDiagramDebugger
 _SetBgAttributes:
-    ldax #DataA_Console_DebugAttrTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Console_DebugAttrTransfer_arr)  ; param: data size
+    ldax #DataA_Console_DebugAttr_sXfer_arr  ; param: data pointer
     jmp Func_BufferPpuTransfer
 _Return:
     rts
@@ -261,8 +242,7 @@ _ChangeDiagram:
     tax  ; eDiagram value
     main_chr0c DataA_Console_DiagramBank_u8_arr, x
 _ResetBgAttributes:
-    ldax #DataA_Console_UndoDebugAttrTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Console_UndoDebugAttrTransfer_arr)  ; param: data size
+    ldax #DataA_Console_UndoDebugAttr_sXfer_arr  ; param: data pointer
     jmp Func_BufferPpuTransfer
 .ENDPROC
 

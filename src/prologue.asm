@@ -28,8 +28,8 @@
 .IMPORT DataA_Pcm1_MaybeThisTime_arr
 .IMPORT DataA_Pcm2_WillBeDifferent_arr
 .IMPORT FuncC_Title_ClearNametableTiles
-.IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_DirectPpuTransfer
 .IMPORT Func_FadeInFromBlackToNormal
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_PlayPrgaPcm
@@ -44,34 +44,14 @@
 
 ;;;=========================================================================;;;
 
-;;; The PPU addresses for the start (left) of each row of the prologue text.
-.LINECONT +
-Ppu_PrologueTextRow1Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
-    kScreenWidthTiles * 12 + (kScreenWidthTiles - 7) / 2
-Ppu_PrologueTextRow2Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
-    kScreenWidthTiles * 14 + (kScreenWidthTiles - 15) / 2
-Ppu_PrologueTextRow3Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
-    kScreenWidthTiles * 16 + (kScreenWidthTiles - 18) / 2
-.LINECONT -
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRGC_Title"
 
 ;;; The PPU transfer entry for drawing the prologue text.
-.PROC DataC_Title_PrologueTextTransfer_arr
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_PrologueTextRow1Start  ; transfer destination
-    .byte 7
-    .byte "Well..."
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_PrologueTextRow2Start  ; transfer destination
-    .byte 15
-    .byte "Maybe this time"
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_PrologueTextRow3Start  ; transfer destination
-    .byte 18
-    .byte "will be different."
+.PROC DataC_Title_PrologueText_sXfer_arr
+    d_xfer_text_row 12, "Well..."
+    d_xfer_text_row 14, "Maybe this time"
+    d_xfer_text_row 16, "will be different."
+    d_xfer_terminator
 .ENDPROC
 
 ;;; Mode for running the story prologue when a new game is started.
@@ -91,9 +71,8 @@ Ppu_PrologueTextRow3Start = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
     ldy #$00  ; param: attribute byte
     jsr Func_FillUpperAttributeTable
     ;; Draw the prologue text.
-    ldax #DataC_Title_PrologueTextTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Title_PrologueTextTransfer_arr)  ; param: data length
-    jsr Func_BufferPpuTransfer
+    ldax #DataC_Title_PrologueText_sXfer_arr  ; param: data pointer
+    jsr Func_DirectPpuTransfer
     ;; Fade in the screen.
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask

@@ -231,40 +231,36 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
 .ENDPROC
 
 ;;; PPU transfer entries for showing the dialog portrait.
-.PROC DataA_Pause_ShowPortraitTransfer_arr
+.PROC DataA_Pause_ShowPortrait_sXfer_arr
+    .linecont +
     .repeat 4, row
-    .scope
-    .byte kPpuCtrlFlagsHorz      ; control flags
-    .dbyt Ppu_PortraitTopLeft + kScreenWidthTiles * row  ; destination address
-    .byte @dataEnd - @dataStart  ; transfer length
-    @dataStart:
+    d_xfer_header kPpuCtrlFlagsHorz, \
+        Ppu_PortraitTopLeft + kScreenWidthTiles * row
+    .byte 4
     .repeat 4, col
     .byte kTileIdBgPortraitPaperFirst + col * 4 + row
     .endrepeat
-    @dataEnd:
-    .endscope
     .endrepeat
+    d_xfer_terminator
+    .linecont -
 .ENDPROC
 
 ;;; PPU transfer entries for hiding the dialog portrait.
-.PROC DataA_Pause_HidePortraitTransfer_arr
+.PROC DataA_Pause_HidePortrait_sXfer_arr
+    .linecont +
     .repeat 4, row
-    .scope
-    .byte kPpuCtrlFlagsHorz      ; control flags
-    .dbyt Ppu_PortraitTopLeft + kScreenWidthTiles * row  ; destination address
-    .byte @dataEnd - @dataStart  ; transfer length
-    @dataStart:
-    .byte 0, 0, 0, 0
-    @dataEnd:
-    .endscope
+    d_xfer_header kPpuCtrlFlagsHorz, \
+        Ppu_PortraitTopLeft + kScreenWidthTiles * row
+    d_xfer_data 0, 0, 0, 0
     .endrepeat
+    d_xfer_terminator
+    .linecont -
 .ENDPROC
 
 ;;; Buffers a PPU transfer to hide the dialog portrait.
 .EXPORT FuncA_Pause_TransferHidePortrait
 .PROC FuncA_Pause_TransferHidePortrait
-    ldax #DataA_Pause_HidePortraitTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Pause_HidePortraitTransfer_arr)  ; param: data size
+    ldax #DataA_Pause_HidePortrait_sXfer_arr  ; param: data pointer
     jmp Func_BufferPpuTransfer
 .ENDPROC
 
@@ -273,8 +269,7 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
 .EXPORT MainA_Pause_RereadPaper
 .PROC MainA_Pause_RereadPaper
     ;; Buffer a PPU transfer to show the dialog portrait.
-    ldax #DataA_Pause_ShowPortraitTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Pause_ShowPortraitTransfer_arr)  ; param: data size
+    ldax #DataA_Pause_ShowPortrait_sXfer_arr  ; param: data pointer
     jsr Func_BufferPpuTransfer
     ;; Calculate the eDialog value and start dialog mode.
     lda Zp_PaperCursorRow_u8  ; param: multiplicand

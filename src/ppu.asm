@@ -27,24 +27,70 @@
 
 .SEGMENT "PRG8"
 
-;;; Copies one or more transfer entries into the PPU transfer buffer.
+;;; Copies an array of one or more PPU transfer entries (terminated by a zero
+;;; byte) into the PPU transfer buffer.
 ;;; @param AX Pointer to the start of the transfer entry(ies) to copy.
-;;; @param Y The number of bytes to buffer (including any transfer headers).
 ;;; @preserve T3+
 .EXPORT Func_BufferPpuTransfer
 .PROC Func_BufferPpuTransfer
-    stax T1T0  ; pointer to start of data to copy
-    sty T2  ; total number of bytes to copy
+    stax T1T0  ; pointer to start of transfer entries
     ldx Zp_PpuTransferLen_u8
     ldy #0
-    @loop:
-    lda (T1T0), y
+    beq @start  ; unconditional
+    @entryLoop:
+    iny
     sta Ram_PpuTransfer_arr, x
     inx
-    iny
-    cpy T2  ; total number of bytes to copy
-    blt @loop
+    lda #3  ; param: num bytes to copy
+    jsr _CopyBytes  ; returns A (param: num bytes to copy)
+    jsr _CopyBytes
+    @start:
+    lda (T1T0), y
+    bne @entryLoop
     stx Zp_PpuTransferLen_u8
+    rts
+_CopyBytes:
+    sta T2  ; num bytes to copy
+    @loop:
+    lda (T1T0), y
+    iny
+    sta Ram_PpuTransfer_arr, x
+    inx
+    dec T2  ; loop counter
+    bne @loop
+    rts
+.ENDPROC
+
+;;; Writes an array of one or more PPU transfer entries (terminated by a zero
+;;; byte) directly to the PPU.
+;;; @prereq Rendering is disabled.
+;;; @param AX Pointer to the start of the transfer entry(ies) to copy.
+;;; @preserve T2+
+.EXPORT Func_DirectPpuTransfer
+.PROC Func_DirectPpuTransfer
+    stax T1T0  ; pointer to start of transfer entries
+    ldy #0
+    beq @start  ; unconditional
+    @entryLoop:
+    iny
+    sta Hw_PpuCtrl_wo
+    .repeat 2
+    lda (T1T0), y
+    sta Hw_PpuAddr_w2
+    iny
+    .endrepeat
+    lda (T1T0), y
+    iny
+    tax  ; transfer length in bytes
+    @dataLoop:
+    lda (T1T0), y
+    iny
+    sta Hw_PpuData_rw
+    dex
+    bne @dataLoop
+    @start:
+    lda (T1T0), y
+    bne @entryLoop
     rts
 .ENDPROC
 

@@ -70,6 +70,7 @@
 .IMPORT Func_AckIrqAndLatchWindowFromParam4
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_BufferPpuTransfer
+.IMPORT Func_DirectPpuTransfer
 .IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_FindActorWithType
 .IMPORT Func_FindEmptyActorSlot
@@ -564,44 +565,35 @@ _Devices_sDevice_arr:
     .byte 0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 9, 8
 .ENDPROC
 
-.PROC DataC_Boss_CityBlinkTransfer_arr
+.PROC DataC_Boss_CityBlink_sXfer_arr
     ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow2Start + 3  ; transfer destination
-    .byte 2
-    .byte $70, $71
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow2Start + 3
+    d_xfer_data $70, $71
     ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow3Start + 3  ; transfer destination
-    .byte 2
-    .byte $72, $73
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow3Start + 3
+    d_xfer_data $72, $73
+    d_xfer_terminator
 .ENDPROC
 
-.PROC DataC_Boss_CityUnblinkTransfer_arr
+.PROC DataC_Boss_CityUnblink_sXfer_arr
     ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow2Start + 3  ; transfer destination
-    .byte 2
-    .byte $52, $53
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow2Start + 3
+    d_xfer_data $52, $53
     ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow3Start + 3  ; transfer destination
-    .byte 2
-    .byte $58, $59
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow3Start + 3
+    d_xfer_data $58, $59
+    d_xfer_terminator
 .ENDPROC
 
-.PROC DataC_Boss_BossCityBodyTransfer_arr
+.PROC DataC_Boss_BossCityBody_sXfer_arr
     .assert kTileIdBgBossCityFirst = $40, error
-    ;; Col 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow1Start + 2  ; transfer destination
-    .byte 4
-    .byte $40, $41, $42, $43
-    ;; Col 4:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow4Start + 2  ; transfer destination
-    .byte 4
-    .byte $44, $45, $46, $47
+    ;; Row 1:
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow1Start + 2
+    d_xfer_data $40, $41, $42, $43
+    ;; Row 4:
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow4Start + 2
+    d_xfer_data $44, $45, $46, $47
+    d_xfer_terminator
 .ENDPROC
 
 ;;; Buffers a PPU transfer to draw the BG tiles for the city boss's body,
@@ -611,8 +603,7 @@ _Devices_sDevice_arr:
 ;;; @preserve T3+
 .PROC FuncC_Boss_CityTransferBodyTiles
     ;; Buffer a transfer for the boss's body at full health.
-    ldax #DataC_Boss_BossCityBodyTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataC_Boss_BossCityBodyTransfer_arr)  ; param: data length
+    ldax #DataC_Boss_BossCityBody_sXfer_arr  ; param: data pointer
     jsr Func_BufferPpuTransfer  ; preserves T3+
     ;; For each point of damage on the boss, alter one of the body tiles in the
     ;; transfer buffer to be injured.
@@ -671,17 +662,12 @@ _BossHurt:
     and #$02
     beq @unblink
     @blink:
-    ldax #DataC_Boss_CityBlinkTransfer_arr  ; param: data pointer
-    .assert DataC_Boss_CityBlinkTransfer_arr >= $8000, error
+    ldax #DataC_Boss_CityBlink_sXfer_arr  ; param: data pointer
+    .assert DataC_Boss_CityBlink_sXfer_arr >= $8000, error
     bmi @doTransfer  ; unconditional
     @unblink:
-    ldax #DataC_Boss_CityUnblinkTransfer_arr  ; param: data pointer
+    ldax #DataC_Boss_CityUnblink_sXfer_arr  ; param: data pointer
     @doTransfer:
-    ldy #.sizeof(DataC_Boss_CityBlinkTransfer_arr)  ; param: data length
-    .linecont +
-    .assert .sizeof(DataC_Boss_CityUnblinkTransfer_arr) = \
-            .sizeof(DataC_Boss_CityBlinkTransfer_arr), error
-    .linecont -
     jsr Func_BufferPpuTransfer
     ;; Vibrate in place until the cooldown expires.
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -1257,52 +1243,39 @@ _Error:
 
 .SEGMENT "PRGA_Terrain"
 
-.PROC DataA_Terrain_BossCityInitTransfer_arr
+.PROC DataA_Terrain_BossCityInit_sXfer_arr
     .assert kBossBgWidthTiles = 8, error
     .assert kBossBgHeightTiles = 6, error
     ;; Row 0:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow0Start + 1  ; transfer destination
-    .byte 6
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow0Start + 1
     .assert kTileIdBgBossCityFirst = $40, error
-    .byte $5c, $5d, $5e, $5f, $60, $61
+    d_xfer_data $5c, $5d, $5e, $5f, $60, $61
     ;; Row 1:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow1Start  ; transfer destination
-    .byte 8
-    .byte $62, $63, $40, $41, $42, $43, $64, $65
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow1Start
+    d_xfer_data $62, $63, $40, $41, $42, $43, $64, $65
     ;; Row 2:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow2Start + 1  ; transfer destination
-    .byte 6
-    .byte $50, $51, $52, $53, $54, $55
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow2Start + 1
+    d_xfer_data $50, $51, $52, $53, $54, $55
     ;; Row 3:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow3Start + 1  ; transfer destination
-    .byte 6
-    .byte $56, $57, $58, $59, $5a, $5b
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow3Start + 1
+    d_xfer_data $56, $57, $58, $59, $5a, $5b
     ;; Row 4:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow4Start  ; transfer destination
-    .byte 8
-    .byte $66, $67, $44, $45, $46, $47, $68, $69
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow4Start
+    d_xfer_data $66, $67, $44, $45, $46, $47, $68, $69
     ;; Row 5:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossRow5Start + 1  ; transfer destination
-    .byte 6
-    .byte $6a, $6b, $6c, $6d, $6e, $6f
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossRow5Start + 1
+    d_xfer_data $6a, $6b, $6c, $6d, $6e, $6f
     ;; Attributes:
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_BossCoreAttrs  ; transfer destination
-    .byte 1
-    .byte $11
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_BossCoreAttrs
+    d_xfer_data $11
+    d_xfer_terminator
 .ENDPROC
 
 ;;; @prereq PRGC_Boss is loaded.
+;;; @prereq Rendering is disabled.
 .PROC FuncA_Terrain_BossCity_FadeInRoom
-    ldax #DataA_Terrain_BossCityInitTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Terrain_BossCityInitTransfer_arr)  ; param: data length
-    jsr Func_BufferPpuTransfer
+    ldax #DataA_Terrain_BossCityInit_sXfer_arr  ; param: data pointer
+    jsr Func_DirectPpuTransfer
     jmp FuncC_Boss_CityTransferBodyTiles
 .ENDPROC
 

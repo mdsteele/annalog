@@ -135,3 +135,62 @@ Ppu_BgPalettes_sPal_arr4  = $3f00
 Ppu_ObjPalettes_sPal_arr4 = $3f10
 
 ;;;=========================================================================;;;
+
+;;; Declares a PPU transfer entry header (not including the payload length).
+.MACRO d_xfer_header CTRL, ADDR
+    .byte CTRL
+    .dbyt ADDR
+.ENDMACRO
+
+;;; Declares a PPU transfer entry payload (including the payload length) for
+;;; the given list of bytes.
+.MACRO d_xfer_data B00, B01, B02, B03, B04, B05, B06, B07
+    .scope
+    .byte @dataEnd - @dataStart
+    @dataStart:
+    .if .paramcount > 0
+    .byte B00
+    .endif
+    .if .paramcount > 1
+    .byte B01
+    .endif
+    .if .paramcount > 2
+    .byte B02
+    .endif
+    .if .paramcount > 3
+    .byte B03
+    .endif
+    .if .paramcount > 4
+    .byte B04
+    .endif
+    .if .paramcount > 5
+    .byte B05
+    .endif
+    .if .paramcount > 6
+    .byte B06
+    .endif
+    .if .paramcount > 7
+    .byte B07
+    .endif
+    @dataEnd:
+    .endscope
+.ENDMACRO
+
+;;; Declares the end of a PPU transfer entry array.
+.MACRO d_xfer_terminator
+    .byte 0
+.ENDMACRO
+
+;;; Declares a complete PPU transfer entry for centering the given string on
+;;; the given tile row of the upper nametable.
+.MACRO d_xfer_text_row ROW, TEXT
+    .scope
+_row_start = Ppu_Nametable0_sName + kScreenWidthTiles * (ROW)
+_text_start = _row_start + (kScreenWidthTiles - .strlen(TEXT)) / 2
+    d_xfer_header kPpuCtrlFlagsHorz, _text_start
+    .byte .strlen(TEXT)
+    .byte TEXT
+    .endscope
+.ENDMACRO
+
+;;;=========================================================================;;;

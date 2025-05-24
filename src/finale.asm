@@ -32,8 +32,8 @@
 
 .IMPORT FuncA_Cutscene_TransferBlankBgTileColumn
 .IMPORT FuncM_SwitchPrgcAndLoadRoomWithMusic
-.IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOam
+.IMPORT Func_DirectPpuTransfer
 .IMPORT Func_FadeInFromBlackToNormal
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_FadeOutToBlackSlowly
@@ -332,17 +332,11 @@ _AvatarFlags_bObj_arr:
     D_END
 .ENDPROC
 
-;;; The PPU transfer entry for drawing the self-destruct finale "years later"
-;;; text.
-.PROC DataA_Cutscene_YearsLaterTextTransfer_arr
-    .linecont +
-    .byte kPpuCtrlFlagsHorz
-    .dbyt Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
-          kScreenWidthTiles * 14 + (kScreenWidthTiles - 20) / 2
-    .byte 20
-:   .byte "Seven years later..."
-    .assert * - :- = 20, error
-    .linecont -
+;;; The PPU transfer entry array for drawing the self-destruct finale "years
+;;; later" text.
+.PROC DataA_Cutscene_YearsLaterText_sXfer_arr
+    d_xfer_text_row 14, "Seven years later..."
+    d_xfer_terminator
 .ENDPROC
 
 ;;; Mode for displaying the "years later" text as part of the self-destruct
@@ -378,9 +372,8 @@ _FadeOutFromWhite:
 _DrawText:
     lda #<.bank(Ppu_ChrBgFontUpper)
     sta Zp_Chr04Bank_u8
-    ldax #DataA_Cutscene_YearsLaterTextTransfer_arr  ; param: data pointer
-    ldy #.sizeof(DataA_Cutscene_YearsLaterTextTransfer_arr)  ; param: data len
-    jsr Func_BufferPpuTransfer
+    ldax #DataA_Cutscene_YearsLaterText_sXfer_arr  ; param: data pointer
+    jsr Func_DirectPpuTransfer
     ldx #45  ; param: num frames
     jsr Func_WaitXFrames
 _FadeInText:
