@@ -45,19 +45,17 @@
 .IMPORT FuncA_Room_TurnSteamToSmokeIfConsoleOpen
 .IMPORT FuncA_Terrain_FadeInShortRoomWithLava
 .IMPORT Func_DistanceSensorRightDetectPoint
+.IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_EmitSteamUpFromPipe
+.IMPORT Func_FindActorWithType
 .IMPORT Func_MachineBoilerReadReg
 .IMPORT Func_Noop
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Ppu_ChrObjLava
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 
 ;;;=========================================================================;;;
-
-;;; The actor index for the solifuge baddie in this room.
-kSolifugeActorIndex = 0
 
 ;;; The machine index for the LavaCavernBoiler machine in this room.
 kBoilerMachineIndex = 0
@@ -139,7 +137,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $00b8
+    d_word Left_i16,  $00c8
     d_word Top_i16,   $00b0
     D_END
     ;; Valve:
@@ -157,7 +155,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00f8
+    d_word Left_i16,  $0100
     d_word Top_i16,   $00c0
     D_END
     ;; Right-hand pipe opening:
@@ -166,7 +164,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0148
+    d_word Left_i16,  $0150
     d_word Top_i16,   $00c0
     D_END
     ;; Pipes leading from valve down into lava:
@@ -204,8 +202,7 @@ _Platforms_sPlatform_arr:
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
-:   .assert * - :- = kSolifugeActorIndex * .sizeof(sActor), error
-    D_STRUCT sActor
+:   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadSolifuge
     d_word PosX_i16, $0138
     d_word PosY_i16, $00b8
@@ -244,21 +241,22 @@ _Passages_sPassage_arr:
     beq _ReadD
     jmp Func_MachineBoilerReadReg
 _ReadD:
-    lda #kBlockWidthPx * 9
+    lda #kBlockWidthPx * 10
     sta T0  ; param: minimum distance so far, in pixels
+    ;; Detect the player avatar.
     ldy #kSensorPlatformIndex  ; param: distance sensor platform index
     jsr Func_SetPointToAvatarCenter  ; preserves Y and T0+
     jsr Func_DistanceSensorRightDetectPoint  ; preserves Y, returns T0
-    lda Ram_ActorType_eActor_arr + kSolifugeActorIndex
-    .assert eActor::None = 0, error
-    beq @noSolifuge  ; the solifuge baddie is dead
-    ldx #kSolifugeActorIndex  ; param: actor index
+    ;; Detect the solifuge, if any.
+    lda #eActor::BadSolifuge  ; param: actor type to find
+    jsr Func_FindActorWithType  ; preserves Y and T0+, returns C and X
+    bcs @doneSolifuge  ; no solifuge baddie was found
     jsr Func_SetPointToActorCenter  ; preserves Y and T0+
     jsr Func_DistanceSensorRightDetectPoint  ; returns T0
-    @noSolifuge:
+    @doneSolifuge:
+    ;; Compute and return the register value.
     lda T0  ; minimum distance so far, in pixels
-    div #kBlockWidthPx
-    rts
+    jmp Func_DivAByBlockSizeAndClampTo9  ; returns A
 .ENDPROC
 
 ;;; @prereq PRGA_Objects is loaded.

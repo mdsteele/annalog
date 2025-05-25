@@ -141,7 +141,12 @@ kPaletteObjSteam = 0
 .EXPORT FuncA_Actor_TickProjSteamUp
 .PROC FuncA_Actor_TickProjSteamUp
     jsr FuncA_Actor_GetSteamAccel  ; preserves X, returns A
-    sta T3  ; accel
+    sta T3  ; 1x accel
+    asl a
+    sta T4  ; 2x accel (lo)
+    lda #0
+    rol a
+    sta T5  ; 2x accel (hi)
 _PushSolifuges:
     ldy #kMaxActors - 1
     @loop:
@@ -153,16 +158,10 @@ _PushSolifuges:
     bcc @continue
     ;; Accelerate the solifuge doubly upwards.
     lda Ram_ActorVelY_i16_0_arr, y
-    sub T3  ; accel
+    sub T4  ; 2x accel (lo)
     sta Ram_ActorVelY_i16_0_arr, y
     lda Ram_ActorVelY_i16_1_arr, y
-    sbc #0
-    sta Ram_ActorVelY_i16_1_arr, y
-    lda Ram_ActorVelY_i16_0_arr, y
-    sub T3  ; accel
-    sta Ram_ActorVelY_i16_0_arr, y
-    lda Ram_ActorVelY_i16_1_arr, y
-    sbc #0
+    sbc T5  ; 2x accel (hi)
     sta Ram_ActorVelY_i16_1_arr, y
     lda #bBadSolifuge::Steamed
     sta Ram_ActorState1_byte_arr, y  ; bBadSolifuge value
@@ -181,7 +180,7 @@ _PushAvatar:
     and #<~bAvatar::Jumping
     sta Zp_AvatarState_bAvatar
     lda Zp_AvatarVelY_i16 + 0
-    sub T3  ; accel
+    sub T3  ; 1x accel
     sta Zp_AvatarVelY_i16 + 0
     lda Zp_AvatarVelY_i16 + 1
     sbc #0
