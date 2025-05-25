@@ -109,10 +109,10 @@
 .IMPORT Func_GetRandomByte
 .IMPORT Func_HarmAvatar
 .IMPORT Func_InitActorBadGronta
-.IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorNpcOrc
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_InitActorSmokeFragment
+.IMPORT Func_InitActorSmokeParticleStationary
 .IMPORT Func_IsActorWithinHorzDistanceOfPoint
 .IMPORT Func_IsActorWithinVertDistancesOfPoint
 .IMPORT Func_IsFlagSet
@@ -704,8 +704,7 @@ _MachineHits:
     bne @continueFireblastLoop
     jsr FuncC_Core_Boss_DoesProjectileHitGrontaPoint  ; preserves X, returns C
     bcc @continueFireblastLoop
-    ldy #eActor::SmokeParticle  ; param: actor type
-    jsr Func_InitActorDefault
+    jsr Func_InitActorSmokeParticleStationary
     ldx #kBlasterMachineIndex  ; param: machine index
     jmp FuncC_Core_Boss_MachineHitGronta
     @continueFireblastLoop:

@@ -28,6 +28,7 @@
 .IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
+.IMPORT Func_InitActorSmokeParticleStationary
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -81,8 +82,7 @@ _ApplyGravity:
     lda #kEmberTerminalVelocity  ; param: terminal velocity
     jmp FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
 _TurnToSmoke:
-    ldy #eActor::SmokeParticle  ; param: actor type
-    jmp Func_InitActorDefault  ; preserves X
+    jmp Func_InitActorSmokeParticleStationary  ; preserves X
 _Remove:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr, x

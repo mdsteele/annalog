@@ -31,7 +31,7 @@
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_EmitSteamFromPipe
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorDefault
+.IMPORT Func_InitActorSmokeParticleStationary
 .IMPORT Func_InitActorWithState1
 .IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
@@ -197,13 +197,12 @@ _HandleCollision:
 .ENDPROC
 
 
-;;; Expires a fireball or fireblast projectile, replacing it with a motionless
+;;; Expires a fireball or fireblast projectile, replacing it with a stationary
 ;;; smoke particle.
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_ExpireProjFireballOrFireblast
-    ldy #eActor::SmokeParticle  ; param: actor type
-    jmp Func_InitActorDefault  ; preserves X
+    jmp Func_InitActorSmokeParticleStationary  ; preserves X
 .ENDPROC
 
 ;;; Removes a fireball or fireblast projectile without creating a smoke

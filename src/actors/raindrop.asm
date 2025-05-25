@@ -27,7 +27,7 @@
 .IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
-.IMPORT Func_InitActorSmokeParticle
+.IMPORT Func_InitActorSmokeParticleMovingUp
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 
@@ -76,8 +76,7 @@ _Expire:
     sta Ram_ActorType_eActor_arr, x
     rts
 _Evaporate:
-    lda #$c0  ; param: angle ($c0 = up)
-    jmp Func_InitActorSmokeParticle
+    jmp Func_InitActorSmokeParticleMovingUp
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -47,16 +47,35 @@ kPaletteObjParticle = 0
 
 .SEGMENT "PRG8"
 
-;;; Initializes the specified actor as a smoke particle.
+;;; Initializes the specified actor as a stationary smoke particle.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.EXPORT Func_InitActorSmokeParticleStationary
+.PROC Func_InitActorSmokeParticleStationary
+    ldy #eActor::SmokeParticle  ; param: actor type
+    jmp Func_InitActorDefault  ; preserves X and T0+
+.ENDPROC
+
+;;; Initializes the specified actor as a smoke particle that moves upwards.
+;;; @prereq The actor's pixel position has already been initialized.
+;;; @param X The actor index.
+;;; @preserve X, T3+
+.EXPORT Func_InitActorSmokeParticleMovingUp
+.PROC Func_InitActorSmokeParticleMovingUp
+    lda #$c0  ; param: angle
+    fall Func_InitActorSmokeParticleMoving  ; preserves X and T3+
+.ENDPROC
+
+;;; Initializes the specified actor as a smoke particle that moves at the
+;;; given angle.
 ;;; @prereq The actor's pixel position has already been initialized.
 ;;; @param A The angle to move at, measured in increments of tau/256.
 ;;; @param X The actor index.
 ;;; @preserve X, T3+
-.EXPORT Func_InitActorSmokeParticle
-.PROC Func_InitActorSmokeParticle
+.PROC Func_InitActorSmokeParticleMoving
     pha  ; angle
-    ldy #eActor::SmokeParticle  ; param: actor type
-    jsr Func_InitActorDefault  ; preserves X and T0+
+    jsr Func_InitActorSmokeParticleStationary  ; preserves X and T0+
     ldy #kParticleSpeed  ; param: speed
     pla  ; param: angle
     jmp Func_SetActorVelocityPolar  ; preserves X and T3+
@@ -78,7 +97,7 @@ kPaletteObjParticle = 0
     jsr Func_SetActorCenterToPoint  ; preserves X, Y, and T0+
     sty T3  ; old Y value (just to preserve it)
     lda T0  ; param: angle
-    jsr Func_InitActorSmokeParticle  ; preserves T3+
+    jsr Func_InitActorSmokeParticleMoving  ; preserves T3+
     ldy T3  ; old Y value (just to preserve it)
     @done:
     rts

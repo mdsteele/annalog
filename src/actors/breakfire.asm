@@ -31,7 +31,7 @@
 .IMPORT FuncA_Objects_MoveShapeLeftHalfTile
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
-.IMPORT Func_InitActorSmokeParticle
+.IMPORT Func_InitActorSmokeParticleMovingUp
 .IMPORT Func_InitActorWithState1
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_PlaySfxFireBurning
@@ -138,8 +138,7 @@ _Finish:
     @noSound:
     jmp FuncA_Actor_HarmAvatarIfCollision  ; preserves X
 _Expire:
-    lda #$c0  ; param: angle ($c0 = up)
-    jmp Func_InitActorSmokeParticle  ; preserves X
+    jmp Func_InitActorSmokeParticleMovingUp  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

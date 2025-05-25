@@ -44,8 +44,8 @@
 .IMPORT Func_DivMod
 .IMPORT Func_GetRandomByte
 .IMPORT Func_HarmAvatar
-.IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
+.IMPORT Func_InitActorSmokeParticleStationary
 .IMPORT Func_IsAvatarInPlatformHorz
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_KillAvatar
@@ -352,8 +352,7 @@ _Return:
     jsr Func_IsPointInPlatform  ; preserves X, returns C
     bcc @continue
     ;; Expire the fireball.
-    ldy #eActor::SmokeParticle  ; param: actor type
-    jsr Func_InitActorDefault  ; preserves X
+    jsr Func_InitActorSmokeParticleStationary  ; preserves X
     @continue:
     dex
     .assert kMaxActors <= $80, error

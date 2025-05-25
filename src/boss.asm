@@ -35,9 +35,9 @@
 .IMPORT FuncA_Room_SpawnUpgradeDevice
 .IMPORT Func_DivMod
 .IMPORT Func_GetRandomByte
-.IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
-.IMPORT Func_InitActorSmokeParticle
+.IMPORT Func_InitActorSmokeParticleMovingUp
+.IMPORT Func_InitActorSmokeParticleStationary
 .IMPORT Func_IsFlagSet
 .IMPORT Func_MarkRoomSafe
 .IMPORT Func_Noop
@@ -474,11 +474,9 @@ _ExpireBreakbomb:
 _ExpireEmber:
 _ExpireFireball:
 _ExpireSpine:
-    ldy #eActor::SmokeParticle  ; param: actor type
-    jmp Func_InitActorDefault  ; preserves X
+    jmp Func_InitActorSmokeParticleStationary  ; preserves X
 _ExpireBreakfire:
-    lda #$c0  ; param: angle ($c0 = up)
-    jmp Func_InitActorSmokeParticle  ; preserves X
+    jmp Func_InitActorSmokeParticleMovingUp  ; preserves X
 _ExpireBreakball:
 _ExpireEgg:
 _ExpireGrub:

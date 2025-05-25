@@ -34,8 +34,8 @@
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorProjFireblast
+.IMPORT Func_InitActorSmokeParticleStationary
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_PlaySfxShootFire
@@ -220,8 +220,7 @@ _Reflect:
     bne _Continue  ; unconditional
 _Remove:
     sty T0  ; mirror platform index
-    ldy #eActor::SmokeParticle  ; param: actor type
-    jsr Func_InitActorDefault  ; preserves X and T0+
+    jsr Func_InitActorSmokeParticleStationary  ; preserves X and T0+
     ldy T0  ; mirror platform index
 _Continue:
     dex
