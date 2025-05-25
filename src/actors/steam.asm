@@ -30,7 +30,6 @@
 .IMPORT FuncA_Objects_Draw2x1Actor
 .IMPORT Func_InitActorDefault
 .IMPORT Func_RemoveActor
-.IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
@@ -61,19 +60,14 @@ kPaletteObjSteam = 0
 
 .SEGMENT "PRG8"
 
-;;; Initializes the specified actor as a horizontal steam projectile.
+;;; Initializes the specified actor as a rightward steam projectile.
 ;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The facing direction (either 0 or bObj::FlipH).
 ;;; @param X The actor index.
 ;;; @preserve X, T0+
-.EXPORT Func_InitActorProjSteamHorz
-.PROC Func_InitActorProjSteamHorz
-    pha  ; facing dir
-    ldy #eActor::ProjSteamHorz  ; param: actor type
-    jsr Func_InitActorDefault  ; preserves X and T0+
-    pla  ; facing dir
-    sta Ram_ActorFlags_bObj_arr, x
-    rts
+.EXPORT Func_InitActorProjSteamRight
+.PROC Func_InitActorProjSteamRight
+    ldy #eActor::ProjSteamRight  ; param: actor type
+    jmp Func_InitActorDefault  ; preserves X and T0+
 .ENDPROC
 
 ;;; Initializes the specified actor as an upward steam projectile.
@@ -100,16 +94,16 @@ kPaletteObjSteam = 0
     ldx #kMaxActors - 1
     @loop:
     lda Ram_ActorType_eActor_arr, x
-    cmp #eActor::ProjSteamHorz
+    cmp #eActor::ProjSteamRight
     beq @change
     cmp #eActor::ProjSteamUp
     bne @continue
     @change:
     .linecont +
-    .assert eActor::SmokeSteamHorz - eActor::ProjSteamHorz = \
+    .assert eActor::SmokeSteamRight - eActor::ProjSteamRight = \
             eActor::SmokeSteamUp   - eActor::ProjSteamUp, error
     .linecont -
-    add #eActor::SmokeSteamHorz - eActor::ProjSteamHorz
+    add #eActor::SmokeSteamRight - eActor::ProjSteamRight
     sta Ram_ActorType_eActor_arr, x
     @continue:
     dex
@@ -126,30 +120,16 @@ kPaletteObjSteam = 0
 ;;; Performs per-frame updates for a horizontal steam projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickProjSteamHorz
-.PROC FuncA_Actor_TickProjSteamHorz
+.EXPORT FuncA_Actor_TickProjSteamRight
+.PROC FuncA_Actor_TickProjSteamRight
     ;; If the player avatar is in the steam, push them sideways.
     jsr FuncA_Actor_IsCollidingWithAvatar  ; preserves X, returns C
     bcc @noPush
     jsr FuncA_Actor_GetSteamAccel  ; preserves X, returns A
-    sta T0
-    lda Ram_ActorFlags_bObj_arr, x
-    and #bObj::FlipH
-    beq @pushRight
-    @pushLeft:
-    lda Zp_AvatarVelX_i16 + 0
-    sub T0  ; accel
+    add Zp_AvatarVelX_i16 + 0
     sta Zp_AvatarVelX_i16 + 0
-    lda Zp_AvatarVelX_i16 + 1
-    sbc #0
-    sta Zp_AvatarVelX_i16 + 1
-    jmp FuncA_Actor_IncrementSteamAge  ; preserves X
-    @pushRight:
-    lda Zp_AvatarVelX_i16 + 0
-    add T0  ; accel
-    sta Zp_AvatarVelX_i16 + 0
-    lda Zp_AvatarVelX_i16 + 1
-    adc #0
+    lda #0
+    adc Zp_AvatarVelX_i16 + 1
     sta Zp_AvatarVelX_i16 + 1
     @noPush:
     jmp FuncA_Actor_IncrementSteamAge  ; preserves X
@@ -257,7 +237,7 @@ _PushAvatar:
 ;;; Performs per-frame updates for a horizontal steam smoke actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Actor_TickSmokeSteamHorz := FuncA_Actor_IncrementSteamAge
+.EXPORT FuncA_Actor_TickSmokeSteamRight := FuncA_Actor_IncrementSteamAge
 
 ;;; Performs per-frame updates for an upward steam smoke actor.
 ;;; @param X The actor index.
@@ -271,8 +251,8 @@ _PushAvatar:
 ;;; Draws a horizontal steam projectile actor.
 ;;; @param X The actor index.
 ;;; @preserve X
-.EXPORT FuncA_Objects_DrawActorProjSteamHorz
-.PROC FuncA_Objects_DrawActorProjSteamHorz
+.EXPORT FuncA_Objects_DrawActorProjSteamRight
+.PROC FuncA_Objects_DrawActorProjSteamRight
     lda Ram_ActorState1_byte_arr, x  ; steam age in frames
     .assert kSteamNumFrames = kSteamNumAnimShapes * kSteamAnimSlowdown, error
     div #kSteamAnimSlowdown
@@ -302,8 +282,8 @@ _PushAvatar:
 ;;; @param X The actor index.
 ;;; @preserve X
 .LINECONT +
-.EXPORT FuncA_Objects_DrawActorSmokeSteamHorz := \
-    FuncA_Objects_DrawActorProjSteamHorz
+.EXPORT FuncA_Objects_DrawActorSmokeSteamRight := \
+    FuncA_Objects_DrawActorProjSteamRight
 .LINECONT -
 
 ;;; Draws an upward steam smoke actor.

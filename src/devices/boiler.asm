@@ -23,7 +23,7 @@
 .INCLUDE "boiler.inc"
 
 .IMPORT Func_FindEmptyActorSlot
-.IMPORT Func_InitActorProjSteamHorz
+.IMPORT Func_InitActorProjSteamRight
 .IMPORT Func_InitActorProjSteamUp
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_MovePointUpByA
@@ -65,8 +65,7 @@
     lda #kTileWidthPx * 3 / 2  ; param: offset
     jsr Func_MovePointRightByA  ; preserves X and T0+
     jsr Func_SetActorCenterToPoint  ; preserves X and T0+
-    lda #0  ; param: facing dir
-    jmp Func_InitActorProjSteamHorz  ; preserves T0+
+    jmp Func_InitActorProjSteamRight  ; preserves T0+
 .ENDPROC
 
 ;;; Given an 8x8 pixel platform covering the end tile of an upward-facing pipe,

@@ -18,9 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for steam projectiles/smoke:
-;;;   * Flags: For horizontal steam, the bObj::FlipH bit is set if the steam is
-;;;     aimed leftward, or cleared if it is aimed rightward.  Unused for upward
-;;;     steam.
+;;;   * Flags: Unused.
 ;;;   * State1: Counter that starts at zero and increments every frame; when it
 ;;;     reaches kSteamNumFrames, then the steam is removed.
 ;;;   * State2: Unused.

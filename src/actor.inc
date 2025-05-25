@@ -82,7 +82,7 @@ kMaxActors = 16
     ProjRocket       ; shot by launcher machines
     ProjSpike        ; a falling spike dropped by the garden boss
     ProjSpine        ; a spine shot by the city boss
-    ProjSteamHorz    ; emitted horizontally from boiler machine pipes
+    ProjSteamRight   ; emitted horizontally from boiler machine pipes
     ProjSteamUp      ; emitted vertically from boiler machine pipes
     SmokeAxe         ; an axe thrown by Gronta in a cutscene
     SmokeBeam        ; a core beam in one of the finale cutscenes
@@ -92,8 +92,8 @@ kMaxActors = 16
     SmokeFragment    ; a fragment that falls under gravity
     SmokeParticle    ; a single particle of smoke
     SmokeRaindrop    ; a falling drop of water
-    SmokeSteamHorz   ; like ProjSteamHorz, but without any physics interactions
-    SmokeSteamUp     ; like ProjSteamUp, but without any physics interactions
+    SmokeSteamRight  ; like ProjSteamRight, but without physics interactions
+    SmokeSteamUp     ; like ProjSteamUp, but without physics interactions
     SmokeWaterfall   ; pours out of a water pipe
     ;; @end SORTED
     NUM_VALUES

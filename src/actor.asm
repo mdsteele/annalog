@@ -76,7 +76,7 @@
 .IMPORT FuncA_Actor_TickProjRocket
 .IMPORT FuncA_Actor_TickProjSpike
 .IMPORT FuncA_Actor_TickProjSpine
-.IMPORT FuncA_Actor_TickProjSteamHorz
+.IMPORT FuncA_Actor_TickProjSteamRight
 .IMPORT FuncA_Actor_TickProjSteamUp
 .IMPORT FuncA_Actor_TickSmokeAxe
 .IMPORT FuncA_Actor_TickSmokeBeam
@@ -86,7 +86,7 @@
 .IMPORT FuncA_Actor_TickSmokeFragment
 .IMPORT FuncA_Actor_TickSmokeParticle
 .IMPORT FuncA_Actor_TickSmokeRaindrop
-.IMPORT FuncA_Actor_TickSmokeSteamHorz
+.IMPORT FuncA_Actor_TickSmokeSteamRight
 .IMPORT FuncA_Actor_TickSmokeSteamUp
 .IMPORT FuncA_Actor_TickSmokeWaterfall
 .IMPORT FuncA_Objects_DrawActorBadBat
@@ -144,7 +144,7 @@
 .IMPORT FuncA_Objects_DrawActorProjRocket
 .IMPORT FuncA_Objects_DrawActorProjSpike
 .IMPORT FuncA_Objects_DrawActorProjSpine
-.IMPORT FuncA_Objects_DrawActorProjSteamHorz
+.IMPORT FuncA_Objects_DrawActorProjSteamRight
 .IMPORT FuncA_Objects_DrawActorProjSteamUp
 .IMPORT FuncA_Objects_DrawActorSmokeBeam
 .IMPORT FuncA_Objects_DrawActorSmokeBlood
@@ -153,7 +153,7 @@
 .IMPORT FuncA_Objects_DrawActorSmokeFragment
 .IMPORT FuncA_Objects_DrawActorSmokeParticle
 .IMPORT FuncA_Objects_DrawActorSmokeRaindrop
-.IMPORT FuncA_Objects_DrawActorSmokeSteamHorz
+.IMPORT FuncA_Objects_DrawActorSmokeSteamRight
 .IMPORT FuncA_Objects_DrawActorSmokeSteamUp
 .IMPORT FuncA_Objects_DrawActorSmokeWaterfall
 .IMPORT FuncA_Room_InitActorBadBird
@@ -550,7 +550,7 @@ _NoHit:
     d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSpike,       kProjSpikeRadius
     d_byte ProjSpine,       kProjSpineRadius
-    d_byte ProjSteamHorz,   kSteamMinorRadius
+    d_byte ProjSteamRight,  kSteamMinorRadius
     d_byte ProjSteamUp,     kSteamMajorRadius
     d_byte SmokeAxe,        kProjAxeRadius
     d_byte SmokeBeam,        1
@@ -560,7 +560,7 @@ _NoHit:
     d_byte SmokeFragment,   kSmokeFragmentRadius
     d_byte SmokeParticle,   kSmokeParticleRadius
     d_byte SmokeRaindrop,    2
-    d_byte SmokeSteamHorz,  kSteamMinorRadius
+    d_byte SmokeSteamRight, kSteamMinorRadius
     d_byte SmokeSteamUp,    kSteamMajorRadius
     d_byte SmokeWaterfall,   0
     D_END
@@ -624,7 +624,7 @@ _NoHit:
     d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSpike,       kProjSpikeRadius
     d_byte ProjSpine,       kProjSpineRadius
-    d_byte ProjSteamHorz,   kSteamMinorRadius
+    d_byte ProjSteamRight,  kSteamMinorRadius
     d_byte ProjSteamUp,     kSteamMajorRadius
     d_byte SmokeAxe,        kProjAxeRadius
     d_byte SmokeBeam,        1
@@ -634,7 +634,7 @@ _NoHit:
     d_byte SmokeFragment,   kSmokeFragmentRadius
     d_byte SmokeParticle,   kSmokeParticleRadius
     d_byte SmokeRaindrop,    2
-    d_byte SmokeSteamHorz,  kSteamMinorRadius
+    d_byte SmokeSteamRight, kSteamMinorRadius
     d_byte SmokeSteamUp,    kSteamMajorRadius
     d_byte SmokeWaterfall,   8
     D_END
@@ -698,7 +698,7 @@ _NoHit:
     d_byte ProjRocket,      kProjRocketRadius
     d_byte ProjSpike,       kProjSpikeRadius
     d_byte ProjSpine,       kProjSpineRadius
-    d_byte ProjSteamHorz,   kSteamMajorRadius
+    d_byte ProjSteamRight,  kSteamMajorRadius
     d_byte ProjSteamUp,     kSteamMinorRadius
     d_byte SmokeAxe,        kProjAxeRadius
     d_byte SmokeBeam,        1
@@ -708,7 +708,7 @@ _NoHit:
     d_byte SmokeFragment,   kSmokeFragmentRadius
     d_byte SmokeParticle,   kSmokeParticleRadius
     d_byte SmokeRaindrop,    1
-    d_byte SmokeSteamHorz,  kSteamMajorRadius
+    d_byte SmokeSteamRight, kSteamMajorRadius
     d_byte SmokeSteamUp,    kSteamMinorRadius
     d_byte SmokeWaterfall,   4
     D_END
@@ -840,7 +840,7 @@ _TypeSpecificTick:
     d_entry table, ProjRocket,      FuncA_Actor_TickProjRocket
     d_entry table, ProjSpike,       FuncA_Actor_TickProjSpike
     d_entry table, ProjSpine,       FuncA_Actor_TickProjSpine
-    d_entry table, ProjSteamHorz,   FuncA_Actor_TickProjSteamHorz
+    d_entry table, ProjSteamRight,  FuncA_Actor_TickProjSteamRight
     d_entry table, ProjSteamUp,     FuncA_Actor_TickProjSteamUp
     d_entry table, SmokeAxe,        FuncA_Actor_TickSmokeAxe
     d_entry table, SmokeBeam,       FuncA_Actor_TickSmokeBeam
@@ -850,7 +850,7 @@ _TypeSpecificTick:
     d_entry table, SmokeFragment,   FuncA_Actor_TickSmokeFragment
     d_entry table, SmokeParticle,   FuncA_Actor_TickSmokeParticle
     d_entry table, SmokeRaindrop,   FuncA_Actor_TickSmokeRaindrop
-    d_entry table, SmokeSteamHorz,  FuncA_Actor_TickSmokeSteamHorz
+    d_entry table, SmokeSteamRight, FuncA_Actor_TickSmokeSteamRight
     d_entry table, SmokeSteamUp,    FuncA_Actor_TickSmokeSteamUp
     d_entry table, SmokeWaterfall,  FuncA_Actor_TickSmokeWaterfall
     D_END
@@ -1092,7 +1092,7 @@ _Finish:
     d_entry table, ProjRocket,      FuncA_Objects_DrawActorProjRocket
     d_entry table, ProjSpike,       FuncA_Objects_DrawActorProjSpike
     d_entry table, ProjSpine,       FuncA_Objects_DrawActorProjSpine
-    d_entry table, ProjSteamHorz,   FuncA_Objects_DrawActorProjSteamHorz
+    d_entry table, ProjSteamRight,  FuncA_Objects_DrawActorProjSteamRight
     d_entry table, ProjSteamUp,     FuncA_Objects_DrawActorProjSteamUp
     d_entry table, SmokeAxe,        FuncA_Objects_DrawActorProjAxe
     d_entry table, SmokeBeam,       FuncA_Objects_DrawActorSmokeBeam
@@ -1102,7 +1102,7 @@ _Finish:
     d_entry table, SmokeFragment,   FuncA_Objects_DrawActorSmokeFragment
     d_entry table, SmokeParticle,   FuncA_Objects_DrawActorSmokeParticle
     d_entry table, SmokeRaindrop,   FuncA_Objects_DrawActorSmokeRaindrop
-    d_entry table, SmokeSteamHorz,  FuncA_Objects_DrawActorSmokeSteamHorz
+    d_entry table, SmokeSteamRight, FuncA_Objects_DrawActorSmokeSteamRight
     d_entry table, SmokeSteamUp,    FuncA_Objects_DrawActorSmokeSteamUp
     d_entry table, SmokeWaterfall,  FuncA_Objects_DrawActorSmokeWaterfall
     D_END
