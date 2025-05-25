@@ -114,6 +114,7 @@
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxBaddieJump
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxMenuConfirm
 .IMPORT Func_PlaySfxMenuMove
@@ -608,7 +609,6 @@ _FinalTerminal:
 
 ;;; Make the specified orc actor jump to the left.
 ;;; @param X The actor index.
-;;; @preserve X, Y, T0+
 .PROC FuncC_Town_Outdoors_MakeOrcJump
     lda #eBadOrc::Jumping
     sta Ram_ActorState1_byte_arr, x  ; current mode
@@ -620,7 +620,7 @@ _FinalTerminal:
     sta Ram_ActorVelY_i16_0_arr, x
     lda #>kOrcJumpVelocity
     sta Ram_ActorVelY_i16_1_arr, x
-    rts
+    jmp Func_PlaySfxBaddieJump
 .ENDPROC
 
 ;;;=========================================================================;;;

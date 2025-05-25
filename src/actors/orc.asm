@@ -46,6 +46,7 @@
 .IMPORT FuncA_Actor_NegateVelX
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_SetVelXForward
+.IMPORT FuncA_Actor_SetVelYUpOrDown
 .IMPORT FuncA_Actor_ZeroVelX
 .IMPORT FuncA_Objects_BobActorShapePosUpAndDown
 .IMPORT FuncA_Objects_Draw2x1Shape
@@ -65,6 +66,7 @@
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxBaddieJump
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_PlaySfxThump
 .IMPORT Func_RemoveActor
@@ -113,9 +115,11 @@ kGrontaThrowWindupFrames = 15
 kGrontaThrowCatchFrames = 15
 
 ;;; How many pixels in front of its center an orc baddie actor checks for solid
-;;; terrain to see if it needs to stop, when chasing/patrolling.
-kOrcChaseStopDistance = 10
-kOrcPatrolStopDistance = 20
+;;; terrain to see if it needs to stop or jump, when chasing/patrolling.
+kOrcChaseStopDistance = 9
+kOrcPatrolStopDistance = 15
+kOrcHopDownDistance = 15
+kOrcHopUpDistance = 20
 
 ;;; The horizontal acceleration applied to an orc baddie actor when it's
 ;;; chasing the player avatar, in subpixels per frame per frame.
@@ -748,6 +752,8 @@ _StartChasing:
     sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
     jmp FuncA_Actor_ZeroVelX  ; preserves X
 _StillPatrolling:
+    jsr FuncA_Actor_TickBadOrc_MaybeHopDown  ; preserves X, returns C
+    bcs _Return  ; orc jumped
     jsr FuncA_Actor_TickBadOrc_AccelerateForward  ; preserves X
     ;; Turn around if blocked.
     lda #kOrcPatrolStopDistance  ; param: look-ahead distance
@@ -758,6 +764,8 @@ _StillPatrolling:
     @done:
 _WatchForAvatar:
     jmp FuncA_Actor_TickBadOrc_StartChasingAvatarIfNear  ; preserves X
+_Return:
+    rts
 .ENDPROC
 
 ;;; Performs per-frame updates for an orc baddie actor that's in Chasing mode.
@@ -794,8 +802,59 @@ _StopIfBlocked:
     bcc @done
     jsr FuncA_Actor_ZeroVelX  ; preserves X
     @done:
-_MaybeJump:
-    ;; TODO: sometimes jump at player avatar
+_MaybeHopUp:
+    lda #kOrcHopUpDistance  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
+    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
+    ;; Check the wall in front of the orc's feet.
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
+    blt @done  ; no wall in front of feet, so nothing to jump onto
+    ;; Check the wall in front of the orc's head.
+    dey
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
+    bge @done  ; wall in front of head, so cannot jump up
+    ;; Jump up onto the wall.
+    ldya #$ffff & -600 ; param: initial vertical velocity
+    jmp FuncA_Actor_TickBadOrc_JumpForward  ; preserves X
+    @done:
+_MaybeHopDown:
+    fall FuncA_Actor_TickBadOrc_MaybeHopDown  ; preserves X
+.ENDPROC
+
+;;; Makes the orc baddie actor hop down if there's a one-block-high cliff
+;;; ahead.
+;;; @param X The actor index.
+;;; @return C Set if the orc jumped.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_MaybeHopDown
+    lda #kOrcHopDownDistance  ; param: offset
+    jsr FuncA_Actor_SetPointInFrontOfActor  ; preserves X
+    jsr Func_GetTerrainColumnPtrForPointX  ; preserves X
+    jsr FuncA_Actor_GetRoomBlockRow  ; preserves X, returns Y
+    ;; Check the wall in front of the orc's feet.
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
+    bge _DoNotJump  ; solid wall in front of feet, so cannot hop down
+    ;; Check the floor ahead.
+    iny
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
+    bge _DoNotJump  ; solid floor ahead, so cannot hop down
+    ;; Check the floor one block below.
+    iny
+    lda (Zp_TerrainColumn_u8_arr_ptr), y
+    cmp Zp_Current_sTileset + sTileset::FirstSolidTerrainType_u8
+    blt _DoNotJump  ; cliff bottom ahead is too far down
+_HopDown:
+    ldya #$ffff & -300 ; param: initial vertical velocity
+    jsr FuncA_Actor_TickBadOrc_JumpForward  ; preserves X
+    sec  ; set C to indicate that the orc jumped
+    rts
+_DoNotJump:
+    clc  ; clear C to indicate that the orc didn't jump
     rts
 .ENDPROC
 
@@ -936,6 +995,20 @@ _IsBlocked:
     jsr FuncA_Actor_AccelerateForward  ; preserves X
     ldya #kOrcMaxRunSpeed  ; param: max speed
     jmp FuncA_Actor_ClampVelX  ; preserves X
+.ENDPROC
+
+;;; Makes the orc baddie jump forward from its current facing direction, with
+;;; the given (negative) vertical velocity.
+;;; @param YA The initial vertical velocity (must be negative).
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadOrc_JumpForward
+    jsr FuncA_Actor_SetVelYUpOrDown  ; preserves X
+    ldya #$0100 ; param: speed
+    jsr FuncA_Actor_SetVelXForward  ; preserves X
+    lda #eBadOrc::Jumping
+    sta Ram_ActorState1_byte_arr, x
+    jmp Func_PlaySfxBaddieJump  ; preserves X
 .ENDPROC
 
 ;;; Performs per-frame updates for an orc or Gronta actor that's airborne.
