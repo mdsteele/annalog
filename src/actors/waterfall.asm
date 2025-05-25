@@ -31,13 +31,13 @@
 .IMPORT FuncA_Objects_MoveShapeUpHalfTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_InitActorWithState1
+.IMPORT Func_RemoveActor
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorState4_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_FrameCounter_u8
@@ -95,9 +95,7 @@ _RemoveIfBelowWater:
     lda Ram_PlatformTop_i16_1_arr, y
     sbc Ram_ActorPosY_i16_1_arr, x
     beq @done
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
     @done:
 _ClampHeight:
     lda T0  ; distance to water

@@ -29,9 +29,9 @@
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeParticleStationary
+.IMPORT Func_RemoveActor
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 
 ;;;=========================================================================;;;
 
@@ -84,9 +84,7 @@ _ApplyGravity:
 _TurnToSmoke:
     jmp Func_InitActorSmokeParticleStationary  ; preserves X
 _Remove:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

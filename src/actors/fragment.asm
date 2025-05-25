@@ -24,8 +24,8 @@
 .IMPORT FuncA_Actor_ApplyGravity
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorWithState1
+.IMPORT Func_RemoveActor
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 
 ;;;=========================================================================;;;
 
@@ -63,9 +63,7 @@ kPaletteObjFragment = 0
     beq _Expire
     jmp FuncA_Actor_ApplyGravity  ; preserves X
 _Expire:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -29,6 +29,7 @@
 .IMPORT FuncA_Objects_Draw1x2Actor
 .IMPORT FuncA_Objects_Draw2x1Actor
 .IMPORT Func_InitActorDefault
+.IMPORT Func_RemoveActor
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -227,8 +228,7 @@ _PushAvatar:
     lda Ram_ActorState1_byte_arr, x  ; steam age in frames
     cmp #kSteamNumFrames
     blt @done
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
+    jmp Func_RemoveActor  ; preserves X
     @done:
     rts
 .ENDPROC

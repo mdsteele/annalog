@@ -25,9 +25,9 @@
 .IMPORT FuncA_Actor_ApplyGravity
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
+.IMPORT Func_RemoveActor
 .IMPORT Func_SetActorVelocityPolar
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 
 ;;;=========================================================================;;;
 
@@ -74,9 +74,7 @@ kPaletteObjDirt = 0
     bge _Expire
     jmp FuncA_Actor_ApplyGravity  ; preserves X
 _Expire:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

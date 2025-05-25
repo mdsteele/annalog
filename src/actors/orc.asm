@@ -67,6 +67,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_PlaySfxThump
+.IMPORT Func_RemoveActor
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToActorCenter
@@ -653,8 +654,7 @@ _Done:
     ;; Remove the orc once it leaves the room.
     jsr FuncA_Actor_IsInRoomBounds  ; preserves X, returns C
     bcs @done  ; still in the room
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
+    jmp Func_RemoveActor  ; preserves X
     @done:
     rts
 .ENDPROC

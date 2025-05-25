@@ -254,6 +254,16 @@ Ram_ActorState4_byte_arr: .res kMaxActors
 
 .SEGMENT "PRG8"
 
+;;; Removes the specified actor from the room.
+;;; @param X The actor index.
+;;; @preserve X, Y, T0+
+.EXPORT Func_RemoveActor
+.PROC Func_RemoveActor
+    lda #eActor::None  ; param: actor type to find
+    sta Ram_ActorType_eActor_arr, x
+    rts
+.ENDPROC
+
 ;;; Returns the index of the last empty actor slot (if any), or sets the C flag
 ;;; if all actor slots are full.
 ;;; @return C Set if all slots were full; cleared if an empty slot was found.

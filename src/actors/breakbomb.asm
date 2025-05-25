@@ -31,11 +31,11 @@
 .IMPORT Func_GetRandomByte
 .IMPORT Func_InitActorDefault
 .IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_RemoveActor
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_0_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
@@ -106,9 +106,7 @@ _InitVelX:
 _ExpireIfTooOld:
     inc Ram_ActorState1_byte_arr, x
     bne @done
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
     @done:
 _ExplodeIfHitsTerrain:
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
@@ -129,7 +127,7 @@ _ExplodeIfHitsTerrain:
     jsr Func_PlaySfxExplodeBig  ; preserves X
     jsr Func_GetRandomByte  ; preserves X, returns A
     and #bObj::FlipH  ; param: flags
-    jsr FuncA_Actor_InitActorProjBreakfire  ; preserves X
+    jmp FuncA_Actor_InitActorProjBreakfire  ; preserves X
     @done:
     rts
 .ENDPROC

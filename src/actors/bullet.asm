@@ -28,8 +28,8 @@
 .IMPORT FuncA_Actor_IsInRoomBounds
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
+.IMPORT Func_RemoveActor
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 
@@ -100,8 +100,7 @@ _VelY_i8_arr:
     jsr FuncA_Actor_CenterHitsTerrain  ; preserves X, returns C
     bcc _Done
 _Expire:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
+    jmp Func_RemoveActor  ; preserves X
 _Done:
     rts
 .ENDPROC

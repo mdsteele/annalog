@@ -36,9 +36,9 @@
 .IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_PlaySfxPoof
 .IMPORT Func_PointHitsTerrain
+.IMPORT Func_RemoveActor
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_PointY_i16
 
@@ -117,9 +117,7 @@ _Break:
     jsr Func_PlaySfxPoof  ; preserves X
     jmp Func_InitActorSmokeExplosion  ; preserves X
 _Remove:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

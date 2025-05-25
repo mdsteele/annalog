@@ -33,6 +33,7 @@
 .IMPORT Func_InitActorWithFlags
 .IMPORT Func_IsActorWithinDistanceOfPoint
 .IMPORT Func_PlaySfxExplodeFracture
+.IMPORT Func_RemoveActor
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetActorVelocityPolar
 .IMPORT Func_SetPointToActorCenter
@@ -41,7 +42,6 @@
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState4_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_FrameCounter_u8
 
@@ -160,8 +160,7 @@ _CatchAxe:
     lda #eBadGronta::ThrowCatch
     sta Ram_ActorState1_byte_arr, y  ; current Gronta mode
 _RemoveAxe:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
+    jmp Func_RemoveActor  ; preserves X
 _Done:
     rts
 .ENDPROC
@@ -216,9 +215,7 @@ _Done:
     bcc _Expire
     rts
 _Expire:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

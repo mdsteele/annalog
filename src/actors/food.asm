@@ -24,11 +24,11 @@
 .IMPORT FuncA_Actor_ZeroVel
 .IMPORT FuncA_Objects_DrawActorSmokeFragment
 .IMPORT Func_InitActorWithState1
+.IMPORT Func_RemoveActor
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 
 ;;;=========================================================================;;;
 
@@ -92,9 +92,7 @@ _BobInWater:
 _Fall:
     jmp FuncA_Actor_ApplyGravity  ; preserves X
 _Expire:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

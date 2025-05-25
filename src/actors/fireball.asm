@@ -34,13 +34,13 @@
 .IMPORT Func_InitActorSmokeParticleStationary
 .IMPORT Func_InitActorWithState1
 .IMPORT Func_PlaySfxShootFire
+.IMPORT Func_RemoveActor
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetActorVelocityPolar
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
 .IMPORT Ram_ActorState4_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORTZP Zp_FrameCounter_u8
@@ -210,9 +210,7 @@ _HandleCollision:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_RemoveProjFireballOrFireblast
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

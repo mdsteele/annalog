@@ -34,13 +34,13 @@
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_PlaySfxFireBurning
 .IMPORT Func_PointHitsTerrain
+.IMPORT Func_RemoveActor
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORTZP Zp_FrameCounter_u8
 
 ;;;=========================================================================;;;
@@ -112,9 +112,7 @@ _Sweeping:
     ldy T0  ; param: speed (hi)
     jmp FuncA_Actor_SetVelXForward  ; preserves X
 _Remove:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
 _Paused:
     dec Ram_ActorState3_byte_arr, x  ; timer
     bne @done

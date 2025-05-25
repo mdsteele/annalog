@@ -28,8 +28,8 @@
 .IMPORT FuncA_Objects_Draw1x1Actor
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeParticleMovingUp
+.IMPORT Func_RemoveActor
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 
 ;;;=========================================================================;;;
 
@@ -72,11 +72,9 @@ kPaletteObjRaindrop = 0
     lda #kRaindropTerminalVelocity  ; param: terminal velocity
     jmp FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
 _Expire:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
 _Evaporate:
-    jmp Func_InitActorSmokeParticleMovingUp
+    jmp Func_InitActorSmokeParticleMovingUp  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -26,8 +26,8 @@
 .IMPORT FuncA_Objects_MoveShapeUpOneTile
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_InitActorDefault
+.IMPORT Func_RemoveActor
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
@@ -53,7 +53,6 @@ kPaletteObjSmokeBeam = 1
 
 ;;; Initializes the specified actor as a beam smoke.
 ;;; @prereq The actor's pixel position has already been initialized.
-;;; @param A The OBJ tile ID to use.
 ;;; @param X The actor index.
 ;;; @preserve X, T0+
 .EXPORT FuncA_Cutscene_InitActorSmokeBeam
@@ -75,8 +74,7 @@ kPaletteObjSmokeBeam = 1
     lda Ram_ActorState1_byte_arr, x  ; animation timer
     cmp #kBeamDurationFrames
     blt @done
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
+    jmp Func_RemoveActor  ; preserves X
     @done:
     rts
 .ENDPROC

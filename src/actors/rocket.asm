@@ -30,10 +30,10 @@
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_RemoveActor
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_ActorFlags_bObj_arr
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelX_i16_1_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
 
@@ -119,8 +119,7 @@ _Explode:
     jsr Func_PlaySfxExplodeBig  ; preserves X
     jmp Func_InitActorSmokeExplosion  ; preserves X
 _Expire:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
+    jmp Func_RemoveActor  ; preserves X
 _Done:
     rts
 .ENDPROC

@@ -43,6 +43,7 @@
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_RemoveActor
 .IMPORT Func_SetAndTransferFade
 .IMPORT Func_SetFlag
 .IMPORT Func_SetMachineIndex
@@ -484,9 +485,7 @@ _ExpireGrubRoll:
 _ExpireSolifuge:
     jmp Func_InitActorSmokeExplosion  ; preserves X
 _ExpireFlamestrike:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
 .ENDPROC
 
 ;;; Stores the room pixel position of the center of the boss's body in

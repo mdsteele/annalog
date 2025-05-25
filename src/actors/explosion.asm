@@ -32,9 +32,9 @@
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorDefault
+.IMPORT Func_RemoveActor
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 
 ;;;=========================================================================;;;
 
@@ -84,8 +84,7 @@ kPaletteObjExplosion = 0
     lda Ram_ActorState1_byte_arr, x
     cmp #kSmokeNumFrames
     blt @done
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
+    jmp Func_RemoveActor  ; preserves X
     @done:
     rts
 .ENDPROC

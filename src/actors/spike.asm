@@ -29,8 +29,8 @@
 .IMPORT Func_InitActorDefault
 .IMPORT Func_InitActorSmokeParticleStationary
 .IMPORT Func_PlaySfxThump
+.IMPORT Func_RemoveActor
 .IMPORT Ram_ActorState1_byte_arr
-.IMPORT Ram_ActorType_eActor_arr
 
 ;;;=========================================================================;;;
 
@@ -75,9 +75,7 @@ _Thump:
     jsr Func_PlaySfxThump  ; preserves X
     jmp Func_InitActorSmokeParticleStationary  ; preserves X
 _Expire:
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    rts
+    jmp Func_RemoveActor  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;
