@@ -30,6 +30,7 @@
 .IMPORT FuncA_Actor_ClampVelX
 .IMPORT FuncA_Actor_ClampVelY
 .IMPORT FuncA_Actor_FaceTowardsAvatar
+.IMPORT FuncA_Actor_PlaySfxWingFlap
 .IMPORT FuncA_Actor_SetPointInFrontOfActor
 .IMPORT FuncA_Actor_ZeroVel
 .IMPORT FuncA_Actor_ZeroVelY
@@ -138,8 +139,6 @@ _FaceAvatar:
     lda #bObj::FlipH  ; make actor face left
     sta Ram_ActorFlags_bObj_arr, x
     @done:
-_PlaySound:
-    ;; TODO: Play a sound for the ghost disappearing
     rts
 .ENDPROC
 
@@ -485,6 +484,19 @@ _AccelerateTowardGoalY:
     jmp FuncA_Actor_ClampVelY  ; preserves X
 .ENDPROC
 
+;;; Plays a period sound for a ghost appearing/disappearing.
+;;; @prereq The ghost is in an appearing or disappearing mode.
+;;; @param X The actor index.
+;;; @preserve X
+.PROC FuncA_Actor_TickBadGhost_PlayAppearDisappearSound
+    lda Ram_ActorState2_byte_arr, x  ; mode timer
+    mod #4
+    bne @done
+    jmp FuncA_Actor_PlaySfxWingFlap  ; preserves X
+    @done:
+    rts
+.ENDPROC
+
 ;;; Performs per-frame updates for a mermaid/orc ghost baddie actor that's in
 ;;; Disappearing mode.
 ;;;   * When initializing this mode, set the State2 timer to zero.  The State3
@@ -495,6 +507,7 @@ _AccelerateTowardGoalY:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGhost_Disappearing
+    jsr FuncA_Actor_TickBadGhost_PlayAppearDisappearSound  ; preserves X
     ;; Increment timer until it reaches its end value.
     inc Ram_ActorState2_byte_arr, x  ; mode timer
     lda Ram_ActorState2_byte_arr, x  ; mode timer
@@ -543,6 +556,7 @@ _IncrementTimer:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGhost_AppearForMerge
+    jsr FuncA_Actor_TickBadGhost_PlayAppearDisappearSound  ; preserves X
     lda #$64  ; room block row 4, column 6
     sta Ram_ActorState4_byte_arr, x  ; goal position
     jsr FuncA_Actor_TickBadGhost_SetPointToGoalPos  ; preserves X
@@ -592,6 +606,7 @@ _IncrementTimer:
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGhost_AppearThenChangeModes
     pha  ; mode to switch to
+    jsr FuncA_Actor_TickBadGhost_PlayAppearDisappearSound  ; preserves X
 _InitialTeleport:
     lda Ram_ActorState2_byte_arr, x  ; mode timer
     cmp #kBadGhostAppearFrames
