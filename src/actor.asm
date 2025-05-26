@@ -876,10 +876,10 @@ _CheckHorz:
 _CheckVert:
     ldy Ram_ActorType_eActor_arr, x
     lda DataA_Actor_BoundingBoxDown_u8_arr, y
-    add #kAvatarBoundingBoxUp
+    add #kAvatarBoundingBoxHead
     pha  ; distance above avatar
     lda DataA_Actor_BoundingBoxUp_u8_arr, y
-    add #kAvatarBoundingBoxDown
+    add #kAvatarBoundingBoxFeet
     tay  ; param: distance below avatar
     pla  ; param: distance above avatar
     jmp Func_IsActorWithinVertDistancesOfPoint  ; preserves X, T1+; returns C

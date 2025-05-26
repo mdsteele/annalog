@@ -306,7 +306,7 @@ _Platforms_sPlatform_arr:
     D_END
     .assert * - :- = kEmitterXPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
+    d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00c8
@@ -314,7 +314,7 @@ _Platforms_sPlatform_arr:
     D_END
     .assert * - :- = kEmitterYPlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
+    d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0018

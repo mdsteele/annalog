@@ -19,8 +19,8 @@
 
 ;;; How far the player avatar's bounding box extends in each direction from the
 ;;; avatar's position.
-kAvatarBoundingBoxUp = 7
-kAvatarBoundingBoxDown = 8
+kAvatarBoundingBoxHead = 7
+kAvatarBoundingBoxFeet = 8
 kAvatarBoundingBoxLeft = 5
 kAvatarBoundingBoxRight = 5
 

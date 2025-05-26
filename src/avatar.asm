@@ -793,7 +793,7 @@ _InAirReverseGravity:
 .EXPORT Func_SetPointToAvatarTop
 .PROC Func_SetPointToAvatarTop
     jsr Func_SetPointToAvatarCenter  ; preserves X, Y, and T0+
-    lda #kAvatarBoundingBoxUp  ; param: offset
+    lda #kAvatarBoundingBoxHead  ; param: offset
     jmp Func_MovePointUpByA  ; preserves X, Y, and T0+
 .ENDPROC
 

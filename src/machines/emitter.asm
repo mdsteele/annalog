@@ -231,7 +231,7 @@ _MaybePushUp:
     ;; avatar up out of the forcefield.
     jsr Func_AvatarDepthIntoPlatformTop  ; preserves X, returns Z and A
     beq _Return  ; avatar is fully above the forcefield
-    cmp #<-kAvatarBoundingBoxDown
+    cmp #<-kAvatarBoundingBoxFeet
     blt @doNotPushUp  ; avatar is too deep below the top of the forcefield
     sta Zp_AvatarPushDelta_i8
     jsr Func_IsAvatarInPlatformHorz  ; returns Z
@@ -293,7 +293,7 @@ _MaybePushDown:
     ;; If the avatar is deep inside the platform, harm it.  Either way, push it
     ;; down and out.
     sta Zp_AvatarPushDelta_i8
-    cmp #kAvatarBoundingBoxUp
+    cmp #kAvatarBoundingBoxHead
     blt @noHarm
     jsr Func_HarmAvatar
     @noHarm:

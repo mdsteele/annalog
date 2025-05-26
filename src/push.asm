@@ -187,10 +187,22 @@ _NoHitPassage:
 ;;; Zp_AvatarCollided_ePlatform to ePlatform::Solid.
 ;;; @prereq Zp_AvatarPushDelta_i8 holds a nonzero horz delta for the avatar.
 .PROC Func_AvatarCollideWithTerrainHorz
-    ;; Calculate the room block row index that the avatar's feet are in, and
-    ;; store it in T0.
-    lda Zp_AvatarPosY_i16 + 0
-    add #kAvatarBoundingBoxDown - 1
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    ldy #kAvatarBoundingBoxFeet      ; bounding box up
+    lda #kAvatarBoundingBoxHead - 1  ; bounding box down
+    .assert kAvatarBoundingBoxHead - 1 > 0, error
+    bne @setBoundingBox  ; unconditional
+    @normalGravity:
+    ldy #kAvatarBoundingBoxHead      ; bounding box up
+    lda #kAvatarBoundingBoxFeet - 1  ; bounding box down
+    @setBoundingBox:
+    sty T1  ; bounding box up
+    ;; Calculate the room block row index that the bottom pixel of the avatar
+    ;; is in, and store it in T0.
+    add Zp_AvatarPosY_i16 + 0
     sta T0
     lda Zp_AvatarPosY_i16 + 1
     adc #0
@@ -198,10 +210,10 @@ _NoHitPassage:
     lsr a
     ror T0
     .endrepeat
-    ;; Calculate the room block row index that the avatar's head is in, and
-    ;; store it in T1.
+    ;; Calculate the room block row index that the top pixel of the avatar is
+    ;; in, and store it in T1.
     lda Zp_AvatarPosY_i16 + 0
-    sub #kAvatarBoundingBoxUp
+    sub T1  ; bounding box up
     sta T1
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
@@ -337,11 +349,11 @@ _Bottom:
     .assert bRoom::Tall = bProc::Overflow, error
     bvs @tall
     @short:
-    lda #kScreenHeightPx - kAvatarBoundingBoxDown
+    lda #kScreenHeightPx - kAvatarBoundingBoxFeet
     ldy #0
     beq @finishHeight  ; unconditional
     @tall:
-    ldya #kTallRoomHeightBlocks * kBlockHeightPx - kAvatarBoundingBoxDown
+    ldya #kTallRoomHeightBlocks * kBlockHeightPx - kAvatarBoundingBoxFeet
     @finishHeight:
     sta T0  ; passage Y-position (lo)
     ;; Compare the avatar's position to the passage position.
@@ -367,7 +379,7 @@ _Top:
     ;; Check if the top of the avatar is touching the top of the room.  By this
     ;; point, we already know that the hi byte of the avatar's position is
     ;; zero.
-    lda #kAvatarBoundingBoxUp
+    lda #kAvatarBoundingBoxHead
     cmp Zp_AvatarPosY_i16 + 0
     blt _NoHitPassage
     @hitPassage:
@@ -403,11 +415,11 @@ _MovingUp:
     .assert bObj::FlipV = bProc::Negative, error
     bpl @normalGravity
     @reverseGravity:
-    lda #kAvatarBoundingBoxDown
+    lda #kAvatarBoundingBoxFeet
     clc  ; subtract an extra 1 below
     bcc @setBoundingBox  ; unconditional
     @normalGravity:
-    lda #kAvatarBoundingBoxUp
+    lda #kAvatarBoundingBoxHead
     sec  ; perform normal subtraction below
     @setBoundingBox:
     sta T3  ; bounding box up
@@ -452,10 +464,19 @@ _MovingUp:
     @done:
     rts
 _MovingDown:
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    lda #kAvatarBoundingBoxHead
+    bne @setBoundingBox  ; unconditional
+    @normalGravity:
+    lda #kAvatarBoundingBoxFeet
+    @setBoundingBox:
+    sta T3  ; bounding box down
     ;; Calculate the room block row index just below the avatar's feet, and
     ;; store it in T2.
-    lda Zp_AvatarPosY_i16 + 0
-    add #kAvatarBoundingBoxDown
+    add Zp_AvatarPosY_i16 + 0
     sta T2
     lda Zp_AvatarPosY_i16 + 1
     adc #0
@@ -480,7 +501,7 @@ _MovingDown:
     .endrepeat
     tax
     lda T2
-    sub #kAvatarBoundingBoxDown
+    sub T3  ; bounding box down
     sta Zp_AvatarPosY_i16 + 0
     txa
     sbc #0

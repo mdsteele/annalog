@@ -235,7 +235,7 @@ _TopEdge:
     beq @airborne
     @standing:
     mul #kBlockHeightPx  ; clears the carry bit
-    adc #kBlockHeightPx - kAvatarBoundingBoxDown
+    adc #kBlockHeightPx - kAvatarBoundingBoxFeet
     sta Zp_AvatarPosY_i16 + 0
     ldx #0  ; param: bAvatar value
     beq _SetFaceDirForTopOrBottomPassage  ; unconditional
@@ -266,7 +266,7 @@ _BottomEdge:
     beq @airborne
     @standing:
     mul #kBlockHeightPx  ; clears the carry bit
-    adc #kAvatarBoundingBoxDown
+    adc #kAvatarBoundingBoxFeet
     sta T4  ; upward adjustment in pixels
     txa  ; room height (lo)
     sub T4  ; upward adjustment in pixels
@@ -301,7 +301,7 @@ _SetFaceDirForTopOrBottomPassage:
     bpl _Finish  ; unconditional
 _EastWest:
     lda T2  ; spawn pixel position (lo)
-    ora #kBlockHeightPx - kAvatarBoundingBoxDown
+    ora #kBlockHeightPx - kAvatarBoundingBoxFeet
     sta Zp_AvatarPosY_i16 + 0
     lda T3  ; spawn pixel position (hi)
     sta Zp_AvatarPosY_i16 + 1
@@ -589,11 +589,11 @@ _UpDown:
     .assert bRoom::Tall = bProc::Overflow, error
     bvs @tall
     @short:
-    ldx #kScreenHeightPx - (kAvatarBoundingBoxDown + 1)
+    ldx #kScreenHeightPx - (kAvatarBoundingBoxFeet + 1)
     lda #0
     beq @finishBottom  ; unconditional
     @tall:
-    ldax #kTallRoomHeightBlocks * kBlockHeightPx - (kAvatarBoundingBoxDown + 1)
+    ldax #kTallRoomHeightBlocks * kBlockHeightPx - (kAvatarBoundingBoxFeet + 1)
     @finishBottom:
     stax Zp_AvatarPosY_i16
     rts

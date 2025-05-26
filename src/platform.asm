@@ -708,11 +708,11 @@ _MovingUp:
     .assert bObj::FlipV = bProc::Negative, error
     bpl @normalGravity
     @reverseGravity:
-    lda #kAvatarBoundingBoxDown + 1
-    .assert kAvatarBoundingBoxDown > 0, error
+    lda #kAvatarBoundingBoxFeet + 1
+    .assert kAvatarBoundingBoxFeet > 0, error
     bne @doneBoundingBox  ; unconditional
     @normalGravity:
-    lda #kAvatarBoundingBoxUp
+    lda #kAvatarBoundingBoxHead
     @doneBoundingBox:
     add Ram_PlatformBottom_i16_0_arr, x
     sta T0  ; platform bottom edge + bbox (lo)
@@ -754,8 +754,17 @@ _MovingDown:
     blt _Return
     @bottomEdgeHit:
     ;; Check top edge of platform.
-    lda Ram_PlatformTop_i16_0_arr, x
-    sub #kAvatarBoundingBoxDown
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    lda #kAvatarBoundingBoxHead
+    .assert kAvatarBoundingBoxHead > 0, error
+    bne @doneBoundingBox  ; unconditional
+    @normalGravity:
+    lda #kAvatarBoundingBoxFeet
+    @doneBoundingBox:
+    rsub Ram_PlatformTop_i16_0_arr, x
     sta T0  ; platform top edge - bbox (lo)
     lda Ram_PlatformTop_i16_1_arr, x
     sbc #0
@@ -803,9 +812,17 @@ _MovingDown:
 ;;; @preserve X, T2+
 .EXPORT Func_AvatarDepthIntoPlatformTop
 .PROC Func_AvatarDepthIntoPlatformTop
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    lda #kAvatarBoundingBoxHead  ; bounding box down
+    bne @setBoundingBox  ; unconditional
+    @normalGravity:
+    lda #kAvatarBoundingBoxFeet  ; bounding box down
+    @setBoundingBox:
     ;; Calculate the room pixel Y-position of the bottom of the avatar.
-    lda Zp_AvatarPosY_i16 + 0
-    add #kAvatarBoundingBoxDown
+    add Zp_AvatarPosY_i16 + 0
     sta T0  ; bottom of avatar (lo)
     lda Zp_AvatarPosY_i16 + 1
     adc #0
@@ -835,9 +852,17 @@ _MovingDown:
 ;;; @preserve X, T2+
 .EXPORT Func_AvatarDepthIntoPlatformBottom
 .PROC Func_AvatarDepthIntoPlatformBottom
+    bit Zp_AvatarFlags_bObj
+    .assert bObj::FlipV = bProc::Negative, error
+    bpl @normalGravity
+    @reverseGravity:
+    lda #kAvatarBoundingBoxFeet  ; bounding box up
+    bne @setBoundingBox  ; unconditional
+    @normalGravity:
+    lda #kAvatarBoundingBoxHead  ; bounding box up
+    @setBoundingBox:
     ;; Calculate the room pixel Y-position of top of the avatar.
-    lda Zp_AvatarPosY_i16 + 0
-    sub #kAvatarBoundingBoxUp
+    rsub Zp_AvatarPosY_i16 + 0
     sta T0  ; top of avatar (lo)
     lda Zp_AvatarPosY_i16 + 1
     sbc #0
