@@ -1368,7 +1368,7 @@ _chr_begin:
     chr_inc "adult_anna",  kTileIdObjAdultAnnaFirst
     chr_inc "adult_alex",  kTileIdObjAdultAlexFirst
     chr_inc "adult_boris", kTileIdObjAdultBorisFirst
-    chr_res $62
+    chr_res $44
     END_CHR_BANK
 .ENDPROC
 

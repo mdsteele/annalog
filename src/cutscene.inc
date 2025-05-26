@@ -138,17 +138,15 @@ kMaxForks = 4
     ;; Causes the specified actor to swim/walk to the specified room pixel
     ;; X-position.  Suspends the current cutscene fork until the actor reaches
     ;; the goal position.
+    MoveNpcAdultWalk   ; args: actor index, goal X-position (2 bytes)
     MoveNpcAlexSwim    ; args: actor index, goal X-position (2 bytes)
     MoveNpcAlexWalk    ; args: actor index, goal X-position (2 bytes)
-    MoveNpcBorisWalk   ; args: actor index, goal X-position (2 bytes)
     MoveNpcBrunoWalk   ; args: actor index, goal X-position (2 bytes)
     MoveNpcGrontaWalk  ; args: actor index, goal X-position (2 bytes)
-    MoveNpcManWalk     ; args: actor index, goal X-position (2 bytes)
     MoveNpcMarieWalk   ; args: actor index, goal X-position (2 bytes)
     MoveNpcNinaWalk    ; args: actor index, goal X-position (2 bytes)
     MoveNpcNoraWalk    ; args: actor index, goal X-position (2 bytes)
     MoveNpcOrcWalk     ; args: actor index, goal X-position (2 bytes)
-    MoveNpcWomanWalk   ; args: actor index, goal X-position (2 bytes)
     ;; Queues up the specified music/SFX to play next, then the current
     ;; cutscene fork immediately continues on to the next action.
     PlayMusic          ; args: eMusic value
@@ -262,6 +260,11 @@ kMaxForks = 4
     .word GOALX
 .ENDMACRO
 
+.MACRO act_MoveNpcAdultWalk INDEX, GOALX
+    .byte eAction::MoveNpcAdultWalk, INDEX
+    .word GOALX
+.ENDMACRO
+
 .MACRO act_MoveNpcAlexSwim INDEX, GOALX
     .byte eAction::MoveNpcAlexSwim, INDEX
     .word GOALX
@@ -272,11 +275,6 @@ kMaxForks = 4
     .word GOALX
 .ENDMACRO
 
-.MACRO act_MoveNpcBorisWalk INDEX, GOALX
-    .byte eAction::MoveNpcBorisWalk, INDEX
-    .word GOALX
-.ENDMACRO
-
 .MACRO act_MoveNpcBrunoWalk INDEX, GOALX
     .byte eAction::MoveNpcBrunoWalk, INDEX
     .word GOALX
@@ -284,11 +282,6 @@ kMaxForks = 4
 
 .MACRO act_MoveNpcGrontaWalk INDEX, GOALX
     .byte eAction::MoveNpcGrontaWalk, INDEX
-    .word GOALX
-.ENDMACRO
-
-.MACRO act_MoveNpcManWalk INDEX, GOALX
-    .byte eAction::MoveNpcManWalk, INDEX
     .word GOALX
 .ENDMACRO
 
@@ -309,11 +302,6 @@ kMaxForks = 4
 
 .MACRO act_MoveNpcOrcWalk INDEX, GOALX
     .byte eAction::MoveNpcOrcWalk, INDEX
-    .word GOALX
-.ENDMACRO
-
-.MACRO act_MoveNpcWomanWalk INDEX, GOALX
-    .byte eAction::MoveNpcWomanWalk, INDEX
     .word GOALX
 .ENDMACRO
 

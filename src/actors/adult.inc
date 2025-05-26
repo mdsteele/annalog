@@ -38,8 +38,13 @@
     HumanAlexSad
     HumanAlexStanding
     HumanAlexTaking
+    HumanAlexWalking1
+    HumanAlexWalking2
     HumanAnna
-    HumanBoris
+    HumanBorisGiving
+    HumanBorisStanding
+    HumanBorisWalking1
+    HumanBorisWalking2
     ;; NPCs that sit/stand on dry land:
     HumanElder1
     HumanElder2
@@ -85,7 +90,7 @@ kFirst2x4NpcAdult = eNpcAdult::CorraSwimmingUp1
 ;;; The first tile IDs for various human adults.
 kTileIdObjAdultAlexFirst          = $86
 kTileIdObjAdultAnnaFirst          = $80
-kTileIdObjAdultBorisFirst         = $98
+kTileIdObjAdultBorisFirst         = $a4
 kTileIdObjAdultElderFirst         = $c4
 kTileIdObjAdultGhostFirst         = $e4
 kTileIdObjAdultJeromeFirst        = $98

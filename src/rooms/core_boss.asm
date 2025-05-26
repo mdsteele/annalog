@@ -2260,7 +2260,7 @@ _LookAtTopOfCore:
     act_MoveAvatarRun $011c
     ;; A huge explosion flings Anna rightward as the screen fades to white.
     act_CallFunc Func_PlaySfxExplodeBig
-    act_SetAvatarVelX 800
+    act_SetAvatarVelX 1200
     act_SetAvatarVelY -700
     act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
     act_SetCutsceneFlags bCutscene::AvatarRagdoll

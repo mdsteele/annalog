@@ -424,17 +424,15 @@ _InitMainFork:
     d_entry table, MoveAvatarRun,     _MoveAvatarRun
     d_entry table, MoveAvatarSwim,    _MoveAvatarSwim
     d_entry table, MoveAvatarWalk,    _MoveAvatarWalk
+    d_entry table, MoveNpcAdultWalk,  _MoveNpcAdultWalk
     d_entry table, MoveNpcAlexSwim,   _MoveNpcAlexSwim
     d_entry table, MoveNpcAlexWalk,   _MoveNpcAlexWalk
-    d_entry table, MoveNpcBorisWalk,  _MoveNpcBorisWalk
     d_entry table, MoveNpcBrunoWalk,  _MoveNpcBrunoWalk
     d_entry table, MoveNpcGrontaWalk, _MoveNpcGrontaWalk
-    d_entry table, MoveNpcManWalk,    _MoveNpcManWalk
     d_entry table, MoveNpcMarieWalk,  _MoveNpcMarieWalk
     d_entry table, MoveNpcNinaWalk,   _MoveNpcNinaWalk
     d_entry table, MoveNpcNoraWalk,   _MoveNpcNoraWalk
     d_entry table, MoveNpcOrcWalk,    _MoveNpcOrcWalk
-    d_entry table, MoveNpcWomanWalk,  _MoveNpcWomanWalk
     d_entry table, PlayMusic,         _PlayMusic
     d_entry table, PlaySfxSample,     _PlaySfxSample
     d_entry table, RepeatFunc,        _RepeatFunc
@@ -811,6 +809,12 @@ _StartMoveAvatar:
 _MoveNpcReachedGoal:
     ldy #4  ; param: byte offset
     jmp FuncA_Cutscene_AdvanceForkAndExecute
+_MoveNpcAdultWalk:
+    jsr _StartMoveNpc  ; returns X, Z, and N
+    beq _MoveNpcReachedGoal
+    jsr FuncA_Cutscene_AnimateNpcAdultWalking
+    clc  ; cutscene should continue
+    rts
 _MoveNpcAlexSwim:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
@@ -825,13 +829,6 @@ _MoveNpcAlexWalk:
     jsr FuncA_Cutscene_FaceAvatarTowardsActor
     clc  ; cutscene should continue
     rts
-_MoveNpcBorisWalk:
-    jsr _StartMoveNpc  ; returns X, Z, and N
-    beq _MoveNpcReachedGoal
-    jsr FuncA_Cutscene_AnimateNpcBorisWalking  ; preserves X
-    jsr FuncA_Cutscene_FaceAvatarTowardsActor
-    clc  ; cutscene should continue
-    rts
 _MoveNpcBrunoWalk:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
@@ -843,12 +840,6 @@ _MoveNpcGrontaWalk:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcGrontaWalking
-    clc  ; cutscene should continue
-    rts
-_MoveNpcManWalk:
-    jsr _StartMoveNpc  ; returns X, Z, and N
-    beq _MoveNpcReachedGoal
-    jsr FuncA_Cutscene_AnimateNpcManWalking
     clc  ; cutscene should continue
     rts
 _MoveNpcMarieWalk:
@@ -874,12 +865,6 @@ _MoveNpcOrcWalk:
     jsr _StartMoveNpc  ; returns X, Z, and N
     beq _MoveNpcReachedGoal
     jsr FuncA_Cutscene_AnimateNpcOrcWalking
-    clc  ; cutscene should continue
-    rts
-_MoveNpcWomanWalk:
-    jsr _StartMoveNpc  ; returns X, Z, and N
-    beq _MoveNpcReachedGoal
-    jsr FuncA_Cutscene_AnimateNpcWomanWalking
     clc  ; cutscene should continue
     rts
 _StartMoveNpc:
@@ -1051,6 +1036,107 @@ _RunningPoses_eAvatar_arr4:
     .byte eAvatar::Running2
 .ENDPROC
 
+;;; Updates the flags and state of the specified adult NPC actor for a walking
+;;; animation.
+;;; @param N If set, the actor will face left; otherwise, it will face right.
+;;; @param X The actor index.
+;;; @preserve X, T0+
+.PROC FuncA_Cutscene_AnimateNpcAdultWalking
+    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
+    lda #$ff
+    sta Ram_ActorState2_byte_arr, x
+_AnimatePose:
+    ldy Ram_ActorState1_byte_arr, x  ; eNpcAdult value
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @walk2
+    @walk1:
+    lda _Walking1_eNpcAdult_arr, y
+    .assert eNpcAdult::NUM_VALUES < $80, error
+    bpl @setState  ; unconditional
+    @walk2:
+    lda _Walking2_eNpcAdult_arr, y
+    @setState:
+    sta Ram_ActorState1_byte_arr, x
+    rts
+_Walking1_eNpcAdult_arr:
+    D_ARRAY .enum, eNpcAdult
+    d_byte HumanAlexSad,       eNpcAdult::HumanAlexWalking1
+    d_byte HumanAlexStanding,  eNpcAdult::HumanAlexWalking1
+    d_byte HumanAlexTaking,    eNpcAdult::HumanAlexWalking1
+    d_byte HumanAlexWalking1,  eNpcAdult::HumanAlexWalking1
+    d_byte HumanAlexWalking2,  eNpcAdult::HumanAlexWalking1
+    d_byte HumanAnna,          eNpcAdult::HumanAnna
+    d_byte HumanBorisGiving,   eNpcAdult::HumanBorisWalking1
+    d_byte HumanBorisStanding, eNpcAdult::HumanBorisWalking1
+    d_byte HumanBorisWalking1, eNpcAdult::HumanBorisWalking1
+    d_byte HumanBorisWalking2, eNpcAdult::HumanBorisWalking1
+    d_byte HumanElder1,        eNpcAdult::HumanElder1
+    d_byte HumanElder2,        eNpcAdult::HumanElder1
+    d_byte HumanManStanding,   eNpcAdult::HumanManWalking1
+    d_byte HumanManWalking1,   eNpcAdult::HumanManWalking1
+    d_byte HumanManWalking2,   eNpcAdult::HumanManWalking1
+    d_byte HumanSmith1,        eNpcAdult::HumanSmith1
+    d_byte HumanSmith2,        eNpcAdult::HumanSmith1
+    d_byte HumanWomanStanding, eNpcAdult::HumanWomanWalking1
+    d_byte HumanWomanWalking1, eNpcAdult::HumanWomanWalking1
+    d_byte HumanWomanWalking2, eNpcAdult::HumanWomanWalking1
+    d_byte MermaidFlorist,     eNpcAdult::MermaidFlorist
+    d_byte GhostJerome,        eNpcAdult::GhostJerome
+    d_byte GhostMan,           eNpcAdult::GhostMan
+    d_byte GhostWoman,         eNpcAdult::GhostWoman
+    d_byte MermaidCorra,       eNpcAdult::MermaidCorra
+    d_byte MermaidDaphne,      eNpcAdult::MermaidDaphne
+    d_byte MermaidFarmer,      eNpcAdult::MermaidFarmer
+    d_byte MermaidGhost,       eNpcAdult::MermaidGhost
+    d_byte MermaidGuardF,      eNpcAdult::MermaidGuardF
+    d_byte MermaidGuardM,      eNpcAdult::MermaidGuardM
+    d_byte MermaidPhoebe,      eNpcAdult::MermaidPhoebe
+    d_byte CorraSwimmingDown1, eNpcAdult::CorraSwimmingDown1
+    d_byte CorraSwimmingDown2, eNpcAdult::CorraSwimmingDown1
+    d_byte CorraSwimmingUp1,   eNpcAdult::CorraSwimmingUp1
+    d_byte CorraSwimmingUp2,   eNpcAdult::CorraSwimmingUp1
+    D_END
+_Walking2_eNpcAdult_arr:
+    D_ARRAY .enum, eNpcAdult
+    d_byte HumanAlexSad,       eNpcAdult::HumanAlexWalking2
+    d_byte HumanAlexStanding,  eNpcAdult::HumanAlexWalking2
+    d_byte HumanAlexTaking,    eNpcAdult::HumanAlexWalking2
+    d_byte HumanAlexWalking1,  eNpcAdult::HumanAlexWalking2
+    d_byte HumanAlexWalking2,  eNpcAdult::HumanAlexWalking2
+    d_byte HumanAnna,          eNpcAdult::HumanAnna
+    d_byte HumanBorisGiving,   eNpcAdult::HumanBorisWalking2
+    d_byte HumanBorisStanding, eNpcAdult::HumanBorisWalking2
+    d_byte HumanBorisWalking1, eNpcAdult::HumanBorisWalking2
+    d_byte HumanBorisWalking2, eNpcAdult::HumanBorisWalking2
+    d_byte HumanElder1,        eNpcAdult::HumanElder2
+    d_byte HumanElder2,        eNpcAdult::HumanElder2
+    d_byte HumanManStanding,   eNpcAdult::HumanManWalking2
+    d_byte HumanManWalking1,   eNpcAdult::HumanManWalking2
+    d_byte HumanManWalking2,   eNpcAdult::HumanManWalking2
+    d_byte HumanSmith1,        eNpcAdult::HumanSmith2
+    d_byte HumanSmith2,        eNpcAdult::HumanSmith2
+    d_byte HumanWomanStanding, eNpcAdult::HumanWomanWalking2
+    d_byte HumanWomanWalking1, eNpcAdult::HumanWomanWalking2
+    d_byte HumanWomanWalking2, eNpcAdult::HumanWomanWalking2
+    d_byte MermaidFlorist,     eNpcAdult::MermaidFlorist
+    d_byte GhostJerome,        eNpcAdult::GhostJerome
+    d_byte GhostMan,           eNpcAdult::GhostMan
+    d_byte GhostWoman,         eNpcAdult::GhostWoman
+    d_byte MermaidCorra,       eNpcAdult::MermaidCorra
+    d_byte MermaidDaphne,      eNpcAdult::MermaidDaphne
+    d_byte MermaidFarmer,      eNpcAdult::MermaidFarmer
+    d_byte MermaidGhost,       eNpcAdult::MermaidGhost
+    d_byte MermaidGuardF,      eNpcAdult::MermaidGuardF
+    d_byte MermaidGuardM,      eNpcAdult::MermaidGuardM
+    d_byte MermaidPhoebe,      eNpcAdult::MermaidPhoebe
+    d_byte CorraSwimmingDown1, eNpcAdult::CorraSwimmingDown2
+    d_byte CorraSwimmingDown2, eNpcAdult::CorraSwimmingDown2
+    d_byte CorraSwimmingUp1,   eNpcAdult::CorraSwimmingUp2
+    d_byte CorraSwimmingUp2,   eNpcAdult::CorraSwimmingUp2
+    D_END
+.ENDPROC
+
 ;;; Updates the flags and state of the specified Alex NPC actor for a swimming
 ;;; animation.
 ;;; @param N If set, the actor will face left; otherwise, it will face right.
@@ -1099,6 +1185,18 @@ _AnimatePose:
     jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
     lda #$ff
     sta Ram_ActorState2_byte_arr, x
+_AnimatePose:
+    lda Zp_FrameCounter_u8
+    and #$08
+    beq @walk2
+    @walk1:
+    lda #eNpcAdult::HumanBorisWalking1
+    .assert eNpcAdult::HumanWomanWalking1 > 0, error
+    bne @setState  ; unconditional
+    @walk2:
+    lda #eNpcAdult::HumanBorisWalking2
+    @setState:
+    sta Ram_ActorState1_byte_arr, x
     rts
 .ENDPROC
 
@@ -1142,30 +1240,6 @@ _AnimatePose:
     .assert eNpcOrc::GrontaRunning1 > 0, error
     .assert eNpcOrc::GrontaRunning1 .mod 4 = 0, error
     ora #eNpcOrc::GrontaRunning1
-    sta Ram_ActorState1_byte_arr, x
-    rts
-.ENDPROC
-
-;;; Updates the flags and state of the specified AdultMan NPC actor for a
-;;; walking animation.
-;;; @param N If set, the actor will face left; otherwise, it will face right.
-;;; @param X The actor index.
-;;; @preserve X, Y, T0+
-.PROC FuncA_Cutscene_AnimateNpcManWalking
-    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
-    lda #$ff
-    sta Ram_ActorState2_byte_arr, x
-_AnimatePose:
-    lda Zp_FrameCounter_u8
-    and #$08
-    beq @walk2
-    @walk1:
-    lda #eNpcAdult::HumanManWalking1
-    .assert eNpcAdult::HumanManWalking1 > 0, error
-    bne @setState  ; unconditional
-    @walk2:
-    lda #eNpcAdult::HumanManWalking2
-    @setState:
     sta Ram_ActorState1_byte_arr, x
     rts
 .ENDPROC
@@ -1220,30 +1294,6 @@ _AnimatePose:
     div #08
     and #$03
     .assert eNpcOrc::GruntRunning1 = 0, error
-    sta Ram_ActorState1_byte_arr, x
-    rts
-.ENDPROC
-
-;;; Updates the flags and state of the specified AdultWoman NPC actor for a
-;;; walking animation.
-;;; @param N If set, the actor will face left; otherwise, it will face right.
-;;; @param X The actor index.
-;;; @preserve X, Y, T0+
-.PROC FuncA_Cutscene_AnimateNpcWomanWalking
-    jsr FuncA_Cutscene_SetActorFlipHFromN  ; preserves X, Y and T0+
-    lda #$ff
-    sta Ram_ActorState2_byte_arr, x
-_AnimatePose:
-    lda Zp_FrameCounter_u8
-    and #$08
-    beq @walk2
-    @walk1:
-    lda #eNpcAdult::HumanWomanWalking1
-    .assert eNpcAdult::HumanWomanWalking1 > 0, error
-    bne @setState  ; unconditional
-    @walk2:
-    lda #eNpcAdult::HumanWomanWalking2
-    @setState:
     sta Ram_ActorState1_byte_arr, x
     rts
 .ENDPROC

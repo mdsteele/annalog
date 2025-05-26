@@ -358,7 +358,7 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::NpcAdult
     d_word PosX_i16, $0288
     d_word PosY_i16, $00c8
-    d_byte Param_byte, eNpcAdult::HumanBoris
+    d_byte Param_byte, eNpcAdult::HumanBorisStanding
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
@@ -839,11 +839,13 @@ _SetFace:
     .linecont +
     .assert kTileIdBgPortraitBorisFirst = kTileIdBgPortraitAlexFirst, error
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part1_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeBorisGive
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part2_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexTake
     dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part3_u8_arr
     dlg_Text ChildAlexHand, \
              DataA_Text2_TownOutdoorsFinaleYearsLater4_Part4_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeBorisStand
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part5_u8_arr
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part6_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexStand
@@ -895,6 +897,20 @@ _SetFace:
 .PROC FuncA_Dialog_TownOutdoors_MakeAlexTake
     lda #eNpcAdult::HumanAlexTaking
     sta Ram_ActorState1_byte_arr + kAlexActorIndex
+    rts
+.ENDPROC
+
+;;; Sets the Boris actor's State1 to eNpcAdult::HumanBorisGiving.
+.PROC FuncA_Dialog_TownOutdoors_MakeBorisGive
+    lda #eNpcAdult::HumanBorisGiving
+    sta Ram_ActorState1_byte_arr + kBorisActorIndex
+    rts
+.ENDPROC
+
+;;; Sets the Boris actor's State1 to eNpcAdult::HumanBorisStanding.
+.PROC FuncA_Dialog_TownOutdoors_MakeBorisStand
+    lda #eNpcAdult::HumanBorisStanding
+    sta Ram_ActorState1_byte_arr + kBorisActorIndex
     rts
 .ENDPROC
 
@@ -1218,12 +1234,12 @@ _PlayRumblingSound:
     act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 _LauraExitsHouse_sCutscene:
     act_CallFunc FuncA_Cutscene_InitLauraAtHouseDoor4
-    act_MoveNpcWomanWalk kLauraActorIndex, kLauraFinalePosX
+    act_MoveNpcAdultWalk kLauraActorIndex, kLauraFinalePosX
     act_SetActorState1 kLauraActorIndex, eNpcAdult::HumanWomanStanding
     act_ForkStop $ff
 _MartinExitsHouse_sCutscene:
     act_CallFunc FuncA_Cutscene_InitMartinAtHouseDoor4
-    act_MoveNpcManWalk kMartinActorIndex, kMartinFinalePosX
+    act_MoveNpcAdultWalk kMartinActorIndex, kMartinFinalePosX
     act_SetActorState1 kMartinActorIndex, eNpcAdult::HumanManStanding
     act_ForkStop $ff
 .ENDPROC
@@ -1324,22 +1340,22 @@ _MartinExitsHouse_sCutscene:
     ;; Martin retreats, followed by Laura, as Hobok shoos them away.
     act_ForkStart 1, _HobokShoosHumans_sCutscene
     act_ForkStart 2, _MartinLeaves_sCutscene
-    act_MoveNpcWomanWalk kLauraActorIndex, $0200
+    act_MoveNpcAdultWalk kLauraActorIndex, $0200
     act_WaitFrames 90
     act_JumpToMain MainA_Cutscene_StartNextFinaleStep
 _MartinGetsPushed_sCutscene:
-    act_MoveNpcManWalk kMartinActorIndex, kMartinFinalePosX - 14
+    act_MoveNpcAdultWalk kMartinActorIndex, kMartinFinalePosX - 14
     act_SetActorState1 kMartinActorIndex, eNpcAdult::HumanManStanding
     act_SetActorFlags kMartinActorIndex, 0
     act_ForkStop $ff
 _LauraGetsPushed_sCutscene:
-    act_MoveNpcWomanWalk kLauraActorIndex, kLauraFinalePosX - 8
+    act_MoveNpcAdultWalk kLauraActorIndex, kLauraFinalePosX - 8
     act_SetActorState1 kLauraActorIndex, eNpcAdult::HumanWomanStanding
     act_SetActorFlags kLauraActorIndex, 0
     act_ForkStop $ff
 _MartinLeaves_sCutscene:
     act_WaitFrames 5
-    act_MoveNpcManWalk kMartinActorIndex, $0200
+    act_MoveNpcAdultWalk kMartinActorIndex, $0200
     act_ForkStop $ff
 _HobokShoosHumans_sCutscene:
     act_MoveNpcOrcWalk kHobokActorIndex, kHobokFinalePosX
@@ -1385,7 +1401,7 @@ _HobokShoosHumans_sCutscene:
     ;; Laura exits the house to see what's happening, then looks around.
     act_CallFunc FuncA_Cutscene_InitLauraAtHouseDoor4
     act_WaitFrames 60
-    act_MoveNpcWomanWalk kLauraActorIndex, $026a
+    act_MoveNpcAdultWalk kLauraActorIndex, $026a
     act_SetActorState1 kLauraActorIndex, eNpcAdult::HumanWomanStanding
     act_WaitFrames 30
     act_SetActorFlags kLauraActorIndex, bObj::FlipH
@@ -1398,10 +1414,10 @@ _HobokShoosHumans_sCutscene:
     ;; turns back.
     act_CallFunc FuncA_Cutscene_InitMartinAtHouseDoor4
     act_WaitFrames 45
-    act_MoveNpcManWalk kMartinActorIndex, $0238
+    act_MoveNpcAdultWalk kMartinActorIndex, $0238
     act_SetActorState1 kMartinActorIndex, eNpcAdult::HumanManStanding
     act_WaitFrames 60
-    act_MoveNpcManWalk kMartinActorIndex, $0248
+    act_MoveNpcAdultWalk kMartinActorIndex, $0248
     act_SetActorState1 kMartinActorIndex, eNpcAdult::HumanManStanding
     act_WaitFrames 100
     act_JumpToMain MainA_Cutscene_StartNextFinaleStep
@@ -1457,20 +1473,47 @@ _ShootBeamAtPoint:
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleYearsLater_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleYearsLater_sCutscene
     act_WaitFrames 120
+    ;; Alex expresses his regrets to Anna.
     act_RunDialog eDialog::TownOutdoorsFinaleYearsLater1
     act_WaitFrames 120
+    ;; Stela calls to Alex and Anna that Boris is home.
     act_RunDialog eDialog::TownOutdoorsFinaleYearsLater2
     act_WaitFrames 60
-    act_MoveNpcBorisWalk kBorisActorIndex, $02d8
+    ;; Boris walks onscreen and greets the kids.
+    act_MoveNpcAdultWalk kBorisActorIndex, $02d8
+    act_SetActorState1 kBorisActorIndex, eNpcAdult::HumanBorisStanding
     act_WaitFrames 60
     act_RunDialog eDialog::TownOutdoorsFinaleYearsLater3
+    ;; Alex and Boris move together to hug.
+    act_ForkStart 1, _AlexHug_sCutscene
+    act_MoveNpcAdultWalk kBorisActorIndex, $02e8
+    act_SetActorState1 kBorisActorIndex, eNpcAdult::HumanBorisGiving
     act_WaitFrames 120
+    ;; Alex and Boris break apart from the hug.
+    act_ForkStart 1, _AlexBackUp_sCutscene
+    act_MoveNpcAdultWalk kBorisActorIndex, $02e5
+    act_SetActorFlags kBorisActorIndex, 0
+    act_SetActorState1 kBorisActorIndex, eNpcAdult::HumanBorisStanding
+    act_WaitFrames 120
+    ;; Boris shows Alex the relic from across the sea.
     act_RunDialog eDialog::TownOutdoorsFinaleYearsLater4
+    ;; The screen fades to black, and Alex speaks the finale line of dialogue
+    ;; before the epilogue.
     act_CallFunc FuncA_Cutscene_Finale_FadeRoomToBlack
     act_WaitFrames 30
     act_RunDialog eDialog::TownOutdoorsFinaleYearsLater5
     act_WaitFrames 30
     act_JumpToMain MainA_Cutscene_StartEpilogue
+_AlexHug_sCutscene:
+    act_WaitFrames 8
+    act_MoveNpcAdultWalk kAlexActorIndex, $02f0
+    act_SetActorState1 kAlexActorIndex, eNpcAdult::HumanAlexTaking
+    act_ForkStop $ff
+_AlexBackUp_sCutscene:
+    act_MoveNpcAdultWalk kAlexActorIndex, $02f3
+    act_SetActorState1 kAlexActorIndex, eNpcAdult::HumanAlexStanding
+    act_SetActorFlags kAlexActorIndex, bObj::FlipH
+    act_ForkStop $ff
 .ENDPROC
 
 ;;;=========================================================================;;;
