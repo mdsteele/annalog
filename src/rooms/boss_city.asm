@@ -88,6 +88,7 @@
 .IMPORT Func_PlaySfxDrip
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxSample
+.IMPORT Func_PlaySfxShootFire
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_ShakeRoom
@@ -768,7 +769,6 @@ _BossWeaving:
     rts
 _BossShootSpines:
     jsr FuncA_Room_BossCity_CloseShell
-    ;; Wait for the shell to be fully closed.
     lda Zp_RoomState + sState::BossCooldown_u8
     cmp #kBossSpineSlowdown * 5
     bge @done
@@ -776,18 +776,22 @@ _BossShootSpines:
     bne @done
     lda Zp_RoomState + sState::BossCooldown_u8
     div #kBossSpineSlowdown
-    sta T3  ; spine index
+    sta T0  ; spine index
+    cmp #4
+    bne @noSound
+    jsr Func_PlaySfxShootFire  ; preserves T0+
+    @noSound:
     jsr Func_FindEmptyActorSlot  ; preserves T0+, returns C and X
     bcs @doneSpine
     jsr FuncA_Room_SetPointToBossBodyCenter  ; preserves X and T0+
-    ldy T3  ; spine index
+    ldy T0  ; spine index
     lda _SpineOffsetX_i8_arr5, y
-    jsr Func_MovePointHorz  ; preserves X, Y, and T0+
+    jsr Func_MovePointHorz  ; preserves X and Y
     lda #14
-    jsr Func_MovePointDownByA  ; preserves X, Y, and T0+
-    jsr Func_SetActorCenterToPoint  ; preserves X, Y, and T0+
+    jsr Func_MovePointDownByA  ; preserves X and Y
+    jsr Func_SetActorCenterToPoint  ; preserves X and Y
     lda _SpineAngle_u8_arr5, y  ; param: spine angle
-    jsr FuncA_Room_InitActorProjSpine  ; preserves X and T3+
+    jsr FuncA_Room_InitActorProjSpine
     @doneSpine:
     lda Zp_RoomState + sState::BossCooldown_u8
     bne @done
