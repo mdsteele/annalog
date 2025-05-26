@@ -166,6 +166,29 @@ _PlaySound:
     rts
 .ENDPROC
 
+;;; Makes a mermaid/orc ghost baddie actor finish up what it's doing and
+;;; disappear soon.
+;;; @param X The actor index.
+;;; @preserve X
+.EXPORT FuncA_Room_MakeBadGhostFinishUpSoon
+.PROC FuncA_Room_MakeBadGhostFinishUpSoon
+    ;; If the ghost is vulnerable, make it disappear right away.
+    ldy Ram_ActorState1_byte_arr, x  ; eBadGhost mode
+    cpy #kBadGhostFirstVulnerable
+    blt @notVulnerable
+    lda #eBadGhost::Disappearing
+    sta Ram_ActorState1_byte_arr, x  ; current eBadGhost mode
+    lda #0
+    sta Ram_ActorState2_byte_arr, x  ; mode timer
+    @notVulnerable:
+    ;; Otherwise, the ghost is either (1) already absent or disappearing, (2)
+    ;; injured, in which case it will disappear soon, or (3) still appearing,
+    ;; in which case the boss code will call this function again later to make
+    ;; the ghost disappear, once it finishes appearing.  In all three cases,
+    ;; there's nothing to do for now.
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Machine"

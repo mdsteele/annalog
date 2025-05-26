@@ -63,6 +63,7 @@
 .IMPORT FuncA_Room_MachineEmitterYInitReset
 .IMPORT FuncA_Room_MakeBadGhostAppear
 .IMPORT FuncA_Room_MakeBadGhostAppearForAttack
+.IMPORT FuncA_Room_MakeBadGhostFinishUpSoon
 .IMPORT FuncA_Room_PlaySfxRumbling
 .IMPORT FuncA_Room_RemoveEmitterForcefield
 .IMPORT FuncA_Room_TickBoss
@@ -507,19 +508,6 @@ _BossMode_GravityPending:
     inc Zp_RoomState + sState::Current_eBossMode
     @done:
     rts
-_BossMode_GravityActive:
-    ;; If the mermaid ghost disappears without being injured, reverse gravity.
-    lda Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
-    .assert eBadGhost::Absent = 0, error
-    beq @reverseGravity
-    rts
-    ;; Reverse gravity.
-    @reverseGravity:
-    lda Zp_AvatarFlags_bObj
-    eor #bObj::FlipV
-    sta Zp_AvatarFlags_bObj
-    ;; Begin a new set of attack waves.
-    jmp _BeginNewAttackWaves
 _BossMode_LavaPending:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
@@ -533,13 +521,29 @@ _BossMode_LavaPending:
     inc Zp_RoomState + sState::Current_eBossMode
     @done:
     rts
+_BossMode_GravityActive:
+    ;; Wait for the mermaid ghost to disappear.
+    lda Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
+    .assert eBadGhost::Absent = 0, error
+    bne _Return
+    ;; If boss health is zero, make final ghost appear.
+    lda Zp_RoomState + sState::BossHealth_u8
+    beq _BeginMerge
+    ;; Reverse gravity.
+    lda Zp_AvatarFlags_bObj
+    eor #bObj::FlipV
+    sta Zp_AvatarFlags_bObj
+    ;; Begin a new set of attack waves.
+    jmp _BeginNewAttackWaves
 _BossMode_LavaActive:
-    ;; If the orc ghost disappears without being injured, make the lava start
-    ;; rising.
+    ;; Wait for the orc ghost to disappear.
     lda Ram_ActorState1_byte_arr + kGhostOrcActorIndex  ; eBadGhost mode
     .assert eBadGhost::Absent = 0, error
     bne @done
-    ;; Switch main boss mode to make the lava start rising.
+    ;; If boss health is zero, make final ghost appear.
+    lda Zp_RoomState + sState::BossHealth_u8
+    beq _BeginMerge
+    ;; Otherwise, switch main boss mode to make the lava start rising.
     @raiseLava:
     .assert eBossMode::LavaActive + 1 = eBossMode::LavaRising, error
     inc Zp_RoomState + sState::Current_eBossMode
@@ -611,7 +615,14 @@ _BossMode_DoubleAttackPending:
     sta Zp_RoomState + sState::Current_eBossMode
     lda #60
     sta Zp_RoomState + sState::BossCooldown_u8
+    fall _Return
 _Return:
+    rts
+_BeginMerge:
+    lda #eBossMode::MergePending
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #60
+    sta Zp_RoomState + sState::BossCooldown_u8
     rts
 _BossMode_DoubleAttackHalf:
     ;; Wait for the cooldown to expire.
@@ -639,7 +650,15 @@ _BossMode_SingleAttackPending:
     sta Zp_RoomState + sState::Current_eBossMode
     rts
 _BossMode_AttackActive:
-    ;; TODO: If boss health is zero, make ghosts teleport out earlier.
+    ;; If boss health is zero, make ghosts teleport out earlier.
+    lda Zp_RoomState + sState::BossHealth_u8
+    bne @nonzeroHealth
+    ldx #kGhostMermaidActorIndex  ; param: actor index
+    jsr FuncA_Room_MakeBadGhostFinishUpSoon  ; preserves X
+    .assert kGhostMermaidActorIndex + 1 = kGhostOrcActorIndex, error
+    inx  ; param: actor index (now kGhostOrcActorIndex)
+    jsr FuncA_Room_MakeBadGhostFinishUpSoon
+    @nonzeroHealth:
     ;; Wait for ghosts to disappear, then begin the next attack wave.
     .assert eBadGhost::Absent = 0, error
     lda Ram_ActorState1_byte_arr + kGhostMermaidActorIndex  ; eBadGhost mode
@@ -686,12 +705,6 @@ _BeginNextAttackWave:
     @setMode:
     sty Zp_RoomState + sState::Current_eBossMode
     lda #30
-    sta Zp_RoomState + sState::BossCooldown_u8
-    rts
-_BeginMerge:
-    lda #eBossMode::MergePending
-    sta Zp_RoomState + sState::Current_eBossMode
-    lda #60
     sta Zp_RoomState + sState::BossCooldown_u8
     rts
 _BeginSpecialAttack:

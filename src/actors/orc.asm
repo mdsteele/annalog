@@ -1007,7 +1007,7 @@ _IsBlocked:
     ldya #$0100 ; param: speed
     jsr FuncA_Actor_SetVelXForward  ; preserves X
     lda #eBadOrc::Jumping
-    sta Ram_ActorState1_byte_arr, x
+    sta Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
     jmp Func_PlaySfxBaddieJump  ; preserves X
 .ENDPROC
 
