@@ -61,7 +61,9 @@
 .IMPORT DataA_Text1_CoreBossScreen_Reactivate_u8_arr
 .IMPORT DataA_Text1_CoreBossScreen_SelfDestruct_u8_arr
 .IMPORT FuncA_Cutscene_InitActorSmokeAxe
+.IMPORT FuncA_Cutscene_PlaySfxCannonFire
 .IMPORT FuncA_Cutscene_PlaySfxFinalTerminalRising
+.IMPORT FuncA_Cutscene_PlaySfxRumbling
 .IMPORT FuncA_Machine_BlasterTick
 .IMPORT FuncA_Machine_BlasterTryAct
 .IMPORT FuncA_Machine_BlasterWriteRegM
@@ -136,6 +138,7 @@
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
+.IMPORT Func_SetPointToDeviceCenter
 .IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_SetScrollGoalFromPoint
 .IMPORT Func_ShakeRoom
@@ -2229,7 +2232,7 @@ _LookAtTopOfCore:
 .PROC DataA_Cutscene_CoreBossFinaleSelfDestruct_sCutscene
     act_CallFunc Func_PlaySfxPoof
     act_PlayMusic eMusic::Silence
-    act_WaitFrames 30
+    act_WaitFrames 60
     ;; Make Anna look around as the room starts to shake.
     act_ForkStart 1, _ShakeSmall_sCutscene
     act_WaitFrames 30
@@ -2259,7 +2262,9 @@ _LookAtTopOfCore:
     act_WaitFrames 60
     act_MoveAvatarRun $011c
     ;; A huge explosion flings Anna rightward as the screen fades to white.
-    act_CallFunc Func_PlaySfxExplodeBig
+    act_ForkStart 1, _ShakeHugeSilent_sCutscene
+    act_CallFunc _ExplodeFinalTerminal
+    act_PlaySfxSample eSample::Harm
     act_SetAvatarVelX 1200
     act_SetAvatarVelY -700
     act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
@@ -2268,32 +2273,69 @@ _LookAtTopOfCore:
     act_WaitFrames 60
     act_JumpToMain MainA_Cutscene_FinaleYearsLater
 _ShakeSmall_sCutscene:
-    act_RepeatFunc 32, _ShakeSmall
+    act_CallFunc _ShakeSmall
+    act_CallFunc FuncA_Cutscene_PlaySfxCannonFire
+    act_WaitFrames 4
     act_ForkStart 1, _ShakeSmall_sCutscene
 _ShakeBig_sCutscene:
-    act_RepeatFunc 32, _ShakeBig
+    act_CallFunc _ShakeBig
+    act_CallFunc _PlaySfxRumbling
+    act_WaitFrames 4
     act_ForkStart 1, _ShakeBig_sCutscene
 _ShakeHuge_sCutscene:
-    act_RepeatFunc 32, _ShakeHuge
+    act_CallFunc _ShakeHuge
+    act_CallFunc _ExplodeOnLeftSide
+    act_CallFunc Func_PlaySfxExplodeSmall
+    act_WaitFrames 8
+    act_CallFunc _ShakeHuge
+    act_CallFunc _ExplodeOnRightSide
+    act_CallFunc Func_PlaySfxExplodeSmall
+    act_WaitFrames 8
     act_ForkStart 1, _ShakeHuge_sCutscene
+_ShakeHugeSilent_sCutscene:
+    act_CallFunc _ShakeHuge
+    act_CallFunc _ExplodeOnLeftSide
+    act_WaitFrames 8
+    act_CallFunc _ShakeHuge
+    act_CallFunc _ExplodeOnRightSide
+    act_WaitFrames 8
+    act_ForkStart 1, _ShakeHugeSilent_sCutscene
 _ShakeSmall:
-    txa  ; repeat counter
-    mod #4
-    bne _Return
     lda #6  ; param: num frames
     jmp Func_ShakeRoom
 _ShakeBig:
-    txa  ; repeat counter
-    mod #4
-    bne _Return
     lda #kBigShakeFrames + 6  ; param: num frames
     jmp Func_ShakeRoom
+_PlaySfxRumbling:
+    lda #6  ; param: frames
+    jmp FuncA_Cutscene_PlaySfxRumbling
 _ShakeHuge:
-    txa  ; repeat counter
-    mod #4
-    bne _Return
-    lda #kHugeShakeFrames + 6  ; param: num frames
+    lda #kHugeShakeFrames + 10  ; param: num frames
     jmp Func_ShakeRoom
+_ExplodeOnLeftSide:
+    ldya #$00ec
+    bpl _ExplodeRandomly  ; unconditional
+_ExplodeOnRightSide:
+    ldya #$0134
+    fall _ExplodeRandomly
+_ExplodeRandomly:
+    stya Zp_PointX_i16
+    jsr Func_GetRandomByte  ; returns A (param: dividend)
+    ldy #$70  ; param: divisor
+    jsr Func_DivMod  ; returns remainder in A
+    add #$78
+    sta Zp_PointY_i16 + 0
+    lda #0
+    adc #0
+    sta Zp_PointY_i16 + 1
+    jmp Func_SpawnExplosionAtPoint
+_ExplodeFinalTerminal:
+    ldy #kFinalTerminalDeviceIndex  ; param: device index
+    jsr Func_SetPointToDeviceCenter
+    lda #eDevice::None
+    sta Ram_DeviceType_eDevice_arr + kFinalTerminalDeviceIndex
+    jsr Func_SpawnExplosionAtPoint
+    jmp Func_PlaySfxExplodeBig
 _FadeToWhite:
     txa  ; repeat counter (param: dividend)
     ldy #kFadeToWhiteDivisor  ; param: divisor

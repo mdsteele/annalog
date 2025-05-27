@@ -505,6 +505,8 @@ _ForkStart:
     iny
     lda (T1T0), y
     sta Ram_Next_sCutscene_ptr_1_arr, x
+    lda #0
+    sta Ram_CutsceneTimer_u8_arr, x
     cpx Zp_ForkIndex_u8
     jeq FuncA_Cutscene_ExecuteOneFork
     iny
@@ -523,6 +525,8 @@ _ForkStop:
     sta Ram_Next_sCutscene_ptr_0_arr, x
     lda #>DataA_Cutscene_Null_sCutscene
     sta Ram_Next_sCutscene_ptr_1_arr, x
+    lda #0
+    sta Ram_CutsceneTimer_u8_arr, x
     jmp FuncA_Cutscene_AdvanceForkAndExecute
     @endCurrentFork:
     lda Zp_ForkIndex_u8

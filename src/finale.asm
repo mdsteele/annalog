@@ -374,7 +374,7 @@ _DrawText:
     sta Zp_Chr04Bank_u8
     ldax #DataA_Cutscene_YearsLaterText_sXfer_arr  ; param: data pointer
     jsr Func_DirectPpuTransfer
-    ldx #45  ; param: num frames
+    ldx #180  ; param: num frames
     jsr Func_WaitXFrames
 _FadeInText:
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
@@ -384,9 +384,11 @@ _FadeInText:
     sta Zp_PpuScrollY_u8
     jsr Func_FadeInFromBlackToNormal
 _FadeOutText:
-    ldx #150  ; param: num frames
+    ldx #210  ; param: num frames
     jsr Func_WaitXFrames
-    jmp Func_FadeOutToBlack
+    jsr Func_FadeOutToBlack
+    ldx #60  ; param: num frames
+    jmp Func_WaitXFrames
 .ENDPROC
 
 ;;;=========================================================================;;;

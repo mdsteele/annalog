@@ -51,3 +51,15 @@
 .ENDPROC
 
 ;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Cutscene"
+
+;;; Starts playing the sound for when a cannon machine fires a grenade.
+;;; @preserve T0+
+.EXPORT FuncA_Cutscene_PlaySfxCannonFire
+.PROC FuncA_Cutscene_PlaySfxCannonFire
+    ldya #Data_CannonFire_sSfx
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves T0+
+.ENDPROC
+
+;;;=========================================================================;;;
