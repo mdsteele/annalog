@@ -1070,7 +1070,9 @@ _Walking1_eNpcAdult_arr:
     d_byte HumanAlexTaking,    eNpcAdult::HumanAlexWalking1
     d_byte HumanAlexWalking1,  eNpcAdult::HumanAlexWalking1
     d_byte HumanAlexWalking2,  eNpcAdult::HumanAlexWalking1
-    d_byte HumanAnna,          eNpcAdult::HumanAnna
+    d_byte HumanAnnaStanding,  eNpcAdult::HumanAnnaWalking1
+    d_byte HumanAnnaWalking1,  eNpcAdult::HumanAnnaWalking1
+    d_byte HumanAnnaWalking2,  eNpcAdult::HumanAnnaWalking1
     d_byte HumanBorisGiving,   eNpcAdult::HumanBorisWalking1
     d_byte HumanBorisStanding, eNpcAdult::HumanBorisWalking1
     d_byte HumanBorisWalking1, eNpcAdult::HumanBorisWalking1
@@ -1108,7 +1110,9 @@ _Walking2_eNpcAdult_arr:
     d_byte HumanAlexTaking,    eNpcAdult::HumanAlexWalking2
     d_byte HumanAlexWalking1,  eNpcAdult::HumanAlexWalking2
     d_byte HumanAlexWalking2,  eNpcAdult::HumanAlexWalking2
-    d_byte HumanAnna,          eNpcAdult::HumanAnna
+    d_byte HumanAnnaStanding,  eNpcAdult::HumanAnnaWalking2
+    d_byte HumanAnnaWalking1,  eNpcAdult::HumanAnnaWalking2
+    d_byte HumanAnnaWalking2,  eNpcAdult::HumanAnnaWalking2
     d_byte HumanBorisGiving,   eNpcAdult::HumanBorisWalking2
     d_byte HumanBorisStanding, eNpcAdult::HumanBorisWalking2
     d_byte HumanBorisWalking1, eNpcAdult::HumanBorisWalking2

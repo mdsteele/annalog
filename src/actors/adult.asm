@@ -78,7 +78,9 @@ _FirstTileId_u8_arr:
     d_byte HumanAlexTaking,    kTileIdObjAdultAlexFirst          + 12
     d_byte HumanAlexWalking1,  kTileIdObjAdultAlexFirst          + 18
     d_byte HumanAlexWalking2,  kTileIdObjAdultAlexFirst          + 24
-    d_byte HumanAnna,          kTileIdObjAdultAnnaFirst          + 0
+    d_byte HumanAnnaStanding,  kTileIdObjAdultAnnaFirst          + 0
+    d_byte HumanAnnaWalking1,  kTileIdObjAdultAnnaFirst          + 6
+    d_byte HumanAnnaWalking2,  kTileIdObjAdultAnnaFirst          + 12
     d_byte HumanBorisGiving,   kTileIdObjAdultBorisFirst         + 18
     d_byte HumanBorisStanding, kTileIdObjAdultBorisFirst         + 0
     d_byte HumanBorisWalking1, kTileIdObjAdultBorisFirst         + 6

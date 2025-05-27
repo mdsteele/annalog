@@ -349,9 +349,9 @@ _Actors_sActor_arr:
     .assert * - :- = kAnnaActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
     d_byte Type_eActor, eActor::NpcAdult
-    d_word PosX_i16, $0338
+    d_word PosX_i16, $03a8
     d_word PosY_i16, $00c8
-    d_byte Param_byte, eNpcAdult::HumanAnna
+    d_byte Param_byte, eNpcAdult::HumanAnnaStanding
     D_END
     .assert * - :- = kBorisActorIndex * .sizeof(sActor), error
     D_STRUCT sActor
@@ -511,7 +511,7 @@ _SetUpYearsLaterCutscene:
     sta Ram_ActorPosX_i16_0_arr + kAlexActorIndex
     sty Ram_ActorPosX_i16_1_arr + kAlexActorIndex
     ldx #kAlexActorIndex
-    lda #eNpcAdult::HumanAlexStanding  ; param: eNpcAdult value
+    lda #eNpcAdult::HumanAlexSad  ; param: eNpcAdult value
     ldy #eActor::NpcAdult  ; param: actor type
     jsr Func_InitActorWithState1
     dec Ram_ActorState2_byte_arr + kAlexActorIndex  ; now $ff
@@ -1472,6 +1472,11 @@ _ShootBeamAtPoint:
 
 .EXPORT DataA_Cutscene_TownOutdoorsFinaleYearsLater_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsFinaleYearsLater_sCutscene
+    act_WaitFrames 180
+    ;; Anna walks onscreen; Alex looks up as she approaches.
+    act_ForkStart 1, _AlexLookUp_sCutscene
+    act_MoveNpcAdultWalk kAnnaActorIndex, $0338
+    act_SetActorState1 kAnnaActorIndex, eNpcAdult::HumanAnnaStanding
     act_WaitFrames 120
     ;; Alex expresses his regrets to Anna.
     act_RunDialog eDialog::TownOutdoorsFinaleYearsLater1
@@ -1504,6 +1509,10 @@ _ShootBeamAtPoint:
     act_RunDialog eDialog::TownOutdoorsFinaleYearsLater5
     act_WaitFrames 30
     act_JumpToMain MainA_Cutscene_StartEpilogue
+_AlexLookUp_sCutscene:
+    act_WaitFrames 90
+    act_SetActorState1 kAlexActorIndex, eNpcAdult::HumanAlexStanding
+    act_ForkStop $ff
 _AlexHug_sCutscene:
     act_WaitFrames 8
     act_MoveNpcAdultWalk kAlexActorIndex, $02f0

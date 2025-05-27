@@ -40,7 +40,9 @@
     HumanAlexTaking
     HumanAlexWalking1
     HumanAlexWalking2
-    HumanAnna
+    HumanAnnaStanding
+    HumanAnnaWalking1
+    HumanAnnaWalking2
     HumanBorisGiving
     HumanBorisStanding
     HumanBorisWalking1
@@ -88,9 +90,9 @@ kFirstFloatingNpcAdult = eNpcAdult::GhostJerome
 kFirst2x4NpcAdult = eNpcAdult::CorraSwimmingUp1
 
 ;;; The first tile IDs for various human adults.
-kTileIdObjAdultAlexFirst          = $86
+kTileIdObjAdultAlexFirst          = $92
 kTileIdObjAdultAnnaFirst          = $80
-kTileIdObjAdultBorisFirst         = $a4
+kTileIdObjAdultBorisFirst         = $b0
 kTileIdObjAdultElderFirst         = $c4
 kTileIdObjAdultGhostFirst         = $e4
 kTileIdObjAdultJeromeFirst        = $98
