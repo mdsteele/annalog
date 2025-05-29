@@ -337,6 +337,7 @@ _SetArg1:
     and #$f0
     ora T0  ; new field value (in low nibble)
     sta Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
+_Return:
     rts
 _SetOpcode:
     pha  ; new eOpcode value
@@ -344,9 +345,7 @@ _SetOpcode:
     sty T0  ; old eOpcode value
     pla  ; new eOpcode value
     cmp T0  ; old eOpcode value
-    bne @update
-    rts
-    @update:
+    beq _Return  ; opcode is unchanged
     tay  ; new eOpcode value
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sIns)

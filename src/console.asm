@@ -508,9 +508,8 @@ _ScrollWindow:
     and #bJoypad::Start
     beq @noDebug
     ;; Don't start debugging if the program is empty.
-    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte
-    and #$f0
-    .assert eOpcode::Empty = 0, error
+    ldy #0  ; param: instruction number
+    jsr FuncA_Console_IsInstructionEmpty  ; returns Z
     beq @noDebug
     jsr Func_PlaySfxMenuConfirm
     ldya #Main_Console_Debug
@@ -546,29 +545,32 @@ _ReturnYA:
 ;;; C and returns without redrawing anything.
 ;;; @return C Set if an instruction was successfully inserted.
 .PROC FuncA_Console_TryInsertInstruction
+    ;; Check if the selected instruction is empty; if so, just edit that one
+    ;; instead of inserting.
+    ldy Zp_ConsoleInstNumber_u8  ; param: insruction number
+    jsr FuncA_Console_IsInstructionEmpty  ; returns Z
+    beq _ReturnSuccess
     ;; Check if the final instruction in the program is empty; if not, we can't
     ;; insert a new instruction.
-    lda Zp_MachineMaxInstructions_u8
-    mul #.sizeof(sIns)
-    sta T0  ; machine max program byte length
-    tay
-    .assert sIns::Op_byte = .sizeof(sIns) - 1, error
-    dey
-    lda Ram_Console_sProgram, y
-    and #$f0
-    beq @canInsert
-    clc  ; clear C to indicate failure
-    rts
-    @canInsert:
+    ldy Zp_MachineMaxInstructions_u8
+    dey  ; param: insruction number
+    jsr FuncA_Console_IsInstructionEmpty  ; returns Z
+    bne _ReturnFailure  ; program is full
 _ShiftInstructions:
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sIns)
     sta T1  ; byte offset for current instruction
-    ldy T0  ; machine max program byte length
-    ldx T0  ; machine max program byte length
+    ;; Store this machine's max program byte length in Y.
+    lda Zp_MachineMaxInstructions_u8
+    mul #.sizeof(sIns)
+    tay
+    ;; Store max byte length - .sizeof(sIns) in X.
+    tax
     .repeat .sizeof(sIns)
     dex
     .endrepeat
+    ;; Shift all instructions from the current instruction onward forward by
+    ;; .sizeof(sIns).
     @loop:
     dex
     dey
@@ -606,9 +608,13 @@ _RewriteGotos:
     .endrepeat
     cpx #.sizeof(sIns) * kMaxProgramLength
     blt @loop
-_Finish:
+_TransferAllInstructions:
     jsr FuncA_Console_TransferAllInstructions
+_ReturnSuccess:
     sec  ; set C to indicate success
+    rts
+_ReturnFailure:
+    clc  ; clear C to indicate failure
     rts
 .ENDPROC
 
@@ -766,8 +772,10 @@ _DrawStatus:
 ;;; @param X PPU transfer array index within an entry's data.
 ;;; @return X Updated PPU transfer array index.
 .PROC FuncA_Console_WriteInstTransferData
-    jsr FuncA_Console_IsPrevInstructionEmpty
-    beq _Write7Spaces
+    stx T4  ; PPU transfer array index
+    jsr FuncA_Console_IsPrevInstructionEmpty  ; preserves T0+
+    beq _RestoreXAndWrite7Spaces
+    ldx T4  ; PPU transfer array index
     ;; Store the Arg_byte in T1.
     lda Zp_ConsoleInstNumber_u8
     mul #.sizeof(sIns)
@@ -807,9 +815,9 @@ _DrawStatus:
     d_entry table, Nop,   _OpNop
     D_END
 .ENDREPEAT
-_Write7Spaces:
-    jsr _Write3Spaces
-    jmp _Write4Spaces
+_RestoreXAndWrite7Spaces:
+    ldx T4  ; PPU transfer array index
+    jmp _Write7Spaces
 _OpEmpty:
 _OpNop:
     ldya #@string
@@ -950,6 +958,8 @@ _WriteBinop:
     lda T1  ; Arg_byte
     jsr _WriteHighRegisterOrImmediate
     jmp _Write2Spaces
+_Write7Spaces:
+    jsr _Write3Spaces
 _Write4Spaces:
     lda #' '
     sta Ram_PpuTransfer_arr, x
@@ -1008,15 +1018,24 @@ _WriteComparisonOperator:
 .EXPORT FuncA_Console_IsPrevInstructionEmpty
 .PROC FuncA_Console_IsPrevInstructionEmpty
     ldy Zp_ConsoleInstNumber_u8
-    dey
-    bmi @done
+    dey  ; param: instruction number
+    bpl FuncA_Console_IsInstructionEmpty  ; preserves T0+, returns Z
+    ;; If Y is negative, Z will now be cleared.
+    rts
+.ENDPROC
+
+;;; Determines if the specified instruction in the console program is empty.
+;;; @param Y The instruction number.
+;;; @return Z Set if the instruction is empty.
+;;; @preserve Y, T0+
+.EXPORT FuncA_Console_IsInstructionEmpty
+.PROC FuncA_Console_IsInstructionEmpty
     tya
     mul #.sizeof(sIns)
-    tay
-    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, y
+    tax
+    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, x
     and #$f0
     .assert eOpcode::Empty = 0, error
-    @done:
     rts
 .ENDPROC
 

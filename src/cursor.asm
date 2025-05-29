@@ -29,13 +29,13 @@
 .IMPORT FuncA_Console_GetCurrentFieldOffset
 .IMPORT FuncA_Console_GetCurrentFieldWidth
 .IMPORT FuncA_Console_GetCurrentInstNumFields
+.IMPORT FuncA_Console_IsInstructionEmpty
 .IMPORT FuncA_Console_IsPrevInstructionEmpty
 .IMPORT FuncA_Console_SetFieldForNominalOffset
 .IMPORT FuncA_Console_UpdateMenuNominalCol
 .IMPORT Func_AllocObjects
 .IMPORT Func_AllocOneObject
 .IMPORT Func_PlaySfxMenuMove
-.IMPORT Ram_Console_sProgram
 .IMPORT Ram_MachinePc_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_MenuCols_u8_arr
@@ -67,54 +67,45 @@ _CheckDown:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Down
     beq _CheckUp
-    ldx Zp_ConsoleInstNumber_u8
-    ;; Check if the currently selection instruction is eOpcode::Empty; if so,
+    ldy Zp_ConsoleInstNumber_u8  ; param: instruction number
+    ;; Check if the currently selected instruction is eOpcode::Empty; if so,
     ;; moving down from there wraps back to instruction number zero.
-    txa
-    mul #.sizeof(sIns)
-    tay
-    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, y
-    and #$f0
-    .assert eOpcode::Empty = 0, error
+    jsr FuncA_Console_IsInstructionEmpty  ; preserves Y and T0+, returns Z
     beq @wrap
     ;; Increment the instruction number, but if that would exceed the max
     ;; number of instructions in the console window, then wrap back to zero.
-    inx
-    cpx Zp_MachineMaxInstructions_u8
+    iny  ; instruction number
+    cpy Zp_MachineMaxInstructions_u8
     blt @noWrap
     @wrap:
-    ldx #0
+    ldy #0
     @noWrap:
-    stx Zp_ConsoleInstNumber_u8
+    sty Zp_ConsoleInstNumber_u8
     jmp _FinishUpDown
 _CheckUp:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Up
     beq _NoUpOrDown
     ;; If the current instruction number is nonzero, just decrement it.
-    ldx Zp_ConsoleInstNumber_u8
+    ldy Zp_ConsoleInstNumber_u8
     beq @loop
     dec Zp_ConsoleInstNumber_u8
+    .assert kMaxProgramLength < $80, error
     bpl _FinishUpDown  ; unconditional
     ;; Otherwise, search forward (starting from instruction zero) for the first
     ;; empty instruction.
     @loop:
-    txa
-    mul #.sizeof(sIns)
-    tay
-    lda Ram_Console_sProgram + sProgram::Code_sIns_arr + sIns::Op_byte, y
-    and #$f0
     ;; If this instruction is empty, select it.
-    .assert eOpcode::Empty = 0, error
+    jsr FuncA_Console_IsInstructionEmpty  ; preserves Y and T0+, returns Z
     beq @select
     ;; Otherwise, keep looking.  If there are no empty instructions, we'll
     ;; select the last instruction.
-    inx
-    cpx Zp_MachineMaxInstructions_u8
+    iny  ; instruction number
+    cpy Zp_MachineMaxInstructions_u8
     blt @loop
-    dex
+    dey  ; instruction number
     @select:
-    stx Zp_ConsoleInstNumber_u8
+    sty Zp_ConsoleInstNumber_u8
 _FinishUpDown:
     ;; Check if the cursor actually moved vertically; if so, play a sound and
     ;; set the field number from the nominal field offset.
