@@ -27,7 +27,6 @@
 .IMPORT Ram_MenuCols_u8_arr
 .IMPORT Ram_MenuRows_u8_arr
 .IMPORTZP Zp_ConsoleNumInstRows_u8
-.IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sMenu_ptr
 .IMPORTZP Zp_MenuItem_u8
 
@@ -38,95 +37,82 @@
 ;;; +--------+
 ;;; |        |
 ;;; |        |
-;;; |   ^    |
-;;; |  < >   |
-;;; |   v    |
+;;; | Erase  |
+;;; |program?|
 ;;; |        |
+;;; |YES   NO|
 ;;; |        |
 ;;; |        |
 ;;; +--------+
-.PROC DataA_Console_Direction_sMenu
+.PROC DataA_Console_Erase_sMenu
     D_STRUCT sMenu
     d_byte WidthsMinusOne_u8_arr
-    .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    .byte 1, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr
-    D_ARRAY .enum, eDir, kSizeofAddr
-    d_addr Up,    _LabelUp
-    d_addr Right, _LabelRight
-    d_addr Down,  _LabelDown
-    d_addr Left,  _LabelLeft
-    D_END
+    .addr _LabelNo, _LabelYes, _LabelErase, _LabelProgram
     .addr 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr OnUp_func_ptr,    _OnUp
     d_addr OnDown_func_ptr,  _OnDown
     d_addr OnLeft_func_ptr,  _OnLeft
     d_addr OnRight_func_ptr, _OnRight
     D_END
-_LabelUp:    .byte kTileIdBgArrowUp
-_LabelRight: .byte kTileIdBgArrowRight
-_LabelDown:  .byte kTileIdBgArrowDown
-_LabelLeft:  .byte kTileIdBgArrowLeft
-_OnUp:
-    ldx #eDir::Up
-    bpl _SetItem  ; unconditional
-_OnDown:
-    ldx #eDir::Down
-    bpl _SetItem  ; unconditional
+_LabelNo:      .byte "NO"
+_LabelYes:     .byte "YES"
+_LabelErase:   .byte "Erase"
+_LabelProgram: .byte "program?"
 _OnLeft:
-    ldx #eDir::Left
+    ldx #1  ; "YES"
     bpl _SetItem  ; unconditional
 _OnRight:
-    ldx #eDir::Right
+    ldx #0  ; "NO"
 _SetItem:
-    lda Ram_MenuRows_u8_arr, x
-    bmi @done
     stx Zp_MenuItem_u8
-    @done:
+_OnUp:
+_OnDown:
     rts
 .ENDPROC
 
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
-;;; Ram_MenuCols_u8_arr appropriately for a direction menu.
-;;; @prereq Zp_Current_sMachine_ptr is initialized.
-.EXPORT FuncA_Console_SetUpDirectionMenu
-.PROC FuncA_Console_SetUpDirectionMenu
-    ldax #DataA_Console_Direction_sMenu
+;;; Ram_MenuCols_u8_arr appropriately for the erase program menu.
+.EXPORT FuncA_Console_SetUpEraseMenu
+.PROC FuncA_Console_SetUpEraseMenu
+    ldax #DataA_Console_Erase_sMenu
     stax Zp_Current_sMenu_ptr
-    ;; Store the starting row in T0.
+    ;; Store the starting row in Y.
     lda Zp_ConsoleNumInstRows_u8
-    sub #3
+    sub #4
     div #2
-    sta T0  ; starting row
-    ;; Check if this machine supports moving vertically.
-    ldy #sMachine::Flags_bMachine
-    lda (Zp_Current_sMachine_ptr), y
-    tay  ; machine flags
-    and #bMachine::MoveV
-    beq @noMoveVert
-    ;; If so, position menu items for up/down.
-    ldx T0  ; starting row
-    stx Ram_MenuRows_u8_arr + eDir::Up
+    tay  ; starting row
+    ;; Set menu item rows.
+    sty Ram_MenuRows_u8_arr + 2  ; "Erase"
+    iny
+    sty Ram_MenuRows_u8_arr + 3  ; "program?"
+    iny
+    iny
+    sty Ram_MenuRows_u8_arr + 0  ; "NO"
+    sty Ram_MenuRows_u8_arr + 1  ; "YES"
+    ;; Set menu item cols.
+    ldx #0
+    stx Ram_MenuCols_u8_arr + 3  ; "program?"
+    stx Ram_MenuCols_u8_arr + 1  ; "YES"
     inx
-    inx
-    stx Ram_MenuRows_u8_arr + eDir::Down
-    lda #3
-    sta Ram_MenuCols_u8_arr + eDir::Up
-    sta Ram_MenuCols_u8_arr + eDir::Down
-    @noMoveVert:
-    ;; Check if this machine supports moving horizontally.
-    tya  ; machine flags
-    and #bMachine::MoveH
-    beq @noMoveHorz
-    ;; If so, position menu items for left/right.
-    ldx T0  ; starting row
-    inx
-    stx Ram_MenuRows_u8_arr + eDir::Left
-    stx Ram_MenuRows_u8_arr + eDir::Right
-    lda #2
-    sta Ram_MenuCols_u8_arr + eDir::Left
-    lda #4
-    sta Ram_MenuCols_u8_arr + eDir::Right
-    @noMoveHorz:
+    stx Ram_MenuCols_u8_arr + 2  ; "Erase"
+    ldx #6
+    stx Ram_MenuCols_u8_arr + 0  ; "NO"
+    rts
+.ENDPROC
+
+;;; Determines if the current menu is the erase program menu.
+;;; @prereq Zp_Current_sMenu_ptr is initialized.
+;;; @return Z Set if Zp_Current_sMenu_ptr is set to the erase program menu.
+.EXPORT FuncA_Console_IsEraseMenuActive
+.PROC FuncA_Console_IsEraseMenuActive
+    lda Zp_Current_sMenu_ptr + 0
+    cmp #<DataA_Console_Erase_sMenu
+    bne @done
+    lda Zp_Current_sMenu_ptr + 1
+    cmp #>DataA_Console_Erase_sMenu
+    @done:
     rts
 .ENDPROC
 

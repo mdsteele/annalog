@@ -47,6 +47,7 @@
 
 ;;; Types of fields that can appear in written program instructions.
 .ENUM eField
+    Erase      ; used for the erase program menu (not really a field type)
     Opcode     ; the instruction's opcode
     LValue     ; a writable register
     RValue     ; an immediate value (0-9) or readable register

@@ -244,6 +244,7 @@ _OnLeft:
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for an instruction opcode menu.
 ;;; @prereq Zp_Current_sMachine_ptr is initialized.
+;;; @prereq Zp_MenuItem_u8 is initialized.
 .EXPORT FuncA_Console_SetUpOpcodeMenu
 .PROC FuncA_Console_SetUpOpcodeMenu
     ldax #DataA_Console_Opcode_sMenu

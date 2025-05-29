@@ -28,11 +28,13 @@
 .IMPORT FuncA_Console_DrawMenuCursor
 .IMPORT FuncA_Console_GetCurrentFieldType
 .IMPORT FuncA_Console_GetCurrentFieldValue
+.IMPORT FuncA_Console_IsEraseMenuActive
 .IMPORT FuncA_Console_MoveMenuCursor
 .IMPORT FuncA_Console_SetCurrentFieldValue
 .IMPORT FuncA_Console_SetUpAddressMenu
 .IMPORT FuncA_Console_SetUpCompareMenu
 .IMPORT FuncA_Console_SetUpDirectionMenu
+.IMPORT FuncA_Console_SetUpEraseMenu
 .IMPORT FuncA_Console_SetUpLValueMenu
 .IMPORT FuncA_Console_SetUpOpcodeMenu
 .IMPORT FuncA_Console_SetUpRValueMenu
@@ -41,6 +43,7 @@
 .IMPORT FuncA_Console_TransferInstruction
 .IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
 .IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
+.IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_PlaySfxMenuCancel
 .IMPORT Func_PlaySfxMenuConfirm
 .IMPORT Func_SetMachineIndex
@@ -48,8 +51,10 @@
 .IMPORT Main_Console_ContinueEditing
 .IMPORT Ram_Console_sProgram
 .IMPORT Ram_PpuTransfer_arr
+.IMPORTZP Zp_ConsoleFieldNumber_u8
 .IMPORTZP Zp_ConsoleInstNumber_u8
 .IMPORTZP Zp_ConsoleMachineIndex_u8
+.IMPORTZP Zp_ConsoleNominalFieldOffset_u8
 .IMPORTZP Zp_ConsoleNumInstRows_u8
 .IMPORTZP Zp_MachineMaxInstructions_u8
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
@@ -99,7 +104,18 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 ;;; Initializes console menu mode.
 .PROC FuncA_Console_InitMenu
     jsr Func_PlaySfxMenuConfirm
+    fall FuncA_Console_SetUpAndTransferFieldMenu
+.ENDPROC
+
+;;; Sets up the menu for the currently selected program field, and transfers
+;;; all menu rows to the PPU.
+.PROC FuncA_Console_SetUpAndTransferFieldMenu
     jsr FuncA_Console_SetUpCurrentFieldMenu
+    fall FuncA_Console_TransferMenuRows
+.ENDPROC
+
+;;; Buffers PPU transfers for all menu rows.
+.PROC FuncA_Console_TransferMenuRows
     ;; Transfer menu rows.
     ldx #0  ; param: menu row to transfer
     @loop:
@@ -117,12 +133,13 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
     ;; field-type-specific setup functions require this).
     ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
     jsr Func_SetMachineIndex
+    ;; Set current menu item (must be initialized before setting up field
+    ;; menu).
+    jsr FuncA_Console_GetCurrentFieldValue  ; returns A
+    sta Zp_MenuItem_u8
     ;; Call field-type-specific setup function.
     jsr FuncA_Console_GetCurrentFieldType  ; returns Y (param: field type)
     jsr FuncA_Console_SetUpMenuForFieldType
-    ;; Set current menu item.
-    jsr FuncA_Console_GetCurrentFieldValue  ; returns A
-    sta Zp_MenuItem_u8
     fall FuncA_Console_UpdateMenuNominalCol
 .ENDPROC
 
@@ -139,6 +156,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
 ;;; Ram_MenuCols_u8_arr appropriately for the specified field type.
 ;;; @prereq Zp_Current_sMachine_ptr is initialized.
+;;; @prereq Zp_MenuItem_u8 is initialized.
 ;;; @param Y The eField value for the field type.
 .PROC FuncA_Console_SetUpMenuForFieldType
     ;; Clear items.
@@ -158,6 +176,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
     D_TABLE_LO table, _JumpTable_ptr_0_arr
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eField
+    d_entry table, Erase,     FuncA_Console_SetUpEraseMenu
     d_entry table, Opcode,    FuncA_Console_SetUpOpcodeMenu
     d_entry table, LValue,    FuncA_Console_SetUpLValueMenu
     d_entry table, RValue,    FuncA_Console_SetUpRValueMenu
@@ -380,10 +399,29 @@ _RedrawInstructions:
     jmp FuncA_Console_TransferAllInstructions
 .ENDPROC
 
+;;; Erases the console program, and sets the console cursor back to the first
+;;; (now empty) instruction.
+.PROC FuncA_Console_EraseProgram
+    lda #0
+    sta Zp_ConsoleInstNumber_u8
+    sta Zp_ConsoleFieldNumber_u8
+    sta Zp_ConsoleNominalFieldOffset_u8
+    ldx #.sizeof(sProgram) - 1
+    @loop:
+    sta Ram_Console_sProgram, x
+    dex
+    .assert .sizeof(sProgram) <= $80, error
+    bpl @loop
+    jmp FuncA_Console_TransferAllInstructions
+.ENDPROC
+
 ;;; Responds to any joypad presses while in menu mode.
 ;;; @return C Set if the menu should exit, cleared otherwise.
 .PROC FuncA_Console_MenuHandleJoypad
+    lda #bJoypad::Select
     bit Zp_P1ButtonsPressed_bJoypad
+    ;; SELECT button:
+    bne _ToggleEraseMenu
     ;; B button:
     .assert bJoypad::BButton = bProc::Overflow, error
     bvs _Cancel
@@ -394,7 +432,43 @@ _RedrawInstructions:
     jsr FuncA_Console_MoveMenuCursor
     clc
     rts
+_ToggleEraseMenu:
+    jsr FuncA_Console_IsEraseMenuActive  ; sets Z if erase menu is active
+    beq _CancelEraseMenu
+    fall _SetUpEraseMenu
+_SetUpEraseMenu:
+    jsr Func_PlaySfxMenuConfirm
+    ldy #eField::Erase  ; param: field type
+    ;; Set current menu item to zero (for "NO").
+    .assert eField::Erase = 0, error
+    sty Zp_MenuItem_u8
+    ;; Set up and transfer the menu.
+    jsr FuncA_Console_SetUpMenuForFieldType
+    jsr FuncA_Console_UpdateMenuNominalCol
+    jsr FuncA_Console_TransferMenuRows
+    clc
+    rts
+_Confirm:
+    jsr FuncA_Console_IsEraseMenuActive  ; sets Z if erase menu is active
+    bne _ConfirmFieldMenu
+    lda Zp_MenuItem_u8  ; 0 for NO, 1 for YES
+    beq _CancelEraseMenu
+    fall _EraseProgram
+_EraseProgram:
+    jsr Func_PlaySfxMenuConfirm
+    jsr Func_PlaySfxExplodeFracture
+    jsr FuncA_Console_EraseProgram
+    jmp _ExitMenu
+_CancelEraseMenu:
+    jsr Func_PlaySfxMenuCancel
+    jsr FuncA_Console_SetUpAndTransferFieldMenu
+    clc
+    rts
 _Cancel:
+    jsr FuncA_Console_IsEraseMenuActive  ; sets Z if erase menu is active
+    beq _CancelEraseMenu
+    fall _CancelFieldMenu
+_CancelFieldMenu:
     jsr Func_PlaySfxMenuCancel
     ;; If we cancel editing a NOP opcode (i.e. we were inserting a new
     ;; instruction), then delete that instruction (thus cancelling the
@@ -408,10 +482,10 @@ _Cancel:
     lda #eOpcode::Empty
     sta Zp_MenuItem_u8
     .assert eOpcode::Empty = 0, error
-    beq _SetValue  ; unconditional
-_Confirm:
+    beq _SetFieldValue  ; unconditional
+_ConfirmFieldMenu:
     jsr Func_PlaySfxMenuConfirm
-_SetValue:
+_SetFieldValue:
     jsr FuncA_Console_MenuSetValue
 _ExitMenu:
     jsr FuncA_Console_TransferAllDiagramBoxRows
