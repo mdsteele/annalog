@@ -22,6 +22,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
+.INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "shared.inc"
@@ -31,10 +32,13 @@
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT Func_InitActorSmokeParticleStationary
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_IsPointInPlatformHorz
 .IMPORT Func_IsPointInPlatformVert
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
+.IMPORT Func_SetPointToActorCenter
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
@@ -44,6 +48,7 @@
 .IMPORT Ram_PlatformBottom_i16_1_arr
 .IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformRight_i16_1_arr
+.IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_FrameCounter_u8
@@ -362,6 +367,50 @@
     ldx T1  ; param: platform index
     jsr FuncA_Machine_GetGenericMoveSpeed  ; preserves X, returns A
     jmp Func_MovePlatformTopTowardPointY  ; returns Z, N, and A
+.ENDPROC
+
+;;; Checks if any fireball projectiles are within the specified platform, and
+;;; expires them if so.  Does nothing if the platform isn't solid.
+;;; @param Y The platform index.
+;;; @preserve Y, T2+
+.EXPORT FuncA_Machine_ExpireFireballsWithinSolidPlatform
+.PROC FuncA_Machine_ExpireFireballsWithinSolidPlatform
+    lda #eActor::ProjFireball  ; param: actor type
+    fall FuncA_Machine_ExpireProjectilesWithinSolidPlatform  ; preserves Y, T2+
+.ENDPROC
+
+;;; Checks if any projectiles of the specified type are within the specified
+;;; platform, and expires them if so.  Does nothing if the platform isn't
+;;; solid.
+;;; @param A The eActor::Proj* type for projectiles to expire.
+;;; @param Y The platform index.
+;;; @preserve Y, T2+
+.EXPORT FuncA_Machine_ExpireProjectilesWithinSolidPlatform
+.PROC FuncA_Machine_ExpireProjectilesWithinSolidPlatform
+    sta T1  ; actor type
+    lda Ram_PlatformType_ePlatform_arr, y
+    cmp #kFirstSolidPlatformType
+    blt @done
+    ldx #kMaxActors - 1
+    @loop:
+    ;; If this actor isn't a fireball projectile, skip it.
+    lda Ram_ActorType_eActor_arr, x
+    cmp T1  ; actor type
+    bne @continue
+    ;; If the fireball isn't in the forcefield platform, skip it.
+    jsr Func_SetPointToActorCenter  ; preserves X, Y, and T0+
+    jsr Func_IsPointInPlatform  ; preserves X, Y, and T0+; returns C
+    bcc @continue
+    ;; Expire the fireball.
+    sty T0  ; platform index
+    jsr Func_InitActorSmokeParticleStationary  ; preserves X and T0+
+    ldy T0  ; platform index
+    @continue:
+    dex
+    .assert kMaxActors <= $80, error
+    bpl @loop
+    @done:
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

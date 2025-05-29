@@ -192,8 +192,9 @@ _GameLoop:
     d_xfer_text_row 14, "BETA TESTING"
     d_xfer_text_row 16, "Christopher DuBois"
     d_xfer_text_row 17, "David Couzelis"
-    d_xfer_text_row 18, "Jon Moran"
-    d_xfer_text_row 19, "Mitch Foley"
+    d_xfer_text_row 18, "Eric Chang"
+    d_xfer_text_row 19, "Jon Moran"
+    d_xfer_text_row 20, "Mitch Foley"
     d_xfer_terminator
 .ENDPROC
 

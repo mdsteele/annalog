@@ -38,6 +38,8 @@
 .IMPORT DataA_Room_Crypt_sTileset
 .IMPORT Data_Empty_sActor_arr
 .IMPORT FuncA_Machine_Error
+.IMPORT FuncA_Machine_ExpireFireballsWithinSolidPlatform
+.IMPORT FuncA_Machine_ExpireProjectilesWithinSolidPlatform
 .IMPORT FuncA_Machine_GetWinchHorzSpeed
 .IMPORT FuncA_Machine_GetWinchVertSpeed
 .IMPORT FuncA_Machine_StartWorking
@@ -549,7 +551,7 @@ _BossFiring:
     @shootFireball:
     ;; Otherwise, shoot a fireball.
     dec Zp_RoomState + sState::BossFireCount_u8
-    lda #30
+    lda #40
     sta Zp_RoomState + sState::BossCooldown_u8
     jsr FuncA_Room_SetPointToBossBodyCenter  ; preserves X
     jsr Func_GetAngleFromPointToAvatar  ; preserves X, returns A (param: angle)
@@ -1176,6 +1178,10 @@ _Error:
 ;;; BossCryptWinch machine towards its goal position.
 ;;; @return Z Set if the winch has reached its goal position.
 .PROC FuncA_Machine_BossCryptWinch_TickMove
+    ldy #kSpikeballPlatformIndex  ; param: platform index
+    jsr FuncA_Machine_ExpireFireballsWithinSolidPlatform  ; preserves Y
+    lda #eActor::ProjEmber  ; param: actor type
+    jsr FuncA_Machine_ExpireProjectilesWithinSolidPlatform
 _MoveVert:
     ;; Calculate the desired room-space pixel Y-position for the top edge of
     ;; the spikeball, storing it in Zp_PointY_i16.
