@@ -59,7 +59,7 @@ kBirdLandDistance = 8
 
 ;;; How many frames a bird baddie actor must wait after landing before it can
 ;;; fly again.
-kBirdCooldown = kAvatarHarmInvincibleFrames
+kBirdCooldown = kAvatarHarmInvincibleFrames + 15
 
 ;;; The OBJ palette number to use for drawing bird baddie actors.
 kPaletteObjBird = 0
@@ -227,10 +227,13 @@ _StartFlying:
 ;;; @preserve X
 .EXPORT FuncA_Objects_DrawActorBadBird
 .PROC FuncA_Objects_DrawActorBadBird
-    ldy Ram_ActorVelX_i16_1_arr, x
-    beq @draw  ; bird is not moving, so just use animation frame zero
     lda Ram_ActorState2_byte_arr, x  ; flying animation counter
     div #2
+    ldy Ram_ActorVelX_i16_1_arr, x
+    bne @moving
+    @notMoving:
+    div #4
+    @moving:
     and #$01
     tay
     @draw:
