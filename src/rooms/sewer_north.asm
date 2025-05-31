@@ -47,6 +47,7 @@
 .IMPORT FuncA_Room_InitActorSmokeWaterfall
 .IMPORT FuncA_Room_ResetLever
 .IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxSplash
 .IMPORT Func_SetActorCenterToPoint
@@ -409,24 +410,35 @@ _ValveOffset_u8_arr:
 _RaiseWater:
     lda Ram_PlatformTop_i16_0_arr, y
     cmp #$95
-    blt @done
-    sbc #1  ; carry is already set
-    sta Ram_PlatformTop_i16_0_arr, y
-    ;; The water surface went up one pixel, so reduce the height of the
+    blt _Return  ; already at maximum height
+    ;; The water surface is moving up one pixel, so reduce the height of the
     ;; waterfall that's hitting the water surface by one (unless it was already
     ;; zero, in which case don't wrap around).
     lda Ram_ActorState2_byte_arr, x  ; waterfall height in pixels
-    beq @done
+    beq @doneWaterfall
     dec Ram_ActorState2_byte_arr, x  ; waterfall height in pixels
-    @done:
-    rts
+    @doneWaterfall:
+    ;; Move the water platform up by one pixel.  Using Func_MovePlatformVert
+    ;; here instead of just modifying Ram_PlatformTop_i16_0_arr ensures that
+    ;; the player avatar will be carried correctly by the water if swimming in
+    ;; it.
+    tya  ; water platform index
+    tax  ; param: plaform index
+    lda #<-1  ; param: move delta
+    jmp Func_MovePlatformVert
 _LowerWater:
     lda Ram_PlatformTop_i16_0_arr, y
     cmp #$c4
-    bge @done
-    adc #1  ; carry is already clear
-    sta Ram_PlatformTop_i16_0_arr, y
-    @done:
+    bge _Return  ; already at minimum height
+    ;; Move the water platform down by one pixel.  Using Func_MovePlatformVert
+    ;; here instead of just modifying Ram_PlatformTop_i16_0_arr ensures that
+    ;; the player avatar will be carried correctly by the water if swimming in
+    ;; it.
+    tya  ; water platform index
+    tax  ; param: plaform index
+    lda #1  ; param: move delta
+    jmp Func_MovePlatformVert
+_Return:
     rts
 .ENDPROC
 

@@ -479,8 +479,25 @@ _MoveByA:
     dey  ; now Y is $ff
     @nonnegative:
     sta Zp_AvatarPushDelta_i8  ; move delta (lo)
-    sty T0                     ; move delta (hi)
+    tya                        ; move delta (hi)
+    pha                        ; move delta (hi)
+_CarryAvatarIfSwimming:
+    ;; If the platform type is water, and the avatar is at the surface of this
+    ;; water, then carry the avatar along with the water.  Note that we have to
+    ;; do this *before* we move the platform, because the avatar will no longer
+    ;; be at the surface.
+    lda Ram_PlatformType_ePlatform_arr, x
+    cmp #ePlatform::Water
+    bne @done  ; this is not a water platform
+    jsr Func_IsAvatarInWaterPlatform  ; preserves X and T2+, returns C and A
+    bcc @done  ; avatar is not in this water platform
+    tay  ; depth below surface
+    bne @done  ; avatar is below the surface of the water
+    jsr Func_TryPushAvatarVert  ; preserves X and T4+
+    @done:
 _MovePlatform:
+    pla     ; move delta (hi)
+    sta T0  ; move delta (hi)
     ;; Move the platform's top edge.
     lda Ram_PlatformTop_i16_0_arr, x
     add Zp_AvatarPushDelta_i8  ; move delta (lo)
@@ -507,11 +524,11 @@ _CarryAvatarIfRiding:
     ;; instead be handled as a collision in the next section, in case the
     ;; avatar gets crushed against the ceiling.)
     cpx Zp_AvatarPlatformIndex_u8
-    bne @notRidingDown
+    bne @notRiding
     bit Zp_AvatarPushDelta_i8
-    bmi @notRidingDown
+    bmi @notRiding
     jmp Func_TryPushAvatarVert  ; preserves X and T4+
-    @notRidingDown:
+    @notRiding:
 _PushAvatarIfCollision:
     ;; If the avatar is fully to the left or to the right of the platform, then
     ;; the platform isn't pushing it, so we're done.
@@ -990,6 +1007,40 @@ _MovingDown:
     rts
 .ENDPROC
 
+;;; Checks whether the player avatar is currently in the specified Water
+;;; platform.  If not, clears C; otherwise, sets C and returns how far below
+;;; the surface the avatar is (clamped to bAvatar::DepthMask at most).
+;;; @param X The platform index.
+;;; @return C Set if the avatar is in this Water platform.
+;;; @return A The avatar's depth below the surface.
+;;; @preserve X, T2+
+.PROC Func_IsAvatarInWaterPlatform
+    ;; Check the left, right, and bottom edges of the water platform.
+    jsr Func_IsAvatarInPlatformHorz  ; preserves X and T2+, returns Z
+    beq _NotInWater
+    jsr Func_AvatarDepthIntoPlatformBottom  ; preserves X, T2+; returns Z
+    beq _NotInWater
+    ;; Check top edge of platform.
+    lda Zp_AvatarPosY_i16 + 0
+    sub Ram_PlatformTop_i16_0_arr, x
+    sta T0  ; distance below water (lo)
+    lda Zp_AvatarPosY_i16 + 1
+    sbc Ram_PlatformTop_i16_1_arr, x
+    bmi _NotInWater
+    bne @maxDepth
+    lda T0  ; distance below water (lo)
+    cmp #bAvatar::DepthMask
+    blt @setDepth
+    @maxDepth:
+    lda #bAvatar::DepthMask
+    @setDepth:
+    sec
+    rts
+_NotInWater:
+    clc
+    rts
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGA_Avatar"
@@ -1004,7 +1055,7 @@ _MovingDown:
     lda Ram_PlatformType_ePlatform_arr, x
     cmp #ePlatform::Water
     bne @continue
-    jsr FuncA_Avatar_IsInWaterPlatform  ; preserves X, returns C and A
+    jsr Func_IsAvatarInWaterPlatform  ; preserves X, returns C and A
     bcs _InWater
     @continue:
     dex
@@ -1029,63 +1080,6 @@ _InWater:
     @updateState:
     ora #bAvatar::Swimming
     sta Zp_AvatarState_bAvatar
-    rts
-.ENDPROC
-
-;;; Checks whether the player avatar is currently in the specified Water
-;;; platform.  If not, clears C; otherwise, sets C and returns how far below
-;;; the surface the avatar is (clamped to bAvatar::DepthMask at most).
-;;; @param X The platform index.
-;;; @return C Set if the avatar is in this Water platform.
-;;; @return A The avatar's depth below the surface.
-;;; @preserve X
-.PROC FuncA_Avatar_IsInWaterPlatform
-    ;; Check left edge of platform.
-    lda Zp_AvatarPosX_i16 + 1
-    cmp Ram_PlatformLeft_i16_1_arr, x
-    blt _NotInWater
-    bne @leftEdgeHit
-    lda Zp_AvatarPosX_i16 + 0
-    cmp Ram_PlatformLeft_i16_0_arr, x
-    blt _NotInWater
-    @leftEdgeHit:
-    ;; Check right edge of platform.
-    lda Ram_PlatformRight_i16_1_arr, x
-    cmp Zp_AvatarPosX_i16 + 1
-    blt _NotInWater
-    bne @rightEdgeHit
-    lda Ram_PlatformRight_i16_0_arr, x
-    cmp Zp_AvatarPosX_i16 + 0
-    blt _NotInWater
-    @rightEdgeHit:
-    ;; Check bottom edge of platform.
-    lda Ram_PlatformBottom_i16_1_arr, x
-    cmp Zp_AvatarPosY_i16 + 1
-    blt _NotInWater
-    bne @bottomEdgeHit
-    lda Ram_PlatformBottom_i16_0_arr, x
-    cmp Zp_AvatarPosY_i16 + 0
-    blt _NotInWater
-    @bottomEdgeHit:
-    ;; Check top edge of platform.
-    lda Zp_AvatarPosY_i16 + 0
-    sub Ram_PlatformTop_i16_0_arr, x
-    sta T0  ; distance below water (lo)
-    lda Zp_AvatarPosY_i16 + 1
-    sbc Ram_PlatformTop_i16_1_arr, x
-    bmi _NotInWater
-    bne _MaxDepth
-    lda T0  ; distance below water (lo)
-    cmp #bAvatar::DepthMask
-    bge _MaxDepth
-    sec
-    rts
-_MaxDepth:
-    lda #bAvatar::DepthMask
-    sec
-    rts
-_NotInWater:
-    clc
     rts
 .ENDPROC
 
