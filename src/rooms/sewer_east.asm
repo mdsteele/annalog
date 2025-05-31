@@ -112,12 +112,6 @@ _Actors_sActor_arr:
     d_word PosY_i16, $00f4
     d_byte Param_byte, 0
     D_END
-    D_STRUCT sActor
-    d_byte Type_eActor, eActor::BadGrub
-    d_word PosX_i16, $0028
-    d_word PosY_i16, $0148
-    d_byte Param_byte, 0
-    D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Passages_sPassage_arr:
