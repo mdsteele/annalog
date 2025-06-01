@@ -37,6 +37,7 @@
     Mine
     Prison
     Sewer
+    Shadow
     Suspense
     Temple
     Title

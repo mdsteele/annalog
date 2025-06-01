@@ -30,6 +30,7 @@
     PulseViolin
     Staccato
     TriangleDrum
+    TriangleQuiver
     TriangleSlide
     TriangleVibrato
     ;; @end SORTED

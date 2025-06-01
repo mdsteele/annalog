@@ -60,6 +60,7 @@
     d_entry table, PulseViolin,     Func_InstrumentPulseViolin
     d_entry table, Staccato,        Func_InstrumentStaccato
     d_entry table, TriangleDrum,    Func_InstrumentTriangleDrum
+    d_entry table, TriangleQuiver,  Func_InstrumentTriangleQuiver
     d_entry table, TriangleSlide,   Func_InstrumentTriangleSlide
     d_entry table, TriangleVibrato, Func_InstrumentTriangleVibrato
     D_END
@@ -199,7 +200,7 @@ _Vibrato:
     mod #4
     tay
     lda Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
-    add Data_SlightVibratoDelta_i8_arr4, y
+    add Data_SlightVibratoDelta_i16_0_arr4, y
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
     ;; Note that we intentionally *don't* carry the addition over into TimerHi
     ;; here, because for pulse channels, writing to the TimerHi register resets
@@ -315,6 +316,29 @@ _Envelope:
     jmp Func_CombineVolumeWithDuty
 .ENDPROC
 
+;;; An instrument for the triangle channel that applies slight vibrato.  The
+;;; instrument param is ignored.
+;;; @thread AUDIO
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentTriangleQuiver
+_Vibrato:
+    lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    mod #4
+    tay
+    lda Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
+    add Data_SlightVibratoDelta_i16_0_arr4, y
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
+    lda Ram_Audio_sChanNote_arr + sChanNote::TimerHi_byte, x
+    adc Data_SlightVibratoDelta_i16_1_arr4, y
+    and #$07
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
+_Envelope:
+    lda #$ff
+    rts
+.ENDPROC
+
 ;;; A table of timer deltas to apply to instruments with vibrato, looped over
 ;;; an eight-frame period.
 .PROC Data_VibratoDelta_i16_0_arr8
@@ -326,8 +350,11 @@ _Envelope:
 
 ;;; A table of timer deltas to apply to instruments with slight vibrato, looped
 ;;; over a four-frame period.
-.PROC Data_SlightVibratoDelta_i8_arr4
+.PROC Data_SlightVibratoDelta_i16_0_arr4
     .byte <0, <1, <0, <-1
+.ENDPROC
+.PROC Data_SlightVibratoDelta_i16_1_arr4
+    .byte >0, >1, >0, >-1
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -445,7 +472,7 @@ _Vibrato:
 .PROC Func_InstrumentTriangleVibrato
 _Vibrato:
     lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
-    and #$07
+    mod #8
     tay
     lda Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
     add Data_VibratoDelta_i16_0_arr8, y

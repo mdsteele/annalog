@@ -1,0 +1,76 @@
+@PRGC_Shadow
+
+!DPCM B Data_SampleBongo_arr193 193
+
+!SONG Shadow "IJ|AABCCD"
+% Composer: Jon T. Moran
+
+=tempo q32
+=key 1#  % e minor
+
+!INST 1A PulseBasic   $06 d1/2
+!INST 1B PulseBasic   $06 d1/4
+!INST 1C PulseEcho    $16 d1/8  % echo 6
+!INST 1D PulseEcho    $15 d1/8  % echo 5
+!INST 1E PulseEcho    $14 d1/8  % echo 4
+!INST 1F PulseEcho    $13 d1/8  % echo 3
+!INST 1G PulseEcho    $12 d1/8  % echo 2
+!INST 1H PulseEcho    $11 d1/8  % echo 1
+!INST 1S PulseEcho    $32 d1/8  % echo 2 (with more sustain)
+!INST 2B PulseEcho    $26 d1/8  % bassline
+!INST TQ TriangleQuiver
+!INST ND Staccato     $09       % bass drum
+!INST NS NoiseSnare   $2b       % snare drum
+!INST NH PulseBasic   $0a       % hi-hat
+!INST DD Constant     $49       % bongo drum
+
+!PART I
+
+2| p(iB b1e f^ a ' bve e^ g ' bve f^ ' bve e^ g)2A :2 |
+
+!PART J
+
+2=:I2
+N| p(iD xCs xCs iH x2s. rt ' iS x4s iD xCs iH x2s. rt '
+ '   iD xCe iH x2s. rt ' iS x4s iD xCs iH x2s. rt)NA :2 '
+ ' iD xCs xCs iH x2s. rt ' iS x4s iD xCs iH x2s. rt ' iD xCe iH x2s. rt |
+D| p(iD sB5q)DA :11 |
+
+!PART A
+
+1| iB c5w+q.     | b4w+q.     | a4w+q.     | g4w+q.       |
+ | fN4w+q.+ | +q. f#w+ | +q. '
+ ' iA re eN5s fN b4e rq a4e eb5 ab4 | rq. d5s db c gv g# aN ee bb '
+T| iQ e4w ae g e | d4w ge f d | c4w fe e c | b3h+q. c4q d |
+ | eb4w+q.+ | +q. d4w+ | +q. '
+2| p2A :8 |
+N| pNA :11 |
+D| pDA :44 |
+
+!PART B
+
+1| iH fN6e b5 fN6 b5 ' iG f#6 c  f# ' iF g6  db g  db |
+ | iE a6e  eb a   eb ' iD g#6 dN g# ' iC bb6 eN bb eN |
+2=:J2
+N=:JN
+D=:JD
+
+!PART C
+
+1| p(iC fN6e b5 fN6 b5 ' f#6 c  f# ' g6  db g  db       |
+ |      a6e  eb a   eb ' g#6 dN g# ' bb6 eN bb eN)1C :4 |
+T| iQ g#4t at+s+e+q+q g#e a re dq+ | +h c#4e d f# c#5 b4 re g#e+ | +h '
+ ' re f#4e g# f# a g# re | d4q f#e de+h rq. |
+ | g#4t at+s+e+q f4e g# b c#5h | re d5e c#  g#4 b fN f# dq.+ | +q c#4q+q.+h |
+2=:A2
+N=:AN
+D=:AD
+
+!PART D
+
+1| iC fN6e b5 fN6 b5 ' iD e6 bb5 e6 ' iE eb6 a5 eb6 a5 |
+ | iF d6e ab5 d6 ' iS ab5e+q re ' iB aN4q bN |
+T| rw+q.+ | +h+q.                 iQ c4q  d  |
+2=:J2
+N=:JN
+D=:JD

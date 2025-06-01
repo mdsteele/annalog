@@ -460,17 +460,17 @@ _PrisonMusic:
     d_byte SewerSouth,      eMusic::Sewer
     d_byte SewerTrap,       eMusic::Sewer
     d_byte SewerWest,       eMusic::Sewer
-    d_byte ShadowDepths,    eMusic::Silence
-    d_byte ShadowDescent,   eMusic::Silence
-    d_byte ShadowDrill,     eMusic::Silence
-    d_byte ShadowEntry,     eMusic::Silence
-    d_byte ShadowFlower,    eMusic::Silence
-    d_byte ShadowGate,      eMusic::Silence
-    d_byte ShadowHall,      eMusic::Silence
-    d_byte ShadowHeart,     eMusic::Silence
-    d_byte ShadowOffice,    eMusic::Silence
-    d_byte ShadowTeleport,  eMusic::Silence
-    d_byte ShadowTrap,      eMusic::Silence
+    d_byte ShadowDepths,    eMusic::Shadow
+    d_byte ShadowDescent,   eMusic::Shadow
+    d_byte ShadowDrill,     eMusic::Shadow
+    d_byte ShadowEntry,     eMusic::Shadow
+    d_byte ShadowFlower,    eMusic::Shadow
+    d_byte ShadowGate,      eMusic::Shadow
+    d_byte ShadowHall,      eMusic::Shadow
+    d_byte ShadowHeart,     eMusic::Shadow
+    d_byte ShadowOffice,    eMusic::Shadow
+    d_byte ShadowTeleport,  eMusic::Shadow
+    d_byte ShadowTrap,      eMusic::Shadow
     d_byte TempleAltar,     eMusic::Temple
     d_byte TempleApse,      eMusic::Temple
     d_byte TempleChevet,    eMusic::Temple
