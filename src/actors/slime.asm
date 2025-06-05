@@ -55,6 +55,10 @@
 ;;; How many frames after dropping a spike before a slime can drop another.
 kSlimeSpikeCooldownFrames = 90
 
+;;; How many frames after visually regrowing a spike before a slime can drop
+;;; it.
+kSlimeSpikeDelayFrames = 8
+
 ;;; How close the player avatar must be horizontally to the slime in order for
 ;;; the slime to drop a spike, in pixels.
 kSlimeSpikeHorzProximity = 30
@@ -170,7 +174,11 @@ _Slime:
     jsr FuncA_Objects_Draw2x1Shape  ; preserves X
 _Spike:
     lda Ram_ActorState1_byte_arr, x  ; spike cooldown
-    div #2
+    sub #kSlimeSpikeDelayFrames
+    bge @noClamp
+    lda #0
+    @noClamp:
+    div #4
     rsub #kSlimeSpikeVertProtrusion
     blt @done
     jsr FuncA_Objects_MoveShapeDownByA  ; preserves X
