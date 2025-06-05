@@ -162,6 +162,14 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0070
     d_word Top_i16,   $00c8
     D_END
+    ;; Bridge:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $00a8
+    d_word Top_i16,   $0090
+    D_END
     ;; Spikes:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Harm
@@ -192,14 +200,14 @@ _Actors_sActor_arr:
     d_byte Type_eActor, eActor::BadLavaball
     d_word PosX_i16, $008e
     d_word PosY_i16, kLavaballStartYShort
-    d_byte Param_byte, 5
+    d_byte Param_byte, 4
     D_END
     .assert * - :- <= kMaxActors * .sizeof(sActor), error
     .byte eActor::None
 _Devices_sDevice_arr:
 :   D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::Paper
-    d_byte BlockRow_u8, 9
+    d_byte BlockRow_u8, 8
     d_byte BlockCol_u8, 12
     d_byte Target_byte, eFlag::PaperJerome27
     D_END
