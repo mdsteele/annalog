@@ -451,21 +451,31 @@ _ReadR:
 ;;; Reset function for the BossCryptWinch machine.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Boss_CryptWinch_Reset
-    ;; If in Firing mode, switch to Waiting mode.
+_MakeBossDodge:
+    ;; To prevent cheesing the boss, if the boss is in Firing or Waiting mode
+    ;; when the machine is reset or reprogrammed, make it dodge to safety
+    ;; (under one of the terrain blocks) and shoot back.
     ldx Zp_RoomState + sState::Current_eBossMode
     cpx #eBossMode::Firing
-    bne @notFiring
-    .assert eBossMode::Firing - 1 = eBossMode::Waiting, error
-    dex
-    stx Zp_RoomState + sState::Current_eBossMode
-    @notFiring:
-    ;; If in Waiting mode, set cooldown to zero (so that the boss will
-    ;; immediately pick a new goal position).
+    beq @doDodge
     cpx #eBossMode::Waiting
-    bne @notWaiting
-    lda #0
-    sta Zp_RoomState + sState::BossCooldown_u8
-    @notWaiting:
+    bne @done
+    @doDodge:
+    jsr FuncC_Boss_Crypt_StartFiring
+    jsr FuncA_Room_SetPointToBossBodyCenter
+    lda Zp_PointX_i16 + 0
+    bmi @rightSide
+    @leftSide:
+    lda #$58
+    bne @setGoalPos  ; unconditional
+    @rightSide:
+    lda #$a8
+    @setGoalPos:
+    sta Zp_RoomState + sState::BossGoalPosX_u8
+    lda #$7c
+    sta Zp_RoomState + sState::BossGoalPosY_u8
+    @done:
+_ResetMachine:
     ;; Reset levers and begin machine reset sequence.
     ldx #kLeverLeftDeviceIndex  ; param: device index
     jsr FuncA_Room_ResetLever
@@ -604,14 +614,13 @@ _BossWaiting:
     tax
     lda _GoalPosY_u8_arr4, x
     sta Zp_RoomState + sState::BossGoalPosY_u8
-    ;; Check if the center of the spikeball is within the boss's vertical zone.
+    ;; Check if the spikeball or chain is within the boss's vertical zone.
     ;; If so, move safely to avoid it; otherwise, move freely (and possibly
     ;; start a strafing attack).
     lda Ram_PlatformTop_i16_0_arr + kSpikeballPlatformIndex
-    cmp #kBossZoneBottomY - kSpikeballHeightPx / 2
-    bge _StartMovingFreely  ; spikeball is below boss zone
     cmp #kBossZoneTopY - kSpikeballHeightPx / 2
     blt _StartMovingFreely  ; spikeball is above boss zone
+    fall _StartMovingSafely
 _StartMovingSafely:
     ;; The spikeball is in the boss's zone, so the boss should move so as to
     ;; stay away from it.  If the boss is fully to one side of the spikeball,
@@ -653,25 +662,10 @@ _StartMovingFreely:
     ;; Pick a new random horizontal goal position.
     lda #0  ; param: minimum safe goal X position
     ldx #$ff  ; param: maximum safe goal X position
+    fall _ChooseGoalXAndStartFiring
 _ChooseGoalXAndStartFiring:
     jsr FuncC_Boss_Crypt_ChooseGoalPosX
-    ;; Commence firing.
-    lda #eBossMode::Firing
-    sta Zp_RoomState + sState::Current_eBossMode
-    lda #60  ; 1.0 seconds
-    sta Zp_RoomState + sState::BossCooldown_u8
-    ;; Randomly shoot a baseline of either 3 or 4 fireballs.
-    jsr Func_GetRandomByte  ; returns A
-    and #$01
-    add #3
-    sta Zp_RoomState + sState::BossFireCount_u8
-    ;; Add additional fireballs as the boss loses health.
-    lda #kBossInitHealth
-    sub Zp_RoomState + sState::BossHealth_u8
-    div #2
-    add Zp_RoomState + sState::BossFireCount_u8
-    sta Zp_RoomState + sState::BossFireCount_u8
-    rts
+    jmp FuncC_Boss_Crypt_StartFiring
 _StartStrafing:
     ;; When strafing, pick a goal on the far edge of the room.
     lda Zp_RoomState + sState::BossGoalPosX_u8
@@ -691,6 +685,27 @@ _StartStrafing:
     rts
 _GoalPosY_u8_arr4:
     .byte $74, $77, $7a, $7c
+.ENDPROC
+
+;;; Puts the boss into Firing mode, and chooses a random fire count based on
+;;; the boss's current health.
+.PROC FuncC_Boss_Crypt_StartFiring
+    lda #eBossMode::Firing
+    sta Zp_RoomState + sState::Current_eBossMode
+    lda #60  ; 1.0 seconds
+    sta Zp_RoomState + sState::BossCooldown_u8
+    ;; Randomly shoot a baseline of either 3 or 4 fireballs.
+    jsr Func_GetRandomByte  ; returns A
+    and #$01
+    add #3
+    sta Zp_RoomState + sState::BossFireCount_u8
+    ;; Add additional fireballs as the boss loses health.
+    lda #kBossInitHealth
+    sub Zp_RoomState + sState::BossHealth_u8
+    div #2
+    add Zp_RoomState + sState::BossFireCount_u8
+    sta Zp_RoomState + sState::BossFireCount_u8
+    rts
 .ENDPROC
 
 ;;; Set the boss's goal X position to a randomly chosen valid position within
