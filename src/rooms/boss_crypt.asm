@@ -794,7 +794,7 @@ _GoalPosX_u8_arr6:
 _AnimateTentacles:
     lda Zp_FrameCounter_u8
     div #8
-    and #$03
+    mod #4
     add #<.bank(Ppu_ChrBgAnimB0)
     sta Zp_Chr04Bank_u8
 _SetEyeShapePosition:

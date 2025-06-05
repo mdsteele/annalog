@@ -22,6 +22,7 @@ ROMNAME = annalog
 OUTDIR = out
 OBJDIR = $(OUTDIR)/obj
 BUILD_OUT_DIR = $(OUTDIR)/build
+EPILOGUE_OUT_DIR = $(OUTDIR)/epilogue
 DATA_OUT_DIR = $(OUTDIR)/data
 DM_OUT_DIR = $(OUTDIR)/samples
 LIB_OUT_DIR = $(OUTDIR)/lib
@@ -34,6 +35,7 @@ TILE_OUT_DIR = $(OUTDIR)/tiles
 TSET_OUT_DIR = $(OUTDIR)/tilesets
 
 AHI2CHR = $(BUILD_OUT_DIR)/ahi2chr
+BG2EPI = $(BUILD_OUT_DIR)/bg2epi
 BG2MAP = $(BUILD_OUT_DIR)/bg2map
 BG2ROOM = $(BUILD_OUT_DIR)/bg2room
 BG2TSET = $(BUILD_OUT_DIR)/bg2tset
@@ -52,6 +54,10 @@ SFX_DM_FILES := \
   $(patsubst src/samples/%.wav,$(DM_OUT_DIR)/%.dm,$(SFX_WAV_FILES))
 PCM_WAV_FILES := $(shell find src/pcm -name '*.wav' | sort)
 PCM_FILES := $(patsubst src/pcm/%.wav,$(PCM_OUT_DIR)/%.pcm,$(PCM_WAV_FILES))
+
+EPILOGUE_BG_FILES := $(shell find src/epilogue -name '*.bg' | sort)
+EPILOGUE_EPI_FILES := \
+  $(patsubst src/epilogue/%.bg,$(EPILOGUE_OUT_DIR)/%.epi,$(EPILOGUE_BG_FILES))
 
 MUSIC_SNG_FILES := $(shell find src/music -name '*.sng' | sort)
 MUSIC_ASM_FILES := \
@@ -172,6 +178,9 @@ $(BUILD_OUT_DIR)/util.o: build/util.c build/util.h
 $(AHI2CHR): build/ahi2chr.c $(BUILD_OUT_DIR)/util.o
 	$(compile-c-bin)
 
+$(BG2EPI): build/bg2epi.c $(BUILD_OUT_DIR)/util.o
+	$(compile-c-bin)
+
 $(BG2MAP): build/bg2map.c $(BUILD_OUT_DIR)/util.o
 	$(compile-c-bin)
 
@@ -213,6 +222,12 @@ $(DATA_OUT_DIR)/title.map: src/title.bg $(BG2MAP)
 	@mkdir -p $(@D)
 	@$(BG2MAP) < $< > $@
 .SECONDARY: $(DATA_OUT_DIR)/title.map
+
+$(EPILOGUE_OUT_DIR)/%.epi: src/epilogue/%.bg $(BG2EPI)
+	@echo "Converting $<"
+	@mkdir -p $(@D)
+	@$(BG2EPI) < $< > $@
+.SECONDARY: $(EPILOGUE_EPI_FILES)
 
 $(ROOM_OUT_DIR)/%.room: src/rooms/%.bg $(BG2ROOM)
 	@echo "Converting $<"
@@ -291,6 +306,9 @@ $(OBJDIR)/chr.o: src/chr.asm $(INC_FILES) $(TILE_CHR_FILES)
 	$(compile-asm)
 
 $(OBJDIR)/credits.o: src/credits.asm $(INC_FILES) $(VERSION_FILE)
+	$(compile-asm)
+
+$(OBJDIR)/epilogue.o: src/epilogue.asm $(EPILOGUE_EPI_FILES)
 	$(compile-asm)
 
 $(OBJDIR)/inst.o: src/inst.asm $(INC_FILES) $(INST_DM_FILES)

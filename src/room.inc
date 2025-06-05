@@ -345,6 +345,7 @@ kMaxPassages = 8
 ;;; sRoom) doesn't need to be as directly accessible from Zp_Current_sRoom.
 .STRUCT sRoomExt
     ;; A pointer to the tileset used for this room's terrain.
+    ;; @prereq PRGA_Room is loaded.
     Terrain_sTileset_ptr        .addr
     ;; A pointer to a static array of platforms that should always be loaded
     ;; into the room upon entering, terminated by an ePlatform::None byte.  The

@@ -148,9 +148,6 @@ kBossLeftEyeCenterY  = $58
 kBossRightEyeCenterX = $98
 kBossRightEyeCenterY = $78
 
-;;; The OBJ palette number used for the eyes of the boss.
-kPaletteObjBossEye = 1
-
 ;;; The room pixel Y-positions for the top and bottom of the zone that the boss
 ;;; appears within.
 kBossZoneTopY    = $18
@@ -678,7 +675,7 @@ _EyeIsOpen:
     tay
     lda _OpenEyeTileId_u8_arr16, y  ; param: tile ID
 _DrawEye:
-    ldy #kPaletteObjBossEye  ; param: objects flags
+    ldy #kPaletteObjBossGardenEye  ; param: objects flags
     jmp FuncA_Objects_Draw1x1Shape  ; preserves X
 _OpenEyeTileId_u8_arr16:
     .byte kTileIdObjBossGardenEyeMiniFirst + 2
@@ -709,7 +706,7 @@ _OpenEyeTileId_u8_arr16:
     .assert kRightEyePlatformIndex = eEye::Right, error
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves X
     jsr FuncA_Objects_MoveShapeDownAndRightOneTile  ; preserves X
-    lda #kPaletteObjBossEye  ; param: flags
+    lda #kPaletteObjBossGardenEye  ; param: flags
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X, returns C and Y
     bcs @done
     ;; Determine if the eye should be flashing red this frame.
@@ -738,7 +735,7 @@ _OpenEyeTileId_u8_arr16:
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Tile_u8, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Tile_u8, y
     ;; Set flags:
-    lda #kPaletteObjBossEye | bObj::FlipH
+    lda #kPaletteObjBossGardenEye | bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 2 + sObj::Flags_bObj, y
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 3 + sObj::Flags_bObj, y
     @done:

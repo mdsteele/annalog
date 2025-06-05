@@ -144,7 +144,7 @@ Ppu_ObjPalettes_sPal_arr4 = $3f10
 
 ;;; Declares a PPU transfer entry payload (including the payload length) for
 ;;; the given list of bytes.
-.MACRO d_xfer_data B00, B01, B02, B03, B04, B05, B06, B07
+.MACRO d_xfer_data B00, B01, B02, B03, B04, B05, B06, B07, B08, B09
     .scope
     .byte @dataEnd - @dataStart
     @dataStart:
@@ -172,6 +172,12 @@ Ppu_ObjPalettes_sPal_arr4 = $3f10
     .if .paramcount > 7
     .byte B07
     .endif
+    .if .paramcount > 8
+    .byte B08
+    .endif
+    .if .paramcount > 9
+    .byte B09
+    .endif
     @dataEnd:
     .endscope
 .ENDMACRO
@@ -190,6 +196,19 @@ _text_start = _row_start + (kScreenWidthTiles - .strlen(TEXT)) / 2
     d_xfer_header kPpuCtrlFlagsHorz, _text_start
     .byte .strlen(TEXT)
     .byte TEXT
+    .endscope
+.ENDMACRO
+
+;;; Declares a complete PPU transfer entry for setting attribute bytes in the
+;;; upper nametable.
+.MACRO d_xfer_attr_upper OFFSET, COUNT, ATTR
+    .scope
+_attr_start = Ppu_Nametable0_sName + sName::Attrs_u8_arr64 + (OFFSET)
+    d_xfer_header kPpuCtrlFlagsHorz, _attr_start
+    .byte COUNT
+    .repeat COUNT
+    .byte ATTR
+    .endrepeat
     .endscope
 .ENDMACRO
 

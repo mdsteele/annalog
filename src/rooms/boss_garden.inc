@@ -22,4 +22,7 @@ kTileIdObjBossGardenEyeMiniFirst  = $ac
 kTileIdObjBossGardenEyeRedFirst   = $b0
 kTileIdObjBossGardenEyeWhiteFirst = $a0
 
+;;; The OBJ palette number used for the eyes of the garden boss.
+kPaletteObjBossGardenEye = 1
+
 ;;;=========================================================================;;;

@@ -769,7 +769,7 @@ _OuterLoop:
     ;; exit.
     sta T0  ; inner loop counter
     @innerLoop:
-    ;; Y is either a tile ID, or an index into _ExitPpuDest_ptr_0_arr.
+    ;; Y is either a tile ID, or an index into _TileId_u8_arr.
     tya  ; tile ID or index
     cmp #kTileIdBgAnimWyrmFirst
     .linecont +
