@@ -158,17 +158,24 @@ _CheckRight:
     lda Zp_ConsoleInstNumber_u8
     cmp Zp_ConsoleNumInstRows_u8
     bge _NoLeftOrRight
-    ;; Looks like we're in the left-hand column, so move to the first field of
-    ;; the instruction on the same row in the right-hand column.
+    ;; Looks like we're in the left-hand column, so move to the instruction on
+    ;; the same row in the right-hand column.
     add Zp_ConsoleNumInstRows_u8
     sta Zp_ConsoleInstNumber_u8
-    ;; If we're now beyond the first empty instruction, then undo what we just
-    ;; did, and go back to the left-hand instruction column.
+    ;; If we're now beyond the first empty instruction, then move up to the
+    ;; first empty instruction.
+    @loop:
     jsr FuncA_Console_IsPrevInstructionEmpty  ; preserves T0+, returns Z
     bne @prevInstNotEmpty
+    dec Zp_ConsoleInstNumber_u8
     lda Zp_ConsoleInstNumber_u8
-    sub Zp_ConsoleNumInstRows_u8
+    cmp Zp_ConsoleNumInstRows_u8
+    bge @loop  ; still in right-hand column
+    ;; If we had to move up so far that we're back in the left column, then
+    ;; revert to our original cursor position.
+    lda T2  ; old instruction number
     sta Zp_ConsoleInstNumber_u8
+    .assert kMaxProgramLength <= $80, error
     bpl _NoLeftOrRight  ; unconditional
     ;; Otherwise, now that we moved to the right-hand instruction column,
     ;; select the leftmost field.
