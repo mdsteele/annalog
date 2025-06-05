@@ -25,4 +25,7 @@ kTileIdBgBossCryptEyeWhiteFirst = $a4
 ;;; OBJ tile IDs for drawing the crypt boss.
 kTileIdObjBossCryptPupilFirst = $be
 
+;;; The OBJ palette number to use for the pupil of the crypt boss's eye.
+kPaletteObjBossCryptPupil = 1
+
 ;;;=========================================================================;;;

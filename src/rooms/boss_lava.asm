@@ -245,9 +245,6 @@ kBossTailPlatformIndex = 9
 ;;; How long it takes the boss's jaws to open or close, in frames.
 kBossJawsOpenFrames = 16
 
-;;; The OBJ palette number to use for the boss's jaws and tail.
-kPaletteObjBossLava = 1
-
 ;;;=========================================================================;;;
 
 ;;; Defines room-specific state data for this particular room.

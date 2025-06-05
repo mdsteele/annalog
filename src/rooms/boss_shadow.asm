@@ -175,10 +175,6 @@ kFinalGhostMaxSpeed = 3
 ;;; goal position.
 .DEFINE kFinalGhostSlowdown 16
 
-;;; OBJ palette numbers for drawing the final ghost.
-kPaletteObjFinalGhostNormal = 0
-kPaletteObjFinalGhostHurt   = 1
-
 ;;;=========================================================================;;;
 
 ;;; Defines room-specific state data for this particular room.

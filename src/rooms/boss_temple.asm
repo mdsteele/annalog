@@ -212,19 +212,8 @@ kBossStunAnimFrames = 24
 ;;; How many frames to flash the boss's eyes for when hit by a bullet.
 kBossEyeFlashFrames = 8
 
-;;;=========================================================================;;;
-
-;;; OBJ tile IDs used for drawing the boss.
-kTileIdObjOutbreakBrainFirst = kTileIdObjOutbreakFirst + 0
-kTileIdObjOutbreakEyeFirst   = kTileIdObjOutbreakFirst + 4
-kTileIdObjOutbreakEyeFlash   = kTileIdObjOutbreakFirst + 8
-kTileIdObjOutbreakClaw       = kTileIdObjOutbreakFirst + 9
-kTileIdObjBloodFirst         = kTileIdObjDirtFirst
-
-;;; OBJ palette numbers used for drawing the boss.
-kPaletteObjOutbreakBrain = 1
-kPaletteObjOutbreakClaw  = 0
-kPaletteObjOutbreakEye   = 1
+;;; OBJ tile IDs for drawing the temple boss's blood when it's killed.
+kTileIdObjOutbreakBloodFirst = kTileIdObjDirtFirst
 
 ;;;=========================================================================;;;
 
@@ -997,10 +986,10 @@ _KillBoss:
     @break:
     jmp Func_PlaySfxDrip
 _BloodTile_u8_arr4:
-    .byte kTileIdObjBloodFirst + 1
-    .byte kTileIdObjBloodFirst + 0
-    .byte kTileIdObjBloodFirst + 1
-    .byte kTileIdObjBloodFirst + 0
+    .byte kTileIdObjOutbreakBloodFirst + 1
+    .byte kTileIdObjOutbreakBloodFirst + 0
+    .byte kTileIdObjOutbreakBloodFirst + 1
+    .byte kTileIdObjOutbreakBloodFirst + 0
 _BloodPosX_u8_arr4:
     .byte $84, $87, $89, $8c
 _BloodVelX_i16_0_arr4:

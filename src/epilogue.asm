@@ -17,6 +17,7 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actors/orc.inc"
 .INCLUDE "audio.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "epilogue.inc"
@@ -32,6 +33,7 @@
 .INCLUDE "rooms/boss_garden.inc"
 .INCLUDE "rooms/boss_lava.inc"
 .INCLUDE "rooms/boss_mine.inc"
+.INCLUDE "rooms/boss_shadow.inc"
 .INCLUDE "rooms/boss_temple.inc"
 .INCLUDE "tileset.inc"
 
@@ -406,6 +408,7 @@ _Transfer_sXfer:
     d_xfer_text_row kBossNameRow, "POLYCLOPS"
     d_xfer_terminator
 _Draw_sShapeTile_arr:
+    ;; Left-hand large eye:
     D_STRUCT sShapeTile
     d_byte DeltaX_i8, <(kTileWidthPx * -4)
     d_byte DeltaY_i8, <(kTileHeightPx * 1)
@@ -430,6 +433,7 @@ _Draw_sShapeTile_arr:
     d_byte Flags_bObj, kPaletteObjBossGardenEye | bObj::FlipH
     d_byte Tile_u8, kTileIdObjBossGardenEyeWhiteFirst + 5
     D_END
+    ;; Right-hand large eye:
     D_STRUCT sShapeTile
     d_byte DeltaX_i8, <(kTileWidthPx * 5)
     d_byte DeltaY_i8, <(kTileHeightPx * 3)
@@ -451,10 +455,41 @@ _Draw_sShapeTile_arr:
     D_STRUCT sShapeTile
     d_byte DeltaX_i8, <(kTileWidthPx * 0)
     d_byte DeltaY_i8, <(kTileHeightPx * 1)
-    d_byte Flags_bObj, kPaletteObjBossGardenEye | bObj::FlipH | bObj::Final
+    d_byte Flags_bObj, kPaletteObjBossGardenEye | bObj::FlipH
     d_byte Tile_u8, kTileIdObjBossGardenEyeWhiteFirst + 11
     D_END
-    ;; TODO: mini eyes
+    ;; Right-hand mini eyes:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, <-$18
+    d_byte Flags_bObj, kPaletteObjBossGardenEye
+    d_byte Tile_u8, kTileIdObjBossGardenEyeMiniFirst + 0
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $28
+    d_byte DeltaY_i8, $10
+    d_byte Flags_bObj, kPaletteObjBossGardenEye
+    d_byte Tile_u8, kTileIdObjBossGardenEyeMiniFirst + 1
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$08
+    d_byte DeltaY_i8, <-$28
+    d_byte Flags_bObj, kPaletteObjBossGardenEye
+    d_byte Tile_u8, kTileIdObjBossGardenEyeMiniFirst + 0
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$08
+    d_byte DeltaY_i8, $10
+    d_byte Flags_bObj, kPaletteObjBossGardenEye
+    d_byte Tile_u8, kTileIdObjBossGardenEyeMiniFirst + 2
+    D_END
+    ;; Left-hand mini eye:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$30
+    d_byte DeltaY_i8, <-$08
+    d_byte Flags_bObj, kPaletteObjBossGardenEye | bObj::Final
+    d_byte Tile_u8, kTileIdObjBossGardenEyeMiniFirst + 3
+    D_END
 .ENDPROC
 
 .PROC DataC_Title_Boss2_sEpiScene
@@ -465,7 +500,7 @@ _Draw_sShapeTile_arr:
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimB4) + 2
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
-    d_addr Draw_sShapeTile_arr_ptr, 0  ; TODO
+    d_addr Draw_sShapeTile_arr_ptr, _Draw_sShapeTile_arr
     D_END
 _TerrainData:
 :   .incbin "out/epilogue/boss2.epi"
@@ -487,6 +522,61 @@ _Transfer_sXfer:
     d_xfer_header kPpuCtrlFlagsHorz, Ppu_Boss2Row3Start
     d_xfer_data $66, $67, $68, $69, $6a, $6b, $6c, $6d, $6e, $6f
     d_xfer_terminator
+_Draw_sShapeTile_arr:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-kTileWidthPx
+    d_byte DeltaY_i8, $10
+    d_byte Flags_bObj, kPaletteObjOutbreakBrain
+    d_byte Tile_u8, kTileIdObjOutbreakBrainFirst + 1
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, kTileWidthPx
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjOutbreakBrain | bObj::FlipH
+    d_byte Tile_u8, kTileIdObjOutbreakBrainFirst + 1
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$2c
+    d_byte DeltaY_i8, 8
+    d_byte Flags_bObj, kPaletteObjOutbreakClaw | bObj::FlipH
+    d_byte Tile_u8, kTileIdObjOutbreakClaw
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, kTileHeightPx * 3
+    d_byte Flags_bObj, kPaletteObjOutbreakClaw | bObj::FlipHV
+    d_byte Tile_u8, kTileIdObjOutbreakClaw
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $2c + $24
+    d_byte DeltaY_i8, <(kTileHeightPx * -3)
+    d_byte Flags_bObj, kPaletteObjOutbreakClaw
+    d_byte Tile_u8, kTileIdObjOutbreakClaw
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, <(kTileHeightPx * 3)
+    d_byte Flags_bObj, kPaletteObjOutbreakClaw | bObj::FlipV
+    d_byte Tile_u8, kTileIdObjOutbreakClaw
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <(-$24 - 4)
+    d_byte DeltaY_i8, 6
+    d_byte Flags_bObj, kPaletteObjOutbreakEye
+    d_byte Tile_u8, kTileIdObjOutbreakEyeFirst + 3
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$10
+    d_byte DeltaY_i8, <-6
+    d_byte Flags_bObj, kPaletteObjOutbreakEye
+    d_byte Tile_u8, kTileIdObjOutbreakEyeFirst + 2
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $20
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjOutbreakEye | bObj::Final
+    d_byte Tile_u8, kTileIdObjOutbreakEyeFirst + 1
+    D_END
 .ENDPROC
 
 .PROC DataC_Title_Boss3_sEpiScene
@@ -497,7 +587,7 @@ _Transfer_sXfer:
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimB0) + 1
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss1)
-    d_addr Draw_sShapeTile_arr_ptr, 0  ; TODO
+    d_addr Draw_sShapeTile_arr_ptr, _Draw_sShapeTile_arr
     D_END
 _TerrainData:
 :   .incbin "out/epilogue/boss3.epi"
@@ -524,6 +614,13 @@ _Transfer_sXfer:
     d_xfer_header kPpuCtrlFlagsHorz, Ppu_Boss3EyeAttrs
     d_xfer_data $10
     d_xfer_terminator
+_Draw_sShapeTile_arr:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 4
+    d_byte DeltaY_i8, 28
+    d_byte Flags_bObj, kPaletteObjBossCryptPupil | bObj::Final
+    d_byte Tile_u8, kTileIdObjBossCryptPupilFirst + 0
+    D_END
 .ENDPROC
 
 .PROC DataC_Title_Boss4_sEpiScene
@@ -532,9 +629,9 @@ _Transfer_sXfer:
     d_addr TerrainData_ptr, _TerrainData
     d_byte TerrainOffset_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
-    d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimB0) + 1
+    d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimB0) + 3
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
-    d_addr Draw_sShapeTile_arr_ptr, 0  ; TODO
+    d_addr Draw_sShapeTile_arr_ptr, _Draw_sShapeTile_arr
     D_END
 _TerrainData:
 :   .incbin "out/epilogue/boss4.epi"
@@ -557,6 +654,31 @@ _Transfer_sXfer:
     d_xfer_header kPpuCtrlFlagsHorz, Ppu_Boss4Row3Start
     d_xfer_data $6b, $6f, $73, $ae, $af, $77, $7b, $7f
     d_xfer_terminator
+_Draw_sShapeTile_arr:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-kTileWidthPx
+    d_byte DeltaY_i8, kTileHeightPx
+    d_byte Flags_bObj, kPaletteObjBossLava
+    d_byte Tile_u8, kTileIdObjBossLavaJawsFirst + 4
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, kTileWidthPx
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjBossLava | bObj::FlipH
+    d_byte Tile_u8, kTileIdObjBossLavaJawsFirst + 4
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-kTileWidthPx
+    d_byte DeltaY_i8, kTileHeightPx * 5
+    d_byte Flags_bObj, kPaletteObjBossLava
+    d_byte Tile_u8, kTileIdObjBossLavaJawsFirst + 5
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, kTileWidthPx
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjBossLava | bObj::FlipH | bObj::Final
+    d_byte Tile_u8, kTileIdObjBossLavaJawsFirst + 5
+    D_END
 .ENDPROC
 
 .PROC DataC_Title_Boss5_sEpiScene
@@ -567,7 +689,7 @@ _Transfer_sXfer:
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimB4) + 2
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjMine)
-    d_addr Draw_sShapeTile_arr_ptr, 0  ; TODO
+    d_addr Draw_sShapeTile_arr_ptr, _Draw_sShapeTile_arr
     D_END
 _TerrainData:
 :   .incbin "out/epilogue/boss5.epi"
@@ -593,6 +715,31 @@ _Transfer_sXfer:
     .assert kTileIdBgTerrainConveyorFirst = $b8, error
     d_xfer_data $b9, $b9, $b9, $b9, $b9, $bd
     d_xfer_terminator
+_Draw_sShapeTile_arr:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-1
+    d_byte DeltaY_i8, $18
+    d_byte Flags_bObj, kPaletteObjBossMineEye | bObj::Pri
+    d_byte Tile_u8, kTileIdObjBossMineEyeFirst + 0
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjBossMineEye | bObj::Pri
+    d_byte Tile_u8, kTileIdObjBossMineEyeFirst + 1
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $08
+    d_byte DeltaY_i8, <-$08
+    d_byte Flags_bObj, kPaletteObjBossMineEye | bObj::Pri
+    d_byte Tile_u8, kTileIdObjBossMineEyeFirst + 2
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjBossMineEye | bObj::Pri | bObj::Final
+    d_byte Tile_u8, kTileIdObjBossMineEyeFirst + 3
+    D_END
 .ENDPROC
 
 .PROC DataC_Title_Boss6_sEpiScene
@@ -644,7 +791,7 @@ _Transfer_sXfer:
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimA0) + 1
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjShadow1)
-    d_addr Draw_sShapeTile_arr_ptr, 0  ; TODO
+    d_addr Draw_sShapeTile_arr_ptr, _Draw_sShapeTile_arr
     D_END
 _TerrainData:
 :   .incbin "out/epilogue/boss7.epi"
@@ -653,6 +800,31 @@ _Transfer_sXfer:
     d_xfer_text_row kBossDescRow, "Forgotten Phantom"
     d_xfer_text_row kBossNameRow, "ALDA EGO"
     d_xfer_terminator
+_Draw_sShapeTile_arr:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$0c
+    d_byte DeltaY_i8, $18
+    d_byte Flags_bObj, kPaletteObjFinalGhostNormal
+    d_byte Tile_u8, kTileIdObjAnnaGhostFirst + 0
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjFinalGhostNormal
+    d_byte Tile_u8, kTileIdObjAnnaGhostFirst + 1
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $08
+    d_byte DeltaY_i8, <-$08
+    d_byte Flags_bObj, kPaletteObjFinalGhostNormal
+    d_byte Tile_u8, kTileIdObjAnnaGhostFirst + 2
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjFinalGhostNormal | bObj::Final
+    d_byte Tile_u8, kTileIdObjAnnaGhostFirst + 3
+    D_END
 .ENDPROC
 
 .PROC DataC_Title_Boss8_sEpiScene
@@ -663,7 +835,7 @@ _Transfer_sXfer:
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimA0) + 1
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss3)
-    d_addr Draw_sShapeTile_arr_ptr, 0  ; TODO
+    d_addr Draw_sShapeTile_arr_ptr, _Draw_sShapeTile_arr
     D_END
 _TerrainData:
 :   .incbin "out/epilogue/boss8.epi"
@@ -672,6 +844,55 @@ _Transfer_sXfer:
     d_xfer_text_row kBossDescRow, "Defiant Warlord"
     d_xfer_text_row kBossNameRow, "CHIEF GRONTA"
     d_xfer_terminator
+_Draw_sShapeTile_arr:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$08
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjGrontaHead
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $04
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjGrontaHead
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $05
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $08
+    d_byte DeltaY_i8, <-$08
+    d_byte Flags_bObj, kPaletteObjGrontaHead
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $06
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjGrontaHead
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $07
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$08
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjOrc
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $0c
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjOrc
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $0d
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $08
+    d_byte DeltaY_i8, <-$08
+    d_byte Flags_bObj, kPaletteObjOrc
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $0e
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjOrc | bObj::Final
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $0f
+    D_END
 .ENDPROC
 
 .PROC DataC_Title_Credit1_sEpiScene

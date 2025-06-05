@@ -27,4 +27,7 @@ kTileIdBgTerrainBossLavaFirst     = $a8
 ;;; OBJ tile IDs for drawing the lava boss.
 kTileIdObjBossLavaJawsFirst = $d0
 
+;;; The OBJ palette number to use for the boss's jaws and tail.
+kPaletteObjBossLava = 1
+
 ;;;=========================================================================;;;

@@ -20,4 +20,8 @@
 ;;; OBJ tile IDs for drawing the shadow boss.
 kTileIdObjAnnaGhostFirst = $e0
 
+;;; OBJ palette numbers for drawing the final ghost.
+kPaletteObjFinalGhostNormal = 0
+kPaletteObjFinalGhostHurt   = 1
+
 ;;;=========================================================================;;;

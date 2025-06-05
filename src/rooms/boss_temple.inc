@@ -22,5 +22,14 @@ kTileIdBgAnimOutbreakFirst = $48
 
 ;;; OBJ tile IDs for drawing the temple boss.
 kTileIdObjOutbreakFirst = $a0
+kTileIdObjOutbreakBrainFirst = kTileIdObjOutbreakFirst + 0
+kTileIdObjOutbreakEyeFirst   = kTileIdObjOutbreakFirst + 4
+kTileIdObjOutbreakEyeFlash   = kTileIdObjOutbreakFirst + 8
+kTileIdObjOutbreakClaw       = kTileIdObjOutbreakFirst + 9
+
+;;; OBJ palette numbers used for drawing the temple boss.
+kPaletteObjOutbreakBrain = 1
+kPaletteObjOutbreakClaw  = 0
+kPaletteObjOutbreakEye   = 1
 
 ;;;=========================================================================;;;

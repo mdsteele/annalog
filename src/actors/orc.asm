@@ -141,9 +141,6 @@ kTileIdObjOrcGruntFeetRunning1  = kTileIdObjOrcGruntRunningFirst   +  4
 kTileIdObjOrcGruntFeetRunning2  = kTileIdObjOrcGruntRunningFirst   +  8
 kTileIdObjOrcGruntFeetRunning3  = kTileIdObjOrcGruntRunningFirst   + 12
 
-;;; The OBJ palette number to use for Gronta's head.
-kPaletteObjGrontaHead = 1
-
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -1189,6 +1186,7 @@ _Poses_eNpcOrc_arr:
     inc T2  ; now eNpcOrc::GrontaLaughing2
     @doneLaugh:
     ;; Determine object flags for the head.
+    .assert kPaletteObjOrc = 0, error
     lda T2  ; pose index
     cmp #kNpcOrcFirstGronta
     blt @notGronta

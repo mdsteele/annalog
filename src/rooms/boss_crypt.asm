@@ -224,9 +224,6 @@ kBossHurtMoveDistPx = 60
 ;;; The platform index for the boss's body.
 kBossBodyPlatformIndex = 4
 
-;;; The OBJ palette number to use for the pupil of the boss's eye.
-kPaletteObjBossPupil = 1
-
 ;;;=========================================================================;;;
 
 ;;; Defines room-specific state data for this particular room.
@@ -874,7 +871,7 @@ _DrawBossPupil:
     div #$10
     .assert kTileIdObjBossCryptPupilFirst .mod 2 = 0, error
     ora #kTileIdObjBossCryptPupilFirst  ; param: tile ID
-    ldy #kPaletteObjBossPupil  ; param: object flags
+    ldy #kPaletteObjBossCryptPupil  ; param: object flags
     jsr FuncA_Objects_Draw1x1Shape  ; preserves T2+
 _TransferBossEye:
     ;; We're going to buffer a PPU transfer to update the BG tiles for the

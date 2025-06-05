@@ -171,4 +171,8 @@ kTileIdObjOrcGruntStandingFirst  = $88
 kTileIdObjOrcGruntThrowingFirst  = $c0
 kTileIdObjEireneParleyFirst      = $90
 
+;;; OBJ palette numbers to use for drawing orcs.
+kPaletteObjOrc        = 0
+kPaletteObjGrontaHead = 1
+
 ;;;=========================================================================;;;
