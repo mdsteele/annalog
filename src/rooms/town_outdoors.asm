@@ -111,6 +111,7 @@
 .IMPORT Func_InitActorBadOrc
 .IMPORT Func_InitActorNpcOrc
 .IMPORT Func_InitActorWithState1
+.IMPORT Func_IsActorWithinHorzDistanceOfPoint
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointRightByA
 .IMPORT Func_Noop
@@ -122,6 +123,7 @@
 .IMPORT Func_PlaySfxThump
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToActorCenter
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SetPointToDeviceCenter
 .IMPORT Func_SpawnExplosionAtPoint
 .IMPORT MainA_Cutscene_StartEpilogue
@@ -147,6 +149,7 @@
 .IMPORTZP Zp_Active_sIrq
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
+.IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Camera_bScroll
@@ -523,7 +526,7 @@ _SetUpYearsLaterCutscene:
 .ENDPROC
 
 .PROC FuncC_Town_Outdoors_TickRoom
-_MakeOrcJump:
+_MakeOrcJumpOffCliff:
     lda Zp_RoomState + sState::OrcJumpTimer_u8
     beq @done
     dec Zp_RoomState + sState::OrcJumpTimer_u8
@@ -541,6 +544,26 @@ _KnockOutAlex:
     lda #bObj::FlipH
     sta Ram_ActorFlags_bObj_arr + kAlexActorIndex
     jsr Func_PlaySfxThump
+    @done:
+_MakeOrcJumpWhileChasing:
+    ;; Check if orc #2 is chasing the player avatar.
+    ldx #kOrc2ActorIndex
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::BadOrc
+    bne @done  ; not an orc baddie
+    lda Ram_ActorState1_byte_arr, x  ; current eBadOrc mode
+    cmp #eBadOrc::Chasing
+    bne @done  ; orc is not chasing right now
+    ;; Check if the player avatar is in the air above the orc.
+    lda Zp_AvatarPosY_i16 + 0
+    cmp #$b0
+    bge @done  ; avatar isn't above the orc's head
+    jsr Func_SetPointToAvatarCenter  ; preserves X
+    lda #$18  ; param: distance
+    jsr Func_IsActorWithinHorzDistanceOfPoint  ; preserves X, returns C
+    bcc @done  ; avatar isn't horizontally near the orc
+    ;; Make the orc jump at the player avatar.
+    jsr FuncC_Town_Outdoors_MakeOrcJump
     @done:
 _DetectAvatarDeath:
     ;; If the player avatar would die (because they were caught by the orcs;
@@ -609,18 +632,30 @@ _FinalTerminal:
 
 ;;; Make the specified orc actor jump to the left.
 ;;; @param X The actor index.
+;;; @preserve X
 .PROC FuncC_Town_Outdoors_MakeOrcJump
     lda #eBadOrc::Jumping
     sta Ram_ActorState1_byte_arr, x  ; current mode
-    lda #<-kOrcMaxRunSpeed
-    sta Ram_ActorVelX_i16_0_arr, x
-    lda #>-kOrcMaxRunSpeed
-    sta Ram_ActorVelX_i16_1_arr, x
+    ;; Set Y-velocity:
     lda #<kOrcJumpVelocity
     sta Ram_ActorVelY_i16_0_arr, x
     lda #>kOrcJumpVelocity
     sta Ram_ActorVelY_i16_1_arr, x
-    jmp Func_PlaySfxBaddieJump
+    ;; Set X-velocity:
+    lda Ram_ActorFlags_bObj_arr, x
+    .assert bObj::FlipH << 1 = $80, error
+    asl a
+    bpl @facingRight
+    @facingLeft:
+    ldya #$ffff & -kOrcMaxRunSpeed
+    bmi @setVelX  ; unconditional
+    @facingRight:
+    ldya #kOrcMaxRunSpeed
+    @setVelX:
+    sta Ram_ActorVelX_i16_0_arr, x
+    tya
+    sta Ram_ActorVelX_i16_1_arr, x
+    jmp Func_PlaySfxBaddieJump  ; preserves X
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -997,29 +1032,56 @@ _InitOrcs:
 
 .EXPORT DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
 .PROC DataA_Cutscene_TownOutdoorsGetCaught_sCutscene
-    act_SetCutsceneFlags bCutscene::AvatarRagdoll
+    act_SetCutsceneFlags bCutscene::TickAllActors | bCutscene::AvatarRagdoll
     act_WaitUntilZ _AnnaHasLanded
-    act_SetCutsceneFlags 0
+    act_SetCutsceneFlags bCutscene::TickAllActors
     act_SetAvatarState 0
     act_SetAvatarVelX 0
-    act_CallFunc _SetHarmTimer
     act_SetAvatarFlags kPaletteObjAvatarNormal | bObj::FlipH
     act_SetAvatarPose eAvatar::Slumping
     act_WaitFrames 4
     act_CallFunc Func_PlaySfxThump
     act_SetAvatarPose eAvatar::Sleeping
+    act_WaitUntilZ _OrcsStopChasing
+    act_SetCutsceneFlags 0
+    act_CallFunc _SetHarmTimer
     act_WaitFrames 30
     act_CallFunc _InitThurgAndHobok
     act_MoveNpcOrcWalk kThurgActorIndex, kOrc1InitPosX
     act_SetActorState1 kThurgActorIndex, eNpcOrc::GruntStanding
     act_MoveNpcOrcWalk kHobokActorIndex, kOrc2InitPosX
     act_SetActorState1 kHobokActorIndex, eNpcOrc::GruntStanding
-    act_WaitFrames 60
+    act_WaitFrames 30
     act_RunDialog eDialog::TownOutdoorsGronta
     act_JumpToMain Main_LoadPrisonCellAndStartCutscene
 _AnnaHasLanded:
     lda Zp_AvatarState_bAvatar
     and #bAvatar::Airborne
+    rts
+_OrcsStopChasing:
+    lda #0
+    sta T0  ; num orcs not fininshed yet
+    ;; Check each of the two orc grunts.
+    ldx #kOrc2ActorIndex
+    @loop:
+    ;; If this orc has already turned back into an NPC, skip it.
+    lda Ram_ActorType_eActor_arr, x
+    cmp #eActor::NpcOrc
+    beq @continue
+    ;; Otherwise, turn this orc into an NPC once it's not jumping.
+    inc T0  ; num orcs not fininshed yet
+    lda Ram_ActorState1_byte_arr, x
+    cmp #eBadOrc::Jumping
+    beq @continue
+    lda #eNpcOrc::GruntThrowing1  ; param: eNpcOrc value
+    jsr Func_InitActorNpcOrc  ; preserves X and T0+
+    @continue:
+    .assert kOrc2ActorIndex - 1 = kOrc1ActorIndex, error
+    .assert kOrc1ActorIndex - 1 = 0, error
+    dex
+    bne @loop
+    ;; Set Z once both orcs are finished.
+    lda T0  ; num orcs not finished yet
     rts
 _SetHarmTimer:
     lda #kAvatarHarmHealFrames - kAvatarHarmInvincibleFrames - 1

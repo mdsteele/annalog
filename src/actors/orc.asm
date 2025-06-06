@@ -69,6 +69,7 @@
 .IMPORT Func_PlaySfxBaddieJump
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_PlaySfxThump
+.IMPORT Func_PointHitsTerrain
 .IMPORT Func_RemoveActor
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetMachineIndex
@@ -117,6 +118,7 @@ kGrontaThrowCatchFrames = 15
 ;;; How many pixels in front of its center an orc baddie actor checks for solid
 ;;; terrain to see if it needs to stop or jump, when chasing/patrolling.
 kOrcChaseStopDistance = 9
+kOrcJumpingStopDistance = 9
 kOrcPatrolStopDistance = 15
 kOrcHopDownDistance = 15
 kOrcHopUpDistance = 20
@@ -416,7 +418,6 @@ _AdjustPosition:
 ;;; @param X The actor index.
 ;;; @preserve X
 .PROC FuncA_Actor_TickBadGronta_JumpAirborne
-    ;; TODO: Check for side collisions with walls
     jsr FuncA_Actor_TickOrcAirborne  ; preserves X, returns C
     bcs FuncA_Actor_TickBadGronta_ReachedGoal  ; preserves X
     rts
@@ -1013,6 +1014,16 @@ _IsBlocked:
 ;;; @return C Set if the actor has landed on the floor.
 ;;; @preserve X
 .PROC FuncA_Actor_TickOrcAirborne
+_CheckForHorzCollision:
+    jsr Func_SetPointToActorCenter  ; preserves X
+    lda #kOrcJumpingStopDistance  ; param: offset
+    jsr FuncA_Actor_MovePointTowardVelXDir  ; preserves X
+    jsr Func_PointHitsTerrain  ; preserves X, returns C
+    bcc @done
+    jsr FuncA_Actor_ZeroVelX  ; preserves X
+    @done:
+_ApplyGravity:
+    ;; TODO: Check for side collisions with walls
     .assert <kOrcMaxFallSpeed = 0, error
     lda #>kOrcMaxFallSpeed  ; param: terminal velocity
     jsr FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
