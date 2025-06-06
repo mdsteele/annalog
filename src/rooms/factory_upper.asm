@@ -169,6 +169,14 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $006c
     d_word Top_i16,   $00cc
     D_END
+    ;; Spikes:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16, $1f
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00d1
+    d_word Top_i16,   $00be
+    D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error
     .byte ePlatform::None
 _Actors_sActor_arr:
