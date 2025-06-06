@@ -20,6 +20,7 @@
 .INCLUDE "avatar.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
+.INCLUDE "flag.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "minimap.inc"
 .INCLUDE "mmc3.inc"
@@ -35,6 +36,7 @@
 .IMPORT FuncA_Pause_DirectDrawWindowLineSide
 .IMPORT Func_IsFlagSet
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Sram_CarryingFlower_eFlag
 .IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_Current_sRoom
@@ -250,12 +252,17 @@ _MarkerLoop:
     ;; If this map marker's "Not" flag is set, then skip this marker and check
     ;; the next one.
     ldx DataA_Pause_Minimap_sMarker_arr + sMarker::Not_eFlag, y  ; param: flag
-    jsr Func_IsFlagSet  ; preserves T0+
+    jsr Func_IsFlagSet  ; preserves X and T0+
     bne @restoreXAndContinue
-    ;; Check this map marker's "If" flag; if it's zero, this is an item marker
-    ;; (small dot), otherwise it's a quest marker (large dot).
+    ;; Alternatively, if this map marker is for a flower that Anna is currently
+    ;; carrying, don't draw the marker.
+    cpx Sram_CarryingFlower_eFlag
+    beq @restoreXAndContinue
+    ;; Check this map marker's "If" flag; if it's eFlag::None, then this is an
+    ;; item marker (small dot), otherwise it's a quest marker (large X).
     ldy T2  ; byte offset into DataA_Pause_Minimap_sMarker_arr
     ldx DataA_Pause_Minimap_sMarker_arr + sMarker::If_eFlag, y  ; param: flag
+    .assert eFlag::None = 0, error
     beq @itemMarker
     ;; For a quest marker, we need to check if the "If" flag is set, and skip
     ;; the marker if not.  But if the flag is set, we can compute the new tile
