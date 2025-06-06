@@ -36,6 +36,7 @@
 .INCLUDE "../portrait.inc"
 .INCLUDE "../ppu.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../sample.inc"
 .INCLUDE "../scroll.inc"
 
 .IMPORT DataA_Room_Prison_sTileset
@@ -56,18 +57,21 @@
 .IMPORT DataA_Text0_PrisonUpperMarie_LooseBrick_u8_arr
 .IMPORT DataA_Text0_PrisonUpperMarie_StandCareful_u8_arr
 .IMPORT DataA_Text0_PrisonUpperNora_u8_arr
+.IMPORT DataA_Text0_PrisonUpperWaitUp_u8_arr
 .IMPORT Data_Empty_sDialog
 .IMPORT FuncA_Cutscene_PlaySfxClick
 .IMPORT FuncA_Objects_DrawStepstonePlatform
 .IMPORT FuncC_Prison_DrawGatePlatform
 .IMPORT FuncC_Prison_OpenGateAndFlipLever
 .IMPORT FuncC_Prison_TickGatePlatform
+.IMPORT Func_IsPointInPlatform
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxMetallicDing
 .IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Func_SetOrClearFlag
+.IMPORT Func_SetPointToAvatarCenter
 .IMPORT Main_Breaker_FadeBackToBreakerRoom
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorFlags_bObj_arr
@@ -81,6 +85,7 @@
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
+.IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_Nearby_bDevice
 .IMPORTZP Zp_Next_eCutscene
@@ -109,6 +114,9 @@ kStepstonePlatformIndex = 1
 
 ;;; The platform index for the prison gate in this room.
 kGatePlatformIndex = 0
+
+;;; The platform index for the zone where Marie asks you to wait up.
+kWaitUpZonePlatformIndex = 2
 
 ;;; The room block row for the top of the gate when it's shut.
 kGateBlockRow = 10
@@ -187,6 +195,15 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, kStepstonePlatformHeightPx
     d_word Left_i16, $01a1
     d_word Top_i16,  $0093
+    D_END
+    ;; Wait up zone:
+    .assert * - :- = kWaitUpZonePlatformIndex * .sizeof(sPlatform), error
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Zone
+    d_word WidthPx_u16, $30
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $01f0
+    d_word Top_i16,   $00a0
     D_END
     ;; Ledge above Alex's cell:
     D_STRUCT sPlatform
@@ -437,6 +454,26 @@ _Gate:
     ;; Move the gate based on the lever.
     ldy Zp_RoomState + sState::GateLever_u8  ; param: zero for shut
     jsr FuncC_Prison_Upper_TickGate
+_WaitUp:
+    ;; If Anna hasn't talked to Alex yet, or if Marie has already revealed the
+    ;; stepping stone, don't start the cutscene.
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
+    beq @done  ; Anna hasn't talked to Alex yet
+    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperLoosenedBrick
+    bne @done  ; stepping stone is already revealed
+    ;; If the player avatar isn't standing in the cutscene-starting zone, don't
+    ;; start it yet.
+    bit Zp_AvatarState_bAvatar
+    .assert bAvatar::Airborne = bProc::Negative, error
+    bmi @done
+    jsr Func_SetPointToAvatarCenter
+    ldy #kWaitUpZonePlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; returns C
+    bcc @done
+    ;; Start the cutscene.
+    lda #eCutscene::PrisonUpperWaitUp
+    sta Zp_Next_eCutscene
+    @done:
 _FreeAlex:
     ;; If Alex has already been freed, we're done.
     flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedAlex
@@ -517,6 +554,37 @@ _Orc2Exit_sCutscene:
     act_WaitFrames 20
     act_MoveNpcOrcWalk kOrc2ActorIndex, $01e8
     act_ForkStop $ff
+.ENDPROC
+
+.EXPORT DataA_Cutscene_PrisonUpperWaitUp_sCutscene
+.PROC DataA_Cutscene_PrisonUpperWaitUp_sCutscene
+    ;; Marie calls out to Anna to wait up.
+    act_SetAvatarPose eAvatar::Standing
+    act_RunDialog eDialog::PrisonUpperWaitUp
+    ;; Anna walks back to the edge and jumps down to Marie.
+    act_MoveAvatarWalk $01d8
+    act_SetAvatarPose eAvatar::Standing
+    act_WaitFrames 15
+    act_PlaySfxSample eSample::JumpAnna
+    act_SetAvatarVelX -470
+    act_SetAvatarVelY -400
+    act_SetCutsceneFlags bCutscene::AvatarRagdoll
+    act_WaitFrames 8
+    act_WaitUntilZ _AnnaHasLanded
+    act_SetCutsceneFlags 0
+    act_SetAvatarPose eAvatar::Landing
+    act_SetAvatarState 0
+    act_SetAvatarVelX 0
+    act_WaitFrames 8
+    act_SetAvatarPose eAvatar::Standing
+    act_WaitFrames 30
+    ;; Marie talks to Anna and explains about the loose brick.
+    act_RunDialog eDialog::PrisonUpperMarie
+    act_ContinueExploring
+_AnnaHasLanded:
+    lda Zp_AvatarState_bAvatar
+    and #bAvatar::Airborne
+    rts
 .ENDPROC
 
 .EXPORT DataA_Cutscene_PrisonUpperLoosenBrick_sCutscene
@@ -757,18 +825,32 @@ _StandCareful_sDialog:
 
 .PROC DataA_Dialog_PrisonUpperMarie_LooseBrick_sDialog
     dlg_Text ChildMarie, DataA_Text0_PrisonUpperMarie_LooseBrick_u8_arr
-    dlg_Call _LockScrolling
+    dlg_Call FuncA_Dialog_PrisonUpper_LockScrolling
     dlg_Cutscene eCutscene::PrisonUpperLoosenBrick
-_LockScrolling:
-    lda #bScroll::LockHorz  ; will be unlocked in the cutscene
-    sta Zp_Camera_bScroll
-    rts
 .ENDPROC
 
 .EXPORT DataA_Dialog_PrisonUpperNora_sDialog
 .PROC DataA_Dialog_PrisonUpperNora_sDialog
     dlg_Text ChildNora, DataA_Text0_PrisonUpperNora_u8_arr
     dlg_Done
+.ENDPROC
+
+.EXPORT DataA_Dialog_PrisonUpperWaitUp_sDialog
+.PROC DataA_Dialog_PrisonUpperWaitUp_sDialog
+    dlg_Call _ScrollToMarie
+    dlg_Text ChildMarie, DataA_Text0_PrisonUpperWaitUp_u8_arr
+    dlg_Call FuncA_Dialog_PrisonUpper_LockScrolling
+    dlg_Done
+_ScrollToMarie:
+    ldax #$0100
+    stax Zp_ScrollGoalX_u16
+    rts
+.ENDPROC
+
+.PROC FuncA_Dialog_PrisonUpper_LockScrolling
+    lda #bScroll::LockHorz
+    sta Zp_Camera_bScroll
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

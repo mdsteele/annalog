@@ -229,6 +229,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     PrisonUpperBruno
     PrisonUpperMarie
     PrisonUpperNora
+    PrisonUpperWaitUp
     SewerPoolFood
     SewerPoolSign
     ShadowDrillScreen

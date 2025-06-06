@@ -143,6 +143,7 @@
 .IMPORT DataA_Dialog_PrisonUpperBruno_sDialog
 .IMPORT DataA_Dialog_PrisonUpperMarie_sDialog
 .IMPORT DataA_Dialog_PrisonUpperNora_sDialog
+.IMPORT DataA_Dialog_PrisonUpperWaitUp_sDialog
 .IMPORT DataA_Dialog_SewerPoolFood_sDialog
 .IMPORT DataA_Dialog_SewerPoolSign_sDialog
 .IMPORT DataA_Dialog_ShadowDrillScreen_sDialog
@@ -591,6 +592,7 @@ _Finish:
     d_entry t, PrisonUpperBruno,     DataA_Dialog_PrisonUpperBruno_sDialog
     d_entry t, PrisonUpperMarie,     DataA_Dialog_PrisonUpperMarie_sDialog
     d_entry t, PrisonUpperNora,      DataA_Dialog_PrisonUpperNora_sDialog
+    d_entry t, PrisonUpperWaitUp,    DataA_Dialog_PrisonUpperWaitUp_sDialog
     d_entry t, SewerPoolFood,        DataA_Dialog_SewerPoolFood_sDialog
     d_entry t, SewerPoolSign,        DataA_Dialog_SewerPoolSign_sDialog
     d_entry t, ShadowDrillScreen,    DataA_Dialog_ShadowDrillScreen_sDialog

@@ -63,6 +63,7 @@ kMaxForks = 4
     PrisonUpperFreeAlex
     PrisonUpperFreeKids
     PrisonUpperLoosenBrick
+    PrisonUpperWaitUp
     SewerPoolFeedDucks
     SharedFlipBreaker
     SharedTeleportIn
