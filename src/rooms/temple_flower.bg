@@ -2,17 +2,18 @@
 >temple_0
 >temple_1
 >temple_4
+>temple_5
 
-
-                        CACGCCCBCCCBCCCGCCCGCCCBCCCBCCCBCCCGCCCBCC
-                        CN                                      CN
-                        CO                                      CO
-                        CO        CACFCD                        CO
-                        CP          AN                  CACFCD  CO
-CCCBCCCBCCCGCCCFCBCCCGCCCD  CE      AO          CE        AN    CO
-CNCN                        AN      AP          AN        AO    CO
-CPCP                        AO      CE          AP        AO    CO
-CBCCCD                      AO      AN        CACFCD      AO    CO
+  CODPDMDPDO  DP
+  CODPDPDPDPDPDPDO      CACGCCCBCCCBCCCGCCCGCCCBCCCBCCCBCCCGCCCBCC
+  CODPDPDPDPDODPDPDPDP  CN                                      CN
+  CODPDPDNDPDPDPDPDODPDPCO                                      CO
+  CODMDNDPDPDPDMDPDPDPDOCO        CACFCD            BF          CO
+CPCP    DPDPDPDPDPDMDP  CP          AN    BF        BD  CACFCD  CO
+CCCBCCCBCCCGCCCFCBCCCGCCCD  CE  BA  AO    BC    CE        AN    CO
+CNCN                        AN  BD  AP          AN        AO    CO
+CPCP        BB              AO      CE          AP        AO    CO
+CBCCCD      BD              AO      AN        CACFCD      AO    CO
                   CACFCD    AO      AP          AN        AO    CO
                     AN      AO    CACFCD        AO        AO    CO
 CBCCCGCCCDBLBLBLBLBLBKBLBLBLBKBLBLBLAHBLBLBLBLBLBKBLBLBLBLBKBLBLCO
