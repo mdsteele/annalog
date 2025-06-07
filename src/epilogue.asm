@@ -20,8 +20,11 @@
 .INCLUDE "actors/orc.inc"
 .INCLUDE "audio.inc"
 .INCLUDE "charmap.inc"
+.INCLUDE "death.inc"
 .INCLUDE "epilogue.inc"
 .INCLUDE "fade.inc"
+.INCLUDE "flag.inc"
+.INCLUDE "joypad.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "mmc3.inc"
 .INCLUDE "music.inc"
@@ -36,6 +39,7 @@
 .INCLUDE "rooms/boss_shadow.inc"
 .INCLUDE "rooms/boss_temple.inc"
 .INCLUDE "tileset.inc"
+.INCLUDE "timer.inc"
 
 .IMPORT DataA_Room_Building_sTileset
 .IMPORT DataA_Room_Core_sTileset
@@ -48,12 +52,18 @@
 .IMPORT DataA_Terrain_GardenUpperLeft_u8_arr
 .IMPORT FuncA_Objects_DrawShapeTiles
 .IMPORT FuncC_Title_ClearNametableTiles
+.IMPORT Func_ClearRestOfOam
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_DirectPpuTransfer
+.IMPORT Func_DivMod
+.IMPORT Func_FadeInFromBlackToNormal
+.IMPORT Func_FadeOutToBlackSlowly
 .IMPORT Func_FillUpperAttributeTable
+.IMPORT Func_IsFlagSet
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetAndTransferFade
 .IMPORT Func_Window_Disable
+.IMPORT MainC_Title_Menu
 .IMPORT Ppu_ChrBgAnimA0
 .IMPORT Ppu_ChrBgAnimB0
 .IMPORT Ppu_ChrBgAnimB4
@@ -65,11 +75,14 @@
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ppu_ChrObjPause
 .IMPORT Ppu_ChrObjShadow1
+.IMPORT Sram_DeathCount_u8_arr
+.IMPORT Sram_ExploreTimer_u8_arr
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Current_sTileset
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Next_sAudioCtrl
+.IMPORTZP Zp_P1ButtonsPressed_bJoypad
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
@@ -240,6 +253,24 @@ Ppu_Boss6CoreAttrs = Ppu_Nametable0_sName + sName::Attrs_u8_arr64 + \
 
 ;;;=========================================================================;;;
 
+;;; The tile row in the upper nametable for each of the post-game stats.
+kStatsCompletionRow = 13
+kStatsDeathsRow = 15
+kStatsTimeRow = 17
+
+;;; The PPU addresses for the start (left) of the BG tiles for each of the
+;;; post-game stat numbers.
+.LINECONT +
+Ppu_StatsCompletionStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * kStatsCompletionRow + 20
+Ppu_StatsDeathsStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * kStatsDeathsRow + 18
+Ppu_StatsTimeStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * kStatsTimeRow + 14
+.LINECONT -
+
+;;;=========================================================================;;;
+
 ;;; Particular scenes that can play within an epilogue sequence.  Some scenes
 ;;; only appear in one of the epilogues, while others are shared.
 .ENUM eEpilogueScene
@@ -367,11 +398,161 @@ _NextScene:
 ;;; Mode for the "The End" screen.
 ;;; @prereq Rendering is disabled.
 .PROC MainC_Title_TheEnd
-    ;; TODO: init TheEnd mode
+    ldxy #Ppu_Nametable0_sName  ; param: nametable addr
+    jsr FuncC_Title_ClearNametableTiles
+    ldy #$00  ; param: attribute byte
+    jsr Func_FillUpperAttributeTable
+    ldax #_Init_sXfer  ; param: ptr
+    jsr Func_DirectPpuTransfer
+_DrawTime:
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    lda #>Ppu_StatsTimeStart
+    sta Hw_PpuAddr_w2
+    lda #<Ppu_StatsTimeStart
+    sta Hw_PpuAddr_w2
+    ldx #kNumTimerDigits - 1
+    @loop:
+    lda Sram_ExploreTimer_u8_arr, x
+    add #'0'
+    sta Hw_PpuData_rw
+    ;; Draw an 'h' after the hours count.
+    cpx #5
+    bne @noH
+    lda #'h'
+    sta Hw_PpuData_rw
+    @noH:
+    ;; Draw an 'm' after the minutes count.
+    cpx #3
+    bne @noM
+    lda #'m'
+    sta Hw_PpuData_rw
+    @noM:
+    ;; Skip the bottom "digit", which is the subsecond frame count.
+    dex
+    bne @loop  ; exit loop before digit #0
+_DrawPercentCompletion:
+    jsr FuncC_Title_GetPercentCompletion  ; returns A (param: dividend)
+    ldy #10  ; param: divisor
+    jsr Func_DivMod  ; returns quotient in Y and remainder in A
+    ldx #0
+    cpy #10
+    blt @setDigits
+    ldy #0
+    inx  ; now X is 1
+    @setDigits:
+    pha  ; percentage 1's digit
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    lda #>Ppu_StatsCompletionStart
+    sta Hw_PpuAddr_w2
+    lda #<Ppu_StatsCompletionStart
+    sta Hw_PpuAddr_w2
+    txa  ; percentage 100's digit
+    add #'0'
+    sta Hw_PpuData_rw
+    tya  ; percentage 10's digit
+    add #'0'
+    sta Hw_PpuData_rw  ; percentage 10's digit
+    pla  ; percentage 1's digit
+    add #'0'
+    sta Hw_PpuData_rw
+_DrawNumDeaths:
+    lda #kPpuCtrlFlagsHorz
+    sta Hw_PpuCtrl_wo
+    lda #>Ppu_StatsDeathsStart
+    sta Hw_PpuAddr_w2
+    lda #<Ppu_StatsDeathsStart
+    sta Hw_PpuAddr_w2
+    ldx #kNumDeathDigits - 1
+    @loop:
+    lda Sram_DeathCount_u8_arr, x
+    add #'0'
+    sta Hw_PpuData_rw
+    dex
+    bpl @loop
+_FadeIn:
+    main_chr0c_bank Ppu_ChrBgFontUpper
+    lda #bPpuMask::BgMain | bPpuMask::ObjMain
+    sta Zp_Render_bPpuMask
+    lda #0
+    sta Zp_PpuScrollX_u8
+    sta Zp_PpuScrollY_u8
+    jsr Func_Window_Disable
+    jsr Func_ClearRestOfOam
+    jsr Func_FadeInFromBlackToNormal
 _GameLoop:
     jsr Func_ClearRestOfOamAndProcessFrame
-    ;; TODO: check buttons, go to title screen on press
-    jmp _GameLoop
+    lda Zp_P1ButtonsPressed_bJoypad
+    and #bJoypad::Start
+    beq _GameLoop
+_FadeOut:
+    jsr Func_FadeOutToBlackSlowly
+    jmp MainC_Title_Menu
+_Init_sXfer:
+    d_xfer_text_row 8, "- ANNALOG -"
+    d_xfer_text_row kStatsCompletionRow, "Completion: xxx%"
+    .assert kNumDeathDigits = 3, error
+    d_xfer_text_row kStatsDeathsRow, "Deaths: xxx"
+    d_xfer_text_row kStatsTimeRow, "Time: HHHhMMmSSs"
+    d_xfer_text_row 22, "- PRESS START -"
+    d_xfer_terminator
+.ENDPROC
+
+;;; Computes the completion percentage for a completed game.
+;;; @return A The completion percentage (0-100).
+.PROC FuncC_Title_GetPercentCompletion
+_DefeatGronta:
+    ;; Defeating Gronta is worth 4% completion, while giving up the remote is
+    ;; worth 3%.
+    ldy #3
+    lda Zp_Current_eEpilogue
+    cmp #eEpilogue::OrcsAscend
+    beq @setPercent
+    iny
+    @setPercent:
+    sty T0  ; percent completion
+_Flowers:
+    .assert kNumFlowerFlags = 12, error
+    ;; Each flower delivered earns 3% completion (36% total).
+    ldx #kLastFlowerFlag
+    @loop:
+    jsr Func_IsFlagSet  ; preserves X and T0+, returns Z
+    beq @continue
+    lda T0  ; percent completion
+    add #3
+    sta T0  ; percent completion
+    @continue:
+    dex
+    cpx #kFirstFlowerFlag
+    bge @loop
+_Papers:
+    .assert kNumPaperFlags = 45, error
+    ;; Each paper collected earns 1% completion (45% total).
+    ldx #kLastPaperFlag
+    @loop:
+    jsr Func_IsFlagSet  ; preserves X and T0+, returns Z
+    beq @continue
+    inc T0  ; percent completion
+    @continue:
+    dex
+    cpx #kFirstPaperFlag
+    bge @loop
+_Upgrades:
+    .assert kNumUpgradeFlags = 15, error
+    ;; Each upgrade collected earns 1% completion (15% total).
+    ldx #kLastUpgradeFlag
+    @loop:
+    jsr Func_IsFlagSet  ; preserves X and T0+, returns Z
+    beq @continue
+    inc T0  ; percent completion
+    @continue:
+    dex
+    cpx #kFirstUpgradeFlag
+    bge @loop
+_Finish:
+    lda T0  ; percent completion
+    rts
 .ENDPROC
 
 .PROC DataC_Title_Title_sEpiScene

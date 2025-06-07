@@ -31,6 +31,7 @@ kTileIdBgFontCopyrightFirst = $ae
 .CHARMAP $2c, $45  ; ','
 .CHARMAP $27, $46  ; "'"
 .CHARMAP $2f, $47  ; '/'
+.CHARMAP $25, $7b  ; '%'
 .CHARMAP $2b, $4e  ; '+'
 .CHARMAP $2d, $4f  ; '-'
 .CHARMAP $3c, $4a  ; '<'
