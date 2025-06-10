@@ -321,6 +321,14 @@ _Platforms_sPlatform_arr:
     d_word Left_i16,  $0168
     d_word Top_i16,   $00e8
     D_END
+    ;; Bridge:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $08
+    d_byte HeightPx_u8, $10
+    d_word Left_i16,  $0128
+    d_word Top_i16,   $0070
+    D_END
     ;; Lava:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
@@ -390,7 +398,7 @@ _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 19
-    d_byte BlockCol_u8, 22
+    d_byte BlockCol_u8, 23
     d_byte Target_byte, sState::LowerLever_u8
     D_END
     D_STRUCT sDevice
