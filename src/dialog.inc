@@ -175,6 +175,7 @@ kDialogEntryCutscene = $ff  ; ends the dialog and starts a new cutscene
     MermaidVillageCorra
     MermaidVillageFarmer
     MermaidVillageGuard
+    MineSouthSign
     PaperJerome01
     PaperJerome02
     PaperJerome03

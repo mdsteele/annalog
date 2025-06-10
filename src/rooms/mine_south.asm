@@ -21,6 +21,7 @@
 .INCLUDE "../actors/wasp.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../device.inc"
+.INCLUDE "../dialog.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/hoist.inc"
@@ -31,6 +32,7 @@
 .INCLUDE "../room.inc"
 
 .IMPORT DataA_Room_Mine_sTileset
+.IMPORT DataA_Text1_MineSouthSign_u8_arr
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericTryMoveX
@@ -254,6 +256,12 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 31
     d_byte Target_byte, kHoistMachineIndex
     D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Sign
+    d_byte BlockRow_u8, 21
+    d_byte BlockCol_u8, 18
+    d_byte Target_byte, eDialog::MineSouthSign
+    D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
@@ -278,7 +286,7 @@ _Passages_sPassage_arr:
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Bottom | 1
     d_byte Destination_eRoom, eRoom::MinePit
-    d_byte SpawnBlock_u8, 25
+    d_byte SpawnBlock_u8, 22
     d_byte SpawnAdjust_byte, $c1
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
@@ -365,6 +373,16 @@ _Passages_sPassage_arr:
     jsr FuncA_Machine_HoistMoveTowardGoal  ; returns C
     jcs FuncA_Machine_ReachedGoal
     rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+.EXPORT DataA_Dialog_MineSouthSign_sDialog
+.PROC DataA_Dialog_MineSouthSign_sDialog
+    dlg_Text Sign, DataA_Text1_MineSouthSign_u8_arr
+    dlg_Done
 .ENDPROC
 
 ;;;=========================================================================;;;

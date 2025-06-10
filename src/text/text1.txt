@@ -792,6 +792,10 @@ exploring somewhere.
 Not sure where he is
 right now.#
 
+@MineSouthSign
+
+Equipment Storage {kTileIdBgArrowDown}#
+
 @SewerPoolSign
     - NOTICE -
 

@@ -86,6 +86,7 @@
 .IMPORT DataA_Dialog_MermaidVillageCorra_sDialog
 .IMPORT DataA_Dialog_MermaidVillageFarmer_sDialog
 .IMPORT DataA_Dialog_MermaidVillageGuard_sDialog
+.IMPORT DataA_Dialog_MineSouthSign_sDialog
 .IMPORT DataA_Dialog_PaperJerome01_sDialog
 .IMPORT DataA_Dialog_PaperJerome02_sDialog
 .IMPORT DataA_Dialog_PaperJerome03_sDialog
@@ -536,6 +537,7 @@ _Finish:
     d_entry t, MermaidVillageCorra,  DataA_Dialog_MermaidVillageCorra_sDialog
     d_entry t, MermaidVillageFarmer, DataA_Dialog_MermaidVillageFarmer_sDialog
     d_entry t, MermaidVillageGuard,  DataA_Dialog_MermaidVillageGuard_sDialog
+    d_entry t, MineSouthSign,        DataA_Dialog_MineSouthSign_sDialog
     d_entry t, PaperJerome01,        DataA_Dialog_PaperJerome01_sDialog
     d_entry t, PaperJerome02,        DataA_Dialog_PaperJerome02_sDialog
     d_entry t, PaperJerome03,        DataA_Dialog_PaperJerome03_sDialog
