@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../device.inc"
+.INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../mmc3.inc"
 .INCLUDE "../oam.inc"
@@ -28,16 +29,53 @@
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
 .IMPORT FuncA_Objects_SetShapePosToDeviceTopLeft
 .IMPORT Func_IsFlagSet
+.IMPORT Func_PlaySfxBreakFlower
+.IMPORT Func_SaveProgress
+.IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjAnnaFlower
+.IMPORT Ppu_ChrObjAnnaNormal
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Sram_CarryingFlower_eFlag
+.IMPORTZP Zp_CarryingFlower_eFlag
 
 ;;;=========================================================================;;;
 
 ;;; The number of VBlank frames to animate a respawning flower.
 kFlowerAnimCountdown = 48
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
+
+;;; If the player avatar is carrying a flower, breaks the flower.  Otherwise,
+;;; does nothing.
+;;; @preserve X, Y, T0+
+.EXPORT Func_BreakFlowerIfAny
+.PROC Func_BreakFlowerIfAny
+    lda Zp_CarryingFlower_eFlag
+    beq @done
+    jsr Func_PlaySfxBreakFlower  ; preserves X, Y, and T0+
+    main_chr10_bank Ppu_ChrObjAnnaNormal
+    ;; Enable writes to SRAM.
+    lda #bMmc3PrgRam::Enable
+    sta Hw_Mmc3PrgRamProtect_wo
+    ;; Mark Anna as no longer carrying a flower.  To prevent the human player
+    ;; from resetting the NES to undo dropping the flower, also immediately
+    ;; update the save file to remove the carried flower.  We don't need to
+    ;; save other transient progress at this time; if the human player resets
+    ;; the NES now, it will just undo their progress since the last save point,
+    ;; except that Anna will not be carrying a flower, which is fine.
+    lda #eFlag::None
+    sta Zp_CarryingFlower_eFlag
+    sta Sram_CarryingFlower_eFlag
+    ;; Disable writes to SRAM.
+    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sta Hw_Mmc3PrgRamProtect_wo
+    @done:
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;
 
@@ -49,19 +87,33 @@ kFlowerAnimCountdown = 48
 .EXPORT FuncA_Avatar_PickUpFlowerDevice
 .PROC FuncA_Avatar_PickUpFlowerDevice
     main_chr10_bank Ppu_ChrObjAnnaFlower
-    lda Ram_DeviceTarget_byte_arr, x
-    ;; Enable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable
-    sty Hw_Mmc3PrgRamProtect_wo
     ;; Set the currently-carried flower.
-    sta Sram_CarryingFlower_eFlag
-    ;; Disable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sty Hw_Mmc3PrgRamProtect_wo
+    lda Ram_DeviceTarget_byte_arr, x
+    sta Zp_CarryingFlower_eFlag
     ;; Remove flower device (for now).
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr, x
     jmp FuncA_Avatar_PlaySfxPickUpFlower
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Dialog"
+
+;;; Removes the carried flower (if any) and marks it as delivered, then saves
+;;; the game.
+.EXPORT FuncA_Dialog_DeliverFlowerAndSaveProgress
+.PROC FuncA_Dialog_DeliverFlowerAndSaveProgress
+    ;; If Anna is carrying a flower, mark it as delivered and remove it.
+    ldx Zp_CarryingFlower_eFlag  ; param: flag
+    .assert eFlag::None = 0, error
+    beq @doneFlower
+    jsr Func_SetFlag
+    lda #eFlag::None
+    sta Zp_CarryingFlower_eFlag
+    main_chr10_bank Ppu_ChrObjAnnaNormal
+    @doneFlower:
+    jmp Func_SaveProgress
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -78,7 +130,7 @@ kFlowerAnimCountdown = 48
     jsr Func_IsFlagSet  ; clears Z if flag is set
     bne _RemoveFlower
     ;; If the player avatar is not carrying any flower, keep the device.
-    lda Sram_CarryingFlower_eFlag
+    lda Zp_CarryingFlower_eFlag
     beq _KeepFlower
     ;; If the player avatar is carrying this flower, remove the device.
     cmp Ram_DeviceTarget_byte_arr + kFlowerDeviceIndex  ; flower eFlag
@@ -102,7 +154,7 @@ _KeepFlower:
 .EXPORT FuncA_Room_RespawnFlowerDeviceIfDropped
 .PROC FuncA_Room_RespawnFlowerDeviceIfDropped
     ;; If the player avatar is still carrying a flower, there's nothing to do.
-    lda Sram_CarryingFlower_eFlag
+    lda Zp_CarryingFlower_eFlag
     bne @done
     ;; If this device is already an interactive flower, there's nothing to do.
     lda Ram_DeviceType_eDevice_arr + kFlowerDeviceIndex

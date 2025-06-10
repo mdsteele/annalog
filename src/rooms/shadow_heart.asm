@@ -55,7 +55,7 @@
 .IMPORT Ppu_ChrObjShadow1
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_GoalBg_eFade
 .IMPORTZP Zp_RoomState
 
@@ -344,7 +344,7 @@ _BeamLength_u8_arr:
     lda #eFade::Normal
     sta Zp_RoomState + sState::Terrain_eFade
 _MaybeRemoveGhost:
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowHeartTaggedGhost
+    flag_bit Ram_ProgressFlags_arr, eFlag::ShadowHeartTaggedGhost
     beq @done
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kGhostActorIndex

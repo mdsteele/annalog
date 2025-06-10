@@ -23,7 +23,6 @@
 .INCLUDE "flag.inc"
 .INCLUDE "macros.inc"
 .INCLUDE "minimap.inc"
-.INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
@@ -35,10 +34,10 @@
 .IMPORT FuncA_Pause_AllocBaseObject
 .IMPORT FuncA_Pause_DirectDrawWindowLineSide
 .IMPORT Func_IsFlagSet
+.IMPORT Ram_Minimap_u16_arr
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORT Sram_CarryingFlower_eFlag
-.IMPORT Sram_Minimap_u16_arr
 .IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_CarryingFlower_eFlag
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomScrollX_u16
@@ -77,36 +76,21 @@ Zp_CameraMinimapCol_u8: .res 1
 ;;; @param Y The minimap row (0-14).
 .EXPORT Func_MarkMinimap
 .PROC Func_MarkMinimap
-    pha  ; minimap col
-    ;; Determine the bitmask to use for Sram_Minimap_u16_arr, and store it in
-    ;; T0.
-    tya  ; minimap row
-    mod #8
-    tax
-    lda Data_PowersOfTwo_u8_arr8, x
-    sta T0  ; mask
-    ;; Calculate the byte offset into Sram_Minimap_u16_arr and store it in X.
-    pla  ; minimap col
+    ;; Calculate the byte offset into Ram_Minimap_u16_arr and store it in X.
     mul #2
-    tax  ; byte offset into Sram_Minimap_u16_arr
+    tax  ; byte offset into Ram_Minimap_u16_arr
     cpy #8
     blt @loByte
     inx
     @loByte:
-    ;; Check if minimap needs to be updated.
-    lda Sram_Minimap_u16_arr, x
-    ora T0  ; mask
-    cmp Sram_Minimap_u16_arr, x
-    beq @done
-    ;; Enable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable
-    sty Hw_Mmc3PrgRamProtect_wo
-    ;; Update minimap.
-    sta Sram_Minimap_u16_arr, x
-    ;; Disable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sty Hw_Mmc3PrgRamProtect_wo
-    @done:
+    ;; Determine the bitmask to use for Ram_Minimap_u16_arr, and store it in A.
+    tya  ; minimap row
+    mod #8
+    tay
+    lda Data_PowersOfTwo_u8_arr8, y
+    ;; Update the minimap.
+    ora Ram_Minimap_u16_arr, x
+    sta Ram_Minimap_u16_arr, x
     rts
 .ENDPROC
 
@@ -204,7 +188,7 @@ _Return:
     sta T7  ; mask
     ;; Save X in T3 so we can use X for something else and later restore it.
     stx T3  ; minimap row
-    ;; We'll use X as the byte offset into Sram_Minimap_u16_arr.  If we're in
+    ;; We'll use X as the byte offset into Ram_Minimap_u16_arr.  If we're in
     ;; the first eight rows, we'll be checking our bitmask against the low
     ;; eight bits of each u16; otherwise, we'll be checking against the high
     ;; eight bits.
@@ -218,7 +202,7 @@ _Return:
 _ColLoop:
     ;; Determine the "original" tile ID for this cell of the minimap (without
     ;; yet taking map markers into account), and store it in T5.
-    lda Sram_Minimap_u16_arr, x
+    lda Ram_Minimap_u16_arr, x
     and T7  ; mask
     bne @explored
     @unexplored:
@@ -241,14 +225,14 @@ _MarkerLoop:
     blt _DrawOriginalTile
     bne @continue
     ;; Now do the same thing again, for the minimap column number this time.
-    txa  ; byte offset into Sram_Minimap_u16_arr
+    txa  ; byte offset into Ram_Minimap_u16_arr
     div #2  ; now A is the minimap column number
     cmp DataA_Pause_Minimap_sMarker_arr + sMarker::Col_u8, y
     blt _DrawOriginalTile
     bne @continue
     ;; At this point, we need to save X so we can use it for Func_IsFlagSet and
     ;; then restore it later.
-    stx T6  ; byte offset into Sram_Minimap_u16_arr
+    stx T6  ; byte offset into Ram_Minimap_u16_arr
     ;; If this map marker's "Not" flag is set, then skip this marker and check
     ;; the next one.
     ldx DataA_Pause_Minimap_sMarker_arr + sMarker::Not_eFlag, y  ; param: flag
@@ -256,7 +240,7 @@ _MarkerLoop:
     bne @restoreXAndContinue
     ;; Alternatively, if this map marker is for a flower that Anna is currently
     ;; carrying, don't draw the marker.
-    cpx Sram_CarryingFlower_eFlag
+    cpx Zp_CarryingFlower_eFlag
     beq @restoreXAndContinue
     ;; Check this map marker's "If" flag; if it's eFlag::None, then this is an
     ;; item marker (small dot), otherwise it's a quest marker (large X).
@@ -274,7 +258,7 @@ _MarkerLoop:
     sub #kTileIdBgMinimapUnexplored
     tay
     lda DataA_Pause_MinimapQuestMarkerTiles_u8_arr, y
-    ldx T6  ; byte offset into Sram_Minimap_u16_arr
+    ldx T6  ; byte offset into Ram_Minimap_u16_arr
     bpl _DrawTileA  ; unconditional
     ;; For item markers, we can just always draw the marker; if the original
     ;; tile ID for this minimap cell is unexplored, then that will just map
@@ -284,12 +268,12 @@ _MarkerLoop:
     sub #kTileIdBgMinimapUnexplored
     tay
     lda DataA_Pause_MinimapItemMarkerTiles_u8_arr, y
-    ldx T6  ; byte offset into Sram_Minimap_u16_arr
+    ldx T6  ; byte offset into Ram_Minimap_u16_arr
     bpl _DrawTileA  ; unconditional
     ;; If we had to skip this marker, then increment the byte offset into the
     ;; marker table and check the next marker.
     @restoreXAndContinue:
-    ldx T6  ; byte offset into Sram_Minimap_u16_arr
+    ldx T6  ; byte offset into Ram_Minimap_u16_arr
     @continue:
     lda T2  ; byte offset into DataA_Pause_Minimap_sMarker_arr
     add #.sizeof(sMarker)
@@ -300,7 +284,7 @@ _DrawOriginalTile:
 _DrawTileA:
     sta Hw_PpuData_rw
     inc T4  ; byte offset into minimap tile data (from pointer in T1T0)
-    ;; Increment byte offset into Sram_Minimap_u16_arr.
+    ;; Increment byte offset into Ram_Minimap_u16_arr.
     inx
     inx
     cpx #kMinimapWidth * 2

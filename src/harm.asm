@@ -19,15 +19,13 @@
 
 .INCLUDE "avatar.inc"
 .INCLUDE "cpu.inc"
+.INCLUDE "flag.inc"
 .INCLUDE "macros.inc"
-.INCLUDE "mmc3.inc"
 .INCLUDE "oam.inc"
 .INCLUDE "sample.inc"
 
-.IMPORT Func_PlaySfxBreakFlower
+.IMPORT Func_BreakFlowerIfAny
 .IMPORT Func_PlaySfxSample
-.IMPORT Ppu_ChrObjAnnaNormal
-.IMPORT Sram_CarryingFlower_eFlag
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarState_bAvatar
@@ -106,36 +104,7 @@ _SetVelX:
     sta Zp_AvatarFlags_bObj
     lda #kAvatarHarmDeath
     sta Zp_AvatarHarmTimer_u8
-    fall Func_BreakFlowerIfAny  ; preserves X, Y, and T0+
-.ENDPROC
-
-;;; If the player avatar is carrying a flower, breaks the flower.  Otherwise,
-;;; does nothing.
-;;; @preserve X, Y, T0+
-.PROC Func_BreakFlowerIfAny
-    lda Sram_CarryingFlower_eFlag
-    bne @breakFlower
-    rts
-    @breakFlower:
-    jsr Func_PlaySfxBreakFlower  ; preserves X, Y, and T0+
-    fall Func_DropFlower  ; preserves X, Y, and T0+
-.ENDPROC
-
-;;; Drops the flower that the player avatar is carrying.
-;;; @preserve X, Y, T0+
-.EXPORT Func_DropFlower
-.PROC Func_DropFlower
-    main_chr10_bank Ppu_ChrObjAnnaNormal
-    ;; Enable writes to SRAM.
-    lda #bMmc3PrgRam::Enable
-    sta Hw_Mmc3PrgRamProtect_wo
-    ;; Mark the player as no longer carrying a flower.
-    lda #0
-    sta Sram_CarryingFlower_eFlag
-    ;; Disable writes to SRAM.
-    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sta Hw_Mmc3PrgRamProtect_wo
-    rts
+    jmp Func_BreakFlowerIfAny  ; preserves X, Y, and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

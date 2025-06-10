@@ -50,7 +50,7 @@
 .IMPORT Func_InitActorSmokeExplosion
 .IMPORT Func_IsPointInPlatform
 .IMPORT Func_MachineLaserReadRegC
-.IMPORT Func_MarkRoomSafe
+.IMPORT Func_MarkRoomSafeAndSaveProgressIfChanged
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_PlaySfxBaddieDeath
 .IMPORT Func_SetActorCenterToPoint
@@ -65,7 +65,7 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_ConsoleMachineIndex_u8
@@ -319,8 +319,8 @@ _FixGravity:
     sta Zp_AvatarPosY_i16 + 1
     @done:
 _InitAlarm:
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowTrapDisarmed
-    jne Func_MarkRoomSafe
+    flag_bit Ram_ProgressFlags_arr, eFlag::ShadowTrapDisarmed
+    jne Func_MarkRoomSafeAndSaveProgressIfChanged
     ;; Mark the alarm as not yet tripped.
     lda #$ff
     sta Zp_RoomState + sState::AlarmCountdown_u8
@@ -333,7 +333,7 @@ _InitAlarm:
     jsr Func_SetMachineIndex
     jsr FuncA_Room_HarmAvatarIfWithinLaserBeam
 _CheckTrap:
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowTrapDisarmed
+    flag_bit Ram_ProgressFlags_arr, eFlag::ShadowTrapDisarmed
     bne _OpenBarriers
     lda Zp_RoomState + sState::AlarmCountdown_u8
     bmi _MaybeTripAlarm
@@ -365,7 +365,7 @@ _CheckIfBaddiesDefeated:
     bne _ShutBarriers
     ldx #eFlag::ShadowTrapDisarmed  ; param: flag
     jsr Func_SetFlag
-    jsr Func_MarkRoomSafe
+    jsr Func_MarkRoomSafeAndSaveProgressIfChanged
     jmp _OpenBarriers
 _MaybeTripAlarm:
     ;; If the player avatar isn't in the trap zone, don't trip the alarm.

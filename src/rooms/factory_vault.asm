@@ -51,7 +51,7 @@
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -155,9 +155,9 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Factory_Vault_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerLava
+    flag_bit Ram_ProgressFlags_arr, eFlag::BreakerLava
     beq @removeAlex
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
     beq @keepAlex
     @removeAlex:
     lda #0

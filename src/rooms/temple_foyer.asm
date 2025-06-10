@@ -46,7 +46,7 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_RoomState
 
@@ -235,7 +235,7 @@ _Passages_sPassage_arr:
     lda #bMusic::UsesFlag | 0
     sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
     ;; Remove the upgrade if it's already been collected.
-    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
+    flag_bit Ram_ProgressFlags_arr, kUpgradeFlag
     beq @done
     lda #eDevice::None
     sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex

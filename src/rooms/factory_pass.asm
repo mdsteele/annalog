@@ -43,7 +43,7 @@
 .IMPORT Ppu_ChrBgAnimB0
 .IMPORT Ppu_ChrObjSewer
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
@@ -215,7 +215,7 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Factory_Pass_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
+    flag_bit Ram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
     beq @done
     lda #ePassRocks::PassUnblocked
     sta Zp_RoomState + sState::Current_ePassRocks

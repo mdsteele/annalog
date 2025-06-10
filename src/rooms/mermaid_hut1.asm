@@ -89,7 +89,7 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_ActorVelY_i16_0_arr
 .IMPORT Ram_ActorVelY_i16_1_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_Next_eCutscene
 
 ;;;=========================================================================;;;
@@ -227,9 +227,9 @@ _Alex:
     beq @keepAlex
     ;; If Alex has been rescued, but hasn't yet finished his petition to the
     ;; queen, he should be in the room.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     beq @removeAlex
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1AlexPetition
+    flag_bit Ram_ProgressFlags_arr, eFlag::MermaidHut1AlexPetition
     beq @keepAlex
     @removeAlex:
     lda #eActor::None
@@ -241,9 +241,9 @@ _Alex:
 .PROC FuncA_Room_MermaidHut1_TickRoom
     ;; If Alex is still petitioning the queen (he's been rescued, but hasn't
     ;; yet completed his petition), start that cutscene.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     beq @done
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1AlexPetition
+    flag_bit Ram_ProgressFlags_arr, eFlag::MermaidHut1AlexPetition
     bne @done
     lda #eCutscene::MermaidHut1AlexPetition
     sta Zp_Next_eCutscene
@@ -353,21 +353,21 @@ _RemoveAlex:
     dlg_Func _InitialFunc
 _InitialFunc:
     ;; First quest: Defeat the Garden boss.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerGarden
+    flag_bit Ram_ProgressFlags_arr, eFlag::BreakerGarden
     beq _Quest1Func
     ;; To be safe, set the "met queen" flag (although normally, you can't reach
     ;; the garden breaker without first having met the queen).
     ldx #eFlag::MermaidHut1MetQueen  ; param: flag
     jsr Func_SetFlag
     ;; Second quest: Defeat the Temple boss.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerTemple
+    flag_bit Ram_ProgressFlags_arr, eFlag::BreakerTemple
     beq _Quest2Func
     ;; To be safe, set the "temple permission" flag (although normally, you
     ;; can't reach the temple breaker without first getting permission).
     ldx #eFlag::TempleEntryPermission  ; param: flag
     jsr Func_SetFlag
     ;; Third quest: Rescue Alex and the other children.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     beq _Quest3Func
     ;; To be safe, set the "Corra waiting" flag (although normally, you can't
     ;; rescue the kids without first meeting up with Corra).
@@ -377,7 +377,7 @@ _InitialFunc:
     ldya #_KidsRescued_sDialog
     rts
 _Quest1Func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
+    flag_bit Ram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
     bne @grantAsylum
     ldya #_FirstMeeting_sDialog
     rts
@@ -385,7 +385,7 @@ _Quest1Func:
     ldya #_GrantAsylum_sDialog
     rts
 _Quest2Func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryPermission
+    flag_bit Ram_ProgressFlags_arr, eFlag::TempleEntryPermission
     bne @templeProblem
     ldya #_GardenBossDead_sDialog
     rts
@@ -393,7 +393,7 @@ _Quest2Func:
     ldya #_TempleProblem_sDialog
     rts
 _Quest3Func:
-    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
+    flag_bit Ram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
     bne @otherRuins
     ldya #_TempleBossDead_sDialog
     rts

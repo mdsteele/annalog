@@ -55,7 +55,7 @@
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosY_i16
 
@@ -290,7 +290,7 @@ _MaybeRemoveGoo:
     ;; If the ShadowDrillClearedGoo flag is set, remove all the goo baddies.
     ;; Since these are the only actors in the room, we can just remove all
     ;; actors.
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowDrillClearedGoo
+    flag_bit Ram_ProgressFlags_arr, eFlag::ShadowDrillClearedGoo
     beq @done
     lda #eActor::None
     ldx #kMaxActors - 1

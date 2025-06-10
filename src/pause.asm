@@ -70,7 +70,7 @@
 .IMPORT Ppu_ChrBgPause
 .IMPORT Ppu_ChrObjPause
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_Current_sRoom
@@ -693,7 +693,7 @@ _CircuitFlags_bObj_arr:
 .PROC FuncA_Pause_DrawFlowerCount
     ;; Only display the flower count if at least one flower has been delivered,
     ;; but the BEEP opcode has not been unlocked yet.
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpBeep
+    flag_bit Ram_ProgressFlags_arr, eFlag::UpgradeOpBeep
     bne _Return
     jsr Func_CountDeliveredFlowers  ; returns Z and A
     beq _Return

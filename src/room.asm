@@ -198,7 +198,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_Camera_bScroll
@@ -335,7 +335,7 @@ _PrisonMusic:
     ;; Play calm music in the Prison Caves until Anna first escapes; then play
     ;; the prison break music when she returns thereafter.
     ldy #eMusic::Calm
-    flag_bit Sram_ProgressFlags_arr, eFlag::GardenLandingDroppedIn
+    flag_bit Ram_ProgressFlags_arr, eFlag::GardenLandingDroppedIn
     beq @done
     ldy #eMusic::Prison
     @done:

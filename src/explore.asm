@@ -62,7 +62,7 @@
 .IMPORT Func_FadeInFromBlackToGoal
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_FindDeviceNearPoint
-.IMPORT Func_SetLastSpawnPointToActiveDevice
+.IMPORT Func_SaveProgressAtActiveDevice
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_Window_Disable
 .IMPORT Func_Window_SetUpIrq
@@ -80,7 +80,6 @@
 .IMPORT Ppu_ChrObjAnnaNormal
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Sram_CarryingFlower_eFlag
 .IMPORT Sram_LastSafe_eRoom
 .IMPORTZP Zp_AvatarExit_ePassage
 .IMPORTZP Zp_AvatarFlags_bObj
@@ -89,6 +88,7 @@
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarState_bAvatar
+.IMPORTZP Zp_CarryingFlower_eFlag
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_Current_eRoom
 .IMPORTZP Zp_Current_sRoom
@@ -378,11 +378,10 @@ _DeviceDoor:
     lda #eAvatar::SwimDoor
     @setPose:
     sta Zp_AvatarPose_eAvatar
-_SetSpawnPoint:
     ;; We'll soon be setting the entrance door in the destination room as the
     ;; spawn point, but first we set the exit door in the current room as the
     ;; spawn point, in case this room is safe and the destination room is not.
-    jsr Func_SetLastSpawnPointToActiveDevice
+    jsr Func_SaveProgressAtActiveDevice
     ldya #Main_Explore_GoThroughDoor
     bmi _ReturnYA  ; unconditional
 _DevicePaper:
@@ -446,7 +445,7 @@ _UpDownPassage:
 ;;; e.g. when first entering a room or when unpausing.
 .PROC FuncA_Avatar_FadeIn
     ldx #<.bank(Ppu_ChrObjAnnaNormal)
-    lda Sram_CarryingFlower_eFlag
+    lda Zp_CarryingFlower_eFlag
     beq @setBank
     ldx #<.bank(Ppu_ChrObjAnnaFlower)
     @setBank:

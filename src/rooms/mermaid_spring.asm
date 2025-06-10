@@ -82,7 +82,7 @@
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PointX_i16
@@ -378,9 +378,9 @@ _WaterWidth_u8_arr:
 .PROC FuncA_Room_MermaidSpring_EnterRoom
 _Alex:
     ;; If Alex isn't here yet, or the spring is drained, remove him.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
     beq @removeAlex
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
+    flag_bit Ram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
     beq @keepAlex
     @removeAlex:
     lda #0
@@ -392,7 +392,7 @@ _Alex:
     @keepAlex:
 _Console:
     ;; If the console hasn't been fixed, remove its device and lock scrolling.
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringConsoleFixed
+    flag_bit Ram_ProgressFlags_arr, eFlag::MermaidSpringConsoleFixed
     bne @done
     lda #eDevice::Placeholder
     sta Ram_DeviceType_eDevice_arr + kConsoleDeviceIndex
@@ -409,7 +409,7 @@ _Console:
 _DrainSpring:
     ;; If the spring has already been drained, remove the water and disable the
     ;; machine.
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
+    flag_bit Ram_ProgressFlags_arr, eFlag::MermaidSpringUnplugged
     bne @unplug
     rts
     @unplug:

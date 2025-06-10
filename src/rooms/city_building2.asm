@@ -43,7 +43,7 @@
 .IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjCity
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_RoomState
 
@@ -122,7 +122,7 @@ _Devices_sDevice_arr:
 
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_City_Building2_DrawRoom
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
     bne @done
     ldx #kLastDigitPlatformIndex  ; param: platform index
     jsr FuncA_Objects_SetShapePosToPlatformTopLeft
@@ -161,7 +161,7 @@ _Devices_sDevice_arr:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_CityBuilding2_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
     bne @done
     ;; TODO: Play a sound for random key generation.
     lda #kInitialSpinFrames

@@ -34,72 +34,19 @@
 .INCLUDE "rooms/temple_spire.inc"
 .INCLUDE "spawn.inc"
 
+.IMPORT FuncA_Avatar_LoadProgress
+.IMPORT Func_SaveProgress
 .IMPORT Func_SetFlag
+.IMPORT Ram_Minimap_u16_arr
 .IMPORT Sram_LastSafe_bSpawn
 .IMPORT Sram_LastSafe_eRoom
 .IMPORT Sram_MagicNumber_u8
-.IMPORT Sram_Minimap_u16_arr
 .IMPORT __SRAM_SIZE__
 .IMPORT __SRAM_START__
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRGC_Title"
-
-;;; Erases all of SRAM and creates a save file for a new game.
-;;; @param Y The eNewGame value to use to initialize the save file.
-.EXPORT FuncC_Title_ResetSramForNewGame
-.PROC FuncC_Title_ResetSramForNewGame
-    ;; Enable writes to SRAM.
-    lda #bMmc3PrgRam::Enable
-    sta Hw_Mmc3PrgRamProtect_wo
-    ;; Zero all of SRAM.
-    lda #0
-    tax
-    @loop:
-    .assert $20 * $100 = __SRAM_SIZE__, error
-    .repeat $20, index
-    sta __SRAM_START__ + $100 * index, x
-    .endrepeat
-    inx
-    bne @loop
-    ;; Change this to ".if 1" to reveal whole minimap.
-    .if 0
-    lda #$ff
-    ldx #$30 - 1
-    @minimapLoop:
-    sta Sram_Minimap_u16_arr, x
-    dex
-    bpl @minimapLoop
-    .endif
-    ;; Set starting location.
-    lda DataC_Title_NewGameStarting_eRoom_arr, y
-    sta Sram_LastSafe_eRoom
-    lda DataC_Title_NewGameStarting_bSpawn_arr, y
-    sta Sram_LastSafe_bSpawn
-    ;; Mark the save file as present.
-    lda #kSaveMagicNumber
-    sta Sram_MagicNumber_u8
-    ;; Disable writes to SRAM.
-    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sta Hw_Mmc3PrgRamProtect_wo
-_SetFlags:
-    ;; Set flags based on the eNewGame value.
-    lda DataC_Title_NewGameFirstMissing_eFlag_arr, y
-    sta T1  ; first missing eFlag
-    ldy #0
-    beq @start  ; unconditional
-    @loop:
-    sty T0  ; index into DataC_Title_NewGameFlags_eFlag_arr
-    jsr Func_SetFlag  ; preserves T0+
-    ldy T0  ; index into DataC_Title_NewGameFlags_eFlag_arr
-    iny
-    @start:
-    ldx DataC_Title_NewGameFlags_eFlag_arr, y
-    cpx T1  ; first missing eFlag
-    bne @loop
-    rts
-.ENDPROC
 
 ;;; Maps from eNewGame values to 8-byte name strings.
 .EXPORT DataC_Title_NewGameName_u8_arr8_arr
@@ -134,8 +81,71 @@ _SetFlags:
     D_END
 .ENDPROC
 
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Avatar"
+
+;;; Erases all of SRAM and creates a save file for a new game.
+;;; @param Y The eNewGame value to use to initialize the save file.
+.EXPORT FuncA_Avatar_ResetSramForNewGame
+.PROC FuncA_Avatar_ResetSramForNewGame
+    ;; Enable writes to SRAM.
+    lda #bMmc3PrgRam::Enable
+    sta Hw_Mmc3PrgRamProtect_wo
+    ;; Zero all of SRAM.
+    lda #0
+    tax
+    @loop:
+    .assert $20 * $100 = __SRAM_SIZE__, error
+    .repeat $20, index
+    sta __SRAM_START__ + $100 * index, x
+    .endrepeat
+    inx
+    bne @loop
+    ;; Set starting location.
+    lda DataA_Avatar_NewGameStarting_eRoom_arr, y
+    sta Sram_LastSafe_eRoom
+    lda DataA_Avatar_NewGameStarting_bSpawn_arr, y
+    sta Sram_LastSafe_bSpawn
+    ;; Mark the save file as present.
+    lda #kSaveMagicNumber
+    sta Sram_MagicNumber_u8
+    ;; Disable writes to SRAM.
+    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sta Hw_Mmc3PrgRamProtect_wo
+_Load:
+    jsr FuncA_Avatar_LoadProgress  ; preserves Y
+_RevealMinimap:
+    ;; Change this to ".if 1" to reveal whole minimap.
+    .if 0
+    lda #$ff
+    ldx #$30 - 1
+    @loop:
+    sta Ram_Minimap_u16_arr, x
+    dex
+    bpl @loop
+    .endif
+_SetFlags:
+    ;; Set flags based on the eNewGame value.
+    lda DataA_Avatar_NewGameFirstMissing_eFlag_arr, y
+    sta T1  ; first missing eFlag
+    ldy #0
+    beq @start  ; unconditional
+    @loop:
+    sty T0  ; index into DataA_Avatar_NewGameFlags_eFlag_arr
+    jsr Func_SetFlag  ; preserves T0+
+    ldy T0  ; index into DataA_Avatar_NewGameFlags_eFlag_arr
+    iny
+    @start:
+    ldx DataA_Avatar_NewGameFlags_eFlag_arr, y
+    cpx T1  ; first missing eFlag
+    bne @loop
+_Save:
+    jmp Func_SaveProgress
+.ENDPROC
+
 ;;; Maps from eNewGame values to the starting room.
-.PROC DataC_Title_NewGameStarting_eRoom_arr
+.PROC DataA_Avatar_NewGameStarting_eRoom_arr
     D_ARRAY .enum, eNewGame
     d_byte Town,     eRoom::TownHouse2
     d_byte Prison,   eRoom::PrisonCell
@@ -167,7 +177,7 @@ _SetFlags:
 .ENDPROC
 
 ;;; Maps from eNewGame values to the starting spawn location.
-.PROC DataC_Title_NewGameStarting_bSpawn_arr
+.PROC DataA_Avatar_NewGameStarting_bSpawn_arr
     D_ARRAY .enum, eNewGame
     d_byte Town,     bSpawn::Device | 0
     d_byte Prison,   bSpawn::Device | 0
@@ -199,7 +209,7 @@ _SetFlags:
 .ENDPROC
 
 ;;; Maps from eNewGame values to the first flag to *not* start with.
-.PROC DataC_Title_NewGameFirstMissing_eFlag_arr
+.PROC DataA_Avatar_NewGameFirstMissing_eFlag_arr
     D_ARRAY .enum, eNewGame
     d_byte Town,     eFlag::PaperJerome36
     d_byte Prison,   eFlag::PaperJerome36
@@ -232,7 +242,7 @@ _SetFlags:
 
 ;;; A list of all flags that can potentially be set when starting a new game,
 ;;; in collection order.
-.PROC DataC_Title_NewGameFlags_eFlag_arr
+.PROC DataA_Avatar_NewGameFlags_eFlag_arr
     .byte eFlag::PaperJerome36  ; room: PrisonCell
     .byte eFlag::PaperManual2   ; room: PrisonEscape
     .byte eFlag::PrisonCellReachedTunnel

@@ -35,7 +35,7 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjShadow1
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosY_i16
 
@@ -256,11 +256,11 @@ _Passages_sPassage_arr:
     @done:
 _MaybeRaiseBarriers:
     ldy #ePlatform::Zone
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowHeartTaggedGhost
+    flag_bit Ram_ProgressFlags_arr, eFlag::ShadowHeartTaggedGhost
     beq @keepBarrier1
     sty Ram_PlatformType_ePlatform_arr + kBarrier1PlatformIndex
     @keepBarrier1:
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeTaggedGhost
+    flag_bit Ram_ProgressFlags_arr, eFlag::ShadowOfficeTaggedGhost
     beq @keepBarrier2
     sty Ram_PlatformType_ePlatform_arr + kBarrier2PlatformIndex
     @keepBarrier2:

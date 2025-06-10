@@ -80,7 +80,7 @@ PRGA_PROC_NAME = re.compile(  # e.g. FuncA_SegmentName_Foobar
 PRGC_PROC_NAME = re.compile(  # e.g. DataC_SegmentName_Foobar_sBaz_arr
     '^(?:DataC|FuncC|MainC)_([a-zA-Z0-9]+)_[a-zA-Z0-9_]+$')
 UNBANKED_PROC_NAME = re.compile(  # e.g. Main_Foobar
-    '^(?:Data|Exit|Func|FuncM|Int|Main|Ppu|Sram)_[a-zA-Z0-9_]+$')
+    '^(?:Data|Exit|Func|FuncM|Int|Main|Ppu|Ram|Sram)_[a-zA-Z0-9_]+$')
 
 #=============================================================================#
 

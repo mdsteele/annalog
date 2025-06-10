@@ -61,7 +61,7 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_Next_sAudioCtrl
@@ -285,9 +285,9 @@ _Passages_sPassage_arr:
     sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
     @done:
 _MaybeRemoveCorra:
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
+    flag_bit Ram_ProgressFlags_arr, eFlag::BreakerCrypt
     beq @removeCorra
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
     beq @keepCorra
     @removeCorra:
     lda #0
@@ -301,7 +301,7 @@ _MaybeRemoveGuard:
     ;; If the temple breaker has been activated, then remove the mermaid guard
     ;; from this room, and mark the column as raised (although normally, you
     ;; can't reach the breaker without first raising the column).
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerTemple
+    flag_bit Ram_ProgressFlags_arr, eFlag::BreakerTemple
     beq @done
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kGuardActorIndex
@@ -313,7 +313,7 @@ _MaybeRemoveGuard:
     @done:
 _MaybeRaiseColumn:
     ;; If the column has been raised before, raise it.
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryColumnRaised
+    flag_bit Ram_ProgressFlags_arr, eFlag::TempleEntryColumnRaised
     beq @done
     lda #<kColumnPlatformMinTop
     sta Ram_PlatformTop_i16_0_arr + kColumnPlatformIndex
@@ -327,11 +327,11 @@ _MaybeRaiseColumn:
 _StartCutscene:
     ;; If Corra isn't here, or if Anna has already talked to Corra, don't start
     ;; the cutscene.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
+    flag_bit Ram_ProgressFlags_arr, eFlag::BreakerCrypt
     beq @done  ; Corra isn't here yet
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
     bne @done  ; Corra is no longer here
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryTalkedToCorra
+    flag_bit Ram_ProgressFlags_arr, eFlag::TempleEntryTalkedToCorra
     bne @done
     ;; If the player avatar isn't standing in the cutscene-starting zone, don't
     ;; start it yet.
@@ -349,7 +349,7 @@ _StartCutscene:
 _MoveColumn:
     ;; If the column-raised flag is set, move the column upward towards its
     ;; highest position.
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleEntryColumnRaised
+    flag_bit Ram_ProgressFlags_arr, eFlag::TempleEntryColumnRaised
     beq @done
     ;; Move the column by one pixel every kColumnPlatformSlowdown frames.
     lda Zp_RoomState + sState::ColumnSlowdown_u8

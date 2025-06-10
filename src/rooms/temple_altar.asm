@@ -70,7 +70,7 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -351,7 +351,7 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Temple_Altar_EnterRoom
     ;; If the breakable column has already been destroyed, remove its platform.
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleAltarColumnBroken
+    flag_bit Ram_ProgressFlags_arr, eFlag::TempleAltarColumnBroken
     beq @done
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + kColumnPlatformIndex

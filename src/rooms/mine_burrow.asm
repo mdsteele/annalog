@@ -36,7 +36,7 @@
 .IMPORT Func_ShakeRoom
 .IMPORT Int_SetChr04ToParam3ThenLatchWindowFromParam4
 .IMPORT Ppu_ChrObjMine
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_RoomState
@@ -223,7 +223,7 @@ _RumbleRoom:
     @done:
 _CheckForNewRumbleZone:
     ;; Once the boss has been defeated, don't rumble anymore.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BossMine
+    flag_bit Ram_ProgressFlags_arr, eFlag::BossMine
     bne _Return
     ;; Find the rumble zone that the player avatar is in, if any.
     jsr Func_SetPointToAvatarCenter

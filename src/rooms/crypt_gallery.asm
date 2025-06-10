@@ -56,7 +56,7 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
@@ -250,7 +250,7 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Crypt_Gallery_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
+    flag_bit Ram_ProgressFlags_arr, kUpgradeFlag
     beq @done
     lda #eDevice::None
     sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex

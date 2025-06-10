@@ -59,7 +59,7 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_PointX_i16
@@ -405,12 +405,12 @@ _MaybeRemoveWallAndRevealGhost:
 
 .PROC FuncA_Room_ShadowOffice_EnterRoom
 _MaybeRemoveWall:
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeRemovedWall
+    flag_bit Ram_ProgressFlags_arr, eFlag::ShadowOfficeRemovedWall
     beq _Return
     lda #ePlatform::Zone
     sta Ram_PlatformType_ePlatform_arr + kGhostWallPlatformIndex
 _MaybeRevealGhost:
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeTaggedGhost
+    flag_bit Ram_ProgressFlags_arr, eFlag::ShadowOfficeTaggedGhost
     bne _Return
     lda #0
     sta Ram_ActorPosY_i16_1_arr + kGhostActorIndex
@@ -463,7 +463,7 @@ _Return:
 .ENDPROC
 
 .PROC FuncA_Terrain_ShadowOffice_FadeInRoom
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowOfficeRemovedWall
+    flag_bit Ram_ProgressFlags_arr, eFlag::ShadowOfficeRemovedWall
     bne @noGhostWall
     ldax #DataA_Terrain_ShadowOffice_sXfer_arr  ; param: data pointer
     jsr Func_DirectPpuTransfer

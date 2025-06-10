@@ -86,7 +86,7 @@
 .IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_MachineState3_byte_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_Next_eCutscene
@@ -517,7 +517,7 @@ _ReadRegJ:
     lda Ram_MachineGoalHorz_u8_arr, y  ; combination array index
     rts
 _ReadRegKey:
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterKeygenConnected
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityCenterKeygenConnected
     beq @done
     ldx Ram_MachineGoalHorz_u8_arr, y  ; combination array index
     lda Zp_RoomState + sCityCenterState::Key_u8_arr, x
@@ -536,7 +536,7 @@ _ReadRegY:
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_City_Center_DrawRoom
     ;; Once the door is unlocked, disable both display screens.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
     bne _Return
     ;; Draw the lock display screen.
     ldx Ram_MachineGoalHorz_u8_arr + kSemaphore4MachineIndex  ; lock index
@@ -544,7 +544,7 @@ _ReadRegY:
     ldx #kLockScreenPlatformIndex  ; param: platform index
     jsr _DrawScreen
     ;; Until the keygen is connected, disable the key display screen.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterKeygenConnected
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityCenterKeygenConnected
     beq _Return
     ;; Draw the key display screen.
     ldx Ram_MachineGoalHorz_u8_arr + kSemaphore1MachineIndex  ; key index
@@ -569,7 +569,7 @@ _Return:
 _RemoveEastOrc:
     ;; The eastern orc leaves once the B-remote has been collected (including
     ;; during the city breaker cutscene).
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeBRemote
+    flag_bit Ram_ProgressFlags_arr, eFlag::UpgradeBRemote
     beq @keepOrc
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kEastOrcActorIndex
@@ -597,9 +597,9 @@ _CheckForBreakerCutscene:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kGrontaActorIndex
 _RemoveAlex:
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCity
+    flag_bit Ram_ProgressFlags_arr, eFlag::BreakerCity
     beq @removeAlex
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowTeleportEnteredLab
+    flag_bit Ram_ProgressFlags_arr, eFlag::ShadowTeleportEnteredLab
     beq @keepAlex
     @removeAlex:
     lda #0
@@ -611,7 +611,7 @@ _RemoveAlex:
     @keepAlex:
 _UnlockDoor:
     ;; If the door has already been unlocked, unlock it.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
     beq @done
     lda #eDevice::Door1Unlocked
     sta Ram_DeviceType_eDevice_arr + kLockedDoorDeviceIndex

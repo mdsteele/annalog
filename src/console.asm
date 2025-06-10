@@ -57,7 +57,7 @@
 .IMPORT Func_PlaySfxWindowClose
 .IMPORT Func_PlaySfxWindowOpen
 .IMPORT Func_ProcessFrame
-.IMPORT Func_SetLastSpawnPoint
+.IMPORT Func_SaveProgressAtActiveDevice
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetMusicVolumeForCurrentRoom
 .IMPORT Func_Window_GetRowPpuAddr
@@ -73,7 +73,7 @@
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PpuTransfer_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
@@ -288,13 +288,10 @@ _Tick:
 ;;; and resets the machine if it's not Halted/Error.
 ;;; @param X The console device index.
 .PROC FuncA_Room_BeginUsingConsoleDevice
+    jsr Func_SaveProgressAtActiveDevice  ; preserves X
     ;; Reduce music volume while the console is open.
     lda #bAudio::Enable | bAudio::ReduceMusic
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
-_SetSpawnPoint:
-    txa  ; console device index
-    ora #bSpawn::Device  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint  ; preserves X
 _SetMachineIndex:
     lda Ram_DeviceTarget_byte_arr, x
     tax  ; machine index
@@ -393,13 +390,13 @@ _SetScrollGoal:
 _CopyRegNames:
     ;; Set name of register $a, or #0 if that register isn't yet unlocked (by
     ;; the COPY opcode).
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpCopy
+    flag_bit Ram_ProgressFlags_arr, eFlag::UpgradeOpCopy
     beq @noRegA
     lda #kMachineRegNameA
     @noRegA:
     sta Ram_ConsoleRegNames_u8_arr6 + 0
     ;; Set name of register $b, or #0 if that register isn't yet unlocked.
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeBRemote
+    flag_bit Ram_ProgressFlags_arr, eFlag::UpgradeBRemote
     beq @noRegB
     lda #kMachineRegNameB
     @noRegB:

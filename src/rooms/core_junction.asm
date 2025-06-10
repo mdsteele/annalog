@@ -32,7 +32,7 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjGarden
 .IMPORT Ram_ActorType_eActor_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -147,7 +147,7 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Core_Junction_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
+    flag_bit Ram_ProgressFlags_arr, eFlag::BreakerCrypt
     bne @done
     .assert eActor::None = 0, error
     sta Ram_ActorType_eActor_arr + kCircuitBlinkyActorIndex

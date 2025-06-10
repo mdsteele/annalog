@@ -61,7 +61,7 @@
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_RoomState
 
@@ -285,7 +285,7 @@ _Passages_sPassage_arr:
     sta T0  ; bSpawn value
 _InitOrc:
     ;; Once the kids have been rescued, remove the orc from this room.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     beq @keepOrc
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kOrcActorIndex
@@ -294,7 +294,7 @@ _InitOrc:
     @keepOrc:
     ;; If the orc is trapped, move it inside the cell.  Otherwise, disable the
     ;; lift machine until the orc gets trapped.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastOrcTrapped
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonEastOrcTrapped
     beq @disableLift
     @orcIsTrapped:
     ldya #kLowerGateLeft - kOrcTrappedDistance
@@ -318,21 +318,21 @@ _InitOrc:
     stax Zp_AvatarPosY_i16
     @done:
 _EastGate:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastEastGateOpen
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonEastEastGateOpen
     beq @shut
     ldy #sState::EastGateLever_u8  ; param: lever target
     ldx #kEastGatePlatformIndex  ; param: gate platform index
     jsr FuncC_Prison_OpenGateAndFlipLever
     @shut:
 _LowerGate:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastLowerGateOpen
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonEastLowerGateOpen
     beq @shut
     ldy #sState::LowerGateLever_u8  ; param: lever target
     ldx #kLowerGatePlatformIndex  ; param: gate platform index
     jsr FuncC_Prison_OpenGateAndFlipLever
     @shut:
 _WestGate:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastWestGateOpen
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonEastWestGateOpen
     beq @shut
     ldy #sState::WestGateLever_u8  ; param: lever target
     ldx #kWestGatePlatformIndex  ; param: gate platform index
@@ -393,12 +393,12 @@ _CheckIfOrcIsGone:
     ;; Once the kids have been rescued, the orc is gone from this room, so we
     ;; don't need to check for whether it's trapped, and the lift machine just
     ;; stays enabled regardless of the state of the lower prison gate.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     bne _Return  ; orc is gone
 _CheckIfOrcIsTrapped:
     ldx #eFlag::PrisonEastOrcTrapped  ; param: flag
     ;; If the lower gate is open, mark the orc as not trapped.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonEastLowerGateOpen
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonEastLowerGateOpen
     bne _OrcIsNotTrapped
     ;; Otherwise, if the orc is to the right of the gate, it's not trapped.
     lda #<kLowerGateLeft

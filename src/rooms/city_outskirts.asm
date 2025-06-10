@@ -78,7 +78,7 @@
 .IMPORT Ram_MachineState1_byte_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_ScrollGoalX_u16
 
@@ -279,9 +279,9 @@ _RockWall:
 .PROC FuncA_Room_CityOutskirts_EnterRoom
 _Alex:
     ;; If Alex isn't here yet, or he's done being here, remove him.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
+    flag_bit Ram_ProgressFlags_arr, eFlag::BreakerCrypt
     beq @removeAlex
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
     beq @keepAlex
     @removeAlex:
     lda #0
@@ -293,13 +293,13 @@ _Alex:
     @keepAlex:
 _Rhino:
     ;; The rhino baddie doesn't appear until after the lava breaker cutscene.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerLava
+    flag_bit Ram_ProgressFlags_arr, eFlag::BreakerLava
     bne @keepRhino
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kRhinoActorIndex
     @keepRhino:
 _Rocks:
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsBlastedRocks
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityOutskirtsBlastedRocks
     bne @removeRocks
     @loadRocketLauncher:
     inc Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count

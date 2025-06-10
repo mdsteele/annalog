@@ -61,7 +61,7 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_PointY_i16
@@ -358,18 +358,18 @@ _UpperCrates:
 
 .PROC FuncA_Room_CoreSouth_EnterRoom
 _CheckIfKidsAreFreedYet:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     beq @done
     jsr _RemoveCorra
     jmp _ReleaseCrates
     @done:
 _CheckIfCratesHaveBeenReleased:
-    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
+    flag_bit Ram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
     beq @done
     jsr _ReleaseCrates
     @done:
 _CheckIfCorraIsWaiting:
-    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
+    flag_bit Ram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
     bne _Return
 _RemoveCorra:
     lda #0
@@ -394,7 +394,7 @@ _ReleaseCrates:
 _TickCrate3:
     ;; If Corra hasn't yet released the stacked crates from their anchor, then
     ;; don't move them.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
+    flag_bit Ram_ProgressFlags_arr, eFlag::CoreSouthCorraHelped
     beq @done
     ldax #kCrate3FloatingPositionY
     stax Zp_PointY_i16

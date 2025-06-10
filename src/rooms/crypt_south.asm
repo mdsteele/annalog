@@ -69,7 +69,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPlatformIndex_u8
 .IMPORTZP Zp_Camera_bScroll
 .IMPORTZP Zp_PointX_i16
@@ -303,7 +303,7 @@ _Scrolling:
     cmp #bSpawn::Device | kLowerConsoleDeviceIndex
     beq @done
     ;; If the weak floor has already been broken, don't lock scrolling.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthBrokeFloor
+    flag_bit Ram_ProgressFlags_arr, eFlag::CryptSouthBrokeFloor
     bne @done
     ;; Otherwise, lock scrolling to the top half of the room.
     @lockScrolling:
@@ -315,7 +315,7 @@ _Scrolling:
 _WeakFloor:
     ;; If the weak floor hasn't been broken yet, initialize its HP.  Otherwise,
     ;; remove its platform.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptSouthBrokeFloor
+    flag_bit Ram_ProgressFlags_arr, eFlag::CryptSouthBrokeFloor
     bne @floorBroken
     @floorSolid:
     lda #kNumWinchHitsToBreakFloor

@@ -37,6 +37,7 @@
 .IMPORT Func_FadeToBlack
 .IMPORT Func_PlaySfxThump
 .IMPORT Func_ProcessFrame
+.IMPORT Func_SaveProgress
 .IMPORT Func_SetAndTransferFade
 .IMPORT Main_Explore_SpawnInLastSafeRoom
 .IMPORT Ppu_ChrObjPause
@@ -132,6 +133,7 @@ _Respawn:
 ;;; Initializes death mode.
 ;;; @prereq Rendering is enabled.
 .PROC FuncA_Cutscene_InitDeathAndFadeToBlack
+    jsr Func_SaveProgress
     ;; Reduce music volume during death animation.
     lda #bAudio::Enable | bAudio::ReduceMusic
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
@@ -146,7 +148,8 @@ _CountNinesInDeathCounter:
     blt @loop
     @break:
 _IncrementDeathCounter:
-    ;; If the counter is already at all 9's (the max), don't increment.
+    ;; At this point, Y stores the number of consecutive 9's.  If the counter
+    ;; is already at all 9's (the max), don't increment.
     cpy #kNumDeathDigits
     bge @done
     sty T0  ; num consecutive 9's
@@ -164,7 +167,6 @@ _IncrementDeathCounter:
     cpx T0  ; num consecutive 9's
     blt @loop
     ;; Increment the first non-nine digit.
-    @incrementDigit:
     inc Sram_DeathCount_u8_arr, x
     ;; Disable writes to SRAM.
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites

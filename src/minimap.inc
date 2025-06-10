@@ -19,8 +19,8 @@
 
 ;;; The width and height of the minimap (in tiles or room screens, depending on
 ;;; how you're counting).
-kMinimapWidth = 24
-kMinimapHeight = 15
+.DEFINE kMinimapWidth 24
+.DEFINE kMinimapHeight 15
 
 ;;;=========================================================================;;;
 

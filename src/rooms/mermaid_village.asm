@@ -67,7 +67,7 @@
 .IMPORT Ppu_ChrObjVillage
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -348,10 +348,10 @@ _Passages_sPassage_arr:
 _Alex:
     ;; Until Alex finishes his petition, Alex is in PrisonUpper or MermaidHut1,
     ;; not here.
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1AlexPetition
+    flag_bit Ram_ProgressFlags_arr, eFlag::MermaidHut1AlexPetition
     beq @removeAlex
     ;; Once Alex is waiting in the temple, he's no longer here.
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleNaveAlexWaiting
+    flag_bit Ram_ProgressFlags_arr, eFlag::TempleNaveAlexWaiting
     beq @keepAlex
     @removeAlex:
     lda #0
@@ -363,13 +363,13 @@ _Alex:
     @keepAlex:
 _Bruno:
     ;; Until the kids are rescued, Bruno is in PrisonUpper, not here.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     beq @removeBruno  ; Bruno is still imprisoned
     ;; If you've lowered the rocks in the FactoryPass, but not yet met with
     ;; Alex in FactoryVault, Bruno is in FactoryElevator, not here.
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
     bne @keepBruno  ; Bruno is back again
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
+    flag_bit Ram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
     beq @keepBruno  ; Bruno is still here
     @removeBruno:
     lda #0
@@ -381,23 +381,23 @@ _Bruno:
     @keepBruno:
 _Corra:
     ;; Until Anna meets the mermaid queen, Corra is in GardenEast, not here.
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
+    flag_bit Ram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
     beq @removeCorra
     ;; Then, until Corra is waiting in CoreSouth, she's here.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
+    flag_bit Ram_ProgressFlags_arr, eFlag::CoreSouthCorraWaiting
     beq @keepCorra
     ;; Then, until Anna frees the other kids, Corra is in CoreSouth, not here.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     beq @removeCorra
     ;; Then, until the crypt breaker is activated, Corra is here.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BreakerCrypt
+    flag_bit Ram_ProgressFlags_arr, eFlag::BreakerCrypt
     beq @keepCorra
     ;; Then, until Anna meets up with Alex in the city outskirts, Corra is in
     ;; TempleEntry, not here.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityOutskirtsTalkedToAlex
     beq @removeCorra
     ;; Then, until Anna meets up with Alex in the vault, Corra is here.
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
     beq @keepCorra
     ;; Once Anna meets up with Alex in the vault, Corra is in FactoryEast for a
     ;; while, and then she disappears from the game, so she's not here.

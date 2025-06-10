@@ -34,28 +34,28 @@ Zp_TestTmp_ptr: .res 2
 
 .BSS
 
-.EXPORT Sram_ExploreTimer_u8_arr
-Sram_ExploreTimer_u8_arr: .res kNumTimerDigits
+.EXPORT Ram_ExploreTimer_u8_arr
+Ram_ExploreTimer_u8_arr: .res kNumTimerDigits
 
 ;;;=========================================================================;;;
 
 .CODE
 
-;;; Copies the given array into Sram_ExploreTimer_u8_arr.
+;;; Copies the given array into Ram_ExploreTimer_u8_arr.
 ;;; @param YA Pointer to an array of eight timer bytes.
 .PROC Func_SetExploreTimer
     stya Zp_TestTmp_ptr
     ldy #kNumTimerDigits - 1
     @loop:
     lda (Zp_TestTmp_ptr), y
-    sta Sram_ExploreTimer_u8_arr, y
+    sta Ram_ExploreTimer_u8_arr, y
     dey
     .assert kNumTimerDigits <= $80, error
     bpl @loop
     rts
 .ENDPROC
 
-;;; Tests that Sram_ExploreTimer_u8_arr equals the given array; if not, prints
+;;; Tests that Ram_ExploreTimer_u8_arr equals the given array; if not, prints
 ;;; an error message and exits.
 ;;; @param YA Pointer to an array of eight timer bytes.
 .PROC Func_ExpectExploreTimer
@@ -64,7 +64,7 @@ Sram_ExploreTimer_u8_arr: .res kNumTimerDigits
     @loop:
     tya  ; loop index
     pha  ; loop index
-    ldx Sram_ExploreTimer_u8_arr, y
+    ldx Ram_ExploreTimer_u8_arr, y
     lda (Zp_TestTmp_ptr), y
     tay  ; param: expected value
     txa  ; param: actual value

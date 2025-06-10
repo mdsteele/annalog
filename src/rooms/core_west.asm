@@ -32,7 +32,7 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_ActorType_eActor_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_Camera_bScroll
@@ -154,7 +154,7 @@ _Passages_sPassage_arr:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_CoreWest_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     beq @keepOrc
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kOrcActorIndex

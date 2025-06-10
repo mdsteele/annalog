@@ -44,7 +44,7 @@
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -244,7 +244,7 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Mine_Pit_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
+    flag_bit Ram_ProgressFlags_arr, kUpgradeFlag
     beq @done
     lda #eDevice::None
     sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex

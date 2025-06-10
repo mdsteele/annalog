@@ -38,7 +38,7 @@
 .IMPORT Func_SetAndTransferBgFade
 .IMPORT Ppu_ChrObjShadow1
 .IMPORT Ram_ActorType_eActor_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_GoalBg_eFade
 .IMPORTZP Zp_RoomState
 
@@ -247,7 +247,7 @@ _SetUpIrq:
 _ChangeActorsIfBossIsDead:
     ;; If the boss is dead, remove all the ghosts, and turn the grubs into fire
     ;; grubs.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BossShadow
+    flag_bit Ram_ProgressFlags_arr, eFlag::BossShadow
     beq @done
     ldx #kMaxActors - 1
     @loop:

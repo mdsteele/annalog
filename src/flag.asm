@@ -22,7 +22,7 @@
 .INCLUDE "mmc3.inc"
 
 .IMPORT Data_PowersOfTwo_u8_arr8
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -40,14 +40,14 @@
     tay
     lda Data_PowersOfTwo_u8_arr8, y
     pha  ; flag bitmask
-    ;; Get the byte offset into Sram_ProgressFlags_arr for this eFlag, and
+    ;; Get the byte offset into Ram_ProgressFlags_arr for this eFlag, and
     ;; store it in Y.
     txa  ; eFlag value
     div #8
     tay
     ;; Check if the flag is set.
     pla  ; flag bitmask
-    and Sram_ProgressFlags_arr, y
+    and Ram_ProgressFlags_arr, y
     rts
 .ENDPROC
 
@@ -74,18 +74,18 @@
     tay
     lda Data_PowersOfTwo_u8_arr8, y
     tay  ; flag bitmask
-    ;; Get the byte offset into Sram_ProgressFlags_arr for this eFlag, and
+    ;; Get the byte offset into Ram_ProgressFlags_arr for this eFlag, and
     ;; store it in X.
     txa  ; eFlag value
     div #8
     tax  ; byte offset
     ;; Check if the flag is already set.
     tya  ; flag bitmask
-    and Sram_ProgressFlags_arr, x
+    and Ram_ProgressFlags_arr, x
     bne _AlreadySet
-    ;; Compute the new value for the byte in Sram_ProgressFlags_arr.
+    ;; Compute the new value for the byte in Ram_ProgressFlags_arr.
     tya  ; flag bitmask
-    ora Sram_ProgressFlags_arr, x
+    ora Ram_ProgressFlags_arr, x
     bne Func_WriteFlag  ; unconditional; preserves T0+, clears C
 _AlreadySet:
     sec
@@ -104,37 +104,30 @@ _AlreadySet:
     tay
     lda Data_PowersOfTwo_u8_arr8, y
     tay  ; flag bitmask
-    ;; Get the byte offset into Sram_ProgressFlags_arr for this eFlag, and
+    ;; Get the byte offset into Ram_ProgressFlags_arr for this eFlag, and
     ;; store it in X.
     txa  ; eFlag value
     div #8
     tax  ; byte offset
     ;; Check if the flag is already cleared.
     tya  ; flag bitmask
-    and Sram_ProgressFlags_arr, x
+    and Ram_ProgressFlags_arr, x
     bne _ClearFlag
     sec
     rts
 _ClearFlag:
-    ;; Compute the new value for the byte in Sram_ProgressFlags_arr.
-    eor Sram_ProgressFlags_arr, x
+    ;; Compute the new value for the byte in Ram_ProgressFlags_arr.
+    eor Ram_ProgressFlags_arr, x
     fall Func_WriteFlag  ; preserves T0+, clears C
 .ENDPROC
 
-;;; Writes a byte to Sram_ProgressFlags_arr.
+;;; Writes a byte to Ram_ProgressFlags_arr.
 ;;; @param A The byte to write.
-;;; @param X The byte index into Sram_ProgressFlags_arr.
+;;; @param X The byte index into Ram_ProgressFlags_arr.
 ;;; @return C Always cleared.
 ;;; @preserve T0+
 .PROC Func_WriteFlag
-    ;; Enable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable
-    sty Hw_Mmc3PrgRamProtect_wo
-    ;; Write progress flag.
-    sta Sram_ProgressFlags_arr, x
-    ;; Disable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sty Hw_Mmc3PrgRamProtect_wo
+    sta Ram_ProgressFlags_arr, x
     clc
     rts
 .ENDPROC
@@ -147,7 +140,7 @@ _ClearFlag:
 .PROC Func_CountDeliveredFlowers
     ldy #0
 _FirstByte:
-    lda Sram_ProgressFlags_arr + (kFirstFlowerFlag >> 3)
+    lda Ram_ProgressFlags_arr + (kFirstFlowerFlag >> 3)
     .assert (kFirstFlowerFlag & $07) = 0, error
     ldx #8
     @loop:
@@ -159,7 +152,7 @@ _FirstByte:
     bne @loop
 _SecondByte:
     .assert kNumFlowerFlags - 8 <= 8, error
-    lda Sram_ProgressFlags_arr + (kLastFlowerFlag >> 3)
+    lda Ram_ProgressFlags_arr + (kLastFlowerFlag >> 3)
     .assert kNumFlowerFlags - 8 > 1, error
     ldx #kNumFlowerFlags - 8
     @loop:

@@ -66,7 +66,7 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
@@ -318,7 +318,7 @@ _Passages_sPassage_arr:
     cmp #bSpawn::Device | kCryptTombDoorDeviceIndex
     beq _RemoveBreakableFloors
     ;; If the weak floors have already been broken, remove them platforms.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptTombBrokeFloors
+    flag_bit Ram_ProgressFlags_arr, eFlag::CryptTombBrokeFloors
     bne _RemoveBreakableFloors
     ;; Otherwise, initialize the floors' HP.
     lda #kNumWinchHitsToBreakFloor

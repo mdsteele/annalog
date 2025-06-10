@@ -32,7 +32,8 @@
 .INCLUDE "program.inc"
 
 .IMPORT DataC_Title_NewGameName_u8_arr8_arr
-.IMPORT FuncC_Title_ResetSramForNewGame
+.IMPORT FuncA_Avatar_LoadProgress
+.IMPORT FuncA_Avatar_ResetSramForNewGame
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_AllocObjects
 .IMPORT Func_AllocOneObject
@@ -455,8 +456,9 @@ _BeginNewGame:
     cpx #kSaveMagicNumber
     beq @spawn
     tay  ; param: eNewGame value
-    jsr FuncC_Title_ResetSramForNewGame
+    jsr_prga FuncA_Avatar_ResetSramForNewGame
     @spawn:
+    jsr_prga FuncA_Avatar_LoadProgress
     jmp Main_Explore_SpawnInLastSafeRoom
 .ENDPROC
 

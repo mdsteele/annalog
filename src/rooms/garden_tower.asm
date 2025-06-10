@@ -64,7 +64,7 @@
 .IMPORT Ram_ActorPosY_i16_0_arr
 .IMPORT Ram_ActorPosY_i16_1_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_Buffered_sIrq
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_RoomState
@@ -372,7 +372,7 @@ _Passages_sPassage_arr:
     sta T0  ; bSpawn value
 _Thorns:
     ;; If the garden boss has been defeated, remove the thorns platforms.
-    flag_bit Sram_ProgressFlags_arr, eFlag::BossGarden
+    flag_bit Ram_ProgressFlags_arr, eFlag::BossGarden
     beq @done
     lda #ePlatform::None
     ldx #kThornsFirstPlatformIndex
@@ -391,7 +391,7 @@ _BreakableWall:
     cmp #bSpawn::Device | kGardenTowerDoorDeviceIndex
     beq @removeWall
     ;; Check if the breakable wall has been broken already; if so, remove it.
-    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerWallBroken
+    flag_bit Ram_ProgressFlags_arr, eFlag::GardenTowerWallBroken
     beq @done
     @removeWall:
     ldx #ePlatform::Zone
@@ -409,7 +409,7 @@ _Crates:
     ;; Check whether the crates should be in the wall or on the floor, and
     ;; remove them from whichever of those two places they shouldn't be.
     ;; (Note that at this point, X is still set to ePlatform::Zone.)
-    flag_bit Sram_ProgressFlags_arr, eFlag::GardenTowerCratesPlaced
+    flag_bit Ram_ProgressFlags_arr, eFlag::GardenTowerCratesPlaced
     bne @removeWallCrates
     @removeFloorCrates:
     stx Ram_PlatformType_ePlatform_arr + kFloorCratePlatformIndex
@@ -547,7 +547,7 @@ _ResetMachine:
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Garden_Tower_DrawRoom
 _AnimateThorns:
-    flag_bit Sram_ProgressFlags_arr, eFlag::BossGarden
+    flag_bit Ram_ProgressFlags_arr, eFlag::BossGarden
     beq @bossAlive
     ;; If the garden boss has been defeated, disable the BG thorns animation,
     ;; but animate the circuit normally.

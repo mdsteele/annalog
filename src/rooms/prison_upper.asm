@@ -83,7 +83,7 @@
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Camera_bScroll
@@ -370,7 +370,7 @@ _Passages_sPassage_arr:
 
 .PROC FuncC_Prison_Upper_EnterRoom
 _Gate:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperGateOpen
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperGateOpen
     beq @shut
     ldy #sState::GateLever_u8  ; param: lever target
     ldx #kGatePlatformIndex  ; param: gate platform index
@@ -399,16 +399,16 @@ _CheckForBreakerCutscene:
 _CheckProgressFlags:
     ;; If the kids have already been freed, remove them (and also place the
     ;; stepstone).
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     bne _RemoveKids
     ;; Otherwise, if Alex has already been freed, move Alex (and also place the
     ;; stepstone).
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedAlex
     bne _MoveAlex
     lda #$ff
     sta Ram_ActorState2_byte_arr + kAlexActorIndex
     ;; Otherwise, if Marie has already loosened the brick, place the stepstone.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperLoosenedBrick
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperLoosenedBrick
     bne _PlaceStepstone
     rts
 _RemoveKids:
@@ -457,9 +457,9 @@ _Gate:
 _WaitUp:
     ;; If Anna hasn't talked to Alex yet, or if Marie has already revealed the
     ;; stepping stone, don't start the cutscene.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFoundAlex
     beq @done  ; Anna hasn't talked to Alex yet
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperLoosenedBrick
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperLoosenedBrick
     bne @done  ; stepping stone is already revealed
     ;; If the player avatar isn't standing in the cutscene-starting zone, don't
     ;; start it yet.
@@ -476,11 +476,11 @@ _WaitUp:
     @done:
 _FreeAlex:
     ;; If Alex has already been freed, we're done.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedAlex
     bne @done
     ;; Otherwise, if the gate has been opened, mark Alex as freed and start a
     ;; cutscene.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperGateOpen
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperGateOpen
     beq @done
     ldx #eFlag::PrisonUpperFreedAlex
     jsr Func_SetFlag

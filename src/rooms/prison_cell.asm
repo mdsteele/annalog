@@ -72,8 +72,8 @@
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_PlaySfxThump
+.IMPORT Func_SaveProgressAtSpawnPoint
 .IMPORT Func_SetFlag
-.IMPORT Func_SetLastSpawnPoint
 .IMPORT Func_SetOrClearFlag
 .IMPORT Func_SetPointToActorCenter
 .IMPORT Func_SetPointToAvatarCenter
@@ -98,7 +98,7 @@
 .IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarState_bAvatar
@@ -493,7 +493,7 @@ _MoveOutOfLiftPlatform:
     @done:
 _CheckIfReachedTunnel:
     ;; If the player has reached the tunnel before, then don't lock scrolling.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellReachedTunnel
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonCellReachedTunnel
     bne @done
     ;; If the player enters from the tunnel (or from the eastern passage or
     ;; eastern console, though normally that shouldn't be possible before
@@ -524,16 +524,16 @@ _CheckIfReachedTunnel:
     jsr Func_SetFlag
     @done:
 _InitGate:
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellGateOpen
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonCellGateOpen
     beq @shut
     ldy #sState::GateLever_u8  ; param: lever target
     ldx #kGatePlatformIndex  ; param: gate platform index
     jsr FuncC_Prison_OpenGateAndFlipLever
     @shut:
 _InitRocksAndCrate:
-    flag_bit Sram_ProgressFlags_arr, eFlag::GardenLandingDroppedIn
+    flag_bit Ram_ProgressFlags_arr, eFlag::GardenLandingDroppedIn
     bne @removeAllRocks
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellBlastedRocks
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonCellBlastedRocks
     bne @removeSomeRocks
     @loadRocketLauncher:
     inc Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
@@ -637,7 +637,7 @@ _TrapFloor:
     .assert ePlatform::None = 0, error
     beq @done
     ;; The trap floor can't collapse until the rocks have been blasted.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonCellBlastedRocks
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonCellBlastedRocks
     beq @done
     ;; Don't collapse until the player avatar is in the trap zone.
     jsr Func_SetPointToAvatarCenter
@@ -751,15 +751,15 @@ _TrapFloorParticleAngle_u8_arr4:
     rts
 .ENDPROC
 
-;;; Mode to spawn the player avatar into the PrisonCell room, then start the
-;;; cutscene where Anna gets thrown into prison by the orcs.
+;;; Mode to spawn the player avatar into the PrisonCell room, save the game,
+;;; then start the cutscene where Anna gets thrown into prison by the orcs.
 ;;; @prereq Rendering is disabled.
 ;;; @prereq The PrisonCell room has been loaded.
 .PROC MainC_Prison_Cell_StartCutscene
     ;; Set the player avatar's spawn point within the prison cell, but make the
     ;; avatar initially hidden (until the cutscene makes it appear later).
     lda #bSpawn::Device | kCutsceneSpawnDeviceIndex  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint
+    jsr Func_SaveProgressAtSpawnPoint
     ldy #kCutsceneSpawnDeviceIndex  ; param: device index
     jsr_prga FuncA_Avatar_SpawnAtDevice
     lda #eAvatar::Hidden

@@ -31,7 +31,7 @@
 .IMPORT Func_MachineRead
 .IMPORT Func_SetMachineIndex
 .IMPORT Ram_Oam_sObj_arr64
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_ConsoleNumInstRows_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_ShapePosX_i16
@@ -80,12 +80,12 @@ _CalculateMargin:
     ;; a HUD register.
     ldx Zp_ConsoleNumInstRows_u8
     ;; Only show register A if it is unlocked (by the COPY upgrade).
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpCopy
+    flag_bit Ram_ProgressFlags_arr, eFlag::UpgradeOpCopy
     beq @noRegA
     dex
     @noRegA:
     ;; Only show register B if it is unlocked.
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeBRemote
+    flag_bit Ram_ProgressFlags_arr, eFlag::UpgradeBRemote
     beq @noRegB
     dex
     @noRegB:
@@ -165,7 +165,7 @@ _CalculateMargin:
 .PROC FuncA_Objects_DrawHudRegisters
 _RegisterA:
     ;; Only show register A if it is unlocked (by the COPY upgrade).
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeOpCopy
+    flag_bit Ram_ProgressFlags_arr, eFlag::UpgradeOpCopy
     beq @done
     lda #kMachineRegNameA  ; param: register name
     ldx #$a  ; param: register number
@@ -173,7 +173,7 @@ _RegisterA:
     @done:
 _RegisterB:
     ;; Only show register B if it is unlocked.
-    flag_bit Sram_ProgressFlags_arr, eFlag::UpgradeBRemote
+    flag_bit Ram_ProgressFlags_arr, eFlag::UpgradeBRemote
     beq @done
     lda #kMachineRegNameB  ; param: register name
     ldx #$b  ; param: register number

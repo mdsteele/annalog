@@ -18,10 +18,9 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "macros.inc"
-.INCLUDE "mmc3.inc"
 .INCLUDE "timer.inc"
 
-.IMPORT Sram_ExploreTimer_u8_arr
+.IMPORT Ram_ExploreTimer_u8_arr
 
 ;;;=========================================================================;;;
 
@@ -33,7 +32,7 @@
 _CountDigitsToRoll:
     ldx #0
     @loop:
-    lda Sram_ExploreTimer_u8_arr, x
+    lda Ram_ExploreTimer_u8_arr, x
     cmp _TimerDigitMax_u8_arr, x
     blt _RollDigits
     inx
@@ -43,22 +42,16 @@ _CountDigitsToRoll:
     rts
 _RollDigits:
     lda #0
-    ;; Enable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable
-    sty Hw_Mmc3PrgRamProtect_wo
     ;; Increment the first digit that shouldn't roll over to zero.
-    inc Sram_ExploreTimer_u8_arr, x
+    inc Ram_ExploreTimer_u8_arr, x
     ;; Roll all lower digits back to zero.
     bne @start  ; unconditional
     @loop:
-    sta Sram_ExploreTimer_u8_arr, x
+    sta Ram_ExploreTimer_u8_arr, x
     @start:
     dex
     .assert kNumTimerDigits <= $80, error
     bpl @loop
-    ;; Disable writes to SRAM.
-    ldy #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
-    sty Hw_Mmc3PrgRamProtect_wo
     rts
 _TimerDigitMax_u8_arr:
 :   .byte 59       ; frames (one base-60 digit)

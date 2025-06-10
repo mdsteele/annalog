@@ -64,8 +64,8 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORT Sram_Programs_sProgram_arr
-.IMPORT Sram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarFlags_bObj
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_RoomState
@@ -441,7 +441,7 @@ _InitProgram:
     @done:
 _BreakableGlass:
     ;; If the breakable glass has already been broken, remove those platforms.
-    flag_bit Sram_ProgressFlags_arr, eFlag::ShadowHallGlassBroken
+    flag_bit Ram_ProgressFlags_arr, eFlag::ShadowHallGlassBroken
     beq @done
     lda #kNumHitsToBreakGlass
     sta Zp_RoomState + sState::BreakableGlassHits_u8_arr2 + 0

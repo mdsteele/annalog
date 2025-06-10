@@ -48,7 +48,7 @@
 .IMPORT Ppu_ChrObjTown
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -169,7 +169,7 @@ _Devices_sDevice_arr:
 
 .PROC FuncA_Room_MermaidHut5_EnterRoom
     ;; Until the kids are rescued, they are in PrisonUpper, not here.
-    flag_bit Sram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
+    flag_bit Ram_ProgressFlags_arr, eFlag::PrisonUpperFreedKids
     bne @keepKids
     @removeKids:
     lda #0

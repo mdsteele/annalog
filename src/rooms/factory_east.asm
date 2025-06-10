@@ -63,7 +63,7 @@
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_RoomState
@@ -220,10 +220,10 @@ _Passages_sPassage_arr:
 .PROC FuncC_Factory_East_EnterRoom
     ;; Corra doesn't appear in this room until you've met up with Alex in
     ;; FactoryVault.
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
     beq @removeCorra
     ;; Once you reach the upper sewers, Corra leaves this room.
-    flag_bit Sram_ProgressFlags_arr, eFlag::SewerFaucetEnteredUpperSewer
+    flag_bit Ram_ProgressFlags_arr, eFlag::SewerFaucetEnteredUpperSewer
     beq @keepCorra
     ;; To be safe, set the flag for Corra having helped here if you've already
     ;; reached the city (although normally, it is impossible to reach the city
@@ -245,7 +245,7 @@ _Passages_sPassage_arr:
 _Lever:
     ;; If Corra has already helped you in this room, flip the lever and raise
     ;; the water level.
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryEastCorraHelped
+    flag_bit Ram_ProgressFlags_arr, eFlag::FactoryEastCorraHelped
     beq @done
     inc Zp_RoomState + sState::Lever_u8
     .assert >kMinWaterTop = >kInitWaterTop, error

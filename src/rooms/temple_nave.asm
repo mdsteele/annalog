@@ -62,7 +62,7 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -420,7 +420,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Temple_Nave_EnterRoom
 _Crate:
     ;; Once Anna visits the crypt, remove Alex and leave a crate behind.
-    flag_bit Sram_ProgressFlags_arr, eFlag::CryptLandingDroppedIn
+    flag_bit Ram_ProgressFlags_arr, eFlag::CryptLandingDroppedIn
     beq @noCrate
     lda #ePlatform::Solid
     sta Ram_PlatformType_ePlatform_arr + kCratePlatformIndex
@@ -429,7 +429,7 @@ _Crate:
     @noCrate:
 _AlexBoosting:
     ;; If Anna has already talked to Alex, put him in the boosting position.
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleNaveTalkedToAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::TempleNaveTalkedToAlex
     beq @notBoosting
     ldya #kAlexBoostingPositionX
     sty Ram_ActorPosX_i16_1_arr + kAlexActorIndex
@@ -446,7 +446,7 @@ _AlexBoosting:
     @notBoosting:
 _AlexStanding:
     ;; If Alex is waiting for Anna, leave him in his standing position.
-    flag_bit Sram_ProgressFlags_arr, eFlag::TempleNaveAlexWaiting
+    flag_bit Ram_ProgressFlags_arr, eFlag::TempleNaveAlexWaiting
     beq @notWaiting
     lda #eDevice::TalkLeft
     sta Ram_DeviceType_eDevice_arr + kAlexStandingDeviceIndexLeft

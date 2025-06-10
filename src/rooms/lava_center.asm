@@ -71,7 +71,7 @@
 .IMPORT Ram_MachineState3_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
 
@@ -368,7 +368,7 @@ _Crates:
 _Chain1:
     ldx #kChain1PlatformIndex  ; param: platform index
     ldy #3  ; param: num chain links
-    flag_bit Sram_ProgressFlags_arr, eFlag::LavaCenterChain1Broken
+    flag_bit Ram_ProgressFlags_arr, eFlag::LavaCenterChain1Broken
     beq @draw
     dey
     @draw:
@@ -376,7 +376,7 @@ _Chain1:
 _Chain2:
     ldx #kChain2PlatformIndex  ; param: platform index
     ldy #1  ; param: num chain links
-    flag_bit Sram_ProgressFlags_arr, eFlag::LavaCenterChain2Broken
+    flag_bit Ram_ProgressFlags_arr, eFlag::LavaCenterChain2Broken
     beq @draw
     dey
     @draw:
@@ -384,7 +384,7 @@ _Chain2:
 _Chain3:
     ldx #kChain3PlatformIndex  ; param: platform index
     ldy #1  ; param: num chain links
-    flag_bit Sram_ProgressFlags_arr, eFlag::LavaCenterChain3Broken
+    flag_bit Ram_ProgressFlags_arr, eFlag::LavaCenterChain3Broken
     beq @draw
     dey
     @draw:

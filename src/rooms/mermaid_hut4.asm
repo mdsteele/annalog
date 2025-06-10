@@ -83,18 +83,18 @@
 .IMPORT DataA_Text1_MermaidHut4Florist_Zero1_u8_arr
 .IMPORT DataA_Text1_MermaidHut4Florist_Zero2_u8_arr
 .IMPORT DataA_Text1_MermaidHut4Florist_Zero3_u8_arr
+.IMPORT FuncA_Dialog_DeliverFlowerAndSaveProgress
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Room_UnlockDoorDevice
 .IMPORT Func_CountDeliveredFlowers
-.IMPORT Func_DropFlower
 .IMPORT Func_IsFlagSet
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SetFlag
 .IMPORT Ppu_ChrObjVillage
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Sram_CarryingFlower_eFlag
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
+.IMPORTZP Zp_CarryingFlower_eFlag
 .IMPORTZP Zp_RoomScrollY_u8
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
@@ -187,7 +187,7 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 .PROC FuncC_Mermaid_Hut4_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut4OpenedCellar
+    flag_bit Ram_ProgressFlags_arr, eFlag::MermaidHut4OpenedCellar
     beq @done
     lda #eDevice::Door1Unlocked
     sta Ram_DeviceType_eDevice_arr + kCellarDoorDeviceIndex
@@ -197,7 +197,7 @@ _Devices_sDevice_arr:
 
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Mermaid_Hut4_TickRoom
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut4OpenedCellar
+    flag_bit Ram_ProgressFlags_arr, eFlag::MermaidHut4OpenedCellar
     beq @done
     lda Ram_DeviceType_eDevice_arr + kCellarDoorDeviceIndex
     cmp #eDevice::Door1Unlocked
@@ -263,14 +263,14 @@ _PosY_u8_arr:
     dlg_Func @func
     @func:
     ;; If Anna is carrying a flower, deliver it.
-    lda Sram_CarryingFlower_eFlag
+    lda Zp_CarryingFlower_eFlag
     beq @notCarryingFlower
     ldya #_BroughtFlower_sDialog
     rts
     @notCarryingFlower:
     ;; Otherwise, if Anna has already met the florist, repeat the florist's
     ;; last message.
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut4MetFlorist
+    flag_bit Ram_ProgressFlags_arr, eFlag::MermaidHut4MetFlorist
     bne _CountFlowersFunc
     ;; Otherwise, play the conversation for meeting the florist.
     ldya #_MeetFlorist_sDialog
@@ -289,13 +289,8 @@ _BroughtFlower_sDialog:
     ;; flower before the initial meeting conversation, then we just won't do
     ;; that conversation).
     dlg_Call _MetFlorist
-    dlg_Func _DeliverFlowerFunc
-_DeliverFlowerFunc:
-    ;; Mark the carried flower as delivered.
-    ldx Sram_CarryingFlower_eFlag  ; param: flag
-    jsr Func_SetFlag
-    ;; Mark the player as no longer carrying a flower.
-    jsr Func_DropFlower
+    dlg_Call FuncA_Dialog_DeliverFlowerAndSaveProgress
+    dlg_Func _CountFlowersFunc
 _CountFlowersFunc:
     jsr Func_CountDeliveredFlowers  ; returns A
     tax  ; num delivered flowers

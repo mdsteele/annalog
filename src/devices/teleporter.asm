@@ -32,7 +32,7 @@
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_FadeOutToBlack
 .IMPORT Func_PlaySfxExplodeBig
-.IMPORT Func_SetLastSpawnPoint
+.IMPORT Func_SaveProgressAtSpawnPoint
 .IMPORT Func_SetPointToAvatarCenter
 .IMPORT Func_SpawnExplosionAtPoint
 .IMPORT Main_Explore_EnterRoom
@@ -101,13 +101,13 @@ kTeleportTransferThreshold = $30
 .SEGMENT "PRGA_Avatar"
 
 ;;; Called when entering a new room via a teleporter.  Marks the entrance
-;;; teleporter as the last spawn point and positions the player avatar at that
-;;; teleporter.  Also sets up the "teleport in" cutscene.
+;;; teleporter as the last spawn point, saves the game, and positions the
+;;; player avatar at that teleporter.  Also sets up the "teleport in" cutscene.
 ;;; @prereq The new room is loaded.
 ;;; @prereq There is a Teleporter device in the new room.
 .PROC FuncA_Avatar_EnterRoomViaTeleporter
     lda #bSpawn::Device | kTeleporterDeviceIndex  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint
+    jsr Func_SaveProgressAtSpawnPoint
     ldy #kTeleporterDeviceIndex  ; param: device index
     jsr FuncA_Avatar_SpawnAtDevice
 _InitCutsceneState:

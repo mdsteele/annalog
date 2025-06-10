@@ -68,7 +68,7 @@
 .IMPORT Ram_ActorVelY_i16_1_arr
 .IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -361,7 +361,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Garden_East_EnterRoom
     ;; Remove Corra from this room if the player has already met with the
     ;; mermaid queen.
-    flag_bit Sram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
+    flag_bit Ram_ProgressFlags_arr, eFlag::MermaidHut1MetQueen
     beq @done
     lda #0
     .assert eActor::None = 0, error

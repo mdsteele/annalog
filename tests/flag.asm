@@ -30,9 +30,9 @@
 
 .BSS
 
-.EXPORT Sram_ProgressFlags_arr
-.PROC Sram_ProgressFlags_arr
-    .res $20
+.EXPORT Ram_ProgressFlags_arr
+.PROC Ram_ProgressFlags_arr
+    .res $100 / 8
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -55,10 +55,10 @@
     txs
 ZeroSram:
     lda #0
-    ldx #.sizeof(Sram_ProgressFlags_arr)
+    ldx #.sizeof(Ram_ProgressFlags_arr)
     @loop:
     dex
-    sta Sram_ProgressFlags_arr, x
+    sta Ram_ProgressFlags_arr, x
     bne @loop
 Tests:
     ;; Flags 9 and 10 are initially clear.

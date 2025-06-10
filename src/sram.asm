@@ -19,6 +19,7 @@
 
 .INCLUDE "death.inc"
 .INCLUDE "minimap.inc"
+.INCLUDE "mmc3.inc"
 .INCLUDE "program.inc"
 .INCLUDE "timer.inc"
 
@@ -41,8 +42,8 @@ Sram_LastSafe_eRoom: .res 1
 .EXPORT Sram_LastSafe_bSpawn
 Sram_LastSafe_bSpawn: .res 1
 
-;;; The eFlag for the flower that the player avatar is currently carrying, or
-;;; zero for none.
+;;; The eFlag for the flower that the player avatar is carrying in the saved
+;;; game, or eFlag::None for none.
 .EXPORT Sram_CarryingFlower_eFlag
 Sram_CarryingFlower_eFlag: .res 1
 
@@ -56,33 +57,168 @@ Sram_DeathCount_u8_arr: .res kNumDeathDigits
 ;;; The total time spent in explore mode for this saved game, stored as frames
 ;;; (1 base-60 digit), seconds (2 decimal digits), minutes (2 decimal digits),
 ;;; and hours (3 decimal digits), in little-endian order.
-.EXPORT Sram_ExploreTimer_u8_arr
 Sram_ExploreTimer_u8_arr: .res kNumTimerDigits
 
 ;;; A bit array indicating which minimap cells have been explored.  The array
 ;;; contains one u16 for each minimap column; if the minimap cell at row R and
 ;;; column C has been explored, then the Rth bit of the Cth u16 in this array
 ;;; will be set.
-.EXPORT Sram_Minimap_u16_arr
-Sram_Minimap_u16_arr:
-    .assert * & $0f = 0, error, "16-byte alignment"
+.PROC Sram_Minimap_u16_arr
+    .assert * .mod 16 = 0, error, "16-byte alignment"
     .assert kMinimapHeight <= 16, error
     .res 2 * kMinimapWidth
+.ENDPROC
 
 ;;; A bit array of progress flags.  Given an eFlag value N, bit number (N & 7)
 ;;; of the (N >> 3)-th byte of this array indicates whether the flag is set (1)
 ;;; or cleared (0).
-.EXPORT Sram_ProgressFlags_arr
-Sram_ProgressFlags_arr:
-:   .assert * & $1f = 0, error, "32-byte alignment"
-    .res $20
-    .assert (* - :-) * 8 = $100, error
+.PROC Sram_ProgressFlags_arr
+    .assert * .mod 32 = 0, error, "32-byte alignment"
+    .res $100 / 8
+.ENDPROC
 
 ;;; An array of the player's saved programs.
 .EXPORT Sram_Programs_sProgram_arr
-Sram_Programs_sProgram_arr:
-    .assert * & $1f = 0, error, "32-byte alignment"
+.PROC Sram_Programs_sProgram_arr
+    .assert * .mod 32 = 0, error, "32-byte alignment"
     .assert .sizeof(sProgram) = $20, error
     .res .sizeof(sProgram) * eProgram::NUM_VALUES
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.ZEROPAGE
+
+;;; The eFlag for the flower that the player avatar is currently carrying, or
+;;; eFlag::None for none.
+.EXPORTZP Zp_CarryingFlower_eFlag
+Zp_CarryingFlower_eFlag: .res 1
+
+;;;=========================================================================;;;
+
+.SEGMENT "RAM_Progress"
+
+;;; A bit array of progress flags.  Given an eFlag value N, bit number (N & 7)
+;;; of the (N >> 3)-th byte of this array indicates whether the flag is set (1)
+;;; or cleared (0).
+.EXPORT Ram_ProgressFlags_arr
+.PROC Ram_ProgressFlags_arr
+    .assert * .mod 32 = 0, error, "32-byte alignment"
+    .res $100 / 8
+.ENDPROC
+
+;;; A bit array indicating which minimap cells have been explored.  The array
+;;; contains one u16 for each minimap column; if the minimap cell at row R and
+;;; column C has been explored, then the Rth bit of the Cth u16 in this array
+;;; will be set.
+.EXPORT Ram_Minimap_u16_arr
+.PROC Ram_Minimap_u16_arr
+    .assert * .mod 16 = 0, error, "16-byte alignment"
+    .assert kMinimapHeight <= 16, error
+    .res 2 * kMinimapWidth
+.ENDPROC
+
+;;; The total time spent in explore mode so far, stored as frames (1 base-60
+;;; digit), seconds (2 decimal digits), minutes (2 decimal digits), and hours
+;;; (3 decimal digits), in little-endian order.
+.EXPORT Ram_ExploreTimer_u8_arr
+Ram_ExploreTimer_u8_arr: .res kNumTimerDigits
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRG8"
+
+;;; Saves transient progress data from RAM to SRAM.
+;;; @preserve X, Y, T0+
+.EXPORT Func_SaveProgress
+.PROC Func_SaveProgress
+    txa  ; old X value
+    pha  ; old X value
+    ;; Enable writes to SRAM.
+    lda #bMmc3PrgRam::Enable
+    sta Hw_Mmc3PrgRamProtect_wo
+_ExploreTimer:
+    ldx #kNumTimerDigits - 1
+    @loop:
+    lda Ram_ExploreTimer_u8_arr, x
+    sta Sram_ExploreTimer_u8_arr, x
+    dex
+    .assert kNumTimerDigits <= $80, error
+    bpl @loop
+_Flags:
+    .linecont +
+    .assert .sizeof(Sram_ProgressFlags_arr) = .sizeof(Ram_ProgressFlags_arr), \
+            error
+    .linecont -
+    ldx #.sizeof(Sram_ProgressFlags_arr) - 1
+    @loop:
+    lda Ram_ProgressFlags_arr, x
+    sta Sram_ProgressFlags_arr, x
+    dex
+    .assert .sizeof(Sram_ProgressFlags_arr) <= $80, error
+    bpl @loop
+_Flower:
+    lda Zp_CarryingFlower_eFlag
+    sta Sram_CarryingFlower_eFlag
+_Minimap:
+    .assert .sizeof(Sram_Minimap_u16_arr) = .sizeof(Ram_Minimap_u16_arr), error
+    ldx #.sizeof(Sram_Minimap_u16_arr) - 1
+    @loop:
+    lda Ram_Minimap_u16_arr, x
+    sta Sram_Minimap_u16_arr, x
+    dex
+    .assert .sizeof(Sram_Minimap_u16_arr) <= $80, error
+    bpl @loop
+_Finish:
+    ;; Disable writes to SRAM.
+    lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
+    sta Hw_Mmc3PrgRamProtect_wo
+    pla  ; old X value
+    tax  ; old X value
+    rts
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Avatar"
+
+;;; Loads transient progress data from SRAM to RAM.
+;;; @preserve Y, T0+
+.EXPORT FuncA_Avatar_LoadProgress
+.PROC FuncA_Avatar_LoadProgress
+_ExploreTimer:
+    ldx #kNumTimerDigits - 1
+    @loop:
+    lda Sram_ExploreTimer_u8_arr, x
+    sta Ram_ExploreTimer_u8_arr, x
+    dex
+    .assert kNumTimerDigits <= $80, error
+    bpl @loop
+_Flags:
+    .linecont +
+    .assert .sizeof(Sram_ProgressFlags_arr) = .sizeof(Ram_ProgressFlags_arr), \
+            error
+    .linecont -
+    ldx #.sizeof(Sram_ProgressFlags_arr) - 1
+    @loop:
+    lda Sram_ProgressFlags_arr, x
+    sta Ram_ProgressFlags_arr, x
+    dex
+    .assert .sizeof(Sram_ProgressFlags_arr) <= $80, error
+    bpl @loop
+_Flower:
+    lda Sram_CarryingFlower_eFlag
+    sta Zp_CarryingFlower_eFlag
+_Minimap:
+    .assert .sizeof(Sram_Minimap_u16_arr) = .sizeof(Ram_Minimap_u16_arr), error
+    ldx #.sizeof(Sram_Minimap_u16_arr) - 1
+    @loop:
+    lda Sram_Minimap_u16_arr, x
+    sta Ram_Minimap_u16_arr, x
+    dex
+    .assert .sizeof(Sram_Minimap_u16_arr) <= $80, error
+    bpl @loop
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;

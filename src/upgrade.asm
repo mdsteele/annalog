@@ -52,8 +52,8 @@
 .IMPORT FuncM_ScrollTowardsAvatar
 .IMPORT FuncM_ScrollTowardsGoal
 .IMPORT Func_AllocObjects
+.IMPORT Func_SaveProgressAtActiveDevice
 .IMPORT Func_SetFlag
-.IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Func_SetMusicVolumeForCurrentRoom
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_ScrollDown
@@ -66,7 +66,7 @@
 .IMPORT Ram_DialogText_u8_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_PpuTransfer_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarHarmTimer_u8
 .IMPORTZP Zp_AvatarPose_eAvatar
 .IMPORTZP Zp_AvatarState_bAvatar
@@ -231,7 +231,6 @@ _StartMusic:
     lda #bAudio::Enable
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
 _CollectUpgrade:
-    jsr Func_SetLastSpawnPointToActiveDevice
     lda Zp_Nearby_bDevice
     and #bDevice::IndexMask
     tay  ; device index
@@ -242,7 +241,7 @@ _CollectUpgrade:
     sta Ram_DeviceType_eDevice_arr, y
     .assert eDevice::None = 0, error
     sta Zp_DialogTextIndex_u8
-    ;; Set up return values for FuncM_CopyDialogText.
+    ;; Set up return values (which will be passed to FuncM_CopyDialogText).
     lda DataA_Avatar_UpgradeText_ptr_0_arr, x
     sta T0
     lda DataA_Avatar_UpgradeText_ptr_1_arr, x
@@ -251,11 +250,12 @@ _CollectUpgrade:
     sta T2
     ;; Set the upgrade's flag in SRAM.
     jsr Func_SetFlag  ; preserves T0+
+    jsr Func_SaveProgressAtActiveDevice
     ;; Update Zp_MachineMaxInstructions_u8, in case we just got a RAM upgrade.
     fall FuncA_Avatar_ComputeMaxInstructions  ; preserves T0+
 .ENDPROC
 
-;;; Recomputes Zp_MachineMaxInstructions_u8 from Sram_ProgressFlags_arr.
+;;; Recomputes Zp_MachineMaxInstructions_u8 from Ram_ProgressFlags_arr.
 ;;; @preserve T0+
 .EXPORT FuncA_Avatar_ComputeMaxInstructions
 .PROC FuncA_Avatar_ComputeMaxInstructions
@@ -265,7 +265,7 @@ _CollectUpgrade:
     .assert eFlag::UpgradeRam3 = 3, error
     .assert eFlag::UpgradeRam4 = 4, error
     .assert kNumRamUpgrades = 4, error
-    lda Sram_ProgressFlags_arr + 0
+    lda Ram_ProgressFlags_arr + 0
     lsr a
     and #$0f
     ;; Loop over each of the kNumRamUpgrades bottom bits of A.  Start with a

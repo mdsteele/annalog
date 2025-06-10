@@ -75,7 +75,7 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -413,7 +413,7 @@ _RegR:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_CityBuilding3_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityBuilding3BlastedCrates
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityBuilding3BlastedCrates
     beq @keepCrates
     lda #ePlatform::None
     sta Ram_PlatformType_ePlatform_arr + 2

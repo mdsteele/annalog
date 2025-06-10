@@ -39,7 +39,7 @@
 .IMPORT Func_InitActorSmokeParticleMovingUp
 .IMPORT Func_InitActorSmokeParticleStationary
 .IMPORT Func_IsFlagSet
-.IMPORT Func_MarkRoomSafe
+.IMPORT Func_MarkRoomSafeAndSaveProgressIfChanged
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxSample
@@ -123,7 +123,7 @@ Zp_BossPhaseTimer_u8: .res 1
     lda #eBossPhase::BossBattle  ; sets Z to indicate boss is alive
     beq _SetBossPhase  ; unconditional
 _BossAlreadyDefeated:
-    jsr Func_MarkRoomSafe
+    jsr Func_MarkRoomSafeAndSaveProgressIfChanged
     jsr FuncA_Room_DisableAllMachinesAndConsoles
     ;; Set the door to locked.
     lda #eDevice::Door1Locked
@@ -221,7 +221,7 @@ _BossBattle:
     lda (Zp_Current_sBoss_ptr), y
     tax  ; param: boss flag
     jsr Func_SetFlag
-    jsr Func_MarkRoomSafe
+    jsr Func_MarkRoomSafeAndSaveProgressIfChanged
     jsr FuncA_Room_DisableAllMachinesAndConsoles
     jsr FuncA_Room_ExpireAllBossProjectiles
     ;; Turn off the boss music.

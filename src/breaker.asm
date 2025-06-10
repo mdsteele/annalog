@@ -52,9 +52,9 @@
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_PlaySfxExplodeBig
+.IMPORT Func_SaveProgressAtActiveDevice
 .IMPORT Func_SetAndTransferFade
 .IMPORT Func_SetFlag
-.IMPORT Func_SetLastSpawnPointToActiveDevice
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Explore_EnterRoom
 .IMPORT Ppu_ChrBgAnimStatic
@@ -314,8 +314,8 @@ _SetBankToX:
 .PROC MainA_Cutscene_FlipBreakerDevice
     lda Zp_Current_eRoom
     sta Zp_Breaker_eRoom
-    ;; Set the spawn point and mark the breaker as activated.
-    jsr Func_SetLastSpawnPointToActiveDevice  ; preserves X
+    ;; Set the spawn point and mark the breaker as being activated.
+    jsr Func_SaveProgressAtActiveDevice  ; preserves X
     lda Ram_DeviceTarget_byte_arr, x
     sta Zp_BreakerBeingActivated_eFlag
     ;; Hide the floating HUD.

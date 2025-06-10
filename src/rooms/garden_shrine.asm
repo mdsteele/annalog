@@ -50,7 +50,7 @@
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_Next_eCutscene
 
 ;;;=========================================================================;;;
@@ -159,7 +159,7 @@ _Passages_sPassage_arr:
     sta Ram_ActorType_eActor_arr + kEireneActorIndex
     sta Ram_ActorType_eActor_arr + kGrontaActorIndex
     ;; If the upgrade in this room has already been collected, remove it.
-    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
+    flag_bit Ram_ProgressFlags_arr, kUpgradeFlag
     beq @done
     @removeUpgrade:
     lda #eDevice::None

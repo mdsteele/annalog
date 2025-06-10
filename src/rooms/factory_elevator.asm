@@ -68,7 +68,7 @@
 .IMPORT Ram_PlatformBottom_i16_1_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_1_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarState_bAvatar
 .IMPORTZP Zp_Current_sMachine_ptr
@@ -377,9 +377,9 @@ _Passages_sPassage_arr:
 .PROC FuncC_Factory_Elevator_EnterRoom
 _MaybeRemoveBruno:
     pha  ; bSpawn value
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
+    flag_bit Ram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
     beq @removeBruno  ; Bruno isn't here yet
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
     beq @keepBruno  ; Bruno is still here
     @removeBruno:
     lda #0
@@ -436,11 +436,11 @@ _LowerShaft:
 _StartCutscene:
     ;; If Bruno isn't here, or if Anna has already talked to Bruno, don't start
     ;; the cutscene.
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
+    flag_bit Ram_ProgressFlags_arr, eFlag::FactoryPassLoweredRocks
     beq @done  ; Bruno isn't here yet
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
+    flag_bit Ram_ProgressFlags_arr, eFlag::FactoryVaultTalkedToAlex
     bne @done  ; Bruno is no longer here
-    flag_bit Sram_ProgressFlags_arr, eFlag::FactoryElevatorTalkedToBruno
+    flag_bit Ram_ProgressFlags_arr, eFlag::FactoryElevatorTalkedToBruno
     bne @done
     ;; If the player avatar isn't standing in the cutscene-starting zone, don't
     ;; start it yet.

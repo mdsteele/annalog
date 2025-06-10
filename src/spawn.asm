@@ -33,6 +33,7 @@
 .IMPORT FuncA_Avatar_ComputeMaxInstructions
 .IMPORT FuncA_Avatar_InitMotionless
 .IMPORT FuncA_Room_InitAllMachines
+.IMPORT Func_SaveProgress
 .IMPORT Func_SetPointToDeviceCenter
 .IMPORT Func_TryPushAvatarVert
 .IMPORT Ram_DeviceTarget_byte_arr
@@ -77,59 +78,44 @@ Zp_LastPoint_eRoom: .res 1
 
 .SEGMENT "PRG8"
 
-;;; Sets the last spawn point to the nearby device in the current room.  If the
-;;; current room is currently marked as safe, then the last safe point will
-;;; also be set.
+;;; Saves game progress, and sets the last spawn point to the nearby device in
+;;; the current room.  If the current room is currently marked as safe, then
+;;; that device will also be saved as the last safe point.
 ;;; @prereq Zp_Nearby_bDevice holds an active device.
 ;;; @preserve X, Y, T0+
-.EXPORT Func_SetLastSpawnPointToActiveDevice
-.PROC Func_SetLastSpawnPointToActiveDevice
+.EXPORT Func_SaveProgressAtActiveDevice
+.PROC Func_SaveProgressAtActiveDevice
     lda Zp_Nearby_bDevice
     and #bDevice::IndexMask
     ora #bSpawn::Device  ; param: bSpawn value
-    fall Func_SetLastSpawnPoint
+    fall Func_SaveProgressAtSpawnPoint  ; preserves X, Y, and T0+
 .ENDPROC
 
-;;; Sets the last spawn point to the specified point in the current room.  If
-;;; the current room is currently marked as safe, then the last safe point will
-;;; also be set.
+;;; Saves game progress, and sets the last spawn point to the specified spawn
+;;; point in the current room.  If the current room is currently marked as
+;;; safe, then that spawn point will also be saved as the last safe point.
 ;;; @param A The bSpawn value to set for the current room.
 ;;; @preserve X, Y, T0+
-.EXPORT Func_SetLastSpawnPoint
-.PROC Func_SetLastSpawnPoint
+.EXPORT Func_SaveProgressAtSpawnPoint
+.PROC Func_SaveProgressAtSpawnPoint
     sta Zp_LastPoint_bSpawn
     lda Zp_Current_eRoom
     sta Zp_LastPoint_eRoom
+    fall Func_UpdateLastSafePointAndSaveProgress  ; preserves X, Y, and T0+
+.ENDPROC
+
+;;; Saves the game, and if the current room is safe, copies Zp_LastPoint_* to
+;;; Sram_LastSafe_*.
+;;; @preserve X, Y, T0+
+.PROC Func_UpdateLastSafePointAndSaveProgress
+_UpdateSafePointIfRoomIsSafe:
     bit Zp_Current_sRoom + sRoom::Flags_bRoom
     .assert bRoom::Unsafe = bProc::Negative, error
-    bpl Func_UpdateLastSafePoint  ; preserves X, Y, and T0+
-    rts
-.ENDPROC
-
-;;; If bRoom::Unsafe is set on (Zp_Current_sRoom + sRoom::Flags_bRoom), clears
-;;; that flag and copies the last visited spawn point to the last safe point.
-;;; @preserve X, Y, T0+
-.EXPORT Func_MarkRoomSafe
-.PROC Func_MarkRoomSafe
-    lda Zp_Current_sRoom + sRoom::Flags_bRoom
-    .assert bRoom::Unsafe = bProc::Negative, error
-    bmi @markSafe
-    rts
-    @markSafe:
-    and #<~bRoom::Unsafe
-    sta Zp_Current_sRoom + sRoom::Flags_bRoom
-    fall Func_UpdateLastSafePoint
-.ENDPROC
-
-;;; Copies Zp_LastPoint_* to Sram_LastSafe_*.
-;;; @preserve X, Y, T0+
-.PROC Func_UpdateLastSafePoint
-    txa
-    pha  ; old X value (to preserve it)
+    bmi @done  ; current room is not safe
     ;; Enable writes to SRAM.
     lda #bMmc3PrgRam::Enable
     sta Hw_Mmc3PrgRamProtect_wo
-    ;; Set the last safe point.
+    ;; Copy Zp_LastPoint_* to Sram_LastSafe_*.
     lda Zp_LastPoint_bSpawn
     sta Sram_LastSafe_bSpawn
     lda Zp_LastPoint_eRoom
@@ -137,8 +123,26 @@ Zp_LastPoint_eRoom: .res 1
     ;; Disable writes to SRAM.
     lda #bMmc3PrgRam::Enable | bMmc3PrgRam::DenyWrites
     sta Hw_Mmc3PrgRamProtect_wo
-    pla  ; old X value (to preserve it)
-    tax
+    @done:
+_SaveProgress:
+    jmp Func_SaveProgress  ; preserves X, Y, and T0+
+.ENDPROC
+
+;;; If bRoom::Unsafe is set on (Zp_Current_sRoom + sRoom::Flags_bRoom), clears
+;;; that flag, copies the last visited spawn point to the last safe point, and
+;;; saves the game.  If bRoom::Unsafe is not set, does nothing (and doesn't
+;;; save the game).
+;;; @preserve X, Y, T0+
+.EXPORT Func_MarkRoomSafeAndSaveProgressIfChanged
+.PROC Func_MarkRoomSafeAndSaveProgressIfChanged
+    lda Zp_Current_sRoom + sRoom::Flags_bRoom
+    .assert bRoom::Unsafe = bProc::Negative, error
+    bpl @done  ; room is already safe
+    and #<~bRoom::Unsafe
+    sta Zp_Current_sRoom + sRoom::Flags_bRoom
+    .assert bRoom::Unsafe = $80, error
+    bpl Func_UpdateLastSafePointAndSaveProgress  ; unconditional
+    @done:
     rts
 .ENDPROC
 
@@ -368,10 +372,10 @@ _Finish:
     bpl @loop
     iny  ; this should never happen, but at least make device index valid
 _FoundMatchingDoor:
-    ;; Update the the last spawn point.
+    ;; Update the the last spawn point and save the game.
     tya  ; door device index
     ora #bSpawn::Device  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint  ; preserves Y
+    jsr Func_SaveProgressAtSpawnPoint  ; preserves Y
     ;; Spawn the avatar.
     fall FuncA_Avatar_SpawnAtDevice
 .ENDPROC
@@ -451,8 +455,8 @@ _DeviceOffset_u8_arr:
 
 ;;; Called when exiting the room via a passage.  Marks the exit passage as the
 ;;; last spawn point (in case this room is safe and the destination room turns
-;;; out to be unsafe).  Returns the origin passage spawn block and the
-;;; destination room number.
+;;; out to be unsafe), and saves the game.  Returns the origin passage spawn
+;;; block and the destination room number.
 ;;; @param X The calculated bPassage value for the passage the player went
 ;;;     through (which includes SideMask and ScreenMask only).
 ;;; @return A The SpawnBlock_u8 value for the origin room.
@@ -478,7 +482,7 @@ _DeviceOffset_u8_arr:
     bne @wrongSide
     lda T3  ; passage index
     ora #bSpawn::Passage  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint  ; preserves Y and T0+
+    jsr Func_SaveProgressAtSpawnPoint  ; preserves Y and T0+
     iny
     .assert sPassage::Destination_eRoom = 1, error
     lda (T1T0), y  ; Destination_eRoom
@@ -490,9 +494,9 @@ _DeviceOffset_u8_arr:
 .ENDPROC
 
 ;;; Called when entering a new room via a passage.  Marks the entrance passage
-;;; as the last spawn point, and repositions the player avatar based on the
-;;; size of the new room and the difference between the origin/destination
-;;; passages' SpawnBlock_u8 values.
+;;; as the last spawn point, saves the game, and repositions the player avatar
+;;; based on the size of the new room and the difference between the
+;;; origin/destination passages' SpawnBlock_u8 values.
 ;;; @prereq The new room is loaded, and Zp_Previous_eRoom is initialized.
 ;;; @param X The (calculated) origin bPassage value.
 ;;; @param Y The SpawnBlock_u8 for the origin passage in the previous room.
@@ -542,10 +546,10 @@ _FindDestinationPassage:
     inc T4  ; passage index
     bne @loop  ; unconditional
     @foundMatch:
-    ;; Update the the last spawn point.
+    ;; Update the the last spawn point and save the game.
     lda T4  ; passage index
     ora #bSpawn::Passage  ; param: bSpawn value
-    jsr Func_SetLastSpawnPoint  ; preserves Y and T0+
+    jsr Func_SaveProgressAtSpawnPoint  ; preserves Y and T0+
     ;; Prepare to adjust position.
     .assert sPassage::SpawnBlock_u8 = 2, error
     lda (T1T0), y  ; destination passage's SpawnBlock_u8

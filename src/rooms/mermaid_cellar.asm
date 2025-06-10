@@ -29,7 +29,7 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTemple
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -101,7 +101,7 @@ _Devices_sDevice_arr:
 .ENDPROC
 
 .PROC FuncC_Mermaid_Cellar_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, kUpgradeFlag
+    flag_bit Ram_ProgressFlags_arr, kUpgradeFlag
     beq @done
     lda #eDevice::None
     sta Ram_DeviceType_eDevice_arr + kUpgradeDeviceIndex

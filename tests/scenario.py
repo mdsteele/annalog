@@ -87,7 +87,7 @@ ROOM_NAME_RE = re.compile(r'^([A-Z][a-z]*)([A-Z][a-z0-9]*)$')
 D_STRUCT_RE = re.compile(r'^:? *D_STRUCT +(s[A-Za-z0-9]+)')
 
 FLAG_ENUM_RE = re.compile(r'^\.ENUM +eFlag')
-NEWGAME_FLAGS_RE = re.compile(r'^\.PROC +DataC_Title_NewGameFlags_eFlag_arr')
+NEWGAME_FLAGS_RE = re.compile(r'^\.PROC +DataA_Avatar_NewGameFlags_eFlag_arr')
 NEWGAME_FLAG_RE = re.compile(
     r'^ *\.byte +eFlag::([A-Za-z0-9]+)(?: *; *room: *([A-Za-z0-9]+))?')
 

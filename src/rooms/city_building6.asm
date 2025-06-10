@@ -34,7 +34,7 @@
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjCity
 .IMPORT Ram_DeviceType_eDevice_arr
-.IMPORT Sram_ProgressFlags_arr
+.IMPORT Ram_ProgressFlags_arr
 
 ;;;=========================================================================;;;
 
@@ -163,7 +163,7 @@ _Devices_sDevice_arr:
 .SEGMENT "PRGA_Room"
 
 .PROC FuncA_Room_CityBuilding6_EnterRoom
-    flag_bit Sram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
+    flag_bit Ram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
     beq @done
     lda #eDevice::Door1Unlocked
     sta Ram_DeviceType_eDevice_arr + kLockedDoorDeviceIndex
