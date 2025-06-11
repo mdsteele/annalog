@@ -139,7 +139,7 @@ Ram_Audio_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
 
 ;;; Mutes all APU channels, resets APU registers, disables APU IRQs, and
 ;;; initializes audio driver RAM.
-;;; @thread RESET
+;;; @thread RESET, NMI
 ;;; @prereq Caller is within the Reset or NMI handler.
 .EXPORT Func_AudioReset
 .PROC Func_AudioReset
@@ -150,13 +150,20 @@ Ram_Audio_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
     lda #0
     sta Zp_ActiveChannels_bApuStatus
     sta Hw_ApuStatus_rw
-    ;; Zero APU channel registers ($4000-$4013).  This will also disable DMC
-    ;; channel IRQs.
+    ;; Reset all APU channel registers by writing zero to all of them (except
+    ;; for Hw_DmcLevel_wo, which we set to the mid-level value of $40 out of
+    ;; $7f to avoid popping noises).  The fact that we zero Hw_DmcFlags_wo here
+    ;; also has the effect of disabling DMC channel IRQs.
     ldx #.sizeof(sChanRegs) * kNumApuChannels - 1
     @loop:
-    sta Hw_Channels_sChanRegs_arr5, x
+    cpx #Hw_DmcLevel_wo - Hw_Channels_sChanRegs_arr5
+    beq @continue  ; don't zero Hw_DmcLevel_wo
+    sta Hw_Channels_sChanRegs_arr5, x  ; A is still zero
+    @continue:
     dex
     bpl @loop
+    lda #$40
+    sta Hw_DmcLevel_wo
     ;; Disable audio and reset music flag.
     sta Zp_Current_bAudio
     sta Zp_MusicFlag_bMusic
@@ -181,9 +188,10 @@ _HaltSfx:
 .EXPORT Func_AudioSync
 .PROC Func_AudioSync
     lda Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
-    .assert bAudio::Enable = bProc::Negative, error
+    .assert bAudio::Enable = $80, error
     bmi _Enable
 _Disable:
+    ;; If audio wasn't already disabled, reset audio.
     bit Zp_Current_bAudio
     .assert bAudio::Enable = bProc::Negative, error
     bmi Func_AudioReset
