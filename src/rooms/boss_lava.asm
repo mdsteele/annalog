@@ -390,7 +390,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0050
+    d_word Left_i16,  $0048
     d_word Top_i16,   $00a0
     D_END
     .assert * - :- = kPipe2PlatformIndex * .sizeof(sPlatform), error
@@ -398,7 +398,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Zone
     d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00a8
+    d_word Left_i16,  $00b0
     d_word Top_i16,   $00a0
     D_END
     .assert * - :- = kLeftWallPlatformIndex * .sizeof(sPlatform), error

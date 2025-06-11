@@ -278,7 +278,7 @@ _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 6
-    d_byte BlockCol_u8, 20
+    d_byte BlockCol_u8, 19
     d_byte Target_byte, sState::Lever_u8
     D_END
     D_STRUCT sDevice
