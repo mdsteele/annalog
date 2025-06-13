@@ -30,6 +30,10 @@ kMenuStartTileColumn = 22
 
 ;;; Represents static data about a console instruction field editing menu.
 .STRUCT sMenu
+    ;; The type of field that this menu is for.  If the same sMenu data is used
+    ;; for multiple field types (e.g. LValue and RValue), then only one of
+    ;; those types will be given here.
+    Type_eField           .byte
     ;; The (width - 1) of each menu item, in tiles.
     WidthsMinusOne_u8_arr .byte kMaxMenuItems
     ;; Pointers to the label string for each menu item.  Each string must have

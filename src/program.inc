@@ -47,7 +47,8 @@
 
 ;;; Types of fields that can appear in written program instructions.
 .ENUM eField
-    Erase      ; used for the erase program menu (not really a field type)
+    Erase      ; used for the erase-program menu (not really a field type)
+    Debug      ; used for the debug menu (not really a field type)
     Opcode     ; the instruction's opcode
     LValue     ; a writable register
     RValue     ; an immediate value (0-9) or readable register
@@ -56,6 +57,10 @@
     Direction  ; a cardinal direction (for MOVE instructions)
     NUM_VALUES
 .ENDENUM
+
+;;; eField values less than this represent special menus for things that aren't
+;;; really instruction fields.
+kFirstRealFieldType = eField::Opcode
 
 ;;; Comparison operators that can be used in IF and TIL instructions.
 .ENUM eCmp
@@ -74,6 +79,15 @@
     Right
     Down
     Left
+    NUM_VALUES
+.ENDENUM
+
+;;; Options that can be selected on the debug menu.
+.ENUM eDebug
+    StartDebugger
+    EraseProgram
+    ResetRoom
+    Cancel
     NUM_VALUES
 .ENDENUM
 

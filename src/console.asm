@@ -67,9 +67,10 @@
 .IMPORT Func_Window_TransferBottomBorder
 .IMPORT Func_Window_TransferClearRow
 .IMPORT Func_ZeroAvatarLandingTimer
-.IMPORT Main_Console_Debug
+.IMPORT Main_Console_ReportHaltOrError
 .IMPORT Main_Explore_Continue
 .IMPORT Main_Menu_EditSelectedField
+.IMPORT Main_Menu_EnterDebugMenu
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PpuTransfer_arr
@@ -178,7 +179,8 @@ _StartInteraction:
     sta Zp_FloatingHud_bHud
     lda Zp_ConsoleNeedsPower_u8
     bne Main_Console_NoPower
-    ;; If the machine is Halted or Error, start in debugging mode.
+    ;; If the machine is Halted or Error, start in error reporting mode.
+    ;; Otherwise, start in editing mode.
     ldx Zp_ConsoleMachineIndex_u8
     lda Ram_MachineStatus_eMachine_arr, x
     cmp #eMachine::Error
@@ -186,7 +188,7 @@ _StartInteraction:
     cmp #eMachine::Halted
     bne Main_Console_StartEditing
     @debug:
-    jmp Main_Console_Debug
+    jmp Main_Console_ReportHaltOrError
 .ENDPROC
 
 ;;; Mode for using a console for a machine whose required circuit breaker
@@ -500,16 +502,12 @@ _ScrollWindow:
     ldya #Main_Console_CloseWindow
     bmi _ReturnYA  ; unconditional
     @noClose:
-    ;; Start button (start debugging):
+    ;; Start button (debug menu):
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
     beq @noDebug
-    ;; Don't start debugging if the program is empty.
-    ldy #0  ; param: instruction number
-    jsr FuncA_Console_IsInstructionEmpty  ; returns Z
-    beq @noDebug
     jsr Func_PlaySfxMenuConfirm
-    ldya #Main_Console_Debug
+    ldya #Main_Menu_EnterDebugMenu
     bmi _ReturnYA  ; unconditional
     @noDebug:
     ;; Select button (insert instruction):
@@ -524,6 +522,7 @@ _ScrollWindow:
     .assert bJoypad::AButton = bProc::Negative, error
     bpl @noEdit
     @edit:
+    jsr Func_PlaySfxMenuConfirm
     ldya #Main_Menu_EditSelectedField
     bmi _ReturnYA  ; unconditional
     @noEdit:

@@ -28,11 +28,12 @@
 .IMPORT FuncA_Console_DrawMenuCursor
 .IMPORT FuncA_Console_GetCurrentFieldType
 .IMPORT FuncA_Console_GetCurrentFieldValue
-.IMPORT FuncA_Console_IsEraseMenuActive
+.IMPORT FuncA_Console_IsInstructionEmpty
 .IMPORT FuncA_Console_MoveMenuCursor
 .IMPORT FuncA_Console_SetCurrentFieldValue
 .IMPORT FuncA_Console_SetUpAddressMenu
 .IMPORT FuncA_Console_SetUpCompareMenu
+.IMPORT FuncA_Console_SetUpDebugMenu
 .IMPORT FuncA_Console_SetUpDirectionMenu
 .IMPORT FuncA_Console_SetUpEraseMenu
 .IMPORT FuncA_Console_SetUpLValueMenu
@@ -49,6 +50,7 @@
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Main_Console_ContinueEditing
+.IMPORT Main_Console_StartDebugger
 .IMPORT Ram_Console_sProgram
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_ConsoleFieldNumber_u8
@@ -101,21 +103,51 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
 
 .SEGMENT "PRGA_Console"
 
-;;; Initializes console menu mode.
-.PROC FuncA_Console_InitMenu
-    jsr Func_PlaySfxMenuConfirm
-    fall FuncA_Console_SetUpAndTransferFieldMenu
+;;; Sets up the debug menu, and transfers all menu rows to the PPU.
+.PROC FuncA_Console_InitDebugMenu
+    lda #eDebug::StartDebugger
+    sta Zp_MenuItem_u8
+    ;; Set up and transfer the menu.
+    ldy #eField::Debug  ; param: field type
+    .assert eField::Debug > 0, error
+    bne FuncA_Console_SetUpAndTransferMenu  ; unconditional
+.ENDPROC
+
+;;; Sets up the erase-program menu, and transfers all menu rows to the PPU.
+.PROC FuncA_Console_InitEraseMenu
+    ldy #eField::Erase  ; param: field type
+    ;; Set current menu item to zero (for "NO").
+    .assert eField::Erase = 0, error
+    sty Zp_MenuItem_u8
+    ;; Set up and transfer the menu.
+    beq FuncA_Console_SetUpAndTransferMenu  ; unconditional
 .ENDPROC
 
 ;;; Sets up the menu for the currently selected program field, and transfers
 ;;; all menu rows to the PPU.
-.PROC FuncA_Console_SetUpAndTransferFieldMenu
-    jsr FuncA_Console_SetUpCurrentFieldMenu
-    fall FuncA_Console_TransferMenuRows
+.PROC FuncA_Console_InitFieldMenu
+    ;; Set current menu item (must be initialized before setting up field
+    ;; menu).
+    jsr FuncA_Console_GetCurrentFieldValue  ; returns A
+    sta Zp_MenuItem_u8
+    ;; Call field-type-specific setup function.
+    jsr FuncA_Console_GetCurrentFieldType  ; returns Y (param: field type)
+    fall FuncA_Console_SetUpAndTransferMenu
 .ENDPROC
 
-;;; Buffers PPU transfers for all menu rows.
-.PROC FuncA_Console_TransferMenuRows
+;;; Sets up the menu for the specified field type, and transfers all menu rows
+;;; to the PPU.
+;;; @prereq Zp_MenuItem_u8 is initialized.
+;;; @param Y The eField value for the field type.
+.PROC FuncA_Console_SetUpAndTransferMenu
+    ;; Initialize Zp_Current_sMachine_ptr (since some of the
+    ;; field-type-specific setup functions require this).
+    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
+    jsr Func_SetMachineIndex  ; preserves Y
+    ;; Call field-type-specific setup function.
+    jsr FuncA_Console_SetUpMenuForFieldType
+    jsr FuncA_Console_UpdateMenuNominalCol
+_TransferMenuRows:
     ;; Transfer menu rows.
     ldx #0  ; param: menu row to transfer
     @loop:
@@ -124,23 +156,6 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
     cpx Zp_ConsoleNumInstRows_u8
     blt @loop
     rts
-.ENDPROC
-
-;;; Initializes Zp_Current_sMenu_ptr, Zp_MenuItem_u8, Ram_MenuRows_u8_arr, and
-;;; Ram_MenuCols_u8_arr appropriately for editing the currently-selected field.
-.PROC FuncA_Console_SetUpCurrentFieldMenu
-    ;; Initialize Zp_Current_sMachine_ptr (since some of the
-    ;; field-type-specific setup functions require this).
-    ldx Zp_ConsoleMachineIndex_u8  ; param: machine index
-    jsr Func_SetMachineIndex
-    ;; Set current menu item (must be initialized before setting up field
-    ;; menu).
-    jsr FuncA_Console_GetCurrentFieldValue  ; returns A
-    sta Zp_MenuItem_u8
-    ;; Call field-type-specific setup function.
-    jsr FuncA_Console_GetCurrentFieldType  ; returns Y (param: field type)
-    jsr FuncA_Console_SetUpMenuForFieldType
-    fall FuncA_Console_UpdateMenuNominalCol
 .ENDPROC
 
 ;;; Sets the menu nominal column to the actual column of the currently-selected
@@ -177,6 +192,7 @@ Ram_MenuCols_u8_arr: .res kMaxMenuItems
     D_TABLE_HI table, _JumpTable_ptr_1_arr
     D_TABLE .enum, eField
     d_entry table, Erase,     FuncA_Console_SetUpEraseMenu
+    d_entry table, Debug,     FuncA_Console_SetUpDebugMenu
     d_entry table, Opcode,    FuncA_Console_SetUpOpcodeMenu
     d_entry table, LValue,    FuncA_Console_SetUpLValueMenu
     d_entry table, RValue,    FuncA_Console_SetUpRValueMenu
@@ -242,7 +258,7 @@ _TransferLabels:
     sty T1  ; item index
     ;; Make T5T4 point to start of the label string.
     tya
-    asl a
+    mul #kSizeofAddr
     add #sMenu::Labels_u8_arr_ptr_arr
     tay
     lda (Zp_Current_sMenu_ptr), y
@@ -251,12 +267,13 @@ _TransferLabels:
     lda (Zp_Current_sMenu_ptr), y
     sta T5  ; label string ptr (hi)
     ;; Set T3 to the (width - 1) of the label.
-    lda T1  ; item index
-    add #sMenu::WidthsMinusOne_u8_arr
-    tay
+    ldy T1  ; item index
+    .assert sMenu::WidthsMinusOne_u8_arr = 1, error
+    iny  ; now Y is sMenu::WidthsMinusOne_u8_arr + item index
     lda (Zp_Current_sMenu_ptr), y  ; item width
     sta T3  ; the label's (width - 1)
     ;; Set X to the PPU transfer array index for the last byte in the label.
+    ldy T1  ; item index
     adc Ram_MenuCols_u8_arr, y  ; starting menu col
     adc T0  ; start of transfer data
     tax
@@ -417,11 +434,9 @@ _RedrawInstructions:
 
 ;;; Responds to any joypad presses while in menu mode.
 ;;; @return C Set if the menu should exit, cleared otherwise.
+;;; @return T1T0 If exiting menu, the next main to jump to.
 .PROC FuncA_Console_MenuHandleJoypad
-    lda #bJoypad::Select
     bit Zp_P1ButtonsPressed_bJoypad
-    ;; SELECT button:
-    bne _ToggleEraseMenu
     ;; B button:
     .assert bJoypad::BButton = bProc::Overflow, error
     bvs _Cancel
@@ -430,55 +445,54 @@ _RedrawInstructions:
     bmi _Confirm
     ;; D-pad:
     jsr FuncA_Console_MoveMenuCursor
-    clc
+    clc  ; clear C to indicate that we should stay in the menu
     rts
-_ToggleEraseMenu:
-    jsr FuncA_Console_IsEraseMenuActive  ; sets Z if erase menu is active
-    beq _CancelEraseMenu
-    fall _SetUpEraseMenu
-_SetUpEraseMenu:
+_InitEraseMenu:
     jsr Func_PlaySfxMenuConfirm
-    ldy #eField::Erase  ; param: field type
-    ;; Set current menu item to zero (for "NO").
-    .assert eField::Erase = 0, error
-    sty Zp_MenuItem_u8
-    ;; Set up and transfer the menu.
-    jsr FuncA_Console_SetUpMenuForFieldType
-    jsr FuncA_Console_UpdateMenuNominalCol
-    jsr FuncA_Console_TransferMenuRows
-    clc
+    jsr FuncA_Console_InitEraseMenu
+    clc  ; clear C to indicate that we should stay in the menu
     rts
 _Confirm:
-    jsr FuncA_Console_IsEraseMenuActive  ; sets Z if erase menu is active
+    ldy #sMenu::Type_eField
+    lda (Zp_Current_sMenu_ptr), y
+    .assert eField::Erase = 0, error
+    beq _ConfirmEraseMenu
+    cmp #eField::Debug
     bne _ConfirmFieldMenu
+    fall _ConfirmDebugMenu
+_ConfirmDebugMenu:
+    ldx Zp_MenuItem_u8
+    cpx #eDebug::Cancel
+    beq _Cancel
+    cpx #eDebug::StartDebugger
+    beq _TryStartDebugger
+    cpx #eDebug::EraseProgram
+    beq _InitEraseMenu
+    fall _ResetAllMachines
+_ResetAllMachines:
+    jsr Func_PlaySfxMenuConfirm
+    ;; TODO: implement this
+    jmp _ExitMenuAndContinueEditing
+_ConfirmEraseMenu:
     lda Zp_MenuItem_u8  ; 0 for NO, 1 for YES
-    beq _CancelEraseMenu
-    fall _EraseProgram
-_EraseProgram:
+    beq _Cancel
+    ;; Erase the program.
     jsr Func_PlaySfxMenuConfirm
     jsr Func_PlaySfxExplodeFracture
     jsr FuncA_Console_EraseProgram
-    jmp _ExitMenu
-_CancelEraseMenu:
-    jsr Func_PlaySfxMenuCancel
-    jsr FuncA_Console_SetUpAndTransferFieldMenu
-    clc
-    rts
+    jmp _ExitMenuAndContinueEditing
 _Cancel:
-    jsr FuncA_Console_IsEraseMenuActive  ; sets Z if erase menu is active
-    beq _CancelEraseMenu
-    fall _CancelFieldMenu
-_CancelFieldMenu:
     jsr Func_PlaySfxMenuCancel
     ;; If we cancel editing a NOP opcode (i.e. we were inserting a new
     ;; instruction), then delete that instruction (thus cancelling the
     ;; insertion).  In all other cases, we can simply exit the menu.
-    jsr FuncA_Console_GetCurrentFieldType  ; returns Y
-    cpy #eField::Opcode
-    bne _ExitMenu
+    ldy #sMenu::Type_eField
+    lda (Zp_Current_sMenu_ptr), y
+    cmp #eField::Opcode
+    bne _ExitMenuAndContinueEditing  ; not editing an opcode field
     jsr FuncA_Console_GetCurrentFieldValue  ; returns A
     cmp #eOpcode::Nop
-    bne _ExitMenu
+    bne _ExitMenuAndContinueEditing  ; not editing a NOP opcode
     lda #eOpcode::Empty
     sta Zp_MenuItem_u8
     .assert eOpcode::Empty = 0, error
@@ -487,31 +501,67 @@ _ConfirmFieldMenu:
     jsr Func_PlaySfxMenuConfirm
 _SetFieldValue:
     jsr FuncA_Console_MenuSetValue
-_ExitMenu:
+_ExitMenuAndContinueEditing:
     jsr FuncA_Console_TransferAllDiagramBoxRows
-    sec
+    ldya #Main_Console_ContinueEditing
+_ExitMenuAndReturnYA:
+    stya T1T0  ; main ptr to jump to
+    sec  ; set C to indicate that we should exit the menu
     rts
+_TryStartDebugger:
+    ;; Only start debugging if the program isn't empty.
+    ldy #0  ; param: instruction number
+    jsr FuncA_Console_IsInstructionEmpty  ; returns Z
+    bne _DoStartDebugger
+    jsr Func_PlaySfxMenuCancel
+    clc  ; clear C to indicate that we should stay in the menu
+    rts
+_DoStartDebugger:
+    jsr Func_PlaySfxMenuConfirm
+    jsr FuncA_Console_TransferAllDiagramBoxRows
+    ldya #Main_Console_StartDebugger
+    bmi _ExitMenuAndReturnYA  ; unconditional
 .ENDPROC
 
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
 
-;;; Mode for the console instruction field editing menu.
+;;; Mode for opening the console debug menu.
+;;; @prereq Rendering is enabled.
+;;; @prereq The console window is fully visible.
+;;; @prereq Explore mode is initialized.
+.EXPORT Main_Menu_EnterDebugMenu
+.PROC Main_Menu_EnterDebugMenu
+    jsr_prga FuncA_Console_InitDebugMenu
+    jmp Main_Menu_RunMenu
+.ENDPROC
+
+;;; Mode for opening the console instruction field editing menu.
 ;;; @prereq Rendering is enabled.
 ;;; @prereq The console window is fully visible.
 ;;; @prereq Explore mode is initialized.
 .EXPORT Main_Menu_EditSelectedField
 .PROC Main_Menu_EditSelectedField
-    jsr_prga FuncA_Console_InitMenu
+    jsr_prga FuncA_Console_InitFieldMenu
+    fall Main_Menu_RunMenu
+.ENDPROC
+
+;;; Mode for an open console menu.
+;;; @prereq Rendering is enabled.
+;;; @prereq The console menu is initialized.
+;;; @prereq Explore mode is initialized.
+.PROC Main_Menu_RunMenu
 _GameLoop:
     jsr_prga FuncA_Console_DrawMenuCursor
     jsr FuncM_DrawObjectsForRoomAndProcessFrame
-    jsr_prga FuncA_Console_MenuHandleJoypad  ; returns C
-    jcs Main_Console_ContinueEditing
+    jsr_prga FuncA_Console_MenuHandleJoypad  ; returns C and T1T0
+    bcs _ExitMenu
 _Tick:
     jsr FuncM_ConsoleScrollTowardsGoalAndTick
     jmp _GameLoop
+_ExitMenu:
+    jmp (T1T0)
 .ENDPROC
 
 ;;;=========================================================================;;;

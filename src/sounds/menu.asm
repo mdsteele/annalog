@@ -60,27 +60,27 @@
 .SEGMENT "PRG8"
 
 ;;; Starts playing the sound for cancelling in a menu.
-;;; @preserve T0+
+;;; @preserve X, T0+
 .EXPORT Func_PlaySfxMenuCancel
 .PROC Func_PlaySfxMenuCancel
     ldya #Data_MenuCancel_sSfx
-    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves X and T0+
 .ENDPROC
 
 ;;; Starts playing the sound for confirming a menu item.
-;;; @preserve T0+
+;;; @preserve X, T0+
 .EXPORT Func_PlaySfxMenuConfirm
 .PROC Func_PlaySfxMenuConfirm
     ldya #Data_MenuConfirm_sSfx
-    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves X and T0+
 .ENDPROC
 
 ;;; Starts playing the sound for moving the cursor in a menu.
-;;; @preserve T0+
+;;; @preserve X, T0+
 .EXPORT Func_PlaySfxMenuMove
 .PROC Func_PlaySfxMenuMove
     ldya #Data_MenuMove_sSfx
-    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

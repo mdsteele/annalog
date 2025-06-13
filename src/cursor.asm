@@ -263,9 +263,10 @@ _XPosition:
     add #kMenuStartTileColumn * kTileWidthPx
     sta T1  ; cursor left X-position, in pixels
 _CursorWidth:
-    txa
-    add #sMenu::WidthsMinusOne_u8_arr
-    tay
+    txa  ; item index
+    tay  ; item index
+    .assert sMenu::WidthsMinusOne_u8_arr = 1, error
+    iny  ; now Y is sMenu::WidthsMinusOne_u8_arr + item index
     lda (Zp_Current_sMenu_ptr), y
     sta T2  ; cursor (width - 1), in tiles
 _YPosition:
@@ -279,8 +280,15 @@ _YPosition:
     sta T0  ; cursor Y-position, in pixels
 _DrawCursors:
     jsr FuncA_Console_DrawFullCursor
+    ;; Don't draw the field cursor unless a field menu is open.
+    ldy #sMenu::Type_eField
+    lda (Zp_Current_sMenu_ptr), y
+    cmp #kFirstRealFieldType
+    blt @done  ; not a field menu
     lda #$ff  ; param: cursor diminished bool ($ff = diminished)
     bne FuncA_Console_DrawFieldCursorFullOrDim  ; unconditional
+    @done:
+    rts
 .ENDPROC
 
 ;;; Draws the console instruction field cursor.

@@ -47,6 +47,9 @@
 ;;; +--------+
 .PROC DataA_Console_Value_sMenu
     D_STRUCT sMenu
+    ;; This sMenu is used for both LValue and RValue fields, but nothing that
+    ;; reads Type_eField cares about the difference, so just list RValue.
+    d_byte Type_eField, eField::RValue
     d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr

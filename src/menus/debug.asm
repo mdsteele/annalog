@@ -24,10 +24,10 @@
 .INCLUDE "../menu.inc"
 .INCLUDE "../program.inc"
 
+.IMPORT Func_Noop
 .IMPORT Ram_MenuCols_u8_arr
 .IMPORT Ram_MenuRows_u8_arr
 .IMPORTZP Zp_ConsoleNumInstRows_u8
-.IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_Current_sMenu_ptr
 .IMPORTZP Zp_MenuItem_u8
 
@@ -36,98 +36,82 @@
 .SEGMENT "PRGA_Console"
 
 ;;; +--------+
+;;; | DEBUG  |
+;;; | ERASE  |
+;;; | RESET  |
 ;;; |        |
 ;;; |        |
-;;; |   ^    |
-;;; |  < >   |
-;;; |   v    |
 ;;; |        |
 ;;; |        |
-;;; |        |
+;;; | cancel |
 ;;; +--------+
-.PROC DataA_Console_Direction_sMenu
+.PROC DataA_Console_Debug_sMenu
     D_STRUCT sMenu
-    d_byte Type_eField, eField::Direction
+    d_byte Type_eField, eField::Debug
     d_byte WidthsMinusOne_u8_arr
-    .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    .byte 7, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr
-    D_ARRAY .enum, eDir, kSizeofAddr
-    d_addr Up,    _LabelUp
-    d_addr Right, _LabelRight
-    d_addr Down,  _LabelDown
-    d_addr Left,  _LabelLeft
+    D_ARRAY .enum, eDebug, kSizeofAddr
+    d_addr StartDebugger, _LabelDebug
+    d_addr EraseProgram,  _LabelErase
+    d_addr ResetRoom,     _LabelReset
+    d_addr Cancel,        _LabelCancel
     D_END
     .addr 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr OnUp_func_ptr,    _OnUp
     d_addr OnDown_func_ptr,  _OnDown
-    d_addr OnLeft_func_ptr,  _OnLeft
-    d_addr OnRight_func_ptr, _OnRight
+    d_addr OnLeft_func_ptr,  Func_Noop
+    d_addr OnRight_func_ptr, Func_Noop
     D_END
-_LabelUp:    .byte kTileIdBgArrowUp
-_LabelRight: .byte kTileIdBgArrowRight
-_LabelDown:  .byte kTileIdBgArrowDown
-_LabelLeft:  .byte kTileIdBgArrowLeft
+_LabelDebug:  .byte " DEBUG  "
+_LabelErase:  .byte " ERASE  "
+_LabelReset:  .byte " RESET  "
+_LabelCancel: .byte " cancel "
 _OnUp:
-    ldx #eDir::Up
-    bpl _SetItem  ; unconditional
+    ldy Zp_MenuItem_u8
+    @loop:
+    dey
+    bmi _Return
+    lda Ram_MenuRows_u8_arr, y
+    bmi @loop
+    bpl _SetMenuItem  ; unconditional
 _OnDown:
-    ldx #eDir::Down
-    bpl _SetItem  ; unconditional
-_OnLeft:
-    ldx #eDir::Left
-    bpl _SetItem  ; unconditional
-_OnRight:
-    ldx #eDir::Right
-_SetItem:
-    lda Ram_MenuRows_u8_arr, x
-    bmi @done
-    stx Zp_MenuItem_u8
-    @done:
+    ldy Zp_MenuItem_u8
+    @loop:
+    iny
+    cpy #eDebug::NUM_VALUES
+    bge _Return
+    lda Ram_MenuRows_u8_arr, y
+    bmi @loop
+_SetMenuItem:
+    sty Zp_MenuItem_u8
+_Return:
     rts
 .ENDPROC
 
 ;;; Initializes Zp_Current_sMenu_ptr, Ram_MenuRows_u8_arr, and
-;;; Ram_MenuCols_u8_arr appropriately for a direction menu.
-;;; @prereq Zp_Current_sMachine_ptr is initialized.
-.EXPORT FuncA_Console_SetUpDirectionMenu
-.PROC FuncA_Console_SetUpDirectionMenu
-    ldax #DataA_Console_Direction_sMenu
+;;; Ram_MenuCols_u8_arr appropriately for the debug menu.
+.EXPORT FuncA_Console_SetUpDebugMenu
+.PROC FuncA_Console_SetUpDebugMenu
+    ldax #DataA_Console_Debug_sMenu
     stax Zp_Current_sMenu_ptr
-    ;; Store the starting row in T0.
-    lda Zp_ConsoleNumInstRows_u8
-    sub #3
-    div #2
-    sta T0  ; starting row
-    ;; Check if this machine supports moving vertically.
-    ldy #sMachine::Flags_bMachine
-    lda (Zp_Current_sMachine_ptr), y
-    tay  ; machine flags
-    and #bMachine::MoveV
-    beq @noMoveVert
-    ;; If so, position menu items for up/down.
-    ldx T0  ; starting row
-    stx Ram_MenuRows_u8_arr + eDir::Up
-    inx
-    inx
-    stx Ram_MenuRows_u8_arr + eDir::Down
-    lda #3
-    sta Ram_MenuCols_u8_arr + eDir::Up
-    sta Ram_MenuCols_u8_arr + eDir::Down
-    @noMoveVert:
-    ;; Check if this machine supports moving horizontally.
-    tya  ; machine flags
-    and #bMachine::MoveH
-    beq @noMoveHorz
-    ;; If so, position menu items for left/right.
-    ldx T0  ; starting row
-    inx
-    stx Ram_MenuRows_u8_arr + eDir::Left
-    stx Ram_MenuRows_u8_arr + eDir::Right
-    lda #2
-    sta Ram_MenuCols_u8_arr + eDir::Left
-    lda #4
-    sta Ram_MenuCols_u8_arr + eDir::Right
-    @noMoveHorz:
+    ;; Set menu item cols and rows.
+    ldx #eDebug::NUM_VALUES - 1
+    @loop:
+    lda #0
+    sta Ram_MenuCols_u8_arr, x
+    txa
+    sta Ram_MenuRows_u8_arr, x
+    dex
+    .assert eDebug::NUM_VALUES <= $80, error
+    bpl @loop
+    ;; Put "cancel" in the last row.
+    ldy Zp_ConsoleNumInstRows_u8
+    dey
+    sty Ram_MenuRows_u8_arr + eDebug::Cancel
+    ;; TODO: For now, hide the RESET option (until it is implemented):
+    lda #$ff
+    sta Ram_MenuRows_u8_arr + eDebug::ResetRoom
     rts
 .ENDPROC
 

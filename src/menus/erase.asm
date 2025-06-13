@@ -24,6 +24,7 @@
 .INCLUDE "../menu.inc"
 .INCLUDE "../program.inc"
 
+.IMPORT Func_Noop
 .IMPORT Ram_MenuCols_u8_arr
 .IMPORT Ram_MenuRows_u8_arr
 .IMPORTZP Zp_ConsoleNumInstRows_u8
@@ -46,13 +47,14 @@
 ;;; +--------+
 .PROC DataA_Console_Erase_sMenu
     D_STRUCT sMenu
+    d_byte Type_eField, eField::Erase
     d_byte WidthsMinusOne_u8_arr
     .byte 1, 2, 4, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr
     .addr _LabelNo, _LabelYes, _LabelErase, _LabelProgram
     .addr 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    d_addr OnUp_func_ptr,    _OnUp
-    d_addr OnDown_func_ptr,  _OnDown
+    d_addr OnUp_func_ptr,    Func_Noop
+    d_addr OnDown_func_ptr,  Func_Noop
     d_addr OnLeft_func_ptr,  _OnLeft
     d_addr OnRight_func_ptr, _OnRight
     D_END
@@ -67,8 +69,6 @@ _OnRight:
     ldx #0  ; "NO"
 _SetItem:
     stx Zp_MenuItem_u8
-_OnUp:
-_OnDown:
     rts
 .ENDPROC
 
@@ -99,20 +99,6 @@ _OnDown:
     stx Ram_MenuCols_u8_arr + 2  ; "Erase"
     ldx #6
     stx Ram_MenuCols_u8_arr + 0  ; "NO"
-    rts
-.ENDPROC
-
-;;; Determines if the current menu is the erase program menu.
-;;; @prereq Zp_Current_sMenu_ptr is initialized.
-;;; @return Z Set if Zp_Current_sMenu_ptr is set to the erase program menu.
-.EXPORT FuncA_Console_IsEraseMenuActive
-.PROC FuncA_Console_IsEraseMenuActive
-    lda Zp_Current_sMenu_ptr + 0
-    cmp #<DataA_Console_Erase_sMenu
-    bne @done
-    lda Zp_Current_sMenu_ptr + 1
-    cmp #>DataA_Console_Erase_sMenu
-    @done:
     rts
 .ENDPROC
 

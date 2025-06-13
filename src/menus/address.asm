@@ -46,6 +46,7 @@
 ;;; +--------+
 .PROC DataA_Console_Address_sMenu
     D_STRUCT sMenu
+    d_byte Type_eField, eField::Address
     d_byte WidthsMinusOne_u8_arr
     .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr

@@ -1023,7 +1023,6 @@ _CheckForHorzCollision:
     jsr FuncA_Actor_ZeroVelX  ; preserves X
     @done:
 _ApplyGravity:
-    ;; TODO: Check for side collisions with walls
     .assert <kOrcMaxFallSpeed = 0, error
     lda #>kOrcMaxFallSpeed  ; param: terminal velocity
     jsr FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X

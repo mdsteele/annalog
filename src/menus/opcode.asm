@@ -57,6 +57,7 @@ kOpcodeMenuRightCol = 5
 ;;; +--------+
 .PROC DataA_Console_Opcode_sMenu
     D_STRUCT sMenu
+    d_byte Type_eField, eField::Opcode
     d_byte WidthsMinusOne_u8_arr
     .byte 5, 3, 3, 2, 2, 2, 3, 3, 1, 2, 2, 3, 3, 3, 2, 2
     d_addr Labels_u8_arr_ptr_arr
