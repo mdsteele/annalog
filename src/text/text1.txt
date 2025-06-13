@@ -220,6 +220,53 @@ faced them alone, and
 survived? If so, I am
 impressed.#
 
+@MermaidHut3Phoebe_Initial
+You're so lucky that
+you get to go on an
+adventure. I'm stuck
+here at home.#
+
+@MermaidHut3Phoebe_AfterTemple
+There are monsters in
+the temple? Aw, man, I
+wish my parents would
+let me go see them.#
+
+@MermaidHut3Phoebe_AfterCrypt
+You got trapped in a
+tomb full of creepy
+spiders and bats?
+That's so awesome!#
+
+@MermaidHut3Phoebe_AfterMine
+You got to fight a
+giant fire spider!?
+Hey, no fair! I'm so
+jealous!#
+
+@MermaidHut3Phoebe_AfterCity
+You went to some dusty
+old ruins? That sounds
+boring! At least you
+got chased by orcs.#
+
+@MermaidHut3Phoebe_AfterShadow1
+`Shadow Labs?' Full of
+ghosts and stuff? Oh
+c'mon, I know you made
+all that up.#
+
+@MermaidHut3Phoebe_AfterShadow2
+There's no way a REAL
+adventure would ever
+be THAT cool.#
+
+@MermaidHut3Phoebe_ComeBack
+If you visit anywhere
+else cool, make sure
+you come back and tell
+me all about it!#
+
 @MermaidHut4Florist_Meet1
 Ah...you must be that
 human that I've been

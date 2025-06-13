@@ -31,7 +31,14 @@
 .IMPORT DataA_Text0_MermaidHut3Daphne_Closed_u8_arr
 .IMPORT DataA_Text0_MermaidHut3Daphne_Intro_u8_arr
 .IMPORT DataA_Text0_MermaidHut3Daphne_Open_u8_arr
-.IMPORT DataA_Text0_MermaidHut3Phoebe_u8_arr
+.IMPORT DataA_Text1_MermaidHut3Phoebe_AfterCity_u8_arr
+.IMPORT DataA_Text1_MermaidHut3Phoebe_AfterCrypt_u8_arr
+.IMPORT DataA_Text1_MermaidHut3Phoebe_AfterMine_u8_arr
+.IMPORT DataA_Text1_MermaidHut3Phoebe_AfterShadow1_u8_arr
+.IMPORT DataA_Text1_MermaidHut3Phoebe_AfterShadow2_u8_arr
+.IMPORT DataA_Text1_MermaidHut3Phoebe_AfterTemple_u8_arr
+.IMPORT DataA_Text1_MermaidHut3Phoebe_ComeBack_u8_arr
+.IMPORT DataA_Text1_MermaidHut3Phoebe_Initial_u8_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjVillage
 
@@ -146,7 +153,34 @@ _HotSpringClosed_sDialog:
 
 .EXPORT DataA_Dialog_MermaidHut3Phoebe_sDialog
 .PROC DataA_Dialog_MermaidHut3Phoebe_sDialog
-    dlg_Text MermaidPhoebe, DataA_Text0_MermaidHut3Phoebe_u8_arr
+    dlg_IfSet BreakerShadow, _AfterShadow_sDialog
+    dlg_IfSet BreakerCity, _AfterCity_sDialog
+    dlg_IfSet BreakerMine, _AfterMine_sDialog
+    dlg_IfSet BreakerCrypt, _AfterCrypt_sDialog
+    dlg_IfSet BreakerTemple, _AfterTemple_sDialog
+_Initial_sDialog:
+    dlg_Text MermaidPhoebe, DataA_Text1_MermaidHut3Phoebe_Initial_u8_arr
+    dlg_Text MermaidPhoebe, DataA_Text1_MermaidHut3Phoebe_ComeBack_u8_arr
+    dlg_Done
+_AfterTemple_sDialog:
+    dlg_Text MermaidPhoebe, DataA_Text1_MermaidHut3Phoebe_AfterTemple_u8_arr
+    dlg_Text MermaidPhoebe, DataA_Text1_MermaidHut3Phoebe_ComeBack_u8_arr
+    dlg_Done
+_AfterCrypt_sDialog:
+    dlg_Text MermaidPhoebe, DataA_Text1_MermaidHut3Phoebe_AfterCrypt_u8_arr
+    dlg_Text MermaidPhoebe, DataA_Text1_MermaidHut3Phoebe_ComeBack_u8_arr
+    dlg_Done
+_AfterMine_sDialog:
+    dlg_Text MermaidPhoebe, DataA_Text1_MermaidHut3Phoebe_AfterMine_u8_arr
+    dlg_Text MermaidPhoebe, DataA_Text1_MermaidHut3Phoebe_ComeBack_u8_arr
+    dlg_Done
+_AfterCity_sDialog:
+    dlg_Text MermaidPhoebe, DataA_Text1_MermaidHut3Phoebe_AfterCity_u8_arr
+    dlg_Text MermaidPhoebe, DataA_Text1_MermaidHut3Phoebe_ComeBack_u8_arr
+    dlg_Done
+_AfterShadow_sDialog:
+    dlg_Text MermaidPhoebe, DataA_Text1_MermaidHut3Phoebe_AfterShadow1_u8_arr
+    dlg_Text MermaidPhoebe, DataA_Text1_MermaidHut3Phoebe_AfterShadow2_u8_arr
     dlg_Done
 .ENDPROC
 
