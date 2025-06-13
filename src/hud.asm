@@ -19,6 +19,7 @@
 
 .INCLUDE "charmap.inc"
 .INCLUDE "cpu.inc"
+.INCLUDE "device.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "hud.inc"
 .INCLUDE "machine.inc"
@@ -30,10 +31,13 @@
 .IMPORT Func_AllocObjects
 .IMPORT Func_MachineRead
 .IMPORT Func_SetMachineIndex
+.IMPORT Ram_DeviceTarget_byte_arr
+.IMPORT Ram_DeviceType_eDevice_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORT Ram_ProgressFlags_arr
 .IMPORTZP Zp_ConsoleNumInstRows_u8
 .IMPORTZP Zp_Current_sMachine_ptr
+.IMPORTZP Zp_Nearby_bDevice
 .IMPORTZP Zp_ShapePosX_i16
 .IMPORTZP Zp_ShapePosY_i16
 .IMPORTZP Zp_WindowTop_u8
@@ -66,6 +70,57 @@ kPaletteObjHud = 1
 ;;; Current settings for the floating HUD.
 .EXPORTZP Zp_FloatingHud_bHud
 Zp_FloatingHud_bHud: .res 1
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGA_Avatar"
+
+;;; Toggles the floating HUD on or off.
+;;; @prereq Zp_Nearby_bDevice is up-to-date.
+.EXPORT FuncA_Avatar_ToggleFloatingHud
+.PROC FuncA_Avatar_ToggleFloatingHud
+    ;; If the player avatar isn't standing in front of a console device, then
+    ;; just toggle the existint HUD (if any).
+    lda Zp_Nearby_bDevice
+    .assert bDevice::NoneNearby = $80, error
+    bmi _ToggleHud  ; no device nearby
+    and #bDevice::IndexMask
+    tax  ; nearby device index
+    lda Ram_DeviceType_eDevice_arr, x
+    cmp #eDevice::ConsoleFloor
+    beq _ConsoleIsNearby
+    cmp #eDevice::ConsoleCeiling
+    bne _ToggleHud  ; nearby device is not a console
+_ConsoleIsNearby:
+    ;; If no HUD is visible (either because it's not connected to any machine,
+    ;; or because it's been toggled to hidden), then display the HUD for the
+    ;; nearby console.
+    lda Zp_FloatingHud_bHud
+    .assert bHud::Hidden = $80, error
+    .assert bHud::NoMachine = $40, error
+    cmp #$40
+    bge _ShowHudForThisConsole  ; HUD is hidden or disabled
+    ;; Alternatively, if the visible HUD is for a different machine, replace it
+    ;; with the HUD for this console's machine.
+    and #bHud::IndexMask
+    cmp Ram_DeviceTarget_byte_arr, x
+    bne _ShowHudForThisConsole  ; HUD is for a different machine
+    ;; The visible HUD is already for this console's machine, so just toggle it
+    ;; off.
+_ToggleHud:
+    bit Zp_FloatingHud_bHud
+    .assert bHud::NoMachine = bProc::Overflow, error
+    bvs @done
+    lda Zp_FloatingHud_bHud
+    eor #bHud::Hidden
+    sta Zp_FloatingHud_bHud
+    @done:
+    rts
+_ShowHudForThisConsole:
+    lda Ram_DeviceTarget_byte_arr, x  ; machine index
+    sta Zp_FloatingHud_bHud
+    rts
+.ENDPROC
 
 ;;;=========================================================================;;;
 

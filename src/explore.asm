@@ -40,6 +40,7 @@
 .IMPORT FuncA_Avatar_ExploreMove
 .IMPORT FuncA_Avatar_PickUpFlowerDevice
 .IMPORT FuncA_Avatar_SpawnAtLastSafePoint
+.IMPORT FuncA_Avatar_ToggleFloatingHud
 .IMPORT FuncA_Avatar_ToggleLeverDevice
 .IMPORT FuncA_Machine_ExecuteAll
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -93,7 +94,6 @@
 .IMPORTZP Zp_Current_eRoom
 .IMPORTZP Zp_Current_sRoom
 .IMPORTZP Zp_Current_sTileset
-.IMPORTZP Zp_FloatingHud_bHud
 .IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_GoalBg_eFade
 .IMPORTZP Zp_GoalObj_eFade
@@ -282,16 +282,15 @@ _FadeIn:
 ;;; @return T1T0 The next main to jump to, if any.
 ;;; @return X An argument for the new mode, if any.
 .PROC FuncA_Avatar_ExploreCheckButtons
+    ;; Update Zp_Nearby_bDevice.  This must happen before calling
+    ;; FuncA_Avatar_ToggleFloatingHud and also before checking for device
+    ;; activations.
+    jsr FuncA_Avatar_FindNearbyDevice
 _CheckForToggleHud:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Select
     beq @done
-    bit Zp_FloatingHud_bHud
-    .assert bHud::NoMachine = bProc::Overflow, error
-    bvs @done
-    lda Zp_FloatingHud_bHud
-    eor #bHud::Hidden
-    sta Zp_FloatingHud_bHud
+    jsr FuncA_Avatar_ToggleFloatingHud
     @done:
 _CheckForPause:
     lda Zp_P1ButtonsPressed_bJoypad
@@ -302,7 +301,6 @@ _CheckForPause:
     bmi _ReturnYA  ; unconditional
     @done:
 _CheckForActivateDevice:
-    jsr FuncA_Avatar_FindNearbyDevice
     bit Zp_P1ButtonsPressed_bJoypad
     .assert bJoypad::BButton = bProc::Overflow, error
     bvc _ContinueExploring  ; B button not pressed
