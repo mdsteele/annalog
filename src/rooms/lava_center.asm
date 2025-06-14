@@ -293,13 +293,13 @@ _Platforms_sPlatform_arr:
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadLavaball
-    d_word PosX_i16, $0074
+    d_word PosX_i16, $0070
     d_word PosY_i16, kLavaballStartYTall
     d_byte Param_byte, 7
     D_END
     D_STRUCT sActor
     d_byte Type_eActor, eActor::BadLavaball
-    d_word PosX_i16, $00c0
+    d_word PosX_i16, $00bc
     d_word PosY_i16, kLavaballStartYTall
     d_byte Param_byte, 6
     D_END
@@ -323,7 +323,7 @@ _Devices_sDevice_arr:
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::LeverFloor
     d_byte BlockRow_u8, 14
-    d_byte BlockCol_u8, 10
+    d_byte BlockCol_u8, 9
     d_byte Target_byte, sState::Lever_u8
     D_END
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error

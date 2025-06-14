@@ -74,6 +74,14 @@ kAvatarHorzDecelSlow = 8
 ;;; in subpixels per frame.
 kAvatarJumpVelocity = $ffff & -850
 
+;;; How many frames of coyote time the player avatar has after falling off of a
+;;; ledge.
+kAvatarCoyoteFrames = 3
+
+;;; Ensure that the bAvatar coyote timer mask is wide enough to include any
+;;; coyote timer value.
+.ASSERT kAvatarCoyoteFrames <= bAvatar::CoyoteMask, error
+
 ;;;=========================================================================;;;
 
 .ZEROPAGE
@@ -196,13 +204,16 @@ _SetAvatarPose:
 ;;; Sets Zp_AvatarExit_ePassage if the avatar hits a passage.
 .EXPORT FuncA_Avatar_RagdollMove
 .PROC FuncA_Avatar_RagdollMove
-_RecoverFromLanding:
+_DecrementLandingOrCoyoteTimer:
     bit Zp_AvatarState_bAvatar
     .assert bAvatar::Airborne = bProc::Negative, error
-    bmi @done
+    bmi @tickDown  ; decrement coyote timer
     .assert bAvatar::Swimming = bProc::Overflow, error
-    bvs @done
+    bvs @done  ; no timer when swimming
+    ;; Otherwise the avatar is grounded, so decrement the landing timer.
+    @tickDown:
     lda Zp_AvatarState_bAvatar
+    .assert bAvatar::CoyoteMask = bAvatar::LandMask, error
     and #bAvatar::LandMask
     beq @done  ; landing timer is already zero
     .assert bAvatar::LandMask & $01, error
@@ -368,9 +379,11 @@ _CheckIfSwimmingOrAirborne:
     bit Zp_AvatarState_bAvatar
     .assert bAvatar::Swimming = bProc::Overflow, error
     bvs _Return  ; swimming
+    ldx #bAvatar::Airborne  ; new bAvatar value if moving against gravity
     tay  ; old gravity-relative Y-vel (hi); negative if moving against gravity
     bmi _NowAirborne  ; avatar is moving against gravity
     sta T0  ; old vertical speed (hi)
+    ldx #bAvatar::Airborne | kAvatarCoyoteFrames  ; bAvatar value if no floor
     lda Zp_AvatarCollided_ePlatform
     .assert ePlatform::None = 0, error
     beq _NowAirborne  ; no floor collision
@@ -388,11 +401,12 @@ _NowGrounded:
     @done:
     rts
 _NowAirborne:
+    ;; At this point, X holds the new bAvatar value that should be applied if
+    ;; the player avatar wasn't already airborne.
     bit Zp_AvatarState_bAvatar
     .assert bAvatar::Airborne = bProc::Negative, error
     bmi @done
-    lda #bAvatar::Airborne
-    sta Zp_AvatarState_bAvatar
+    stx Zp_AvatarState_bAvatar
     @done:
 _Return:
     rts
@@ -642,6 +656,11 @@ _Grounded:
     @noJump:
     rts
 _Airborne:
+    ;; If the player avatar has any coyote time left, allow jumping as if
+    ;; grounded.
+    lda Zp_AvatarState_bAvatar
+    and #bAvatar::CoyoteMask
+    bne _Grounded
     ;; If the player stops holding the jump button while jumping, cap the
     ;; upward speed to kAvatarStopJumpSpeed (that is, the Y velocity will be
     ;; greater than or equal to -kAvatarStopJumpSpeed).

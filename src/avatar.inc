@@ -66,11 +66,12 @@ kPaletteObjAvatarDeath  = 3
 
 ;;; State bits for the player avatar.
 .SCOPE bAvatar
-    Airborne  = %10000000  ; if set, the avatar is in midair
-    Swimming  = %01000000  ; if set, the avatar is in water
-    Jumping   = %00100000  ; set during upward jump; release A button to slow
-    DepthMask = %00011111  ; bits used for water depth
-    LandMask  = %00011111  ; bits used for landing timer
+    Airborne   = %10000000  ; if set, the avatar is in midair
+    Swimming   = %01000000  ; if set, the avatar is in water
+    Jumping    = %00100000  ; set during upward jump; release A button to slow
+    CoyoteMask = %00011111  ; bits used for the coyote timer (if airborne)
+    DepthMask  = %00011111  ; bits used for water depth (if swimming)
+    LandMask   = %00011111  ; bits used for landing timer (if grounded)
 .ENDSCOPE
 
 ;;;=========================================================================;;;
