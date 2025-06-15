@@ -65,7 +65,7 @@ _TerrainData:
 _Actors_sActor_arr:
 :   D_STRUCT sActor
     d_byte Type_eActor, eActor::BadToad
-    d_word PosX_i16, $007c
+    d_word PosX_i16, $0080
     d_word PosY_i16, $0060
     d_byte Param_byte, bObj::FlipH
     D_END
