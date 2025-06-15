@@ -18,7 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; OBJ tile IDs for drawing anchors/chains for anchored crate platforms.
-kTileIdObjAnchorFirst = $b8
+kTileIdObjAnchorFirst = $d0
 kTileIdObjCrateChainFull = kTileIdObjAnchorFirst + 0
 kTileIdObjCrateChainHalf = kTileIdObjAnchorFirst + 1
 kTileIdObjCrateAnchor    = kTileIdObjAnchorFirst + 2

@@ -21,7 +21,7 @@
 kTileIdObjPlatformHotSpringFirst = $d0
 kTileIdObjPlatformSewageFirst    = $80
 kTileIdObjPlatformWaterFirst     = $84
-kTileIdObjPlatformWaterfallFirst = $98
+kTileIdObjPlatformWaterfallFirst = $94
 
 ;;; OBJ palette numbers used for drawing pump machines.
 kPaletteObjHotSpring = 0

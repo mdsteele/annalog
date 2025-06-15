@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for field machines:
+;;;   * Slowdown: Unused.
 ;;;   * State1: The number of frames the field machine has been charging for
 ;;;     since it was last reset or discharged.
 ;;;   * State2: Unused.

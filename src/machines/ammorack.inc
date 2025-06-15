@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for rocket ammo rack machines:
+;;;   * Slowdown: Unused.
 ;;;   * State1: The ammo rack slot bits.  Bit N is set if there is a rocket in
 ;;;     slot number N.
 ;;;   * State2: Unused.

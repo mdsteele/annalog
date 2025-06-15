@@ -21,7 +21,7 @@
 kTileIdBgBossCityFirst = $40
 
 ;;; OBJ tile IDs for drawing terrain in BossCity.
-kTileIdObjPlatformCityBricks = $89
+kTileIdObjPlatformCityBricks = $aa
 kTileIdObjPlatformCityWalls  = $9c
 
 ;;;=========================================================================;;;

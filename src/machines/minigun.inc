@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for minigun machines:
+;;;   * Slowdown: Unused.
 ;;;   * State1: A counter that gets incremented every time the minigun fires a
 ;;;     shot.  Used to offset the lateral position of each bullet fired.
 ;;;   * State2: A counter that decrements each frame, and is set each time the

@@ -1170,9 +1170,8 @@ _chr_begin:
     chr_inc "proj_spike",            kTileIdObjProjSpike
     chr_res $01
     chr_inc "upgrade_ram",           kTileIdObjUpgradeRamFirst
-    chr_res $02
+    chr_res $03
     chr_inc "proj_ember",            kTileIdObjProjEmber
-    chr_res $01
     chr_inc "cannon",                kTileIdObjCannonFirst
     chr_res $08
     chr_inc "upgrade_oprest",        kTileIdObjUpgradeOpRestFirst
@@ -1202,8 +1201,7 @@ _chr_begin:
     chr_inc "upgrade_ram",          kTileIdObjUpgradeRamFirst
     chr_inc "upgrade_bremote",      kTileIdObjUpgradeBRemoteFirst
     chr_inc "reloader",             kTileIdObjReloaderFirst
-    chr_inc "platform_city_bricks", kTileIdObjPlatformCityBricks
-    chr_res $02
+    chr_inc "proj_spine",           kTileIdObjProjSpineFirst
     chr_inc "boiler_flame",         kTileIdObjBoilerFlameFirst
     chr_inc "proj_bullet",          kTileIdObjProjBulletFirst
     chr_inc "launcher_horz",        kTileIdObjLauncherHorzFirst
@@ -1214,11 +1212,10 @@ _chr_begin:
     chr_inc "proj_fireblast",       kTileIdObjProjFireblastFirst
     chr_inc "platform_city_walls",  kTileIdObjPlatformCityWalls
     chr_inc "outbreak_obj",         kTileIdObjOutbreakFirst
-    chr_res $01
+    chr_inc "platform_city_bricks", kTileIdObjPlatformCityBricks
     chr_inc "proj_breakfire",       kTileIdObjProjBreakfireFirst
-    chr_res $08
-    chr_inc "proj_spine",           kTileIdObjProjSpineFirst
     chr_inc "valve",                kTileIdObjValveFirst
+    chr_res $01
     chr_inc "proj_fireball",        kTileIdObjProjFireballFirst
     chr_inc "proj_breakball",       kTileIdObjProjBreakballFirst
     chr_inc "platform_volcanic",    kTileIdObjPlatformVolcanicFirst
@@ -1251,8 +1248,8 @@ _chr_begin:
     chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
     chr_inc "orc_gronta_running",  kTileIdObjOrcGrontaRunningFirst
     chr_inc "orc_gronta_laughing", kTileIdObjOrcGrontaLaughingFirst
-    chr_inc "mirror",              kTileIdObjMirrorFirst
     chr_res $03
+    chr_inc "mirror",              kTileIdObjMirrorFirst
     chr_inc "proj_axe",            kTileIdObjProjAxeFirst
     chr_inc "laser",               kTileIdObjLaserFirst
     chr_inc "crusher",             kTileIdObjCrusherFirst
@@ -1384,16 +1381,16 @@ _chr_begin:
     chr_res $01
     chr_inc "cannon",              kTileIdObjCannonFirst
     chr_inc "garden_bricks",       kTileIdObjGardenBricksFirst
-    chr_res $04
     chr_inc "platform_waterfall",  kTileIdObjPlatformWaterfallFirst
+    chr_res $04
     chr_inc "bad_grub",            kTileIdObjBadGrubFirst
     chr_res $02
     chr_inc "mermaid_corra",       kTileIdObjMermaidCorraFirst
     chr_inc "bad_vinebug",         kTileIdObjBadVinebugFirst
-    chr_inc "anchor",              kTileIdObjAnchorFirst
-    chr_inc "valve",               kTileIdObjValveFirst
+    chr_res $08
     chr_inc "bad_beetle",          kTileIdObjBadBeetleFirst
-    chr_res $04
+    chr_inc "anchor",              kTileIdObjAnchorFirst
+    chr_res $01
     chr_inc "bad_fish",            kTileIdObjBadFishFirst
     chr_inc "corra_swimming_down", kTileIdObjCorraSwimmingDownFirst
     chr_inc "proj_grenade",        kTileIdObjProjGrenadeFirst
@@ -1408,26 +1405,27 @@ _chr_begin:
 .EXPORT Ppu_ChrObjLava
 .PROC Ppu_ChrObjLava
     CHR2_BANK $80
-    chr_res $06
+    chr_inc "platform_sewage",     kTileIdObjPlatformSewageFirst
+    chr_inc "platform_water",      kTileIdObjPlatformWaterFirst
     chr_inc "proj_ember",        kTileIdObjProjEmber
-    chr_res $03
+    chr_inc "raindrop",          kTileIdObjRaindrop
+    chr_res $01
     chr_inc "upgrade_opcopy",    kTileIdObjUpgradeOpCopyFirst
     chr_inc "boiler_flame",      kTileIdObjBoilerFlameFirst
-    chr_res $02
-    chr_inc "bad_lavaball",      kTileIdObjBadLavaballFirst
+    chr_res $06
+    chr_inc "platform_waterfall",  kTileIdObjPlatformWaterfallFirst
     chr_inc "blaster",           kTileIdObjBlasterFirst
     chr_res $01
     chr_inc "proj_fireblast",    kTileIdObjProjFireblastFirst
     chr_res $04
     chr_inc "bad_hothead",       kTileIdObjBadHotheadFirst
-    chr_res $07
-    chr_inc "raindrop",          kTileIdObjRaindrop
-    chr_inc "anchor",            kTileIdObjAnchorFirst
     chr_inc "valve",             kTileIdObjValveFirst
-    chr_res $08
+    chr_res $01
+    chr_inc "bad_lavaball",      kTileIdObjBadLavaballFirst
     chr_inc "bad_spider",        kTileIdObjBadSpiderFirst
+    chr_inc "anchor",            kTileIdObjAnchorFirst
     chr_inc "mirror",            kTileIdObjMirrorFirst
-    chr_res $0b
+    chr_res $08
     chr_inc "steam_vert",        kTileIdObjSteamVertFirst
     chr_inc "steam_horz",        kTileIdObjSteamHorzFirst
     END_CHR_BANK
@@ -1510,8 +1508,9 @@ _chr_begin:
     chr_inc "pump_light",         kTileIdObjPumpLight
     chr_inc "multiplexer",        kTileIdObjMultiplexerFirst
     chr_inc "platform_water",     kTileIdObjPlatformWaterFirst
+    chr_res $01
+    chr_inc "raindrop",           kTileIdObjRaindrop
     chr_inc "bad_jelly",          kTileIdObjBadJellyFirst
-    chr_res $02
     chr_inc "upgrade_opaddsub",   kTileIdObjUpgradeOpAddSubFirst
     chr_inc "machine_drums",      kTileIdObjMachineDrumsFirst
     chr_inc "npc_duck",           kTileIdObjNpcDuckFirst
@@ -1522,8 +1521,7 @@ _chr_begin:
     chr_inc "bad_slime",          kTileIdObjBadSlimeFirst
     chr_inc "machine_trombone",   kTileIdObjMachineTromboneFirst
     chr_inc "machine_organ",      kTileIdObjMachineOrganFirst
-    chr_res $01
-    chr_inc "raindrop",           kTileIdObjRaindrop
+    chr_res $02
     chr_inc "bad_toad",           kTileIdObjBadToadFirst
     chr_inc "bad_bird",           kTileIdObjBadBirdFirst
     chr_inc "bad_crab",           kTileIdObjBadCrabFirst

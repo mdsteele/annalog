@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for bridge machines:
+;;;   * Slowdown: Unused.
 ;;;   * State1: The current bridge angle, from 0 for all the way down, to
 ;;;     kBridgeMaxAngle for all the way up.
 ;;;   * State2: Unused.

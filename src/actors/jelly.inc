@@ -26,7 +26,7 @@
 ;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing bird baddie actors.
-kTileIdObjBadJellyFirst = $87
+kTileIdObjBadJellyFirst = $89
 
 ;;;=========================================================================;;;
 

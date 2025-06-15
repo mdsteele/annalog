@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for rocket launcher machines:
+;;;   * Slowdown: Unused.
 ;;;   * State1: The number of rockets currently carried by the launcher machine
 ;;;     (0 or 1).
 ;;;   * State2: Unused.

@@ -32,6 +32,7 @@
 
 .IMPORT DataA_Room_Lava_sTileset
 .IMPORT FuncA_Machine_BoilerFinishEmittingSteam
+.IMPORT FuncA_Machine_BoilerStartEmittingSteam
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_Error
@@ -208,6 +209,7 @@ _Passages_sPassage_arr:
 .PROC FuncC_Lava_StationBoiler_Draw
     jsr FuncA_Objects_DrawBoilerMachine
     ldx #kValvePlatformIndex  ; param: platform index
+    ldy #eValveInput::LeftHalfOfBottomEdge  ; param: input pipe position
     jmp FuncA_Objects_DrawBoilerValve
 .ENDPROC
 
@@ -218,6 +220,7 @@ _Passages_sPassage_arr:
 ;;; TryAct implemention for the LavaStationBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .PROC FuncA_Machine_LavaStationBoiler_TryAct
+    jsr FuncA_Machine_BoilerStartEmittingSteam
     ;; Determine which pipe the steam should exit out of.
     lda Ram_MachineGoalHorz_u8_arr + kBoilerMachineIndex  ; valve 1 angle
     mod #4

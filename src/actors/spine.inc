@@ -29,6 +29,6 @@
 ;;;   * State4: Unused.
 
 ;;; Tile IDs for drawing spine projectile actors.
-kTileIdObjProjSpineFirst = $b8
+kTileIdObjProjSpineFirst = $89
 
 ;;;=========================================================================;;;

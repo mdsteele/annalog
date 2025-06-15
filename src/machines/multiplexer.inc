@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for multiplexer machines:
+;;;   * Slowdown: Unused.
 ;;;   * State1: The value of the J register (0-9).
 ;;;   * State2: The platform index of the selected platform.
 ;;;   * State3: Unused.

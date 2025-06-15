@@ -26,6 +26,7 @@
 .INCLUDE "../irq.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/blaster.inc"
+.INCLUDE "../machines/boiler.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../mmc3.inc"
 .INCLUDE "../oam.inc"
@@ -42,6 +43,7 @@
 .IMPORT FuncA_Machine_BlasterTick
 .IMPORT FuncA_Machine_BlasterTryAct
 .IMPORT FuncA_Machine_BoilerFinishEmittingSteam
+.IMPORT FuncA_Machine_BoilerStartEmittingSteam
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_Error
@@ -1155,6 +1157,7 @@ _RegR:
 .PROC FuncC_Boss_LavaBoiler_Draw
     jsr FuncA_Objects_DrawBoilerMachine
     ldx #kValvePlatformIndex  ; param: platform index
+    ldy #eValveInput::LeftHalfOfBottomEdge  ; param: input pipe position
     jmp FuncA_Objects_DrawBoilerValve
 .ENDPROC
 
@@ -1270,6 +1273,7 @@ _WriteR:
 .ENDPROC
 
 .PROC FuncA_Machine_BossLavaBoiler_TryAct
+    jsr FuncA_Machine_BoilerStartEmittingSteam
     ;; Determine which pipe(s) the steam should exit out of.
     lda Ram_MachineGoalHorz_u8_arr + kBoilerMachineIndex  ; valve angle
     and #$03

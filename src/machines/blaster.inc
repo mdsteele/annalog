@@ -40,6 +40,6 @@ kTileIdBgDiagramBlasterFirst = $e0
 
 ;;; OBJ tile IDs used for drawing blaster machines.
 kTileIdObjBlasterFirst = $98
-kTileIdObjMirrorFirst  = $d0
+kTileIdObjMirrorFirst  = $d3
 
 ;;;=========================================================================;;;

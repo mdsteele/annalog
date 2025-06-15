@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for carriage machines:
+;;;   * Slowdown: Unused.
 ;;;   * State1: Unused.
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.

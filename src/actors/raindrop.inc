@@ -26,6 +26,6 @@
 ;;;   * State3: Unused.
 ;;;   * State4: Unused.
 
-kTileIdObjRaindrop = $b7
+kTileIdObjRaindrop = $88
 
 ;;;=========================================================================;;;

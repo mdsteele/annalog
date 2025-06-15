@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for rotor machines:
+;;;   * Slowdown: Unused.
 ;;;   * State1: The current rotation angle for the rotor wheel (0-255).
 ;;;   * State2: Unused.
 ;;;   * State3: Unused.

@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actors/steam.inc"
+.INCLUDE "../cpu.inc"
 .INCLUDE "../machine.inc"
 .INCLUDE "../macros.inc"
 .INCLUDE "../oam.inc"
@@ -35,8 +36,8 @@
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
 .IMPORT Ram_MachineGoalHorz_u8_arr
+.IMPORT Ram_MachineSlowdown_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
-.IMPORT Ram_MachineState2_byte_arr
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
@@ -104,11 +105,6 @@ kPaletteObjValve       = 0
 .EXPORT FuncA_Machine_BoilerTick
 .PROC FuncA_Machine_BoilerTick
     ldx Zp_MachineIndex_u8
-_CoolDown:
-    lda Ram_MachineState2_byte_arr, x  ; ignition cooldown
-    beq @done
-    dec Ram_MachineState2_byte_arr, x  ; ignition cooldown
-    @done:
 _Valve:
     lda Ram_MachineGoalHorz_u8_arr, x  ; valve goal
     mul #kBoilerValveAnimSlowdown
@@ -125,15 +121,23 @@ _Valve:
     jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
-;;; Called at the end of a boiler machine's TryAct function after it has
+;;; Called at the start of a boiler machine's TryAct function, regardless of
+;;; whether or not it will successfully emit steam from one or more pipes.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Machine_BoilerStartEmittingSteam
+.PROC FuncA_Machine_BoilerStartEmittingSteam
+    ldx Zp_MachineIndex_u8
+    lda #kSteamNumFrames
+    sta Ram_MachineSlowdown_u8_arr, x  ; ignition cooldown
+    rts
+.ENDPROC
+
+;;; Called at the end of a boiler machine's TryAct function, after it has
 ;;; successfully emitted steam from one or more pipes.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .EXPORT FuncA_Machine_BoilerFinishEmittingSteam
 .PROC FuncA_Machine_BoilerFinishEmittingSteam
     jsr FuncA_Machine_PlaySfxEmitSteam
-    ldx Zp_MachineIndex_u8
-    lda #kSteamNumFrames
-    sta Ram_MachineState2_byte_arr, x  ; ignition cooldown
     lda #kBoilerActCooldown  ; param: num frames
     jmp FuncA_Machine_StartWaiting
 .ENDPROC
@@ -153,7 +157,7 @@ _Valve:
     jsr FuncA_Objects_Draw1x1Shape
     ;; Draw the ignition flame (if active).
     ldx Zp_MachineIndex_u8
-    ldy Ram_MachineState2_byte_arr, x  ; ignition cooldown
+    ldy Ram_MachineSlowdown_u8_arr, x  ; ignition cooldown
     beq @done
     jsr FuncA_Objects_MoveShapeRightOneTile  ; preserves Y
     lda #9  ; param: offset
@@ -173,33 +177,68 @@ _Valve:
 ;;; pixels and centered on the center of the valve.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @param X The platform index for the valve.
+;;; @param Y The eValveInput for the position of the input pipe.
 .EXPORT FuncA_Objects_DrawBoilerValve
 .PROC FuncA_Objects_DrawBoilerValve
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
-    ldy Zp_MachineIndex_u8
-    lda Ram_MachineState1_byte_arr, y  ; valve angle (in tau/32 units)
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves Y
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineSlowdown_u8_arr, x  ; ignition cooldown
+    bne @draw
+    ldy #eValveInput::None  ; param: input pipe position
+    @draw:
+    lda Ram_MachineState1_byte_arr, x  ; valve angle (in tau/32 units)
     fall FuncA_Objects_DrawValveShape
 .ENDPROC
 
 ;;; Draws a valve for a boiler or multiplexer machine at the current shape
 ;;; position.
 ;;; @param A The angle of the valve (in tau/32 units)
-;;; @preserve X
+;;; @param Y The eValveInput for the position of the active input pipe, if any.
+;;; @preserve X, T2+
 .EXPORT FuncA_Objects_DrawValveShape
 .PROC FuncA_Objects_DrawValveShape
+    sty T1  ; eValveInput value
     div #2
     pha  ; valve angle (in tau/16 units)
+_DetermineObjectFlags:
+    ;; If the eValveInput is neither None nor BothSides, then it's an angle in
+    ;; tau/16 units, and we can use it to determine if the valve object should
+    ;; be rotated by tau/2.  If it is None or BothSides, then it's not a
+    ;; meaningful angle, but also it doesn't matter whether or not the valve
+    ;; object gets rotated by tau/2 (since the tile will be symmetric in that
+    ;; case), so we can just still do the angle calculation and the garbage
+    ;; result won't matter either way.
+    sub T1  ; eValveInput value (treated here as an angle in tau/16 units)
+    mod #16
+    cmp #8
+    pla  ; valve angle (in tau/16 units)
+    bcs @doNotRotate
+    adc #8  ; rotate valve angle (in tau/16 units) by tau/2
+    @doNotRotate:
+    pha  ; valve angle (in tau/16 units)
+    ;; Determine the object flags to use, storing them in T0.
     div #4
     mod #4
     tay  ; valve angle (in tau/4 units, mod 4)
     lda _Flags_bObj_arr4, y
     sta T0  ; object flags
+_TileId:
     pla  ; valve angle (in tau/16 units)
     mod #8
     tay  ; valve angle (in tau/16 units, mod 8)
     lda _TileId_u8_arr8, y  ; param: tile ID
+    clc  ; clear carry for the ADCs below
+    bit T1  ; eValveInput value
+    .assert eValveInput::None = bProc::Negative, error
+    bmi @drawShape
+    .assert eValveInput::BothSides = bProc::Overflow, error
+    bvc @oneSide
+    adc #5  ; param: tile ID (carry is already clear)
+    @oneSide:
+    adc #5  ; param: tile ID (carry is already clear)
+    @drawShape:
     ldy T0  ; param: object flags
-    jmp FuncA_Objects_Draw1x1Shape
+    jmp FuncA_Objects_Draw1x1Shape  ; preserves X and T2+
 _TileId_u8_arr8:
     .byte kTileIdObjValveFirst + 0
     .byte kTileIdObjValveFirst + 1
@@ -210,7 +249,10 @@ _TileId_u8_arr8:
     .byte kTileIdObjValveFirst + 2
     .byte kTileIdObjValveFirst + 1
 _Flags_bObj_arr4:
-    .byte 0, bObj::FlipH, bObj::FlipHV, bObj::FlipV
+    .byte kPaletteObjValve | 0
+    .byte kPaletteObjValve | bObj::FlipH
+    .byte kPaletteObjValve | bObj::FlipHV
+    .byte kPaletteObjValve | bObj::FlipV
 .ENDPROC
 
 ;;;=========================================================================;;;

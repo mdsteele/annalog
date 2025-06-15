@@ -18,9 +18,11 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for boiler machines:
+;;;   * Slowdown: Set whenever the boiler ACTs.  While nonzero, draws the
+;;;     boiler's ignition flame, and blinks the input side of the valve.
 ;;;   * State1: The current angle of the valve, which tends toward
 ;;;     MachineGoalHorz * kBoilerValveAnimSlowdown.
-;;;   * State2: A cooldown timer for drawing the ignition flame.
+;;;   * State2: Unused.
 ;;;   * State3: Unused.
 
 ;;; The number of frames between valve angles when animating a boiler valve.
@@ -34,6 +36,22 @@ kTileIdBgDiagramBoilerFirst = $e0
 
 ;;; Various OBJ tile IDs used for drawing boiler machines.
 kTileIdObjBoilerFlameFirst = $8c
-kTileIdObjValveFirst       = $bb
+kTileIdObjValveFirst       = $b0
+
+;;; Parameter values for FuncA_Objects_DrawBoilerValve and
+;;; FuncA_Objects_DrawValveShape to indicate where on the valve the input is
+;;; coming from.
+.ENUM eValveInput
+    RightHalfOfTopEdge    =   1
+    TopHalfOfRightEdge    =   3
+    BottomHalfOfRightEdge =   5
+    RightHalfOfBottomEdge =   7
+    LeftHalfOfBottomEdge  =   9
+    BottomHalfOfLeftEdge  =  11
+    TopHalfOfLeftEdge     =  13
+    LeftHalfOfTopEdge     =  15
+    BothSides             = $40
+    None                  = $80
+.ENDENUM
 
 ;;;=========================================================================;;;

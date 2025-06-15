@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for jet machines:
+;;;   * Slowdown: Unused.
 ;;;   * State1: The jet flame power, from 0 to kJetMaxFlamePower.  This gets
 ;;;     set to kJetMaxFlamePower when the jet is moving; decrements when the
 ;;;     jet is not moving (down to kJetMaxFlamePower/2 if hovering, or down to

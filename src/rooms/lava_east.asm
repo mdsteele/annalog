@@ -38,6 +38,7 @@
 .IMPORT FuncA_Machine_BlasterTryAct
 .IMPORT FuncA_Machine_BlasterWriteRegM
 .IMPORT FuncA_Machine_BoilerFinishEmittingSteam
+.IMPORT FuncA_Machine_BoilerStartEmittingSteam
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_Error
@@ -507,6 +508,7 @@ _Blaster:
 .PROC FuncC_Lava_EastUpperBoiler_Draw
     jsr FuncA_Objects_DrawBoilerMachine
     ldx #kUpperValvePlatformIndex  ; param: platform index
+    ldy #eValveInput::BottomHalfOfRightEdge  ; param: input pipe position
     jmp FuncA_Objects_DrawBoilerValve
 .ENDPROC
 
@@ -604,6 +606,7 @@ _WriteL:
 ;;; TryAct implemention for the LavaEastUpperBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .PROC FuncA_Machine_LavaEastUpperBoiler_TryAct
+    jsr FuncA_Machine_BoilerStartEmittingSteam
     lda Ram_MachineGoalHorz_u8_arr + kUpperBoilerMachineIndex  ; valve angle
     mod #4
     cmp #2
@@ -621,6 +624,7 @@ _WriteL:
 ;;; TryAct implemention for the LavaEastLowerBoiler machine.
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 .PROC FuncA_Machine_LavaEastLowerBoiler_TryAct
+    jsr FuncA_Machine_BoilerStartEmittingSteam
     ldy #kLowerPipe1PlatformIndex  ; param: platform index
     jsr Func_EmitSteamUpFromPipe
     jmp FuncA_Machine_BoilerFinishEmittingSteam

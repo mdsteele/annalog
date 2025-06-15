@@ -34,6 +34,7 @@
 
 .IMPORT DataA_Room_Lava_sTileset
 .IMPORT FuncA_Machine_BoilerFinishEmittingSteam
+.IMPORT FuncA_Machine_BoilerStartEmittingSteam
 .IMPORT FuncA_Machine_BoilerTick
 .IMPORT FuncA_Machine_BoilerWriteReg
 .IMPORT FuncA_Machine_Error
@@ -255,6 +256,7 @@ _ReadL:
 .PROC FuncC_Lava_TunnelBoiler_Draw
     jsr FuncA_Objects_DrawBoilerMachine
     ldx #kValvePlatformIndex  ; param: platform index
+    ldy #eValveInput::BottomHalfOfLeftEdge  ; param: input pipe position
     jmp FuncA_Objects_DrawBoilerValve
 .ENDPROC
 
@@ -282,6 +284,7 @@ _WriteL:
 ;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
 ;;; @prereq PRGA_Machine is loaded.
 .PROC FuncA_Machine_LavaTunnelBoiler_TryAct
+    jsr FuncA_Machine_BoilerStartEmittingSteam
     ;; Determine which pipe(s) the steam should exit out of.
     lda Ram_MachineGoalHorz_u8_arr + kBoilerMachineIndex  ; valve 1 angle
     and #$03

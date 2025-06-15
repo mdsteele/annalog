@@ -52,7 +52,7 @@
 .IMPORT Func_PlaySfxSplash
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Func_SetPointToPlatformCenter
-.IMPORT Ppu_ChrObjGarden
+.IMPORT Ppu_ChrObjLava
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorState2_byte_arr
 .IMPORT Ram_ActorState3_byte_arr
@@ -128,7 +128,7 @@ kWideWaterTop = $b0
     d_addr TerrainData_ptr, _TerrainData
     d_byte NumMachines_u8, 1
     d_addr Machines_sMachine_arr_ptr, _Machines_sMachine_arr
-    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjGarden)
+    d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjLava)
     d_addr Ext_sRoomExt_ptr, _Ext_sRoomExt
     D_END
 _Ext_sRoomExt:
@@ -350,20 +350,55 @@ _ReadR:
 
 ;;; @prereq PRGA_Objects is loaded.
 .PROC FuncC_Sewer_NorthMultiplexer_Draw
+    jsr FuncC_Sewer_North_GetNumCorrectValves  ; returns X
+    stx T2  ; num correct valves
     ldx #kValvesPlatformIndex  ; param: platform index
-    jsr FuncA_Objects_SetShapePosToPlatformTopLeft
+    jsr FuncA_Objects_SetShapePosToPlatformTopLeft  ; preserves T0+
     ldx #0
     @loop:
+    ;; For valve index 7, if the number of correct valves is 8 (that is, the
+    ;; water is flowing past this valve, but not the next one), then the water
+    ;; is doubling back through the other side of this valve.
+    cpx #7
+    bne @notBothSides
+    lda T2  ; num correct valves
+    cmp #8
+    bne @notBothSides
+    ldy #eValveInput::BothSides  ; param: input pipe position
+    .assert eValveInput::BothSides <> 0, error
+    bne @drawValve  ; unconditional
+    @notBothSides:
+    ;; Otherwise, if the water is flowing to or past this valve, then pass in
+    ;; the active input pipe position, and otherwise pass eValveInput::None.
+    ldy #eValveInput::None  ; param: input pipe position
+    cpx T2  ; num correct valves
+    blt @activeInput
+    bne @drawValve
+    @activeInput:
+    ldy _ValveInput_eValveInput_arr, x  ; param: input pipe position
+    @drawValve:
+    ;; Draw the valve at its current angle.
     lda Zp_RoomState + sState::ValveAngle_u8_arr, x  ; param: valve angle
-    jsr FuncA_Objects_DrawValveShape  ; preserves X
+    jsr FuncA_Objects_DrawValveShape  ; preserves X and T2+
     lda _ValveOffset_u8_arr, x
-    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X
+    jsr FuncA_Objects_MoveShapeRightByA  ; preserves X and T0+
     inx
     cpx #kNumValves
     blt @loop
     jmp FuncA_Objects_DrawMultiplexerMachineMainPlatform
 _ValveOffset_u8_arr:
     .byte $20, $30, $20, $20, $40, $30, $20, $30, $20, $00
+_ValveInput_eValveInput_arr:
+    .byte eValveInput::LeftHalfOfTopEdge
+    .byte eValveInput::BottomHalfOfLeftEdge
+    .byte eValveInput::LeftHalfOfTopEdge
+    .byte eValveInput::LeftHalfOfTopEdge
+    .byte eValveInput::BottomHalfOfLeftEdge
+    .byte eValveInput::BottomHalfOfLeftEdge
+    .byte eValveInput::LeftHalfOfBottomEdge
+    .byte eValveInput::TopHalfOfLeftEdge
+    .byte eValveInput::TopHalfOfLeftEdge
+    .byte eValveInput::TopHalfOfLeftEdge
 .ENDPROC
 
 .PROC FuncC_Sewer_North_EnterRoom
@@ -442,6 +477,62 @@ _Return:
     rts
 .ENDPROC
 
+;;; Determines how far the water is able to flow in this room.
+;;; @return X The number of valves that have water flowing past them (0-10).
+.PROC FuncC_Sewer_North_GetNumCorrectValves
+    ldx #0
+    ;; Valve 0:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #3
+    bne _Finish
+    ;; Valve 1:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #1
+    bne _Finish
+    ;; Valve 2:
+    jsr _GetNextValve  ; advances X, returns A and Z
+    beq _Finish
+    ;; Valve 3:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #3
+    bne _Finish
+    ;; Valve 4:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #1
+    bne _Finish
+    ;; Valve 5:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #2
+    bne _Finish
+    ;; Valve 6:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #1
+    bne _Finish
+    ;; Valve 7:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #2
+    bne _Finish
+    ;; Valve 8:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #2
+    bne _Finish
+    ;; Valve 9:
+    jsr _GetNextValve  ; advances X, returns A
+    cmp #3
+    beq _Return
+_Finish:
+    dex
+_Return:
+    rts
+_GetNextValve:
+    lda Zp_RoomState + sState::ValveAngle_u8_arr, x
+    inx
+    add #kBoilerValveAnimSlowdown / 2
+    div #kBoilerValveAnimSlowdown
+    mod #4
+    rts
+.ENDPROC
+
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Sewer_North_TickRoom
     inc Ram_MachineState3_byte_arr + kMultiplexerMachineIndex  ; wqter slowdown
@@ -456,70 +547,11 @@ _Return:
     jsr FuncC_Sewer_North_RaiseOrLowerWaterLevel
     @done:
 _UpdatePipe:
-    ldx #0
-    ;; Valve 0:
-    jsr _GetNextValve  ; advances X, returns A
-    cmp #3
-    bne @pipe1
-    ;; Valve 1:
-    jsr _GetNextValve  ; advances X, returns A
-    cmp #1
-    bne @noPipe
-    ;; Valve 2:
-    jsr _GetNextValve  ; advances X, returns A and Z
-    beq @pipe2
-    ;; Valve 3:
-    jsr _GetNextValve  ; advances X, returns A
-    cmp #3
-    bne @noPipe
-    ;; Valve 4:
-    jsr _GetNextValve  ; advances X, returns A
-    cmp #1
-    bne @pipe3
-    ;; Valve 5:
-    jsr _GetNextValve  ; advances X, returns A
-    cmp #2
-    bne @noPipe
-    ;; Valve 6:
-    jsr _GetNextValve  ; advances X, returns A
-    cmp #1
-    bne @noPipe
-    ;; Valve 7:
-    jsr _GetNextValve  ; advances X, returns A
-    cmp #2
-    bne @pipe4
-    ;; Valve 8:
-    jsr _GetNextValve  ; advances X, returns A
-    cmp #2
-    bne @pipe4
-    ;; Valve 9:
-    jsr _GetNextValve  ; advances X, returns A
-    cmp #3
-    bne @noPipe
-    @pipe5:
-    ldy #kPipe5PlatformIndex
-    lda #kEastWaterPlatformIndex
-    bpl _SetPipe  ; unconditional
-    @pipe4:
-    ldy #kPipe4PlatformIndex
-    bpl @middlePipe  ; unconditional
-    @pipe3:
-    ldy #kPipe3PlatformIndex
-    bpl @middlePipe  ; unconditional
-    @pipe2:
-    ldy #kPipe2PlatformIndex
-    @middlePipe:
-    lda #kCenterWaterPlatformIndex
-    bpl _SetPipe  ; unconditional
-    @pipe1:
-    ldy #kPipe1PlatformIndex
-    lda #kWestWaterPlatformIndex
-    bpl _SetPipe  ; unconditional
-    @noPipe:
-    ldy #$ff
-_SetPipe:
+    jsr FuncC_Sewer_North_GetNumCorrectValves  ; returns X
+    ldy _PipePlatformIndex_u8_arr, x
     cpy Zp_RoomState + sState::ActivePipePlatformIndex_u8
     beq _Return  ; no change to current pipe
+    lda _WaterPlatformIndex_u8_arr, x
     sta T0  ; param: platform index for water below (if any)
     lda #$ff
     sta Zp_RoomState + sState::ActivePipePlatformIndex_u8
@@ -550,6 +582,30 @@ _GetNextValve:
     mod #4
 _Return:
     rts
+_PipePlatformIndex_u8_arr:
+    .byte kPipe1PlatformIndex
+    .byte $ff
+    .byte kPipe2PlatformIndex
+    .byte $ff
+    .byte kPipe3PlatformIndex
+    .byte $ff
+    .byte $ff
+    .byte kPipe4PlatformIndex
+    .byte kPipe4PlatformIndex
+    .byte $ff
+    .byte kPipe5PlatformIndex
+_WaterPlatformIndex_u8_arr:
+    .byte kWestWaterPlatformIndex
+    .byte $ff
+    .byte kCenterWaterPlatformIndex
+    .byte $ff
+    .byte kCenterWaterPlatformIndex
+    .byte $ff
+    .byte $ff
+    .byte kCenterWaterPlatformIndex
+    .byte kCenterWaterPlatformIndex
+    .byte $ff
+    .byte kEastWaterPlatformIndex
 .ENDPROC
 
 ;;; @prereq PRGA_Room is loaded.

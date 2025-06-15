@@ -18,6 +18,7 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for semaphore machines:
+;;;   * Slowdown: Unused.
 ;;;   * GoalHorz: The current array index for lock combination input/output.
 ;;;   * GoalVert: The vertical goal position for the movable actuator (0 or 1).
 ;;;   * State1: The current bSemaphoreFlag state for the lower flag.

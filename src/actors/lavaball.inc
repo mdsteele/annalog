@@ -34,6 +34,6 @@ kLavaballStartYShort = $d4
 kLavaballStartYTall = $164
 
 ;;; Tile IDs for drawing lavaball baddie actors.
-kTileIdObjBadLavaballFirst = $90
+kTileIdObjBadLavaballFirst = $c0
 
 ;;;=========================================================================;;;
