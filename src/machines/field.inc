@@ -34,7 +34,8 @@ kChrBankDiagramField = $09
 ;;; BG tile IDs for field machine diagrams.
 kTileIdBgDiagramFieldFirst = $e0
 
-;;; The width, in pixels, of a teleport field machine's teleportation field.
-kTeleportFieldWidth = $40
+;;; The size, in pixels, of a teleport field machine's teleportation field.
+kTeleportFieldWidth  = $40
+kTeleportFieldHeight = $18
 
 ;;;=========================================================================;;;

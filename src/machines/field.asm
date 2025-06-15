@@ -32,26 +32,26 @@
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_IsFlagSet
+.IMPORT Func_MovePointDownByA
+.IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxExplodeBig
 .IMPORT Func_PlaySfxExplodeSmall
+.IMPORT Func_SetPointToPlatformCenter
 .IMPORT Func_ShakeRoom
 .IMPORT Ram_DeviceAnim_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
-.IMPORT Ram_PlatformBottom_i16_0_arr
-.IMPORT Ram_PlatformBottom_i16_1_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_1_arr
 .IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformRight_i16_1_arr
-.IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORT Ram_PlatformTop_i16_1_arr
 .IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_Current_sMachine_ptr
 .IMPORTZP Zp_MachineIndex_u8
 .IMPORTZP Zp_Next_eCutscene
+.IMPORTZP Zp_PointY_i16
 
 ;;;=========================================================================;;;
 
@@ -118,35 +118,37 @@ _TryTeleport:
     ;; Get the platform index for the machine's primary platform.
     ldy #sMachine::MainPlatform_u8
     lda (Zp_Current_sMachine_ptr), y
-    tax
-    ;; Check if the player avatar is at or below the top of the field; if not,
-    ;; then no teleport will occur.
-    lda Zp_AvatarPosY_i16 + 1
-    cmp Ram_PlatformTop_i16_1_arr, x
-    blt @noTeleport
-    bne @doneTop
+    tay  ; param: platform index
+    ;; Set Zp_PointY_i16 to the top of the teleport field.
+    jsr Func_SetPointToPlatformCenter  ; preserves Y
+    .assert kTeleportFieldHeight .mod 2 = 0, error
+    lda #kTeleportFieldHeight / 2  ; param: offset
+    jsr Func_MovePointUpByA  ; preserves Y
+    ;; If the player avatar is above the top of the field, then no teleport
+    ;; will occur.
     lda Zp_AvatarPosY_i16 + 0
-    cmp Ram_PlatformTop_i16_0_arr, x
-    blt @noTeleport
-    @doneTop:
-    ;; Check if the player avatar is above the bottom of the field; if not,
-    ;; then no teleport will occur.
+    cmp Zp_PointY_i16 + 0
     lda Zp_AvatarPosY_i16 + 1
-    cmp Ram_PlatformBottom_i16_1_arr, x
-    blt @doneBottom
-    bne @noTeleport
-    lda Zp_AvatarPosY_i16 + 0
-    cmp Ram_PlatformBottom_i16_0_arr, x
-    bge @noTeleport
-    @doneBottom:
+    sbc Zp_PointY_i16 + 1
+    bmi @noTeleport  ; avatar is above top of field
+    ;; Move Zp_PointY_i16 to the bottom of the teleport field.
+    lda #kTeleportFieldHeight  ; param: offset
+    jsr Func_MovePointDownByA  ; preserves Y
+    ;; If the player avatar is below the bottom of the field, then no teleport
+    ;; will occur.
+    lda Zp_PointY_i16 + 0
+    cmp Zp_AvatarPosY_i16 + 0
+    lda Zp_PointY_i16 + 1
+    sbc Zp_AvatarPosY_i16 + 1
+    bmi @noTeleport  ; avatar is above top of field
     ;; Check if the player avatar is at or to the right of the left side of the
     ;; field; if not, then no teleport will occur.
     lda Zp_AvatarPosX_i16 + 1
-    cmp Ram_PlatformLeft_i16_1_arr, x
+    cmp Ram_PlatformLeft_i16_1_arr, y
     blt @noTeleport
     bne @doneLeft
     lda Zp_AvatarPosX_i16 + 0
-    cmp Ram_PlatformLeft_i16_0_arr, x
+    cmp Ram_PlatformLeft_i16_0_arr, y
     blt @noTeleport
     @doneLeft:
     ;; Check if the player avatar is to the left of the right side of the
@@ -156,11 +158,11 @@ _TryTeleport:
     sta T0  ; shifted avatar pos X (lo)
     lda Zp_AvatarPosX_i16 + 1
     sbc #0
-    cmp Ram_PlatformRight_i16_1_arr, x
+    cmp Ram_PlatformRight_i16_1_arr, y
     blt @doneRight
     bne @noTeleport
     lda T0  ; shifted avatar pos X (lo)
-    cmp Ram_PlatformRight_i16_0_arr, x
+    cmp Ram_PlatformRight_i16_0_arr, y
     bge @noTeleport
     @doneRight:
     ;; Teleport the avatar.
