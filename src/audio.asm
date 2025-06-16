@@ -162,14 +162,14 @@ Ram_Audio_sChanSfx_arr: .res .sizeof(sChanSfx) * kNumApuChannels
     @continue:
     dex
     bpl @loop
-    lda #$40
-    sta Hw_DmcLevel_wo
+    ldy #$40
+    sty Hw_DmcLevel_wo
     ;; Disable audio and reset music flag.
-    sta Zp_Current_bAudio
-    sta Zp_MusicFlag_bMusic
+    sta Zp_Current_bAudio    ; A is still zero
+    sta Zp_MusicFlag_bMusic  ; A is still zero
 _HaltMusic:
     .assert eMusic::Silence = 0, error
-    tax  ; param: eMusic to play (A is zero, so this is eMusic::Silence)
+    tax  ; param: eMusic to play (A is still zero, so this is eMusic::Silence)
     jsr Func_AudioRestartMusic
 _HaltSfx:
     lda #0
