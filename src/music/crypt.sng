@@ -2,30 +2,34 @@
 
 !DPCM K Data_SampleKickDrum_arr657 657
 
-!SONG Crypt "A|BBCDD"
+!SONG Crypt "ABB|ECDD"
 
 =tempo q40
 =key 1b  % d minor
+=transpose +1
 
-!INST 1A PulseBasic $07 d1/8
-!INST 2B Staccato   $08 d1/2
-!INST 2C PulsePluck $08 d1/4
-!INST 2D PulsePluck $08 d1/4
+!INST 1A PulseBasic  $06 d1/8
+!INST 2B Staccato    $08 d1/2
+!INST 2C PulsePluck  $08 d1/4
+!INST 2D PulsePluck  $08 d1/4
+!INST 2V PulseViolin $06 d1/4
 !INST TS TriangleSlide
-!INST ND Staccato   $0a       % drum
-!INST DK Constant   $4e       % kick drum
+!INST TV TriangleVibrato
+!INST ND Staccato    $0a       % drum
+!INST NS NoiseSnare  $28       % snare drum
+!INST NH PulseBasic  $06       % hi-hat
+!INST DK Constant    $4e       % kick drum
 
 !PART A
 
 T| iS d4w abvw :2 |
-N| iD x9e x9 ' x5 x9 ' x9q ' x5 :4 |
+N| p(iD x9e x9 ' x5 x9 ' x9q ' x5)NA :4 |
 
 !PART B
 
-1| iA d3e a a d b r d a | r d f g e f e c :2 |
-2| iB rw+w |
- | d5q ' dq ' de de ' rq |
- | re d5e ' dq ' re de de re |
+1| p(iA d3e a a d b r d a | r d f g e f e c)1B :2 |
+2| rw+w |
+ | p(iB d5q ' dq ' de de ' rq | re d5e ' dq ' re de de re)2B |
 T=:AT
 N=:AN
 D| rw iK sK13w :2 |
@@ -35,10 +39,9 @@ D| rw iK sK13w :2 |
 1=:B1
 2| iC d4e ee aq gq ae b | fq a e fe g |
  | d4q a ge ae bq | fq a eh |
-T=:BT
-N=:BN
-D| p(iK sK13w)DW :3 |
- | p(iK sK13h)DH :2 |
+T| iV d3e+s+t rt d3e a2s c3s+t rt cs+t rt cs d3e a2e :4 |
+N| p(iD x9q iS x4s x5s iH x4e)NC :8 |
+D| p(iK sK13h)DH :8 |
 
 !PART D
 
@@ -48,6 +51,14 @@ D| p(iK sK13w)DW :3 |
  |    d5s av d^e     ' c   av   ' b     g  ' ae gt a bs |
  |    c5s d  av d^s+ ' +s ae gs ' ee    c  ' dq         |
 T=:CT
-N=:CN
-D| pDW :3 |
- | pDH sK13q sK13q |
+N| pNC :7 iD x9q x9q |
+D| pDH :7 sK13q sK13q |
+
+!PART E
+
+1| p1B :8 |
+2| p(iV d4w aw | bw dw | aw rw)2E | p2B | p2E | p2B |
+T| p(iV a3w ew | fw gw | dw cw | d3w)TE a2w |
+ | pTE a2q g f e |
+N| pNA :15 | x9q :4 |
+D| rw :15 | pDH sK13q sK13q |
