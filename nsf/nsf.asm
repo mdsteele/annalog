@@ -57,12 +57,12 @@ kSoundChip     = 0      ; 0 = no extra sound chips
     .endscope
     .assert .sizeof(Title) = $20, error
     .scope Artist
-    .byte "Matthew D. Steele", 0
-    .res 14
+    .byte "Jon Moran and Matthew Steele", 0
+    .res 3
     .endscope
     .assert .sizeof(Artist) = $20, error
     .scope Copyright
-    .byte "2022 Matthew D. Steele", 0
+    .byte "2025 Matthew D. Steele", 0
     .res 9
     .endscope
     .assert .sizeof(Copyright) = $20, error
