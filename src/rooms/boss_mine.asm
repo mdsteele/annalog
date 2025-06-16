@@ -169,6 +169,7 @@ kBoulderSpawnLeft = $ffff & -$18
     OnGround    ; sitting on the ground
     Grasped     ; held by the crane
     Falling     ; in free fall
+    Harmless    ; in free fall, but can't hurt boss or grub baddie
     NUM_VALUES
 .ENDENUM
 
@@ -1084,10 +1085,7 @@ _BossIsDead:
 
 ;;; Performs per-frame upates for the boulder.
 .PROC FuncA_Room_BossMine_TickBoulder
-    ;; If a machine console is open, do nothing.
-    lda Zp_ConsoleMachineIndex_u8
-    bpl @done  ; console is open
-    ;; Otherwise, branch based on the boulder's current mode.
+    ;; Branch based on the boulder's current mode.
     ldy Zp_RoomState + sState::BoulderState_eBoulder
     lda _JumpTable_ptr_0_arr, y
     sta T0
@@ -1105,6 +1103,7 @@ _BossIsDead:
     d_entry table, OnGround,   FuncA_Room_BossMine_TickBoulderOnGround
     d_entry table, Grasped,    Func_Noop
     d_entry table, Falling,    FuncA_Room_BossMine_TickBoulderFalling
+    d_entry table, Harmless,   FuncA_Room_BossMine_TickBoulderFalling
     D_END
 .ENDREPEAT
 .ENDPROC
@@ -1137,6 +1136,9 @@ _BossIsDead:
 ;;; Performs per-frame upates for the boulder when it's on the conveyor.
 ;;; @prereq BoulderState_eBoulder is eBoulder::OnConveyor.
 .PROC FuncA_Room_BossMine_TickBoulderOnConveyor
+    ;; Don't move the conveyor while the machine console is open.
+    lda Zp_ConsoleMachineIndex_u8
+    bpl @done  ; console is open
     ;; Make the conveyor move the boulder.
     inc Zp_RoomState + sState::ConveyorMotion_u8
     lda Zp_RoomState + sState::ConveyorMotion_u8
@@ -1185,10 +1187,18 @@ _BossIsDead:
 .ENDPROC
 
 ;;; Performs per-frame upates for the boulder when it's falling.
-;;; @prereq BoulderState_eBoulder is eBoulder::Falling.
+;;; @prereq BoulderState_eBoulder is eBoulder::Falling or eBoulder::Harmless.
 .PROC FuncA_Room_BossMine_TickBoulderFalling
     jsr FuncA_Room_BossMine_GetBoulderDistAboveFloor  ; returns A
     sta T0  ; boulder dist above floor
+    ;; If a machine console is open, render the boulder harmless (so that you
+    ;; can't attack the boss in debug mode or by deliberately resetting the
+    ;; machine when it's over the boss).
+    lda Zp_ConsoleMachineIndex_u8
+    bmi @notHarmless  ; console is closed
+    lda #eBoulder::Harmless
+    sta Zp_RoomState + sState::BoulderState_eBoulder
+    @notHarmless:
     ;; Apply gravity.
     lda Zp_RoomState + sState::BoulderVelY_i16 + 0
     add #<kAvatarGravity
@@ -1235,6 +1245,12 @@ _CheckForFloorImpact:
 _MoveBoulderDownByA:
     ldx #kBoulderPlatformIndex  ; param: platform index
     jsr Func_MovePlatformVert
+_SkipBossAndGrubImpactIfHarmlessOrBroken:
+    lda Zp_RoomState + sState::BoulderState_eBoulder
+    .assert eBoulder::Absent = 0, error
+    beq _BreakBoulderIfAbsent  ; boulder already broke on the floor
+    cmp #eBoulder::Harmless
+    beq _BreakBoulderIfAbsent  ; boulder has been rendered harmless
 _CheckForGrubImpact:
     ;; Check for a dropped grub (in this room, it's not possible for there to
     ;; be more than one).

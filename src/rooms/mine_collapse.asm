@@ -68,7 +68,6 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
-.IMPORTZP Zp_ConsoleMachineIndex_u8
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
@@ -318,10 +317,7 @@ _Passages_sPassage_arr:
 ;;; Performs per-frame upates for a boulder in this room.
 ;;; @param X The platform index for the boulder.
 .PROC FuncC_Mine_Collapse_TickBoulder
-    ;; If a machine console is open, do nothing.
-    lda Zp_ConsoleMachineIndex_u8
-    bpl @done  ; console is open
-    ;; Otherwise, branch based on the boulder's current mode.
+    ;; Branch based on the boulder's current mode.
     ldy Zp_RoomState + sState::BoulderState_eBoulder_arr, x
     lda _JumpTable_ptr_0_arr, y
     sta T0
