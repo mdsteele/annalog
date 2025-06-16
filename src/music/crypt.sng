@@ -2,7 +2,7 @@
 
 !DPCM K Data_SampleKickDrum_arr657 657
 
-!SONG Crypt "ABB|ECDD"
+!SONG Crypt "ABB|ECDDEFGFG"
 
 =tempo q40
 =key 1b  % d minor
@@ -12,6 +12,7 @@
 !INST 2B Staccato    $08 d1/2
 !INST 2C PulsePluck  $08 d1/4
 !INST 2D PulsePluck  $08 d1/4
+!INST 2E PulsePiano  $07 d1/4
 !INST 2V PulseViolin $06 d1/4
 !INST TS TriangleSlide
 !INST TV TriangleVibrato
@@ -62,3 +63,27 @@ T| p(iV a3w ew | fw gw | dw cw | d3w)TE a2w |
  | pTE a2q g f e |
 N| pNA :15 | x9q :4 |
 D| rw :15 | pDH sK13q sK13q |
+
+!PART F
+
+1=:D1
+2| p(iE d5q d c bve a | g4q b)2F a4h |
+ | d5q de e f e d c | b4q f5 ch |
+T| p(iV d3e+s+t rt d3e a2s d3s+t rt ds+t rt ds a2q)TF |
+ | p(c3e+s+t rt c3e g2s c3s+t rt cs+t rt cs g2q)TG |
+ | b2e+s+t rt b2e f2s b2s+t rt bs+t rt bs f2q |
+ | p(b2e+s+t rt b2e f2s c3s+t rt cs+t rt cs g2q)TH |
+N=:DN
+D=:DD
+
+!PART G
+
+1=:F1
+2| p2F a4q be c5 |
+ | d5e e f a g e c g | fq c d e |
+T| pTF |
+ | pTG |
+ | b2e+s+t rt b2e f2s g2s+t rt gs+t rt gs e2q |
+ | pTH |
+N=:FN
+D=:FD
