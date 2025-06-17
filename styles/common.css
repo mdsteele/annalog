@@ -1,0 +1,128 @@
+@font-face {
+    font-family: 'PressStart2P';
+    src: url('PressStart2P.ttf') format('truetype');
+}
+
+body {
+    background-color: #000;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    margin: 8px auto;
+    max-width: 640px;
+    padding: 5px;
+}
+@media (min-width: 700px) {
+    body {
+        margin: 30px auto;
+    }
+}
+
+header { text-align: center; }
+
+div.sitename {
+  border-bottom: 1px solid #fff;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  font-size: 36px;
+  font-weight: normal;
+  margin: 0 auto 25px auto;
+  max-width: 640px;
+  text-align: left;
+  text-shadow: 2px 1px 0px #545454;
+}
+
+div.sitename a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1 {
+    font-family: 'PressStart2P';
+    font-size: 32px;
+    margin: 5px 0;
+    text-shadow: 4px 0px 0 #545454;
+}
+@media (min-width: 500px) {
+    h1 {
+        font-size: 48px;
+    }
+}
+
+h1 img { max-width: 100%; }
+
+header > nav {
+    width: 100%;
+}
+header > nav > a {
+    color: #fff;
+    display: inline-block;
+    font-family: 'PressStart2P';
+    font-size: 18px;
+    margin: 7px 12px;
+    padding: 3px;
+    text-decoration: none;
+    text-shadow: 4px 0px 0 #545454;
+}
+header > nav > a.selected { text-shadow: 4px 0px 0 #287200; }
+header > nav > a:hover { text-shadow: 4px 0px 0 #982220; }
+header > nav > a:active {
+    position: relative;
+    left: 2px;
+    text-shadow: none;
+    top: 2px;
+}
+
+.video {
+  margin-bottom: 20px;
+  text-align: center;
+}
+@media (max-width: 520px) {
+  .video iframe {
+    width: 336px;
+    height: 189px;
+  }
+}
+@media (max-width: 336px) {
+  .video iframe {
+    width: 224px;
+    height: 126px;
+  }
+}
+
+.floatleft, .floatright {
+    border: 4px solid #545454;
+    border-radius: 10px;
+    clear: both;
+    display: block;
+    height: 288px;
+    margin: 10px auto;
+    padding: 1px;
+    width: 320px;
+}
+@media (max-width: 360px) {
+    .floatleft, .floatright {
+        height: 216px;
+        width: 240px;
+    }
+}
+@media (min-width: 500px) {
+    .floatleft {
+        float: left;
+        margin: 0 20px 18px 0;
+    }
+    .floatright {
+        float: right;
+        margin: 0 0 18px 20px;
+    }
+}
+
+.story {
+    font-style: italic;
+}
+
+footer {
+    clear: both;
+    color: #545454;
+    text-align: center;
+}
