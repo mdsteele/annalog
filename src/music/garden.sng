@@ -1,14 +1,18 @@
 @PRGC_Garden
 
-!SONG Garden "A|BCBCD"
+!SONG Garden "A|BCBCDEBCFGH"
 
 =tempo q28
 =key 2b  % g minor
 
-!INST 1A PulsePiano $07 d1/4
-!INST 2A PulsePluck $06 d1/8
+!INST 1A PulsePiano  $07 d1/4
+!INST 1B PulsePiano  $07 d1/8
+!INST 1D PulsePluck  $07 d1/8
+!INST 1E PulsePluck  $04 d1/8
+!INST 1V PulseViolin $07 d1/4
+!INST 2A PulsePluck  $06 d1/8
 !INST TV TriangleVibrato
-!INST ND Staccato   $06       % drum
+!INST ND Staccato    $06       % drum
 
 !PART A
 
@@ -37,6 +41,36 @@ T=:AT
 N=:AN
 
 !PART D
+
+1| iA g4h iV g4h+ | +w+ | +h rh+ | +h.. iA f4e |
+2=:A2
+T=:AT
+N=:AN
+
+!PART E
+
+1| iA g4q gs a b c^ ' dh | iV dw+ | +w | rh.. iA f4e |
+2=:A2
+T=:AT
+N=:AN
+
+!PART F
+
+1| iA g4q. de ' gvq iD g5s iE g iD bs iE b |
+ | iD a5s iE ae. iD gs iE g iD bs iE b ' iD as iE ae. iA g4q :2 |
+2=:A2
+T=:AT
+N=:AN
+
+!PART G
+
+1| iA g4s a b c5 de b4 ' a4e iB f f c iA | d^q c ' bv a |
+ |    g4q        ge be ' a4q      f      | g4q b ' aq f |
+2=:A2
+T=:AT
+N=:AN
+
+!PART H
 
 1| iA g4q. re+h+ | +w+ | +w+ | +h.. f4e |
 2=:A2
