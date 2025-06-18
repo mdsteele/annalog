@@ -2,7 +2,9 @@
 
 [![Build Status](https://github.com/mdsteele/annalog/actions/workflows/tests.yml/badge.svg)](https://github.com/mdsteele/annalog/actions/workflows/tests.yml)
 
-A homebrew programming metroidvania for the NES (still a work in progress).
+*Annalog* is a programming metroidvania for the NES (currently in beta).
+
+https://mdsteele.games/annalog/
 
 ## Building
 
