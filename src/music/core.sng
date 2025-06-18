@@ -1,6 +1,6 @@
 @PRGC_Core
 
-!SONG Core "|AABB"
+!SONG Core "A|ABBC"
 
 =tempo q32
 =key 1b  % D minor
@@ -8,6 +8,10 @@
 !INST 1A PulsePluck   $07 d1/4
 !INST 1E PulsePluck   $03 d1/4  % echo
 !INST 2A PulsePiano   $06 d1/2
+!INST 2B PulsePiano   $04 d1/2  % echo 1
+!INST 2C PulsePiano   $03 d1/2  % echo 2
+!INST 2D PulsePiano   $02 d1/2  % echo 3
+!INST 2E PulsePiano   $01 d1/2  % echo 4
 !INST TA Constant     $ff
 !INST ND Staccato     $07
 
@@ -20,7 +24,14 @@ N| p(iD x3q x2q)NA :4 |
 !PART B
 
 1| p2A :8 |
-2| iA d4e e ' f ae+ ' +h+ | +w |
+2| iA d4e e ' f ae+ ' +q  ' iB aq | iC aq ' iD aq ' iE aq ' iA rq |
  | d4e e ' f be+ ' +e d4e ' e f |
  | c5h ' d4e e ' b a |
 N| pNA :8 |
+
+!PART C
+
+1=:A1
+2| iB d4q ' iC d ' iD d ' iE d |
+T=:AT
+N=:AN
