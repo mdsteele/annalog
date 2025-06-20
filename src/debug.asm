@@ -35,7 +35,7 @@
 .IMPORT FuncA_Machine_ExecuteNext
 .IMPORT FuncA_Objects_DrawHudInWindowAndObjectsForRoom
 .IMPORT FuncA_Room_MachineResetRun
-.IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
+.IMPORT FuncM_ScrollTowardsGoalAndTickConsoleAndProgressTimer
 .IMPORT Func_BufferPpuTransfer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_PlaySfxMenuCancel
@@ -127,7 +127,7 @@ _GameLoop:
     jsr Func_ClearRestOfOamAndProcessFrame
     jsr_prga FuncA_Machine_DebuggerHandleJoypad  ; returns C
     bcs _ResumeEditing
-    jsr FuncM_ConsoleScrollTowardsGoalAndTick
+    jsr FuncM_ScrollTowardsGoalAndTickConsoleAndProgressTimer
     jmp _GameLoop
 _ResumeEditing:
     jsr_prga FuncA_Console_FinishDebuggingMachine  ; returns Y (param: mask)

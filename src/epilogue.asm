@@ -75,7 +75,7 @@
 .IMPORT Ppu_ChrObjMine
 .IMPORT Ppu_ChrObjPause
 .IMPORT Ppu_ChrObjShadow1
-.IMPORT Ram_ExploreTimer_u8_arr
+.IMPORT Ram_ProgressTimer_u8_arr
 .IMPORT Sram_DeathCount_u8_arr
 .IMPORTZP Zp_Chr04Bank_u8
 .IMPORTZP Zp_Current_sRoom
@@ -413,7 +413,7 @@ _DrawTime:
     sta Hw_PpuAddr_w2
     ldx #kNumTimerDigits - 1
     @loop:
-    lda Ram_ExploreTimer_u8_arr, x
+    lda Ram_ProgressTimer_u8_arr, x
     add #'0'
     sta Hw_PpuData_rw
     ;; Draw an 'h' after the hours count.

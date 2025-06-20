@@ -60,6 +60,7 @@
 .IMPORT Func_SaveProgressAtActiveDevice
 .IMPORT Func_SetMachineIndex
 .IMPORT Func_SetMusicVolumeForCurrentRoom
+.IMPORT Func_TickProgressTimer
 .IMPORT Func_Window_GetRowPpuAddr
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_ScrollDown
@@ -170,9 +171,9 @@ Ram_ConsoleRegNames_u8_arr6: .res 6
 _GameLoop:
     jsr_prga FuncA_Objects_DrawHudInWindowAndObjectsForRoom
     jsr Func_ClearRestOfOamAndProcessFrame
-    jsr_prga FuncA_Console_ScrollWindowUp  ; returns C
+    jsr_prga FuncA_Console_ScrollWindowUpAndTickProgressTimer  ; returns C
     bcs _StartInteraction
-    jsr FuncM_ConsoleScrollTowardsGoalAndTick
+    jsr FuncM_ScrollTowardsGoalAndTickConsoleAndProgressTimer
     jmp _GameLoop
 _StartInteraction:
     lda #bHud::NoMachine | bHud::Hidden
@@ -204,7 +205,7 @@ _CheckButtons:
     and #bJoypad::AButton | bJoypad::BButton
     bne Main_Console_CloseWindow
 _UpdateScrolling:
-    jsr FuncM_ConsoleScrollTowardsGoalAndTick
+    jsr FuncM_ScrollTowardsGoalAndTickConsoleAndProgressTimer
     jmp _GameLoop
 .ENDPROC
 
@@ -220,11 +221,11 @@ _GameLoop:
     jsr Func_ClearRestOfOamAndProcessFrame
 _ScrollWindowDown:
     lda #kConsoleWindowScrollSpeed  ; param: scroll by
-    jsr Func_Window_ScrollDown  ; sets C if fully scrolled out
+    jsr Func_Window_ScrollDown  ; returns C
     bcs _Done
 _UpdateScrolling:
     jsr FuncM_ScrollTowardsAvatar
-    jsr FuncM_ConsoleTick
+    jsr FuncM_TickConsoleAndProgressTimer
     jmp _GameLoop
 _Done:
     lda #$ff
@@ -262,20 +263,22 @@ _CheckButtons:
     jmp (T1T0)
     @continueConsole:
 _Tick:
-    jsr FuncM_ConsoleScrollTowardsGoalAndTick
+    jsr FuncM_ScrollTowardsGoalAndTickConsoleAndProgressTimer
     jmp _GameLoop
 .ENDPROC
 
-;;; Calls FuncA_Terrain_ScrollTowardsGoal and then FuncM_ConsoleTick.
-.EXPORT FuncM_ConsoleScrollTowardsGoalAndTick
-.PROC FuncM_ConsoleScrollTowardsGoalAndTick
+;;; Calls FuncA_Terrain_ScrollTowardsGoal and then
+;;; FuncM_TickConsoleAndProgressTimer.
+.EXPORT FuncM_ScrollTowardsGoalAndTickConsoleAndProgressTimer
+.PROC FuncM_ScrollTowardsGoalAndTickConsoleAndProgressTimer
     jsr FuncM_ScrollTowardsGoal
-    fall FuncM_ConsoleTick
+    fall FuncM_TickConsoleAndProgressTimer
 .ENDPROC
 
 ;;; Calls per-frame tick functions that should still happen even when the
 ;;; machine console is open.
-.PROC FuncM_ConsoleTick
+.PROC FuncM_TickConsoleAndProgressTimer
+    jsr Func_TickProgressTimer
     jsr_prga FuncA_Actor_TickAllDevicesAndSmokeActors
     jsr_prga FuncA_Machine_ConsoleTickOrExecuteAll
     jmp_prga FuncA_Room_CallRoomTick
@@ -479,7 +482,8 @@ _InitWindow:
 ;;; Scrolls the console window in a bit, and transfers PPU data as needed; call
 ;;; this each frame when the window is opening.
 ;;; @return C Set if the window is now fully scrolled in.
-.PROC FuncA_Console_ScrollWindowUp
+.PROC FuncA_Console_ScrollWindowUpAndTickProgressTimer
+    jsr Func_TickProgressTimer
     jsr FuncA_Console_AdjustAvatar
 _ScrollWindow:
     jsr FuncA_Console_TransferNextWindowRow

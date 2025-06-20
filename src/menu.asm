@@ -42,8 +42,8 @@
 .IMPORT FuncA_Console_TransferAllDiagramBoxRows
 .IMPORT FuncA_Console_TransferAllInstructions
 .IMPORT FuncA_Console_TransferInstruction
-.IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
 .IMPORT FuncM_DrawObjectsForRoomAndProcessFrame
+.IMPORT FuncM_ScrollTowardsGoalAndTickConsoleAndProgressTimer
 .IMPORT Func_PlaySfxExplodeFracture
 .IMPORT Func_PlaySfxMenuCancel
 .IMPORT Func_PlaySfxMenuConfirm
@@ -557,8 +557,7 @@ _GameLoop:
     jsr FuncM_DrawObjectsForRoomAndProcessFrame
     jsr_prga FuncA_Console_MenuHandleJoypad  ; returns C and T1T0
     bcs _ExitMenu
-_Tick:
-    jsr FuncM_ConsoleScrollTowardsGoalAndTick
+    jsr FuncM_ScrollTowardsGoalAndTickConsoleAndProgressTimer
     jmp _GameLoop
 _ExitMenu:
     jmp (T1T0)

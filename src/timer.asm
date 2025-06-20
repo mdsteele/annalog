@@ -20,19 +20,19 @@
 .INCLUDE "macros.inc"
 .INCLUDE "timer.inc"
 
-.IMPORT Ram_ExploreTimer_u8_arr
+.IMPORT Ram_ProgressTimer_u8_arr
 
 ;;;=========================================================================;;;
 
-.SEGMENT "PRGA_Avatar"
+.SEGMENT "PRG8"
 
-;;; Advances Ram_ExploreTimer_u8_arr by one frame.
-.EXPORT FuncA_Avatar_TickExploreTimer
-.PROC FuncA_Avatar_TickExploreTimer
+;;; Advances Ram_ProgressTimer_u8_arr by one frame.
+.EXPORT Func_TickProgressTimer
+.PROC Func_TickProgressTimer
 _CountDigitsToRoll:
     ldx #0
     @loop:
-    lda Ram_ExploreTimer_u8_arr, x
+    lda Ram_ProgressTimer_u8_arr, x
     cmp _TimerDigitMax_u8_arr, x
     blt _RollDigits
     inx
@@ -43,11 +43,11 @@ _CountDigitsToRoll:
 _RollDigits:
     lda #0
     ;; Increment the first digit that shouldn't roll over to zero.
-    inc Ram_ExploreTimer_u8_arr, x
+    inc Ram_ProgressTimer_u8_arr, x
     ;; Roll all lower digits back to zero.
     bne @start  ; unconditional
     @loop:
-    sta Ram_ExploreTimer_u8_arr, x
+    sta Ram_ProgressTimer_u8_arr, x
     @start:
     dex
     .assert kNumTimerDigits <= $80, error

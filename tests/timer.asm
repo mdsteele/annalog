@@ -21,8 +21,8 @@
 .INCLUDE "../src/timer.inc"
 
 .IMPORT Exit_Success
-.IMPORT FuncA_Avatar_TickExploreTimer
 .IMPORT Func_ExpectAEqualsY
+.IMPORT Func_TickProgressTimer
 
 ;;;=========================================================================;;;
 
@@ -34,37 +34,37 @@ Zp_TestTmp_ptr: .res 2
 
 .BSS
 
-.EXPORT Ram_ExploreTimer_u8_arr
-Ram_ExploreTimer_u8_arr: .res kNumTimerDigits
+.EXPORT Ram_ProgressTimer_u8_arr
+Ram_ProgressTimer_u8_arr: .res kNumTimerDigits
 
 ;;;=========================================================================;;;
 
 .CODE
 
-;;; Copies the given array into Ram_ExploreTimer_u8_arr.
+;;; Copies the given array into Ram_ProgressTimer_u8_arr.
 ;;; @param YA Pointer to an array of eight timer bytes.
-.PROC Func_SetExploreTimer
+.PROC Func_SetProgressTimer
     stya Zp_TestTmp_ptr
     ldy #kNumTimerDigits - 1
     @loop:
     lda (Zp_TestTmp_ptr), y
-    sta Ram_ExploreTimer_u8_arr, y
+    sta Ram_ProgressTimer_u8_arr, y
     dey
     .assert kNumTimerDigits <= $80, error
     bpl @loop
     rts
 .ENDPROC
 
-;;; Tests that Ram_ExploreTimer_u8_arr equals the given array; if not, prints
+;;; Tests that Ram_ProgressTimer_u8_arr equals the given array; if not, prints
 ;;; an error message and exits.
 ;;; @param YA Pointer to an array of eight timer bytes.
-.PROC Func_ExpectExploreTimer
+.PROC Func_ExpectProgressTimer
     stya Zp_TestTmp_ptr
     ldy #kNumTimerDigits - 1
     @loop:
     tya  ; loop index
     pha  ; loop index
-    ldx Ram_ExploreTimer_u8_arr, y
+    ldx Ram_ProgressTimer_u8_arr, y
     lda (Zp_TestTmp_ptr), y
     tay  ; param: expected value
     txa  ; param: actual value
@@ -168,10 +168,10 @@ kNumTimerTests = \
 RunTests:
     .repeat kNumTimerTests, i
     ldya #Data_TimerTests_u8_arr8_arr2_arr + kNumTimerDigits * (2 * i + 0)
-    jsr Func_SetExploreTimer
-    jsr FuncA_Avatar_TickExploreTimer
+    jsr Func_SetProgressTimer
+    jsr Func_TickProgressTimer
     ldya #Data_TimerTests_u8_arr8_arr2_arr + kNumTimerDigits * (2 * i + 1)
-    jsr Func_ExpectExploreTimer
+    jsr Func_ExpectProgressTimer
     .endrepeat
 Success:
     jmp Exit_Success

@@ -43,12 +43,13 @@
 .IMPORT FuncA_Console_WriteDiagramTransferDataForDiagram
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Terrain_TransferTileColumn
-.IMPORT FuncM_ConsoleScrollTowardsGoalAndTick
 .IMPORT FuncM_DrawObjectsForRoom
+.IMPORT FuncM_ScrollTowardsGoalAndTickConsoleAndProgressTimer
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_PlaySfxWindowOpen
 .IMPORT Func_ProcessFrame
 .IMPORT Func_SetFlag
+.IMPORT Func_TickProgressTimer
 .IMPORT Func_Window_PrepareRowTransfer
 .IMPORT Func_Window_ScrollUp
 .IMPORT Func_Window_TransferBottomBorder
@@ -111,7 +112,7 @@ _GameLoop:
     jsr FuncM_DrawFakeConsoleObjectsAndProcessFrame
     jsr_prga FuncA_Console_ScrollWindowUpForFakeConsole  ; returns C
     bcs Main_FakeConsole_Message
-    jsr FuncM_ConsoleScrollTowardsGoalAndTick
+    jsr FuncM_ScrollTowardsGoalAndTickConsoleAndProgressTimer
     jmp _GameLoop
 .ENDPROC
 
@@ -126,7 +127,7 @@ _GameLoop:
 _GameLoop:
     jsr_prga FuncA_Console_DrawFakeConsoleCursor
     jsr FuncM_DrawFakeConsoleObjectsAndProcessFrame
-    jsr_prga FuncA_Terrain_OnFakeConsoleOpen
+    jsr_prga FuncA_Terrain_TickFakeConsoleAndProgressTimer
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::AButton | bJoypad::BButton
     beq _GameLoop
@@ -520,11 +521,13 @@ _NoCursor:
 
 .SEGMENT "PRGA_Terrain"
 
-;;; Called when a fake console window is fully open.  Makes the orc tank in the
-;;; ShadowOffice room appear the first time the CoreDump fake console is
-;;; used.
+;;; Called each frame while a fake console window is fully open.  Ticks the
+;;; progress timer, and also makes the orc tank in the ShadowOffice room appear
+;;; the first time the CoreDump fake console is used.
 ;;; @prereq Zp_Current_eFake is initialized.
-.PROC FuncA_Terrain_OnFakeConsoleOpen
+.PROC FuncA_Terrain_TickFakeConsoleAndProgressTimer
+    jsr Func_TickProgressTimer
+_RevealOrc:
     ;; Do nothing unless this is the CoreDump fake console.
     lda Zp_Current_eFake
     .assert eFake::CoreDump = 0, error

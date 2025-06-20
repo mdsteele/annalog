@@ -28,13 +28,13 @@
 .INCLUDE "room.inc"
 .INCLUDE "sample.inc"
 
-.IMPORT FuncA_Avatar_TickExploreTimer
 .IMPORT FuncA_Avatar_UpdateWaterDepth
 .IMPORT FuncA_Objects_Alloc2x2Shape
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_PlaySfxSample
 .IMPORT Func_PlaySfxSplash
 .IMPORT Func_SignedAtan2
+.IMPORT Func_TickProgressTimer
 .IMPORT Func_TryPushAvatarHorz
 .IMPORT Func_TryPushAvatarVert
 .IMPORT Ram_Oam_sObj_arr64
@@ -180,11 +180,12 @@ _SetAvatarPose:
     rts
 .ENDPROC
 
-;;; Updates the player avatar state based on the current joypad state.  Sets
-;;; Zp_AvatarExit_ePassage if the avatar hits a passage.
-.EXPORT FuncA_Avatar_ExploreMove
-.PROC FuncA_Avatar_ExploreMove
-    jsr FuncA_Avatar_TickExploreTimer
+;;; Ticks the progress timer, then updates the player avatar state based on the
+;;; current joypad state.  Sets Zp_AvatarExit_ePassage if the avatar hits a
+;;; passage.
+.EXPORT FuncA_Avatar_ExploreMoveAndTickProgressTimer
+.PROC FuncA_Avatar_ExploreMoveAndTickProgressTimer
+    jsr Func_TickProgressTimer
     ;; Apply healing.
     ldx Zp_AvatarHarmTimer_u8
     beq @doneHealing

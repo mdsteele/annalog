@@ -54,10 +54,10 @@ Sram_DeathCount_u8_arr: .res kNumDeathDigits
 
 .RES $01
 
-;;; The total time spent in explore mode for this saved game, stored as frames
-;;; (1 base-60 digit), seconds (2 decimal digits), minutes (2 decimal digits),
-;;; and hours (3 decimal digits), in little-endian order.
-Sram_ExploreTimer_u8_arr: .res kNumTimerDigits
+;;; The total time spent playing this saved game, stored as frames (1 base-60
+;;; digit), seconds (2 decimal digits), minutes (2 decimal digits), and hours
+;;; (3 decimal digits), in little-endian order.
+Sram_ProgressTimer_u8_arr: .res kNumTimerDigits
 
 ;;; A bit array indicating which minimap cells have been explored.  The array
 ;;; contains one u16 for each minimap column; if the minimap cell at row R and
@@ -118,11 +118,11 @@ Zp_CarryingFlower_eFlag: .res 1
     .res 2 * kMinimapWidth
 .ENDPROC
 
-;;; The total time spent in explore mode so far, stored as frames (1 base-60
+;;; The total time spent playing this game so far, stored as frames (1 base-60
 ;;; digit), seconds (2 decimal digits), minutes (2 decimal digits), and hours
 ;;; (3 decimal digits), in little-endian order.
-.EXPORT Ram_ExploreTimer_u8_arr
-Ram_ExploreTimer_u8_arr: .res kNumTimerDigits
+.EXPORT Ram_ProgressTimer_u8_arr
+Ram_ProgressTimer_u8_arr: .res kNumTimerDigits
 
 ;;;=========================================================================;;;
 
@@ -137,11 +137,11 @@ Ram_ExploreTimer_u8_arr: .res kNumTimerDigits
     ;; Enable writes to SRAM.
     lda #bMmc3PrgRam::Enable
     sta Hw_Mmc3PrgRamProtect_wo
-_ExploreTimer:
+_ProgressTimer:
     ldx #kNumTimerDigits - 1
     @loop:
-    lda Ram_ExploreTimer_u8_arr, x
-    sta Sram_ExploreTimer_u8_arr, x
+    lda Ram_ProgressTimer_u8_arr, x
+    sta Sram_ProgressTimer_u8_arr, x
     dex
     .assert kNumTimerDigits <= $80, error
     bpl @loop
@@ -186,11 +186,11 @@ _Finish:
 ;;; @preserve Y, T0+
 .EXPORT FuncA_Avatar_LoadProgress
 .PROC FuncA_Avatar_LoadProgress
-_ExploreTimer:
+_ProgressTimer:
     ldx #kNumTimerDigits - 1
     @loop:
-    lda Sram_ExploreTimer_u8_arr, x
-    sta Ram_ExploreTimer_u8_arr, x
+    lda Sram_ProgressTimer_u8_arr, x
+    sta Ram_ProgressTimer_u8_arr, x
     dex
     .assert kNumTimerDigits <= $80, error
     bpl @loop

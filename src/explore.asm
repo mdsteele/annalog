@@ -37,7 +37,7 @@
 .IMPORT FuncA_Avatar_EnterRoomViaDoor
 .IMPORT FuncA_Avatar_EnterRoomViaPassage
 .IMPORT FuncA_Avatar_ExitRoomViaPassage
-.IMPORT FuncA_Avatar_ExploreMove
+.IMPORT FuncA_Avatar_ExploreMoveAndTickProgressTimer
 .IMPORT FuncA_Avatar_PickUpFlowerDevice
 .IMPORT FuncA_Avatar_SpawnAtLastSafePoint
 .IMPORT FuncA_Avatar_ToggleFloatingHud
@@ -203,7 +203,7 @@ _Tick:
     cmp #kAvatarHarmDeath
     jeq Main_Death
     ;; Move the avatar and check if we've gone through a passage:
-    jsr_prga FuncA_Avatar_ExploreMove
+    jsr_prga FuncA_Avatar_ExploreMoveAndTickProgressTimer
     lda Zp_AvatarExit_ePassage
     .assert ePassage::None = 0, error
     beq _GameLoop
