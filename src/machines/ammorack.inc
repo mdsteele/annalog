@@ -21,7 +21,8 @@
 ;;;   * Slowdown: Unused.
 ;;;   * State1: The ammo rack slot bits.  Bit N is set if there is a rocket in
 ;;;     slot number N.
-;;;   * State2: Unused.
+;;;   * State2: An animation timer for restocking, which decrements each frame
+;;;     when nonzero.
 ;;;   * State3: Unused.
 
 ;;; How many ammo slots are in an ammo rack machine.
@@ -32,7 +33,7 @@ kAmmoRackMachineWidthPx  = $10 * kNumAmmoRackSlots
 kAmmoRackMachineHeightPx = $08
 
 ;;; How many frames an ammo rack machine spends per ACT operation.
-kAmmoRackActCountdown = 8
+kAmmoRackActCountdown = 16
 
 ;;; The CHR bank number containing the diagram for ammorack machines.
 kChrBankDiagramAmmoRack = $10

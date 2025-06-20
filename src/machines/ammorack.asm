@@ -26,13 +26,16 @@
 
 .IMPORT FuncA_Machine_Error
 .IMPORT FuncA_Machine_PlaySfxRocketTransfer
+.IMPORT FuncA_Machine_ReachedGoal
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_MoveShapeRightOneTile
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState2_byte_arr
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
@@ -56,8 +59,23 @@ kPaletteObjRocket = 0
     lda #(1 << kNumAmmoRackSlots) - 1
     sta Ram_MachineState1_byte_arr, x  ; ammo slot bits
     jsr FuncA_Machine_PlaySfxRocketTransfer
+    ;; Set cooldown.
+    lda #kTileHeightPx
+    sta Ram_MachineState2_byte_arr, x  ; restock offset
     lda #kAmmoRackActCountdown  ; param: num frames
     jmp FuncA_Machine_StartWaiting
+.ENDPROC
+
+;;; Tick implemention for ammo rack machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Machine_AmmoRack_Tick
+.PROC FuncA_Machine_AmmoRack_Tick
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineState2_byte_arr, x  ; restock offset
+    beq @doneRestock
+    dec Ram_MachineState2_byte_arr, x  ; restock offset
+    @doneRestock:
+    jmp FuncA_Machine_ReachedGoal
 .ENDPROC
 
 ;;;=========================================================================;;;
@@ -72,12 +90,14 @@ _RocketSlots:
     jsr FuncA_Objects_SetShapePosToMachineTopLeft
     jsr FuncA_Objects_MoveShapeRightOneTile
     ldx Zp_MachineIndex_u8
+    lda Ram_MachineState2_byte_arr, x  ; param: restock offset
+    jsr FuncA_Objects_MoveShapeUpByA  ; preserves X
     lda Ram_MachineState1_byte_arr, x  ; ammo slot bits
     sta T2  ; ammo slot bits
     @loop:
-    lsr T2
+    lsr T2  ; ammo slot bits
     bcc @continue
-    ldy #kPaletteObjRocket  ; param: object flags
+    ldy #kPaletteObjRocket | bObj::Pri  ; param: object flags
     lda #kTileIdObjReloaderRocketVert  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape  ; preserves T2+
     @continue:

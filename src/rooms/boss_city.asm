@@ -42,15 +42,17 @@
 .IMPORT DataA_Room_Building_sTileset
 .IMPORT Data_Empty_sActor_arr
 .IMPORT Data_PowersOfTwo_u8_arr8
+.IMPORT FuncA_Machine_AmmoRack_Tick
 .IMPORT FuncA_Machine_AmmoRack_TryAct
 .IMPORT FuncA_Machine_Error
-.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
 .IMPORT FuncA_Machine_GenericMoveTowardGoalVert
 .IMPORT FuncA_Machine_GenericTryMoveX
 .IMPORT FuncA_Machine_GenericTryMoveY
 .IMPORT FuncA_Machine_LauncherTryAct
 .IMPORT FuncA_Machine_PlaySfxRocketTransfer
 .IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_Reloader_PickUpAmmo
+.IMPORT FuncA_Machine_Reloader_Tick
 .IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Machine_WriteToLever
 .IMPORT FuncA_Objects_Draw1x1Shape
@@ -100,6 +102,7 @@
 .IMPORT Ram_MachineGoalHorz_u8_arr
 .IMPORT Ram_MachineGoalVert_u8_arr
 .IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
@@ -386,7 +389,7 @@ _Machines_sMachine_arr:
     d_addr WriteReg_func_ptr, FuncA_Machine_BossCity_WriteReg
     d_addr TryMove_func_ptr, FuncA_Machine_Error
     d_addr TryAct_func_ptr, FuncA_Machine_AmmoRack_TryAct
-    d_addr Tick_func_ptr, FuncA_Machine_ReachedGoal
+    d_addr Tick_func_ptr, FuncA_Machine_AmmoRack_Tick
     d_addr Draw_func_ptr, FuncA_Objects_DrawAmmoRackMachine
     d_addr Reset_func_ptr, Func_Noop
     D_END
@@ -1210,21 +1213,20 @@ _TryDropOffAmmo:
     jsr FuncA_Machine_PlaySfxRocketTransfer
     dec Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
     inc Ram_MachineState1_byte_arr + kLauncherMachineIndex  ; ammo count
-    bne _StartWaiting  ; unconditional
+    lda #kReloaderActCountdown  ; param: num frames
+    jmp FuncA_Machine_StartWaiting
 _TryPickUpAmmo:
     cpx #kNumAmmoRackSlots
     bge _Error
+    lda Ram_MachineState2_byte_arr + kAmmoRackMachineIndex  ; restock offset
+    bne _Error  ; ammo rack restock animation is still running
     lda Data_PowersOfTwo_u8_arr8, x
     bit Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
     beq _Error
     eor #$ff
     and Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
     sta Ram_MachineState1_byte_arr + kAmmoRackMachineIndex  ; ammo slot bits
-    inc Ram_MachineState1_byte_arr + kReloaderMachineIndex  ; ammo count
-    jsr FuncA_Machine_PlaySfxRocketTransfer
-_StartWaiting:
-    lda #kReloaderActCountdown  ; param: num frames
-    jmp FuncA_Machine_StartWaiting
+    jmp FuncA_Machine_Reloader_PickUpAmmo
 _Error:
     jmp FuncA_Machine_Error
 .ENDPROC
@@ -1238,9 +1240,7 @@ _Error:
 
 .PROC FuncA_Machine_BossCityReloader_Tick
     ldax #kReloaderMinPlatformLeft  ; param: min platform left
-    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
-    jeq FuncA_Machine_ReachedGoal
-    rts
+    jmp FuncA_Machine_Reloader_Tick
 .ENDPROC
 
 ;;;=========================================================================;;;

@@ -18,9 +18,11 @@
 ;;;=========================================================================;;;
 
 ;;; State bytes for rocket reloader machines:
+;;;   * Slowdown: Unused.
 ;;;   * State1: The number of rockets currently carried by the reloader machine
 ;;;     (0 or 1).
-;;;   * State2: Unused.
+;;;   * State2: An animation timer for picking up ammo, which decrements each
+;;;     frame when nonzero.
 ;;;   * State3: Unused.
 
 ;;; The size of a reloader machine's main platform, in pixels.

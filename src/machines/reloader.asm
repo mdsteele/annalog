@@ -23,16 +23,26 @@
 .INCLUDE "reloader.inc"
 .INCLUDE "shared.inc"
 
+.IMPORT FuncA_Machine_GenericMoveTowardGoalHorz
+.IMPORT FuncA_Machine_PlaySfxRocketTransfer
+.IMPORT FuncA_Machine_ReachedGoal
+.IMPORT FuncA_Machine_StartWaiting
 .IMPORT FuncA_Objects_Alloc2x2MachineShape
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_MoveShapeDownAndRightOneTile
+.IMPORT FuncA_Objects_MoveShapeUpByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Ram_MachineState1_byte_arr
+.IMPORT Ram_MachineState2_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
 .IMPORTZP Zp_MachineIndex_u8
 
 ;;;=========================================================================;;;
+
+;;; How quickly the rocket moves while the reloader is picking it up from the
+;;; ammo rack, in pixels per frame.
+.DEFINE kReloaderPickupSpeed 2
 
 ;;; Various OBJ tile IDs used for drawing reloader machines.
 kTileIdObjReloaderHopperTop    = kTileIdObjReloaderFirst + 0
@@ -43,6 +53,43 @@ kPaletteObjReloader = 0
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Machine"
+
+;;; Tick implemention for reloader machines.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+;;; @param AX The minimum platform left position for the machine.
+.EXPORT FuncA_Machine_Reloader_Tick
+.PROC FuncA_Machine_Reloader_Tick
+    jsr FuncA_Machine_GenericMoveTowardGoalHorz  ; returns Z
+    bne @done
+    jsr FuncA_Machine_ReachedGoal
+    @done:
+_TickAnimation:
+    ldx Zp_MachineIndex_u8
+    lda Ram_MachineState2_byte_arr, x  ; pickup offset
+    beq @done
+    dec Ram_MachineState2_byte_arr, x  ; pickup offset
+    @done:
+    rts
+.ENDPROC
+
+;;; Loads the reloader machine with a rocket, plays a sound, sets up its pickup
+;;; anmiation, and starts waiting.
+;;; @prereq Zp_MachineIndex_u8 and Zp_Current_sMachine_ptr are initialized.
+.EXPORT FuncA_Machine_Reloader_PickUpAmmo
+.PROC FuncA_Machine_Reloader_PickUpAmmo
+    jsr FuncA_Machine_PlaySfxRocketTransfer
+    ldx Zp_MachineIndex_u8
+    lda #1
+    sta Ram_MachineState1_byte_arr, x  ; ammo count
+    lda #kBlockHeightPx / kReloaderPickupSpeed
+    sta Ram_MachineState2_byte_arr, x  ; pickup offset
+    lda #kReloaderActCountdown  ; param: num frames
+    jmp FuncA_Machine_StartWaiting
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Objects"
 
 ;;; Draws a rocket reloader machine.
@@ -50,11 +97,14 @@ kPaletteObjReloader = 0
 .EXPORT FuncA_Objects_DrawReloaderMachine
 .PROC FuncA_Objects_DrawReloaderMachine
 _Rocket:
+    jsr FuncA_Objects_SetShapePosToMachineTopLeft
     ldx Zp_MachineIndex_u8
     lda Ram_MachineState1_byte_arr, x  ; ammo count
     beq @done
-    jsr FuncA_Objects_SetShapePosToMachineTopLeft
-    jsr FuncA_Objects_MoveShapeDownAndRightOneTile
+    jsr FuncA_Objects_MoveShapeDownAndRightOneTile   ; preserves X
+    lda Ram_MachineState2_byte_arr, x  ; pickup offset
+    mul #kReloaderPickupSpeed
+    jsr FuncA_Objects_MoveShapeUpByA
     ldy #kPaletteObjReloader  ; param: object flags
     lda #kTileIdObjReloaderRocketVert  ; param: tile ID
     jsr FuncA_Objects_Draw1x1Shape
