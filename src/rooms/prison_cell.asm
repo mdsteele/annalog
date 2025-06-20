@@ -119,14 +119,8 @@ kCutsceneSpawnDeviceIndex = 0
 
 ;;; The index of the passage that leads out of the prison cell.
 kEscapePassageIndex = 0
-;;; The index of the passage that leads into the tunnel under the prison cell.
-kTunnelPassageIndex = 1
-;;; The index of the passage on the eastern side of the room.
-kEasternPassageIndex = 2
 ;;; The index of the console device for the PrisonCellLift machine.
 kLiftConsoleDeviceIndex = 2
-;;; The index of the console device for the PrisonCellLauncher machine.
-kLauncherConsoleDeviceIndex = 3
 
 ;;; The machine indices for the machines in this room.
 kLiftMachineIndex = 0
@@ -422,7 +416,6 @@ _Devices_sDevice_arr:
     d_byte BlockCol_u8, 3
     d_byte Target_byte, kLiftMachineIndex
     D_END
-    .assert * - :- = kLauncherConsoleDeviceIndex * .sizeof(sDevice), error
     D_STRUCT sDevice
     d_byte Type_eDevice, eDevice::ConsoleFloor
     d_byte BlockRow_u8, 13
@@ -440,23 +433,27 @@ _Devices_sDevice_arr:
 _Passages_sPassage_arr:
 :   .assert * - :- = kEscapePassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 0
+    d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::PrisonEscape
     d_byte SpawnBlock_u8, 9
     d_byte SpawnAdjust_byte, 0
     D_END
-    .assert * - :- = kTunnelPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 1
+    d_byte Exit_bPassage, ePassage::Western | 1 | bPassage::Secondary
     d_byte Destination_eRoom, eRoom::PrisonEscape
     d_byte SpawnBlock_u8, 20
     d_byte SpawnAdjust_byte, 0
     D_END
-    .assert * - :- = kEasternPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::PrisonCrossroad
     d_byte SpawnBlock_u8, 11
+    d_byte SpawnAdjust_byte, $80
+    D_END
+    D_STRUCT sPassage
+    d_byte Exit_bPassage, ePassage::Eastern | 0 | bPassage::Secondary
+    d_byte Destination_eRoom, eRoom::PrisonCrossroad
+    d_byte SpawnBlock_u8, 4
     d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
@@ -495,17 +492,18 @@ _CheckIfReachedTunnel:
     ;; If the player has reached the tunnel before, then don't lock scrolling.
     flag_bit Ram_ProgressFlags_arr, eFlag::PrisonCellReachedTunnel
     bne @done
-    ;; If the player enters from the tunnel (or from the eastern passage or
-    ;; eastern console, though normally that shouldn't be possible before
-    ;; reaching the tunnel), then set the flag indicating that the tunnel has
-    ;; been reached, and don't lock scrolling.
+    ;; If the player enters from anywhere other than the escape passage, the
+    ;; lift machine console, or the cutscene entry point, then set the flag
+    ;; indicating that the tunnel has been reached, and don't lock scrolling.
+    ;; (Though normally, the tunnel passage specifically will have to be the
+    ;; first such other entrance reached.)
     lda T0  ; bSpawn value
-    cmp #bSpawn::Passage | kTunnelPassageIndex
-    beq @setFlag
-    cmp #bSpawn::Passage | kEasternPassageIndex
-    beq @setFlag
-    cmp #bSpawn::Device | kLauncherConsoleDeviceIndex
-    beq @setFlag
+    cmp #bSpawn::Passage | kEscapePassageIndex
+    beq @lockScrolling
+    cmp #bSpawn::Device | kCutsceneSpawnDeviceIndex
+    beq @lockScrolling
+    cmp #bSpawn::Device | kLiftConsoleDeviceIndex
+    bne @setFlag
     ;; Otherwise, lock scrolling so that only the prison cell is visible.
     @lockScrolling:
     lda #bScroll::LockHorz | bScroll::LockVert

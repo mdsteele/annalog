@@ -453,14 +453,17 @@ _DeviceOffset_u8_arr:
     D_END
 .ENDPROC
 
-;;; Called when exiting the room via a passage.  Marks the exit passage as the
-;;; last spawn point (in case this room is safe and the destination room turns
-;;; out to be unsafe), and saves the game.  Returns the origin passage spawn
-;;; block and the destination room number.
-;;; @param X The calculated bPassage value for the passage the player went
-;;;     through (which includes SideMask and ScreenMask only).
+;;; Called when exiting the room via a passage.  Determines which sPassage is
+;;; being used to exit the room, marks that passage as the last spawn point (in
+;;; case this room is safe and the destination room turns out to be unsafe),
+;;; and saves the game.  Returns the passage's spawn block, its actual bPassage
+;;; value, and the destination eRoom value.
+;;; @param X The calculated bPassage value for the passage the player avatar
+;;;     went through (which includes SideMask and ScreenMask only).
 ;;; @return A The SpawnBlock_u8 value for the origin room.
 ;;; @return X The eRoom value for the destination room.
+;;; @return Y The actual bPassage value for the passage the player avatar went
+;;;     through.
 .EXPORT FuncA_Avatar_ExitRoomViaPassage
 .PROC FuncA_Avatar_ExitRoomViaPassage
     stx T2  ; calculated bPassage value
@@ -468,28 +471,60 @@ _DeviceOffset_u8_arr:
     ;; Find the sPassage entry for the bPassage the player went through.
     ldy #0
     sty T3  ; passage index
-    beq @find  ; unconditional
-    @wrongSide:
-    .repeat .sizeof(sPassage)
+    beq @start  ; unconditional
+    @wrongSideOrScreen:
     iny
-    .endrepeat
+    iny
+    iny
+    @wrongYPosition:
+    .assert sPassage::SpawnAdjust_byte = 3, error
+    iny
+    .assert .sizeof(sPassage) = 4, error
     inc T3  ; passage index
-    @find:
+    @start:
+    ;; Check if this passage's Exit_bPassage matches the calculated bPassage
+    ;; value.  If not, move on to the next passage in the list.
     .assert sPassage::Exit_bPassage = 0, error
     lda (T1T0), y
+    sta T4  ; actual bPassage value
     and #bPassage::SideMask | bPassage::ScreenMask
     cmp T2  ; calculated bPassage value
-    bne @wrongSide
-    lda T3  ; passage index
-    ora #bSpawn::Passage  ; param: bSpawn value
-    jsr Func_SaveProgressAtSpawnPoint  ; preserves Y and T0+
+    bne @wrongSideOrScreen
+    ;; Store this passage's Destination_eRoom and SpawnBlock_u8 for later.
     iny
     .assert sPassage::Destination_eRoom = 1, error
     lda (T1T0), y  ; Destination_eRoom
-    tax
+    sta T5  ; Destination_eRoom
     iny
     .assert sPassage::SpawnBlock_u8 = 2, error
     lda (T1T0), y  ; SpawnBlock_u8
+    sta T6  ; SpawnBlock_u8
+    ;; We only need to check SpawnAdjust_byte for east/west passages.
+    bit T4  ; actual bPassage value
+    .assert bPassage::EastWest = bProc::Negative, error
+    bpl @foundPassage
+    ;; For east/west passages, Zp_AvatarPosY_i16 must be greater than or equal
+    ;; to SpawnAdjust_byte.
+    iny
+    .assert sPassage::SpawnAdjust_byte = 3, error
+    lda (T1T0), y  ; SpawnAdjust_byte
+    sta T7  ; SpawnAdjust_byte
+    lda Zp_AvatarPosY_i16 + 1
+    bmi @wrongYPosition  ; 16-bit Y-position is negative
+    bne @foundPassage  ; 16-bit Y-position >= $100, and thus > SpawnAdjust_byte
+    lda Zp_AvatarPosY_i16 + 0
+    cmp T7  ; SpawnAdjust_byte
+    blt @wrongYPosition
+    @foundPassage:
+    ;; Save progress at the matching exit passage.
+    lda T3  ; passage index
+    ora #bSpawn::Passage  ; param: bSpawn value
+    jsr Func_SaveProgressAtSpawnPoint  ; preserves T0+
+    ;; Return the sPassage's Destination_eRoom in X, SpawnBlock_u8 in A, and
+    ;; Exit_bPassage in Y.
+    ldx T5  ; Destination_eRoom
+    lda T6  ; SpawnBlock_u8
+    ldy T4  ; actual bPassage value
     rts
 .ENDPROC
 
@@ -498,13 +533,14 @@ _DeviceOffset_u8_arr:
 ;;; based on the size of the new room and the difference between the
 ;;; origin/destination passages' SpawnBlock_u8 values.
 ;;; @prereq The new room is loaded, and Zp_Previous_eRoom is initialized.
-;;; @param X The (calculated) origin bPassage value.
+;;; @param X The (actual) bPassage value for the origin passage in the previous
+;;;     room.
 ;;; @param Y The SpawnBlock_u8 for the origin passage in the previous room.
 .EXPORT FuncA_Avatar_EnterRoomViaPassage
 .PROC FuncA_Avatar_EnterRoomViaPassage
-    txa  ; origin bPassage value (calculated)
-    and #bPassage::ScreenMask
-    sta T3  ; origin passage's screen number
+    txa  ; origin bPassage value (actual)
+    and #bPassage::Secondary
+    sta T3  ; origin passage's Secondary bit
     sty T2  ; origin passage's SpawnBlock_u8
 _FindDestinationPassage:
     jsr FuncA_Avatar_GetRoomPassages  ; preserves T2+, returns T1T0
@@ -519,17 +555,14 @@ _FindDestinationPassage:
     lda (T1T0), y
     iny  ; now Y % .sizeof(sPassage) is 1
     sta T5  ; destination bPassage value
-    ;; If this destination passage has the SameScreen bit set, then the two
-    ;; passages must have the same screen number in order to count as a match.
-    and #bPassage::SameScreen
-    beq @screenMatches  ; SameScreen bit not set, so any screen number is fine
-    lda T5  ; destination bPassage value
-    and #bPassage::ScreenMask
-    cmp T3  ; origin passage's screen number
-    beq @screenMatches
+    ;; In order for the passages to match, the destination passage's Secondary
+    ;; bit must be the same as the origin passage's Secondary bit.
+    and #bPassage::Secondary
+    cmp T3  ; origin passage's Secondary bit
+    beq @secondaryBitMatches
     iny  ; now Y % .sizeof(sPassage) is 2
     bne @doesNotMatch  ; unconditional
-    @screenMatches:
+    @secondaryBitMatches:
     ;; In order for the passages to match, the destination passage's eRoom must
     ;; be the room that the origin passage was in.
     .assert sPassage::Destination_eRoom = 1, error

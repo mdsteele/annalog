@@ -430,13 +430,13 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 0
+    d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::LavaCenter
     d_byte SpawnBlock_u8, 4
     d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Western | bPassage::SameScreen | 1
+    d_byte Exit_bPassage, ePassage::Western | 1 | bPassage::Secondary
     d_byte Destination_eRoom, eRoom::LavaCenter
     d_byte SpawnBlock_u8, 15
     d_byte SpawnAdjust_byte, 0

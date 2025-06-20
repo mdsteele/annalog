@@ -115,7 +115,7 @@ DOOR_TARGET_RE = re.compile(r'^ *d_byte +Target_byte, *eRoom::([A-Za-z0-9]+)')
 
 PASSAGE_EXIT_RE = re.compile(
     r'^ *d_byte Exit_bPassage, *ePassage::([A-Za-z]+) *'
-    r'(\| *bPassage::SameScreen *)?\| *([0-9]+)')
+    r'\| *([0-9]+)( *\| *bPassage::Secondary)?')
 PASSAGE_DEST_RE = re.compile(
     r'^ *d_byte Destination_eRoom, *eRoom::(([A-Z][a-z]+)[A-Za-z0-9]+)')
 
@@ -261,8 +261,8 @@ def load_room(filepath, prgc_name):
             exit_match = read_match_line(file, PASSAGE_EXIT_RE)
             dest_match = read_match_line(file, PASSAGE_DEST_RE)
             side = exit_match.group(1)
-            same_screen = bool(exit_match.group(2))
-            screen = int(exit_match.group(3))
+            screen = int(exit_match.group(2))
+            secondary = bool(exit_match.group(3))
             if side == 'Western':
                 cell = (start_row + screen, start_col)
             elif side == 'Eastern':
@@ -274,8 +274,8 @@ def load_room(filepath, prgc_name):
             else: assert False, side
             passages.append({
                 'side': side,
-                'same_screen': same_screen,
                 'screen': screen,
+                'secondary': secondary,
                 'cell': cell,
                 'dest_room': dest_match.group(1),
                 'dest_area': dest_match.group(2),
@@ -479,21 +479,31 @@ def test_room_passages(areas):
     failed = False
     for area_name, area in areas.items():
         for room_name, room in area['rooms'].items():
+            dest_pairs = set()
             for passage in room['passages']:
+                is_secondary = passage['secondary']
                 dest_area = areas[passage['dest_area']]
                 dest_room_name = passage['dest_room']
                 if dest_room_name == room_name:
                     print('SCENARIO: {} has a passage to itself'.format(
                         room_name))
+                    failed = True
                     continue
+                dest_pair = (dest_room_name, is_secondary)
+                if dest_pair in dest_pairs:
+                    print('SCENARIO: {} has multiple {} passages to {}'.format(
+                        room_name, 'secondary' if is_secondary else 'primary',
+                        dest_room_name))
+                    failed = True
+                    continue
+                dest_pairs.add(dest_pair)
                 dest_room = dest_area['rooms'][dest_room_name]
                 side = passage['side']
                 for dest_passage in dest_room['passages']:
                     if dest_passage['dest_room'] != room_name: continue
                     if dest_passage['side'] != PASSAGE_SIDE_OPPOSITES[side]:
                         continue
-                    if passage['same_screen'] and \
-                       dest_passage['screen'] != passage['screen']:
+                    if dest_passage['secondary'] != is_secondary:
                         continue
                     if (((side == 'Eastern' or side == 'Western') and
                          dest_passage['cell'] != passage['cell']) or

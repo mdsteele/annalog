@@ -225,15 +225,16 @@ _FadeOut:
 _LoadNextRoom:
     tay  ; param: ePassage value
     jsr_prga FuncA_Avatar_CalculatePassage  ; returns A
-    pha  ; origin bPassage value (calculated)
     tax  ; param: origin bPassage value (calculated)
-    jsr FuncA_Avatar_ExitRoomViaPassage  ; returns X (eRoom) and A (block)
+    jsr FuncA_Avatar_ExitRoomViaPassage  ; returns X (param: eRoom), A, and Y
     pha  ; origin SpawnBlock_u8
+    tya  ; origin bPassage value (actual)
+    pha  ; origin bPassage value (actual)
     jsr FuncM_SwitchPrgcAndLoadRoom
+    pla  ; origin bPassage value (actual)
+    tax  ; param: origin bPassage value (actual)
     pla  ; origin SpawnBlock_u8
     tay  ; param: origin SpawnBlock_u8
-    pla  ; origin bPassage value (calculated)
-    tax  ; param: origin bPassage value (calculated)
     jsr_prga FuncA_Avatar_EnterRoomViaPassage
 _FadeIn:
     jmp Main_Explore_EnterRoom

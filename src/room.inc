@@ -255,17 +255,16 @@ kMaxPassages = 8
 ;;;       screen of the room, and (N - 1) for the easternmost screen of a room
 ;;;       that's N screens wide.
 ;;; When the player avatar exits a room via a passage, the game will look for a
-;;; matching passage in the destination room for the avatar to enter via.
-;;; Normally, the game will pick the first (presumably only) passage leading
-;;; back to the room the avatar came from.  However, if the SameScreen bit is
-;;; set, then the two passages must have the same screen number in order to
-;;; match.  This is to allow two adjacent and vertically-aligned tall rooms to
-;;; share two horizontal passages between each other.
+;;; matching passage in the destination room for the avatar to enter via. In
+;;; order to match, the other passage's destination room must point back to the
+;;; origin room, and the two passages must either both have the Secondary bit
+;;; set or both have the Secondary bit clear (this allows a pair of rooms to
+;;; have two different passages between them).
 .SCOPE bPassage
     EastWest   = %10000000  ; if set, this is an east/west passage
     UpDown     = %01000000  ; if set, this is an up/down passage
     SideMask   = %11100000  ; bits used for the ePassage value
-    SameScreen = %00001000  ; if set, destination must have same screen number
+    Secondary  = %00001000  ; origin/destination must both set/clear this bit
     ScreenMask = %00000111  ; bits used for the screen number
 .ENDSCOPE
 
@@ -283,18 +282,25 @@ kMaxPassages = 8
     ;; column index for the center block of the passage (or right-of-center, if
     ;; the passage is an even number of blocks wide).
     SpawnBlock_u8      .byte
-    ;; Specifies a position adjustment to apply to the player avatar when
-    ;; spawning at this passage (but not when travelling through the passage).
-    ;;     * For east/west passages, this field is ignored.
-    ;;     * For up/down passages, bits 4-7 (the top four bits) are a signed
-    ;;       horizontal offset, measured in tiles; and bit 3 indicates whether
-    ;;       the avatar should face right (0) or left (1).
+    ;; For up/down passages, this field specifies a position adjustment to
+    ;; apply to the player avatar when spawning at this passage (but not when
+    ;; travelling through the passage):
+    ;;     * Bits 4-7 (the top four bits) are a signed horizontal offset,
+    ;;       measured in tiles.
+    ;;     * Bit 3 indicates whether the player avatar should face right (0) or
+    ;;       left (1).
     ;;     * For top passages, bits 0-2 (the bottom three bits) are an unsigned
     ;;       downward ofset, measured in blocks; for bottom passages, those
     ;;       bits are an unsigned *upward* offset, measured in blocks.  In
     ;;       either case, if these bits are zero, the avatar will start out
     ;;       airborne; otherwise, it's assumed that the avatar is standing on
     ;;       solid ground.
+    ;; For east/west passages, this field instead specifies a room pixel
+    ;; Y-position; for this passage to be a valid exit, the player avatar's
+    ;; signed 16-bit Y-position must be greater than or equal to this unsigned
+    ;; 8-bit value (in addition to matching the passage's screen number). This
+    ;; can be used to allow multiple east/west exits in the same vertical
+    ;; screen of a room.
     SpawnAdjust_byte   .byte
 .ENDSTRUCT
 

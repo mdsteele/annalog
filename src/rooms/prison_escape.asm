@@ -178,13 +178,13 @@ _Devices_sDevice_arr:
     .byte eDevice::None
 _Passages_sPassage_arr:
 :   D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | bPassage::SameScreen | 0
+    d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::PrisonCell
     d_byte SpawnBlock_u8, 7
     d_byte SpawnAdjust_byte, 0
     D_END
     D_STRUCT sPassage
-    d_byte Exit_bPassage, ePassage::Eastern | bPassage::SameScreen | 1
+    d_byte Exit_bPassage, ePassage::Eastern | 1 | bPassage::Secondary
     d_byte Destination_eRoom, eRoom::PrisonCell
     d_byte SpawnBlock_u8, 18
     d_byte SpawnAdjust_byte, 0
