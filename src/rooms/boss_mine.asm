@@ -1017,9 +1017,14 @@ _RegR:
     ldy #kCranePlatformIndex  ; param: distance sensor platform index
     jsr Func_DistanceSensorDownDetectPoint  ; returns T0
     @doneBoss:
-    ;; Detect the boulder, if not absent.
+    ;; Detect the boulder, if not absent or still moving on the conveyor.
+    ;; (Ignoring the boulder while it's moving on the conveyor prevents the
+    ;; player annoyance of the machine detecting the boulder but not being able
+    ;; to grab it yet.)
     lda Zp_RoomState + sState::BoulderState_eBoulder
     .assert eBoulder::Absent = 0, error
+    beq @doneBoulder
+    cmp #eBoulder::OnConveyor
     beq @doneBoulder
     ldy #kBoulderPlatformIndex  ; param: platform index
     jsr Func_SetPointToPlatformCenter  ; preserves T0+
