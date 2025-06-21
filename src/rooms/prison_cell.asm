@@ -652,6 +652,10 @@ _TrapFloor:
     ldy #kTrapFloorPlatformIndex  ; param: platform index
     ldax #_TrapFloorParticleAngle_u8_arr4  ; param: angle array pointer
     jsr FuncC_Prison_Cell_SpawnParticlesForExplodedPlatform
+    ;; Zero out the player avatar's coyote time, so that they can't jump out
+    ;; from the pit.
+    lda #bAvatar::Airborne
+    sta Zp_AvatarState_bAvatar
     @done:
 _Gate:
     ;; Update the flag from the lever.
