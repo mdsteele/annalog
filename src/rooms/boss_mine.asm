@@ -266,6 +266,9 @@ kBossNumFireballWaves = 6
 ;;; When shooting a fireball pair, this is the angle each fireball is off from
 ;;; center, measured in increments of tau/256.
 kBossFireballSplitAngle = 12
+;;; How many waves of fireballs must be started after a grub is killed before
+;;; another one can be dropped.
+kMinWavesBetweenGrubs = 2
 
 ;;; How many frames the boss spends burrowing before emerging from an exit.
 kBossBurrowFrames = 50
@@ -307,6 +310,9 @@ kBossSubsequentShootCooldown = 45
     BossEmerge_u8         .byte
     ;; The number of grubs that the boss has dropped so far.
     BossGrubsDropped_u8   .byte
+    ;; How many more fireball attack waves the boss must start, at minimum,
+    ;; before dropping another grub.
+    WavesUntilGrub_u8     .byte
     ;; What state the boulder is in.
     BoulderState_eBoulder .byte
     ;; The current Y subpixel position of the boulder.
@@ -529,13 +535,13 @@ _CheckMode:
 _BossHiding:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
-    bne @done
+    bne _Return1
     ;; Start burrowing out of an exit.
     lda #eBossMode::Burrowing
     sta Zp_RoomState + sState::Current_eBossMode
     lda #kBossBurrowFrames
     sta Zp_RoomState + sState::BossCooldown_u8
-    @done:
+_Return1:
     rts
 _BossBurrowing:
     ;; Shake the room.
@@ -549,7 +555,7 @@ _BossBurrowing:
     @noShake:
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
-    bne _Return
+    bne _Return1
     ;; Pick a random exit to emerge from.
     jsr Func_GetRandomByte
     and #$03
@@ -593,6 +599,9 @@ _BossEmerging:
     inc Zp_RoomState + sState::BossEmerge_u8
     rts
     @fullyEmerged:
+    ;; If more attack waves are needed, don't drop a grub.
+    lda Zp_RoomState + sState::WavesUntilGrub_u8
+    bne @doNotDropGrub
     ;; If a grub is already out, don't drop another one.
     lda #eActor::BadGrub  ; param: actor type to find
     jsr Func_FindActorWithType  ; returns C
@@ -619,13 +628,17 @@ _BossEmerging:
     sta Zp_RoomState + sState::BossFireCount_u8
     lda #kBossFirstShootCooldown
     sta Zp_RoomState + sState::BossCooldown_u8
-_Return:
+    ;; Decrement WavesUntilGrub_u8 if nonzero.
+    lda Zp_RoomState + sState::WavesUntilGrub_u8
+    beq _Return2
+    dec Zp_RoomState + sState::WavesUntilGrub_u8
+_Return2:
     rts
 _BossShooting:
     jsr FuncA_Room_BossMine_SetEyeDir
     ;; Wait for the cooldown to expire.
     lda Zp_RoomState + sState::BossCooldown_u8
-    bne _Return
+    bne _Return2
     ;; If there are no more projectiles to fire, retreat.
     lda Zp_RoomState + sState::BossFireCount_u8
     beq _StartRetreating
@@ -1275,6 +1288,8 @@ _CheckForGrubImpact:
     ;; Squish the grub.
     jsr Func_InitActorSmokeExplosion
     jsr Func_PlaySfxBaddieDeath
+    lda #kMinWavesBetweenGrubs
+    sta Zp_RoomState + sState::WavesUntilGrub_u8
     @done:
 _CheckForBossImpact:
     ;; If the boss isn't fully emerged, the boulder can't hit it.
