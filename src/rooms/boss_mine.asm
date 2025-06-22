@@ -281,9 +281,9 @@ kBossHurtFrames = 120
 kBossInitCooldown = 120
 ;;; How many frames to pause between emerging and shooting the first fireball
 ;;; wave.
-kBossFirstShootCooldown = 60
+kBossFirstShootCooldown = 70
 ;;; How many frames to pause between subsequent fireball waves.
-kBossSubsequentShootCooldown = 45
+kBossSubsequentShootCooldown = 55
 
 ;;;=========================================================================;;;
 
