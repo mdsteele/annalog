@@ -416,16 +416,16 @@ _DrawTime:
     lda Ram_ProgressTimer_u8_arr, x
     add #'0'
     sta Hw_PpuData_rw
-    ;; Draw an 'h' after the hours count.
+    ;; Draw a ';' after the hours count.
     cpx #5
     bne @noH
-    lda #'h'
+    lda #';'
     sta Hw_PpuData_rw
     @noH:
-    ;; Draw an 'm' after the minutes count.
+    ;; Draw an ';' after the minutes count.
     cpx #3
     bne @noM
-    lda #'m'
+    lda #';'
     sta Hw_PpuData_rw
     @noM:
     ;; Skip the bottom "digit", which is the subsecond frame count.
@@ -467,7 +467,8 @@ _DrawNumDeaths:
     ldx #kNumDeathDigits - 1
     @loop:
     lda Sram_DeathCount_u8_arr, x
-    add #'0'
+    .assert '0' .mod 16 = 0, error
+    ora #'0'
     sta Hw_PpuData_rw
     dex
     bpl @loop
@@ -494,7 +495,7 @@ _Init_sXfer:
     d_xfer_text_row kStatsCompletionRow, "Completion: xxx%"
     .assert kNumDeathDigits = 3, error
     d_xfer_text_row kStatsDeathsRow, "Deaths: xxx"
-    d_xfer_text_row kStatsTimeRow, "Time: HHHhMMmSSs"
+    d_xfer_text_row kStatsTimeRow, "Time: HHH;MM;SS"
     d_xfer_text_row 22, "- PRESS START -"
     d_xfer_terminator
 .ENDPROC

@@ -29,6 +29,7 @@
 .INCLUDE "portrait.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "room.inc"
+.INCLUDE "timer.inc"
 
 .IMPORT DataA_Text2_PaperJerome01_Page1_u8_arr
 .IMPORT DataA_Text2_PaperJerome01_Page2_u8_arr
@@ -145,10 +146,20 @@
 .IMPORT Ppu_WindowTopLeft
 .IMPORT Ram_DeviceTarget_byte_arr
 .IMPORT Ram_Oam_sObj_arr64
+.IMPORT Ram_PpuTransfer_arr
+.IMPORT Ram_ProgressTimer_u8_arr
 .IMPORTZP Zp_P1ButtonsPressed_bJoypad
+.IMPORTZP Zp_PpuTransferLen_u8
 .IMPORTZP Zp_WindowTop_u8
 
 ;;;=========================================================================;;;
+
+;;; The PPU addresses for the start (left) of the BG tiles for each of the
+;;; post-game stat numbers.
+.LINECONT +
+Ppu_PauseTimeStart = Ppu_Nametable3_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * 21 + 8
+.LINECONT -
 
 ;;; The PPU address in the lower nametable for the top-left tile of the dialog
 ;;; portrait.
@@ -268,6 +279,9 @@ Ram_CollectedPapers_u8_arr: .res kPaperGridCols
 ;;; @prereq Rendering is enabled.
 .EXPORT MainA_Pause_RereadPaper
 .PROC MainA_Pause_RereadPaper
+    ;; Buffer a PPU transfer to show the game stats.
+    ldax #DataA_Pause_HideStats_sXfer_arr  ; param: data pointer
+    jsr Func_BufferPpuTransfer
     ;; Buffer a PPU transfer to show the dialog portrait.
     ldax #DataA_Pause_ShowPortrait_sXfer_arr  ; param: data pointer
     jsr Func_BufferPpuTransfer
@@ -447,6 +461,50 @@ _InitCollectedPapers:
     jmp FuncA_Pause_DirectDrawWindowLineSide  ; preserves X and T0+
 .ENDPROC
 
+;;; Buffers a PPU transfer to draw game stats to the text area in the papers
+;;; window.
+.EXPORT FuncA_Pause_TransferGameStats
+.PROC FuncA_Pause_TransferGameStats
+    lda Zp_PpuTransferLen_u8
+    pha  ;  start of PPU transfer entries
+    ldax #_Template_sXfer_arr  ; param: data pointer
+    jsr Func_BufferPpuTransfer
+    pla  ;  start of PPU transfer entries
+    tax  ;  start of PPU transfer entries
+_SetTimeDigits:
+    ldy #kNumTimerDigits - 1
+    @loop:
+    lda Ram_ProgressTimer_u8_arr, y
+    .assert '0' .mod 16 = 0, error
+    ora #'0'
+    sta Ram_PpuTransfer_arr + 4 + 6, x
+    inx
+    cpy #3
+    bne @notS
+    inx
+    @notS:
+    cpy #5
+    bne @notM
+    inx
+    @notM:
+    ;; Skip the bottom "digit", which is the subsecond frame count.
+    dey
+    bne @loop  ; exit loop before digit #0
+    rts
+_Template_sXfer_arr:
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_PauseTimeStart
+    d_xfer_data "Time: HHH;MM;SS"
+    d_xfer_terminator
+.ENDPROC
+
+;;; PPU transfer entry to hide the game stats in the text area in the papers
+;;; window.
+.PROC DataA_Pause_HideStats_sXfer_arr
+    d_xfer_header kPpuCtrlFlagsHorz, Ppu_PauseTimeStart
+    d_xfer_data "               "
+    d_xfer_terminator
+.ENDPROC
+
 ;;; Draws objects for the paper grid cursor.
 .EXPORT FuncA_Pause_DrawPaperCursor
 .PROC FuncA_Pause_DrawPaperCursor
@@ -501,6 +559,7 @@ _InitCollectedPapers:
 .ENDPROC
 
 ;;; Moves the paper grid cursor based on the D-pad buttons.
+;;; @return C Set if the cursor moved, cleared if it didn't move.
 .EXPORT FuncA_Pause_MovePaperCursor
 .PROC FuncA_Pause_MovePaperCursor
     lda Zp_PaperCursorRow_u8
@@ -536,14 +595,17 @@ _CheckIfMoved:
     tax
     pla  ; old row
     cmp Zp_PaperCursorRow_u8
-    bne @didMove
+    bne _DidMove
     cpx Zp_PaperCursorCol_u8
-    beq @done  ; didn't move
-    @didMove:
+    bne _DidMove
+    clc  ; clear C to indicate that the cursor did not move
+    rts
+_DidMove:
     lda Zp_PaperCursorRow_u8
-    bmi @done  ; window is about to close
+    bmi @doneSound  ; window is about to close
     jsr Func_PlaySfxMenuMove
-    @done:
+    @doneSound:
+    sec  ; set C to indicate that the cursor moved
     rts
 .ENDPROC
 
@@ -664,22 +726,6 @@ _CheckIfMoved:
     @setCursor:
     stx Zp_PaperCursorCol_u8
     sty Zp_PaperCursorRow_u8
-    @return:
-    rts
-.ENDPROC
-
-;;; Determines whether or not at least one paper has been collected yet.
-;;; @prereq The pause screen has been initialized.
-;;; @return Z Cleared if any papers have been collected, set if none.
-.EXPORT FuncA_Pause_AreAnyPapersCollected
-.PROC FuncA_Pause_AreAnyPapersCollected
-    ldx #kPaperGridCols - 1
-    @loop:
-    lda Ram_CollectedPapers_u8_arr, x
-    bne @return
-    dex
-    bpl @loop
-    inx  ; now X is zero and Z is set
     @return:
     rts
 .ENDPROC

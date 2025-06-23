@@ -36,7 +36,6 @@
 .IMPORT DataA_Pause_AreaNames_u8_arr12_ptr_0_arr
 .IMPORT DataA_Pause_AreaNames_u8_arr12_ptr_1_arr
 .IMPORT DataA_Pause_PaperLocation_eArea_arr
-.IMPORT FuncA_Pause_AreAnyPapersCollected
 .IMPORT FuncA_Pause_DirectDrawMinimap
 .IMPORT FuncA_Pause_DirectDrawPaperGrid
 .IMPORT FuncA_Pause_DrawMinimapObjects
@@ -44,6 +43,7 @@
 .IMPORT FuncA_Pause_InitPaperGrid
 .IMPORT FuncA_Pause_MovePaperCursor
 .IMPORT FuncA_Pause_MovePaperCursorNext
+.IMPORT FuncA_Pause_TransferGameStats
 .IMPORT FuncA_Pause_TransferHidePortrait
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_AllocObjects
@@ -148,8 +148,11 @@ _CheckForOpenPapersWindow:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Down
     beq @done
-    ;; Only open papers window if any are collected.
-    jsr FuncA_Pause_AreAnyPapersCollected
+    ;; Only open the papers window if the player avatar isn't still in the Town
+    ;; area at the start of the game.
+    lda Zp_Current_sRoom + sRoom::Flags_bRoom
+    and #bRoom::AreaMask
+    cmp #eArea::Town
     bne MainA_Pause_ScrollPapersUp
     @done:
 _CheckForUnpause:
@@ -189,21 +192,29 @@ _GameLoop:
 .EXPORT MainA_Pause_Papers
 .PROC MainA_Pause_Papers
     jsr FuncA_Pause_TransferHidePortrait
+    jsr FuncA_Pause_TransferGameStats
 _GameLoop:
     jsr FuncA_Pause_DrawObjectsAndProcessFrame
 _CheckButtons:
-    jsr FuncA_Pause_MovePaperCursor
+    ;; Move the cursor or close the window in response to the D-pad.
+    jsr FuncA_Pause_MovePaperCursor  ; sets C if cursor moved
+    bcc @doneMove  ; cursor didn't move, so don't close window
     lda Zp_PaperCursorRow_u8
-    bmi MainA_Pause_ScrollPapersDown
+    bmi MainA_Pause_ScrollPapersDown  ; cursor moved up from top row
+    @doneMove:
+    ;; Unpause in response to the START button.
+    lda #bJoypad::Start
     bit Zp_P1ButtonsPressed_bJoypad
-    .assert bJoypad::AButton = bProc::Negative, error
-    jmi MainA_Pause_RereadPaper
+    bne MainA_Pause_FadeOut
+    ;; Close the papers window in response to the B button.
     .assert bJoypad::BButton = bProc::Overflow, error
     bvs MainA_Pause_ScrollPapersDown
-    lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Start
-    beq _GameLoop
-    bne MainA_Pause_FadeOut  ; unconditional
+    ;; Read the selected paper in response to the A button.
+    .assert bJoypad::AButton = bProc::Negative, error
+    bpl _GameLoop  ; A button was not pressed
+    lda Zp_PaperCursorRow_u8
+    bmi _GameLoop  ; no paper is selected
+    jmp MainA_Pause_RereadPaper
 .ENDPROC
 
 ;;; Mode for scrolling down the papers window, thus making the minimap visible.
@@ -725,15 +736,19 @@ _Return:
     rts
 .ENDPROC
 
-;;; Draws the cursor for opening the papers window.
+;;; Draws the arrow cursor for opening the papers window.
 .PROC FuncA_Pause_DrawOpenWindowCursor
-    ;; Only draw the cursor if the window is fully closed.
+    ;; If the window isn't fully closed, don't draw the arrow cursor.
     lda Zp_WindowTop_u8
     cmp #kScreenHeightPx
     blt @done
-    ;; Only draw the cursor if any papers have been collected.
-    jsr FuncA_Pause_AreAnyPapersCollected
+    ;; Don't draw the arrow cursor if the player avatar is still in the Town
+    ;; area at the start of the game.
+    lda Zp_Current_sRoom + sRoom::Flags_bRoom
+    and #bRoom::AreaMask
+    cmp #eArea::Town
     beq @done
+    ;; Draw the arrow cursor.
     lda #2  ; param: num objects
     jsr Func_AllocObjects  ; returns Y
     lda Zp_FrameCounter_u8

@@ -28,6 +28,7 @@ kTileIdBgFontCopyrightFirst = $ae
 .CHARMAP $3f, $42  ; '?'
 .CHARMAP $2e, $43  ; '.'
 .CHARMAP $3a, $44  ; ':'
+.CHARMAP $3b, $7a  ; ';' (maps to centered ':')
 .CHARMAP $2c, $45  ; ','
 .CHARMAP $27, $46  ; "'"
 .CHARMAP $2f, $47  ; '/'
