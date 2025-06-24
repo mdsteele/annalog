@@ -415,22 +415,6 @@ _ShakeFrames_u8_arr:
 ;;; @return Z Set if the boulder is exactly on the floor.
 ;;; @preserve X
 .PROC FuncC_Mine_Collapse_GetBoulderDistAboveFloor
-    .assert kNumBoulders = 2, error
-    txa  ; this boulder's index
-    eor #1
-    tay  ; other boulder's index
-    ;; Check if this boulder is above the other boulder.
-    lda Ram_PlatformLeft_i16_0_arr, y
-    sub Ram_PlatformLeft_i16_0_arr, x
-    cmp #kBoulderWidthPx
-    blt @linedUpHorz
-    cmp #(<-kBoulderWidthPx) + 1
-    blt _NotAboveOtherBoulder
-    @linedUpHorz:
-    lda Ram_PlatformTop_i16_0_arr, y
-    sub Ram_PlatformBottom_i16_0_arr, x
-    bge _Return  ; on or above other boulder
-_NotAboveOtherBoulder:
     ;; Get distance above terrain floor.
     lda Ram_PlatformLeft_i16_0_arr, x
     cmp #$70
@@ -442,7 +426,29 @@ _NotAboveOtherBoulder:
     lda #$90
     @setFloorPos:
     sub Ram_PlatformBottom_i16_0_arr, x
-_Return:
+    sta T0  ; distance above terrain floor
+_CheckOtherBoulder:
+    ;; Get store the index of the other boulder in Y.
+    .assert kNumBoulders = 2, error
+    txa  ; this boulder's index
+    eor #1
+    tay  ; other boulder's index
+    ;; Check if this boulder is above the other boulder.
+    lda Ram_PlatformLeft_i16_0_arr, y
+    sub Ram_PlatformLeft_i16_0_arr, x
+    cmp #kBoulderWidthPx
+    blt @linedUpHorz
+    cmp #(<-kBoulderWidthPx) + 1
+    blt _NotAboveOtherBoulder  ; not horizontally above other boulder
+    @linedUpHorz:
+    lda Ram_PlatformTop_i16_0_arr, y
+    sub Ram_PlatformBottom_i16_0_arr, x
+    blt _NotAboveOtherBoulder  ; vertically below other boulder
+    cmp T0  ; distance above terrain floor
+    bge _NotAboveOtherBoulder  ; other boulder is no nearer than terrain
+    rts
+_NotAboveOtherBoulder:
+    lda T0  ; distance above terrain floor
     rts
 .ENDPROC
 
