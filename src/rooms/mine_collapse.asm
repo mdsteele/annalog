@@ -47,7 +47,6 @@
 .IMPORT Func_DistanceSensorDownDetectPoint
 .IMPORT Func_DivAByBlockSizeAndClampTo9
 .IMPORT Func_IsPointInPlatform
-.IMPORT Func_IsPointInPlatformHorz
 .IMPORT Func_MovePlatformHorz
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
@@ -66,7 +65,6 @@
 .IMPORT Ram_MachineStatus_eMachine_arr
 .IMPORT Ram_PlatformBottom_i16_0_arr
 .IMPORT Ram_PlatformLeft_i16_0_arr
-.IMPORT Ram_PlatformRight_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORTZP Zp_PointX_i16
 .IMPORTZP Zp_PointY_i16
@@ -101,6 +99,7 @@ kTrolleyMaxGoalX  = 5
 kCraneMinPlatformTop  = $30
 kCraneInitPlatformTop = kCraneMinPlatformTop + kBlockHeightPx * kCraneInitGoalZ
 kCraneMaxPlatformTop  = kCraneMinPlatformTop + kBlockHeightPx * kCraneMaxGoalZ
+kCraneMaxGraspedBoulderTop = kCraneMaxPlatformTop + kBlockHeightPx
 
 ;;; The minimum, initial, and maximum room pixel position for the left edge of
 ;;; the trolley.
@@ -622,52 +621,55 @@ _WriteR:
     jmp FuncA_Machine_WriteToLever
 .ENDPROC
 
+;;; TryMove implementation for the MineCollapseTrolley machine.
+;;; @param X The eDir value for the direction to move in.
 .PROC FuncA_Machine_MineCollapseTrolley_TryMove
-    ldy Ram_PlatformBottom_i16_0_arr + kCranePlatformIndex
-    dey
-    sty Zp_PointY_i16 + 0
-    lda #0
-    sta Zp_PointY_i16 + 1
-    sta Zp_PointX_i16 + 1
     cpx #eDir::Left
     beq _MoveLeft
 _MoveRight:
-    ;; Check if a boulder is in the way of the crane.
-    ldy Ram_PlatformRight_i16_0_arr + kCranePlatformIndex
-    sty Zp_PointX_i16 + 0
+    ;; Error if the trolley is already in its rightmost position.
+    ldx Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
+    cpx #kTrolleyMaxGoalX
+    bge _Error
+    ;; Error if a boulder is in the way of the crane (or of its grasped
+    ;; boulder, if any).
+    inx  ; param: proposed goal horz
     jsr _IsAnyBoulderInTheWay  ; returns C
     bcs _Error
-    ;; Error if the trolley is already in its rightmost position.
-    lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
-    cmp #kTrolleyMaxGoalX
-    bge _Error
+    ;; Move right successfully.
     inc Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     bne _Success  ; unconditional
 _MoveLeft:
-    ;; Check if a boulder is in the way of the crane.
-    ldy Ram_PlatformLeft_i16_0_arr + kCranePlatformIndex
-    dey
-    sty Zp_PointX_i16 + 0
-    jsr _IsAnyBoulderInTheWay  ; returns C
-    bcs _Error
     ;; Error if the trolley is already in its leftmost position.
-    lda Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
+    ldx Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
     beq _Error
     ;; Error if terrain is in the way of the crane.
-    cmp #1
-    bne @move
-    lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
-    cmp #2
+    dex  ; param: proposed goal horz
+    bne @terrainOk  ; trolley not currently in at position X=1
+    ldy Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
+    cpy #2
     bge _Error
-    @move:
+    @terrainOk:
+    ;; Error if a boulder is in the way of the crane (or of its grasped
+    ;; boulder, if any).
+    jsr _IsAnyBoulderInTheWay  ; returns C
+    bcs _Error
+    ;; Move left successfully.
     dec Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
+    fall _Success
 _Success:
     jmp FuncA_Machine_StartWorking
 _Error:
     jmp FuncA_Machine_Error
 _IsAnyBoulderInTheWay:
+    ;; Get the center of the proposed goal position for the crane.
+    ldy Ram_MachineGoalVert_u8_arr + kCraneMachineIndex  ; param: vert goal
+    jsr FuncA_Machine_MineCollapse_SetPointToProposedCraneGoal
+    ;; Check if the crane would intersect a boulder in its new position.
     jsr _IsPointInAnyBoulder  ; returns C
     bcs _Return
+    ;; If the crane is grasping a boulder, check if that boulder would
+    ;; intersect the other boulder in its new position.
     bit Zp_RoomState + sState::GraspedBoulderIndex_u8
     bmi _Return
     lda #kBoulderHeightPx  ; param: offset
@@ -684,50 +686,48 @@ _Return:
     rts
 .ENDPROC
 
+;;; TryMove implementation for the MineCollapseCrane machine.
+;;; @param X The eDir value for the direction to move in.
 .PROC FuncA_Machine_MineCollapseCrane_TryMove
     .assert eDir::Up = 0, error
     txa  ; eDir value
     beq _MoveUp
 _MoveDown:
-    ;; Get the bottom of the crane or grasped boulder.
-    lda Ram_PlatformBottom_i16_0_arr + kCranePlatformIndex
-    ldx Zp_RoomState + sState::GraspedBoulderIndex_u8
-    bmi @setCraneBottom
-    lda Ram_PlatformBottom_i16_0_arr, x
-    @setCraneBottom:
-    sta T1  ; bottom of crane or grasped boulder
+    ;; Error if the floor is in the way of the crane.
+    ldx Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex  ; param: horz goal
+    lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
+    cmp _MaxGoalZ_u8_arr, x
+    bge _Error
+    ;; Get the center of the proposed goal position for the crane (or its
+    ;; grapsed boulder, if any).
+    tay  ; current vert goal
+    iny  ; param: proposed vert goal (crane)
+    bit Zp_RoomState + sState::GraspedBoulderIndex_u8
+    bmi @setPoint
+    iny  ; param: proposed vert goal (grasped boulder)
+    @setPoint:
+    jsr FuncA_Machine_MineCollapse_SetPointToProposedCraneGoal
     ;; Error if a non-grasped boulder is in the way.
     ldy #kNumBoulders - 1
     @loop:
     cpy Zp_RoomState + sState::GraspedBoulderIndex_u8
     beq @continue  ; this boulder is grasped, so skip it
-    sty T0  ; boulder platform index
-    jsr Func_SetPointToPlatformCenter  ; preserves T0+
-    ldy #kCranePlatformIndex  ; param: platform index
-    jsr Func_IsPointInPlatformHorz  ; preserves T0+, returns C
-    bcc @restoreY
-    lda Zp_PointY_i16 + 0
-    sub T1  ; bottom of crane or grasped boulder
-    cmp #kBoulderHeightPx / 2
-    beq _Error
-    @restoreY:
-    ldy T0  ; boulder platform index
+    jsr Func_IsPointInPlatform  ; preserves Y, returns C
+    bcs _Error
     @continue:
     dey
     .assert kNumBoulders <= $80, error
     bpl @loop
-    ;; Error if the floor is in the way.
-    ldx Ram_MachineGoalHorz_u8_arr + kTrolleyMachineIndex
-    lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
-    cmp _MaxGoalZ_u8_arr, x
-    bge _Error
+    ;; Move down successfully.
     inc Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
     bne _Success  ; unconditional
 _MoveUp:
     ;; Error if the crane is already in its uppermost position.
     lda Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
     beq _Error
+    ;; Move up successfully.
     dec Ram_MachineGoalVert_u8_arr + kCraneMachineIndex
+    fall _Success
 _Success:
     jmp FuncA_Machine_StartWorking
 _Error:
@@ -740,6 +740,27 @@ _MaxGoalZ_u8_arr:
     .byte kCraneMaxGoalZ
     .byte kCraneMaxGoalZ
     .assert * - :- = kTrolleyMaxGoalX + 1, error
+.ENDPROC
+
+;;; Given a proposed horz goal for the trolley and vert goal for the crane,
+;;; sets Zp_Point*_i16 to the center of that block.
+;;; @param X The proposed horz goal for the trolley.
+;;; @param Y The proposed vert goal for the crane.
+.PROC FuncA_Machine_MineCollapse_SetPointToProposedCraneGoal
+    .assert kTrolleyMaxPlatformLeft + kBlockWidthPx / 2 < $100, error
+    .assert kCraneMaxGraspedBoulderTop + kBlockHeightPx / 4 < $100, error
+    txa  ; proposed goal horz
+    mul #kBlockWidthPx  ; clears C
+    adc #kTrolleyMinPlatformLeft + kBlockWidthPx / 2
+    sta Zp_PointX_i16 + 0
+    tya  ; proposed goal vert
+    mul #kBlockHeightPx  ; clears C
+    adc #kCraneMinPlatformTop + kBlockHeightPx / 4
+    sta Zp_PointY_i16 + 0
+    lda #0
+    sta Zp_PointX_i16 + 1
+    sta Zp_PointY_i16 + 1
+    rts
 .ENDPROC
 
 ;;; @prereq PRGC_Mine is loaded.
