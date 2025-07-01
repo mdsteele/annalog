@@ -622,7 +622,6 @@ _GenerateKey:
     lda Zp_Previous_eRoom
     cmp #eRoom::CityBuilding2
     beq @done
-    ;; TODO: Play a sound for random key generation.
     ;; Generate a random key combination, with each digit between 1 and 4.
     ldx #kNumSemaphoreKeyDigits - 1
     @loop:

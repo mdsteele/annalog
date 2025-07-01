@@ -975,9 +975,7 @@ _SetFace:
     act_WaitFrames 70
     act_SetAvatarFlags bObj::FlipH | kPaletteObjAvatarNormal
     act_SetAvatarPose eAvatar::Looking
-    act_WaitFrames 60
-    ;; TODO: Make a star twinkle in the sky.
-    act_WaitFrames 120
+    act_WaitFrames 180
     act_CallFunc _InitOrcs
     act_RunDialog eDialog::TownOutdoorsAlex3
     act_SetActorState1 kGrontaActorIndex, eNpcOrc::GrontaStanding

@@ -136,7 +136,6 @@ _BottomThird:
 _TopTwoThirds:
     jsr FuncA_Objects_MoveShapeUpOneTile  ; preserves X and T0+
     lda T3  ; param: object flags
-    ;; TODO: This could just be Draw2x2Shape if we re-ordered the tiles.
     jsr FuncA_Objects_Alloc2x2Shape  ; preserves X and T2+, returns C and Y
     bcs @doneTop
     lda T2  ; first tile ID

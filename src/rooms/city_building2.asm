@@ -163,7 +163,6 @@ _Devices_sDevice_arr:
 .PROC FuncA_Room_CityBuilding2_EnterRoom
     flag_bit Ram_ProgressFlags_arr, eFlag::CityCenterDoorUnlocked
     bne @done
-    ;; TODO: Play a sound for random key generation.
     lda #kInitialSpinFrames
     sta Zp_RoomState + sCityCenterState::SpinTimer_u8
     ;; Generate a random key combination, with each digit between 1 and 4.

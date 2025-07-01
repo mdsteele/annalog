@@ -220,7 +220,8 @@ _CheckForTurn:
     beq _CheckForInnerCorner
     bne _NoTurn  ; unconditional
 _CheckForInnerCorner:
-    ;; TODO: check if we need to turn
+    ;; If we were going to support crawling around inner corners, this is where
+    ;; we'd do it.  But it turns out that's not needed anywhere in the game.
     jmp _NoTurn
 _CheckForOuterCorner:
     ;; Get the terrain column in front of the baddie.  Note that at this point,
@@ -330,7 +331,8 @@ _CheckForTurn:
     beq _CheckForInnerCorner
     bne _NoTurn  ; unconditional
 _CheckForInnerCorner:
-    ;; TODO: check if we need to turn
+    ;; If we were going to support crawling around inner corners, this is where
+    ;; we'd do it.  But it turns out that's not needed anywhere in the game.
     jmp _NoTurn
 _CheckForOuterCorner:
     ;; Get the terrain column for the wall the baddie is crawling on.
