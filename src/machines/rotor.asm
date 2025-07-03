@@ -85,6 +85,7 @@ kPaletteObjRotor = 0
 ;;; @return T2 The X-offset (signed).
 ;;; @return T3 The Y-offset (signed).
 ;;; @preserve X, T4+
+.EXPORT Func_GetRotorPolarOffset
 .PROC Func_GetRotorPolarOffset
     sty T3  ; radius multiplier
     ;; Compute 256 * the X-offset.

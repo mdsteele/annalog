@@ -307,8 +307,7 @@ Zp_GoalObj_eFade: .res 1
 ;;; @param Y The eFade value to set and transfer.
 .EXPORT Func_SetAndTransferFade
 .PROC Func_SetAndTransferFade
-    sty Zp_GoalObj_eFade
-    jsr Func_SetCurrentObjPalettes
+    jsr Func_SetAndTransferObjFade
     ldy Zp_GoalObj_eFade  ; param: eFade value
     fall Func_SetAndTransferBgFade
 .ENDPROC
@@ -331,6 +330,15 @@ Zp_GoalObj_eFade: .res 1
     lda #<Ppu_BgPalettes_sPal_arr4  ; param: destination address (lo)
     .assert <Ppu_BgPalettes_sPal_arr4 = 0, error
     beq Func_TransferPalettes  ; unconditional, preserves X
+.ENDPROC
+
+;;; Sets the goal OBJ fade level, and buffers a PPU transfer to immediately set
+;;; that as the current OBJ fade level.
+;;; @param Y The eFade value to set and transfer.
+.EXPORT Func_SetAndTransferObjFade
+.PROC Func_SetAndTransferObjFade
+    sty Zp_GoalObj_eFade
+    fall Func_SetCurrentObjPalettes
 .ENDPROC
 
 ;;; Sets the current OBJ fade level, buffering a PPU transfer to write the new

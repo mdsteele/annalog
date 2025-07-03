@@ -27,7 +27,7 @@
 .IMPORT Func_AudioReset
 .IMPORT Func_ClearRestOfOam
 .IMPORT Int_NoopIrq
-.IMPORT MainC_Title_Menu
+.IMPORT MainC_Title_Intro
 .IMPORT Ppu_ChrBgFontLower
 .IMPORT Ppu_ChrObjAnnaNormal
 .IMPORTZP Zp_Active_sIrq
@@ -140,7 +140,7 @@ _Finish:
     sta Hw_PpuCtrl_wo        ; enable VBlank NMI
     sta Hw_Mmc3IrqEnable_wo  ; enable HBlank IRQ
     cli                      ; enable maskable (IRQ) interrupts
-    jmp MainC_Title_Menu
+    jmp MainC_Title_Intro
 .ENDPROC
 
 ;;;=========================================================================;;;

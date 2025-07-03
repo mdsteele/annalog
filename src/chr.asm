@@ -64,6 +64,7 @@
 .INCLUDE "charmap.inc"
 .INCLUDE "devices/breaker.inc"
 .INCLUDE "dialog.inc"
+.INCLUDE "intro.inc"
 .INCLUDE "machines/ammorack.inc"
 .INCLUDE "machines/blaster.inc"
 .INCLUDE "machines/boiler.inc"
@@ -565,6 +566,17 @@ _chr_begin:
     chr_inc "terrain_hut1"
     chr_inc "terrain_hut2"
     chr_inc "terrain_hut3"
+    END_CHR_BANK
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgIntro"
+
+.EXPORT Ppu_ChrBgIntro
+.PROC Ppu_ChrBgIntro
+    CHR1_BANK $80
+    chr_inc "mdsteele_logo", kTileIdBgMdsteeleLogoFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1489,10 +1501,12 @@ _chr_begin:
 .EXPORT Ppu_ChrObjPause
 .PROC Ppu_ChrObjPause
     CHR2_BANK $80
-    chr_res $20
-    chr_inc "circuit_wave", kTileIdObjCircuitWaveFirst
+    chr_res $10
+    chr_inc "mdsteele_border", kTileIdObjMdsteeleBorderFirst
+    chr_res $08
+    chr_inc "circuit_wave",    kTileIdObjCircuitWaveFirst
     chr_res $0d
-    chr_inc "pause",        kTileIdObjPauseFirst
+    chr_inc "pause",           kTileIdObjPauseFirst
     chr_inc "font_upper"
     END_CHR_BANK
 .ENDPROC

@@ -271,7 +271,6 @@ Ram_TitleLetterOffset_i8_arr: .res .sizeof(DataC_Title_Letters_u8_arr)
 .ENDPROC
 
 ;;; Mode for displaying the title screen.
-;;; @prereq PRGC_Title is loaded.
 ;;; @prereq Rendering is disabled.
 .EXPORT MainC_Title_Menu
 .PROC MainC_Title_Menu
