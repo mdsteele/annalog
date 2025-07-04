@@ -189,7 +189,9 @@ _Decay:
 .ENDPROC
 
 ;;; An instrument that ramps up volume quickly, then decays slowly, all with
-;;; slight vibrato.
+;;; slight vibrato.  The bottom four bits of the instrument param specify the
+;;; maximum volume.  The top two bits of the instrument param specify the pulse
+;;; duty.
 ;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
@@ -275,7 +277,13 @@ _Envelope:
 .ENDPROC
 
 ;;; An instrument that ramps up volume slowly, then decays slowly near the end
-;;; of the note, all with deep vibrato.
+;;; of the note, all with deep vibrato.  The bottom four bits of the instrument
+;;; param specify the maximum volume.  The top two bits of the instrument param
+;;; specify the pulse duty.  Bits 4 and 5 control the envelope speed:
+;;;   * 0: Slow attack, slow decay
+;;;   * 1: Medium attack, slow decay
+;;;   * 2: Fast attack, medium decay
+;;;   * 3: Very fast attack, fast decay
 ;;; @thread AUDIO
 ;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
 ;;; @return A The duty/envelope byte to use.
@@ -299,15 +307,36 @@ _Envelope:
     lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     and #bEnvelope::VolMask
     sta Zp_AudioTmp_byte  ; max volume
+    ;; Attack speed:
+    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
+    and #%00110000
+    asl a
+    asl a
+    sta Zp_AudioTmp_ptr + 0  ; envelope speed bits
     ;; Attack:
     lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
-    div #16
+    div #2
+    bit Zp_AudioTmp_ptr + 0  ; envelope speed bits
+    bmi @attackFast1
+    div #4
+    @attackFast1:
+    bvs @attackFast2
+    div #2
+    @attackFast2:
     cmp Zp_AudioTmp_byte  ; max volume
     blt @setVol
     ;; Decay:
     lda Ram_Audio_sChanNote_arr + sChanNote::DurationFrames_u8, x
     sub Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
-    div #16
+    div #4
+    bit Zp_AudioTmp_ptr + 0  ; envelope speed bits
+    bmi @decayFast1
+    div #2
+    clv
+    @decayFast1:
+    bvs @decayFast2
+    div #2
+    @decayFast2:
     cmp Zp_AudioTmp_byte  ; max volume
     blt @setVol
     ;; Sustain:

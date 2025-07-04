@@ -1,5 +1,7 @@
 @PRGC_Title
 
+!DPCM B Data_SampleBongo_arr193 193
+
 !SONG Title "D|ABC"
 
 =tempo q40
@@ -7,14 +9,21 @@
 
 !INST 1H PulsePiano   $08 d1/2
 !INST 1Q PulsePiano   $08 d1/4
+!INST 2V PulseViolin  $14 d1/8  % violin slow
+!INST 2W PulseViolin  $24 d1/8  % violin medium
+!INST 2X PulseViolin  $34 d1/8  % violin fast
 !INST TV TriangleVibrato
-!INST NS NoiseSnare   $27  % snare drum
+!INST NS NoiseSnare   $27       % snare drum
+!INST DB Constant     $49       % bongo drum lo
+!INST DC Constant     $4a       % bongo drum hi
 
 !PART D
 
+2| iW c4w | e4w | p(iX f4h g4h | iW c4w)2D |
 T| iV c3w | e3w | a2h b2h | c3h. b2q |
 N| p(iS x5e x4e+ ' +e x5s x4t x4t ' x5e x4e ' rq)NA :3 |
  | p(iS x5e x4s x5s+ ' +s x4s x4t x4t x4t x4t ' x5e x4e ' x5e x4s x4t x4t)NB |
+D| p(iB sB5w)DA :2 | p(iB sB5h iC sB5h)DB :2 |
 
 !PART A
 
@@ -22,17 +31,22 @@ N| p(iS x5e x4e+ ' +e x5s x4t x4t ' x5e x4e ' rq)NA :3 |
  | e4q+e fh ce |
  | p(iQ g4e. fe. ce+q+e ave | a4e. iH be. iQ c^e bve.+e. ce |
  | a4e. ge. ee fq bvq | c4w)1B |
+2| p(iV c4w+h rh | e4w+h rh)2A | iW c4w | a4w | p2D |
 T| iV c3w | f3w | e3w | a2h b2h |
  | c3w | a3w | a2h b2h | c3h. b2q |
 N| pNB :8 |
+D| pDB :8 |
 
 !PART B
 
 1| p1A | a3q e4q b3q+e c4e | p1B |
+2| p2A | iW c5w | a4w | p2D |
 T=:AT
 N=:AN
+D=:AD
 
 !PART C
 
 T=:AT
-N| pNA | pNA | pNB | pNA | pNA | pNA | pNA | pNB |
+N| pNA :2 | pNB | pNA :4 | pNB |
+D=:AD
