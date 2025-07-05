@@ -1,6 +1,6 @@
 @PRGC_Core
 
-!SONG Core "A|ABBC"
+!SONG Core "A|ABBCADC"
 
 =tempo q32
 =key 1b  % D minor
@@ -24,7 +24,7 @@ N| p(iD x3q x2q)NA :4 |
 !PART B
 
 1| p2A :8 |
-2| iA d4e e ' f ae+ ' +q  ' iB aq | iC aq ' iD aq ' iE aq ' iA rq |
+2| p(iA d4e e ' f ae+ ' +q  ' iB aq | iC aq ' iD aq ' iE aq ' iA rq)2B |
  | d4e e ' f be+ ' +e d4e ' e f |
  | c5h ' d4e e ' b a |
 N| pNA :8 |
@@ -32,6 +32,15 @@ N| pNA :8 |
 !PART C
 
 1=:A1
-2| iB d4q ' iC d ' iD d ' iE d |
+2| p(iB d4q ' iC d ' iD d ' iE d)2C |
 T=:AT
 N=:AN
+
+!PART D
+
+1| p2A :16 |
+2| p2B |
+ | p(b4e a ' g ae+ ' +e f4e ' dq)2D | p2C |
+ | p2B |
+ | b4e a ' g ae+ ' +e f4e ' aq | p2D |
+N| pNA :16 |
