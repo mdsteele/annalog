@@ -96,7 +96,7 @@ _Ext_sRoomExt:
     D_END
 _TerrainData:
 :   .incbin "out/rooms/factory_flower.room"
-    .assert * - :- = 18 * 24, error
+    .assert * - :- = 17 * 24, error
 _Machines_sMachine_arr:
 :   .assert * - :- = kLowerRotorMachineIndex * .sizeof(sMachine), error
     D_STRUCT sMachine
