@@ -1141,10 +1141,11 @@ _Transfer_sXfer:
     D_END
 _Transfer_sXfer:
     d_xfer_text_row 14, "BETA FEEDBACK"
-    d_xfer_text_row 16, "Christopher DuBois"
-    d_xfer_text_row 17, "David Couzelis"
-    d_xfer_text_row 18, "Eric Chang"
-    d_xfer_text_row 19, "Gus Prevas"
+    d_xfer_text_row 16, "Cam Tenny"
+    d_xfer_text_row 17, "Costas Akrivoulis"
+    d_xfer_text_row 18, "Christopher DuBois"
+    d_xfer_text_row 19, "David Couzelis"
+    d_xfer_text_row 20, "Eric Chang"
     d_xfer_attr_upper $1a, 4, $50
     d_xfer_terminator
 .ENDPROC
@@ -1161,9 +1162,10 @@ _Transfer_sXfer:
     D_END
 _Transfer_sXfer:
     d_xfer_text_row 14, "BETA FEEDBACK"
-    d_xfer_text_row 16, "Jon Moran"
-    d_xfer_text_row 17, "verylowsodium"
-    d_xfer_text_row 18, "walkingeye"
+    d_xfer_text_row 16, "Gus Prevas"
+    d_xfer_text_row 17, "Jon Moran"
+    d_xfer_text_row 18, "verylowsodium"
+    d_xfer_text_row 19, "walkingeye"
     d_xfer_attr_upper $1a, 4, $50
     d_xfer_terminator
 .ENDPROC
