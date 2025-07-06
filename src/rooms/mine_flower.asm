@@ -214,10 +214,10 @@ _Platforms_sPlatform_arr:
     D_END
     .assert * - :- = kCageWestSpikePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, kCagePlatformWidth - 2
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, kCagePlatformWidth
     d_byte HeightPx_u8, kCagePlatformHeight
-    d_word Left_i16, kCageWestPlatformLeft + 1
+    d_word Left_i16, kCageWestPlatformLeft
     d_word Top_i16, kCageWestInitTop - 2
     D_END
     .assert * - :- = kCageWestUpperPlatformIndex * .sizeof(sPlatform), error
@@ -238,10 +238,10 @@ _Platforms_sPlatform_arr:
     D_END
     .assert * - :- = kCageEastSpikePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, kCagePlatformWidth - 2
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, kCagePlatformWidth
     d_byte HeightPx_u8, kCagePlatformHeight
-    d_word Left_i16, kCageEastPlatformLeft + 1
+    d_word Left_i16, kCageEastPlatformLeft
     d_word Top_i16, kCageEastInitTop - 2
     D_END
     .assert * - :- = kCageEastUpperPlatformIndex * .sizeof(sPlatform), error

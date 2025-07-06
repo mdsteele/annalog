@@ -328,10 +328,12 @@ _HandleCollision:
     ;; Check for special platform effects.
     cmp #ePlatform::Kill
     jeq Func_KillAvatar  ; preserves X and T0+
-    cmp #ePlatform::Harm
-    jeq Func_HarmAvatar  ; preserves X and T0+
+    cmp #kFirstHarmfulPlatformType
+    bge _Harm  ; platform is Spike or Harm
 _Done:
     rts
+_Harm:
+    jmp Func_HarmAvatar  ; preserves X and T0+
 .ENDPROC
 
 ;;; Detects if the player avatar has hit a horizontal passage.

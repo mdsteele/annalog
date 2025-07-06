@@ -93,7 +93,7 @@ kPaletteObjEgg = 1
     lda #kProjEggTerminalVelocity  ; param: terminal velocity
     jmp FuncA_Actor_ApplyGravityWithTerminalVelocity  ; preserves X
 _HitSolidPlatform:
-    ;; If the egg hits a Harm or Kill platform, just destroy the egg.
+    ;; If the egg hits a Spike, Harm, or Kill platform, just destroy the egg.
     ;; Otherwise, hatch the egg.
     lda Ram_PlatformType_ePlatform_arr, y
     cmp #kFirstHarmfulPlatformType

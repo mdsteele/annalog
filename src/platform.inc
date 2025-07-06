@@ -28,16 +28,17 @@ kMaxPlatforms = 16
     Zone   ; no physical interactions, just a region of the room
     Water  ; can swim in
     Solid  ; safe to stand on
-    Harm   ; harms the player avatar on contact
-    Kill   ; kills the player avatar on contact
+    Spike  ; harmful on top and bottom, solid on sides
+    Harm   ; harms the player avatar on contact (on all four sides)
+    Kill   ; kills the player avatar on contact (on all four sides)
 .ENDENUM
 
 ;;; Platform types greater than or equal to this are solid.
 kFirstSolidPlatformType = ePlatform::Solid
 
-;;; Platform types greater than or equal to this will harm or kill the player
+;;; Platform types greater than or equal to this can harm or kill the player
 ;;; avatar on contact.
-kFirstHarmfulPlatformType = ePlatform::Harm
+kFirstHarmfulPlatformType = ePlatform::Spike
 
 ;;;=========================================================================;;;
 

@@ -188,10 +188,10 @@ _Platforms_sPlatform_arr:
     D_END
     .assert * - :- = kGirderSpikePlatformIndex * .sizeof(sPlatform), error
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $06
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $08
     d_byte HeightPx_u8, $08
-    d_word Left_i16, kGirderPlatformLeft + 1
+    d_word Left_i16, kGirderPlatformLeft
     d_word Top_i16, kUpperGirderInitPlatformTop - 2
     D_END
     .assert * - :- = kUpperGirderPlatformIndex * .sizeof(sPlatform), error
@@ -220,14 +220,14 @@ _Platforms_sPlatform_arr:
     D_END
     ;; Terrain spikes:
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0f
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00b1
+    d_word Left_i16,  $00b0
     d_word Top_i16,   $010e
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
+    d_byte Type_ePlatform, ePlatform::Spike
     d_word WidthPx_u16, $30
     d_byte HeightPx_u8, $10
     d_word Left_i16,  $00c0

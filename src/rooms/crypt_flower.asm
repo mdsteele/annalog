@@ -167,21 +167,21 @@ _Platforms_sPlatform_arr:
     D_END
     ;; Terrain spikes:
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $2f
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $30
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0050
     d_word Top_i16,   $005e
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $1f
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00a1
+    d_word Left_i16,  $00a0
     d_word Top_i16,   $005e
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
+    d_byte Type_ePlatform, ePlatform::Spike
     d_word WidthPx_u16, $d0
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0030

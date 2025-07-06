@@ -66,35 +66,35 @@ _TerrainData:
     .assert * - :- = 17 * 15, error
 _Platforms_sPlatform_arr:
 :   D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
+    d_byte Type_ePlatform, ePlatform::Spike
     d_word WidthPx_u16, $30
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0040
     d_word Top_i16,   $001a
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0e
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0081
+    d_word Left_i16,  $0080
     d_word Top_i16,   $003e
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0e
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00c1
+    d_word Left_i16,  $00c0
     d_word Top_i16,   $004e
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0e
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0081
+    d_word Left_i16,  $0080
     d_word Top_i16,   $009a
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
+    d_byte Type_ePlatform, ePlatform::Spike
     d_word WidthPx_u16, $b0
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0030

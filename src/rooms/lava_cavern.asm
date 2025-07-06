@@ -179,7 +179,7 @@ _Platforms_sPlatform_arr:
     D_END
     ;; Upper ceiling spikes:
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
+    d_byte Type_ePlatform, ePlatform::Spike
     d_word WidthPx_u16, $80
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0090
@@ -187,10 +187,10 @@ _Platforms_sPlatform_arr:
     D_END
     ;; Lower ceiling spikes:
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $60
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $5e
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00c0
+    d_word Left_i16,  $00c2
     d_word Top_i16,   $007a
     D_END
     ;; Lava:

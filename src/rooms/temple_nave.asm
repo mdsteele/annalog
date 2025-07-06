@@ -284,55 +284,55 @@ _Platforms_sPlatform_arr:
     D_END
     ;; Upward spikes near upper carriage area:
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $1e
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00e1
+    d_word Left_i16,  $00e0
     d_word Top_i16,   $004e
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0e
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0181
+    d_word Left_i16,  $0180
     d_word Top_i16,   $006e
     D_END
     ;; Downward spikes in lower carriage area:
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0e
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00d1
+    d_word Left_i16,  $00d0
     d_word Top_i16,   $00da
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $2e
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $30
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0101
+    d_word Left_i16,  $0100
     d_word Top_i16,   $00da
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $1e
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0141
+    d_word Left_i16,  $0140
     d_word Top_i16,   $00da
     D_END
     ;; Spikes on western shelf:
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $5f
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $60
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $0020
     d_word Top_i16,   $00ee
     D_END
     ;; Spikes on eastern shelf:
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $4f
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $50
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $01b1
+    d_word Left_i16,  $01b0
     d_word Top_i16,   $00de
     D_END
     .assert * - :- <= kMaxPlatforms * .sizeof(sPlatform), error

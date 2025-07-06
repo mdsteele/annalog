@@ -173,17 +173,17 @@ _Platforms_sPlatform_arr:
     D_END
     ;; Spikes:
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $3e
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $40
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $00b2
+    d_word Left_i16,  $00b0
     d_word Top_i16,   $001a
     D_END
     D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Harm
-    d_word WidthPx_u16, $0d
+    d_byte Type_ePlatform, ePlatform::Spike
+    d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0052
+    d_word Left_i16,  $0050
     d_word Top_i16,   $007a
     D_END
     ;; Lava:
