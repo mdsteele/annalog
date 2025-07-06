@@ -79,6 +79,13 @@ _Platforms_sPlatform_arr:
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16, $50
+    d_byte HeightPx_u8, $08
+    d_word Left_i16,  $00b0
+    d_word Top_i16,   $0010
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $20
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00b0
@@ -97,13 +104,6 @@ _Platforms_sPlatform_arr:
     d_byte HeightPx_u8, $08
     d_word Left_i16,  $00f8
     d_word Top_i16,   $00a0
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Solid
-    d_word WidthPx_u16, $20
-    d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0100
-    d_word Top_i16,   $0020
     D_END
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Solid
