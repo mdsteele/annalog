@@ -75,6 +75,8 @@
 .IMPORT Func_MovePlatformLeftTowardPointX
 .IMPORT Func_MovePlatformTopTowardPointY
 .IMPORT Func_MovePlatformVert
+.IMPORT Func_MovePointLeftByA
+.IMPORT Func_MovePointRightByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
 .IMPORT Func_PlaySfxBaddieDeath
@@ -1296,12 +1298,20 @@ _CheckForBossImpact:
     lda Zp_RoomState + sState::BossEmerge_u8
     cmp #kBossEmergeFrames
     blt @done  ; boss isn't fully emerged
-    ;; Check if the boulder has hit the boss's eye.
+    ;; Check if the boulder has hit the boss's eye, allowing for a slight
+    ;; margin of error.
     jsr FuncA_Room_SetPointToBossBodyCenter
+    lda #4 * 1  ; param: offset
+    jsr Func_MovePointLeftByA
     ldy #kBoulderPlatformIndex  ; param: platform index
+    jsr Func_IsPointInPlatform  ; preserves Y, returns C
+    bcs @hitBoss  ; collision
+    lda #4 * 2  ; param: offset
+    jsr Func_MovePointRightByA  ; preserves Y
     jsr Func_IsPointInPlatform  ; returns C
     bcc @done  ; no collision
     ;; Damage the boss.
+    @hitBoss:
     lda #eSample::BossHurtE  ; param: eSample to play
     jsr Func_PlaySfxSample
     lda #eBossMode::Hurt
