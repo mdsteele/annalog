@@ -495,8 +495,8 @@ _NoHit:
     D_ARRAY .enum, eActor
     d_byte None,             0
     d_byte BadBat,           4
-    d_byte BadBeetleHorz,    4
-    d_byte BadBeetleVert,    6
+    d_byte BadBeetleHorz,    2
+    d_byte BadBeetleVert,    5
     d_byte BadBird,          4
     d_byte BadCrab,          6
     d_byte BadFirefly,       6
@@ -569,8 +569,8 @@ _NoHit:
     D_ARRAY .enum, eActor
     d_byte None,             0
     d_byte BadBat,           4
-    d_byte BadBeetleHorz,    4
-    d_byte BadBeetleVert,    6
+    d_byte BadBeetleHorz,    2
+    d_byte BadBeetleVert,    5
     d_byte BadBird,          4
     d_byte BadCrab,          8
     d_byte BadFirefly,       8
@@ -643,8 +643,8 @@ _NoHit:
     D_ARRAY .enum, eActor
     d_byte None,             0
     d_byte BadBat,           6
-    d_byte BadBeetleHorz,    6
-    d_byte BadBeetleVert,    4
+    d_byte BadBeetleHorz,    5
+    d_byte BadBeetleVert,    2
     d_byte BadBird,          7
     d_byte BadCrab,          7
     d_byte BadFirefly,       6
