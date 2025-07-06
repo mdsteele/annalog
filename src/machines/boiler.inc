@@ -28,11 +28,12 @@
 ;;; The number of frames between valve angles when animating a boiler valve.
 .DEFINE kBoilerValveAnimSlowdown 4
 
-;;; The CHR bank number containing the diagram for boiler machines.
+;;; The CHR bank number containing the diagrams for boiler machines.
 kChrBankDiagramBoiler = $0e
 
 ;;; BG tile IDs for boiler machine diagrams.
-kTileIdBgDiagramBoilerFirst = $e0
+kTileIdBgDiagramBoilerPlainFirst = $e0
+kTileIdBgDiagramBoilerValveFirst = $f0
 
 ;;; Various OBJ tile IDs used for drawing boiler machines.
 kTileIdObjBoilerFlameFirst = $8c

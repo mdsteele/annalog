@@ -917,9 +917,9 @@ _chr_begin:
     .assert .bank(*) = kChrBankPortraitManTalk, error
     chr_inc "portrait_man_talk", kTileIdBgPortraitManFirst
     .assert .bank(*) = kChrBankDiagramBoiler, error
-    chr_inc "diagram_boiler", kTileIdBgDiagramBoilerFirst
-    .assert .bank(*) = kChrBankDiagramLaser, error
-    chr_inc "diagram_laser", kTileIdBgDiagramLaserFirst
+    chr_inc "diagram_boiler_plain", kTileIdBgDiagramBoilerPlainFirst
+    .assert .bank(*) = kChrBankDiagramBoiler, error
+    chr_inc "diagram_boiler_valve", kTileIdBgDiagramBoilerValveFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1036,7 +1036,10 @@ _chr_begin:
     CHR1_BANK $c0
     .assert .bank(*) = kChrBankPortraitBorisTalk, error
     chr_inc "portrait_boris_talk", kTileIdBgPortraitBorisFirst
-    chr_res $30
+    chr_res $10
+    .assert .bank(*) = kChrBankDiagramLaser, error
+    chr_inc "diagram_laser", kTileIdBgDiagramLaserFirst
+    chr_res $10
     END_CHR_BANK
     .linecont -
 .ENDPROC

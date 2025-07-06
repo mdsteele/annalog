@@ -31,7 +31,8 @@ kMachineRegNameB = $61  ; 'B'
     ;; @begin SORTED
     AmmoRack
     Blaster
-    Boiler
+    BoilerPlain
+    BoilerValve
     BridgeLeft
     BridgeRight
     CannonLeft

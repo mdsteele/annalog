@@ -115,7 +115,7 @@ _Machines_sMachine_arr:
     d_byte Code_eProgram, eProgram::LavaTunnelBoiler
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::Act | bMachine::WriteCE
-    d_byte Status_eDiagram, eDiagram::Boiler
+    d_byte Status_eDiagram, eDiagram::BoilerValve
     d_word ScrollGoalX_u16, $08
     d_byte ScrollGoalY_u8, $00
     d_byte RegNames_u8_arr4, "L", 0, "V", 0

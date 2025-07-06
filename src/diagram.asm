@@ -83,7 +83,8 @@ kNoPowerWidthTiles = 19
     D_ARRAY .enum, eDiagram
     d_byte AmmoRack,            kChrBankDiagramAmmoRack
     d_byte Blaster,             kChrBankDiagramBlaster
-    d_byte Boiler,              kChrBankDiagramBoiler
+    d_byte BoilerPlain,         kChrBankDiagramBoiler
+    d_byte BoilerValve,         kChrBankDiagramBoiler
     d_byte BridgeLeft,          kChrBankDiagramBridgeLeft
     d_byte BridgeRight,         kChrBankDiagramBridgeRight
     d_byte CannonLeft,          kChrBankDiagramCannonLeft
@@ -127,7 +128,8 @@ kNoPowerWidthTiles = 19
     D_ARRAY .enum, eDiagram
     d_byte AmmoRack,            kTileIdBgDiagramAmmoRackFirst
     d_byte Blaster,             kTileIdBgDiagramBlasterFirst
-    d_byte Boiler,              kTileIdBgDiagramBoilerFirst
+    d_byte BoilerPlain,         kTileIdBgDiagramBoilerPlainFirst
+    d_byte BoilerValve,         kTileIdBgDiagramBoilerValveFirst
     d_byte BridgeLeft,          kTileIdBgDiagramBridgeLeftFirst
     d_byte BridgeRight,         kTileIdBgDiagramBridgeRightFirst
     d_byte CannonLeft,          kTileIdBgDiagramCannonLeftFirst
