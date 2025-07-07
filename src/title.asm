@@ -34,6 +34,7 @@
 .IMPORT DataC_Title_NewGameName_u8_arr8_arr
 .IMPORT FuncA_Avatar_LoadProgress
 .IMPORT FuncA_Avatar_ResetSramForNewGame
+.IMPORT FuncC_Title_PlaySfxCircuitPowerDown
 .IMPORT Func_AckIrqAndSetLatch
 .IMPORT Func_AllocObjects
 .IMPORT Func_AllocOneObject
@@ -41,6 +42,7 @@
 .IMPORT Func_ClearRestOfOamAndProcessFrame
 .IMPORT Func_FadeInFromBlackToNormal
 .IMPORT Func_FadeOutToBlack
+.IMPORT Func_FadeOutToBlackSlowly
 .IMPORT Func_FillLowerAttributeTable
 .IMPORT Func_FillUpperAttributeTable
 .IMPORT Func_GetRandomByte
@@ -51,6 +53,7 @@
 .IMPORT Func_PlaySfxSecretUnlocked
 .IMPORT Func_SignedDivFrac
 .IMPORT Func_Sine
+.IMPORT Func_WaitXFrames
 .IMPORT Func_Window_Disable
 .IMPORT MainC_Title_Credits
 .IMPORT MainC_Title_Prologue
@@ -367,7 +370,12 @@ _MenuItemNewGame:
     sta Zp_Last_eTitle
     jmp _GameLoop
 _BeginNewGame:
-    jsr Func_FadeOutToBlack
+    lda #eMusic::Silence
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::Music_eMusic
+    jsr FuncC_Title_PlaySfxCircuitPowerDown
+    jsr Func_FadeOutToBlackSlowly
+    ldx #90  ; param: num frames
+    jsr Func_WaitXFrames
     jmp MainC_Title_Prologue
 _MenuItemDelete:
     jsr Func_PlaySfxExplodeFracture

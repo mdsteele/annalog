@@ -80,6 +80,23 @@ _Steady:
     rts
 .ENDPROC
 
+;;; SFX data for the "circuit power up" sound effect.
+;;; @thread AUDIO
+.PROC Data_CircuitPowerDown_sSfx
+    .linecont +
+    sfx_SetAll (bEnvelope::Duty18 | bEnvelope::NoLength | \
+                bEnvelope::ConstVol | kCircuitBaseVol), \
+               (pulse_sweep 2, 2), $0180
+    sfx_Func _RampDown
+    sfx_Func Func_SfxCircuit_FadeOut
+    sfx_End
+    .linecont -
+_RampDown:
+    jsr Func_SfxCircuit_ModulateDutyAtBaseVolume  ; preserves X and Y
+    cpy #64
+    rts
+.ENDPROC
+
 ;;; An sfx_Func to fade out a circuit sound effect over time.
 ;;; @thread AUDIO
 ;;; @param Y The sfx_Func loop index.
@@ -143,6 +160,18 @@ _Steady:
 .EXPORT FuncA_Cutscene_PlaySfxCircuitPowerUp
 .PROC FuncA_Cutscene_PlaySfxCircuitPowerUp
     ldya #Data_CircuitPowerUp_sSfx
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "PRGC_Title"
+
+;;; Starts playing the sound for the core powering down.
+;;; @preserve T0+
+.EXPORT FuncC_Title_PlaySfxCircuitPowerDown
+.PROC FuncC_Title_PlaySfxCircuitPowerDown
+    ldya #Data_CircuitPowerDown_sSfx
     jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
 .ENDPROC
 
