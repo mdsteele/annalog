@@ -101,10 +101,6 @@ kMdsteeleLogoInitAngle = <(59 - kMdsteeleLogoSpin)
     Angle_u16      .word
 .ENDSTRUCT
 
-;;;=========================================================================;;;
-
-.ZEROPAGE
-
 ;;; Use the same storage space as Zp_RoomState for the intro (since we don't
 ;;; need room data during the intro).
 .ASSERT .sizeof(sState) <= kRoomStateSize, error

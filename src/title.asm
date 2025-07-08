@@ -30,6 +30,7 @@
 .INCLUDE "pause.inc"
 .INCLUDE "ppu.inc"
 .INCLUDE "program.inc"
+.INCLUDE "room.inc"
 
 .IMPORT DataC_Title_NewGameName_u8_arr8_arr
 .IMPORT FuncA_Avatar_LoadProgress
@@ -71,6 +72,7 @@
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
 .IMPORTZP Zp_Render_bPpuMask
+.IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -205,24 +207,26 @@ Ppu_TitleAreYouSureStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 
 ;;;=========================================================================;;;
 
-.ZEROPAGE
+;;; State data for the title menu.
+.STRUCT sState
+    ;; The first and last menu items currently selectable on the title screen.
+    First_eTitle          .byte
+    Last_eTitle           .byte
+    ;; The currently-selected title screen menu item.
+    Current_eTitle        .byte
+    ;; The current Y-position for the title screen menu line.
+    TitleMenuLinePosY_u8  .byte
+    ;; The index into DataC_Title_CheatSequence_bJoypad_arr for the next button
+    ;; to press for the cheat code.
+    CheatSequenceIndex_u8 .byte
+    ;; The currently-selected item on the cheat menu.
+    Cheat_eNewGame        .byte
+.ENDSTRUCT
 
-;;; The first and last menu items currently selectable on the title screen.
-Zp_First_eTitle: .res 1
-Zp_Last_eTitle: .res 1
-
-;;; The currently-selected title screen menu item.
-Zp_Current_eTitle: .res 1
-
-;;; The current Y-position for the title screen menu line.
-Zp_TitleMenuLinePosY_u8: .res 1
-
-;;; The index into DataC_Title_CheatSequence_bJoypad_arr for the next button to
-;;; press for the cheat code.
-Zp_CheatSequenceIndex_u8: .res 1
-
-;;; The currently-selected item on the cheat menu.
-Zp_Cheat_eNewGame: .res 1
+;;; Use the same storage space as Zp_RoomState for the title menu (since we
+;;; don't need room data while on the title menu).
+.ASSERT .sizeof(sState) <= kRoomStateSize, error
+Zp_Title_sState := Zp_RoomState
 
 ;;;=========================================================================;;;
 
@@ -292,7 +296,7 @@ _CheckForCheatInput:
     ;; sequence.  If not, reset the sequence.
     lda Zp_P1ButtonsPressed_bJoypad
     beq @done  ; no button pressed
-    ldx Zp_CheatSequenceIndex_u8
+    ldx Zp_Title_sState + sState::CheatSequenceIndex_u8
     cmp DataC_Title_CheatSequence_bJoypad_arr, x
     bne @resetCheatIndex  ; incorrect cheat sequence
     ;; If the cheat sequence has been fully entered, switch to the cheat menu.
@@ -303,27 +307,27 @@ _CheckForCheatInput:
     @resetCheatIndex:
     ldx #0
     @setCheatIndex:
-    stx Zp_CheatSequenceIndex_u8
+    stx Zp_Title_sState + sState::CheatSequenceIndex_u8
     @done:
 _CheckForMenuInput:
     ;; Check Up button.
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Up
     beq @noUp
-    lda Zp_Current_eTitle
-    cmp Zp_First_eTitle
+    lda Zp_Title_sState + sState::Current_eTitle
+    cmp Zp_Title_sState + sState::First_eTitle
     beq @noUp
-    dec Zp_Current_eTitle
+    dec Zp_Title_sState + sState::Current_eTitle
     jsr Func_PlaySfxMenuMove
     @noUp:
     ;; Check Down button.
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Down
     beq @noDown
-    lda Zp_Current_eTitle
-    cmp Zp_Last_eTitle
+    lda Zp_Title_sState + sState::Current_eTitle
+    cmp Zp_Title_sState + sState::Last_eTitle
     beq @noDown
-    inc Zp_Current_eTitle
+    inc Zp_Title_sState + sState::Current_eTitle
     jsr Func_PlaySfxMenuMove
     @noDown:
     ;; Check START button.
@@ -331,7 +335,7 @@ _CheckForMenuInput:
     and #bJoypad::Start
     beq _GameLoop
 _HandleMenuItem:
-    ldy Zp_Current_eTitle
+    ldy Zp_Title_sState + sState::Current_eTitle
     lda _JumpTable_ptr_0_arr, y
     sta T0
     lda _JumpTable_ptr_1_arr, y
@@ -364,10 +368,10 @@ _MenuItemNewGame:
     ldax #DataC_Title_AreYouSure_sXfer_arr  ; param: data pointer
     jsr Func_BufferPpuTransfer
     lda #eTitle::NewCancel
-    sta Zp_Current_eTitle
-    sta Zp_First_eTitle
+    sta Zp_Title_sState + sState::Current_eTitle
+    sta Zp_Title_sState + sState::First_eTitle
     lda #eTitle::NewDelete
-    sta Zp_Last_eTitle
+    sta Zp_Title_sState + sState::Last_eTitle
     jmp _GameLoop
 _BeginNewGame:
     lda #eMusic::Silence
@@ -396,17 +400,17 @@ _ExitEraseMenu:
     ldax #DataC_Title_DoneConfirm_sXfer_arr  ; param: data pointer
     jsr Func_BufferPpuTransfer
     ldx #eTitle::TopCredits
-    stx Zp_Last_eTitle
+    stx Zp_Title_sState + sState::Last_eTitle
     .assert eTitle::TopNewGame = eTitle::TopCredits - 1, error
     dex  ; now X is eTitle::TopNewGame
-    stx Zp_Current_eTitle
+    stx Zp_Title_sState + sState::Current_eTitle
     lda Sram_MagicNumber_u8
     cmp #kSaveMagicNumber
     bne @setFirstItem  ; no save file exists
     .assert eTitle::TopContinue = eTitle::TopNewGame - 1, error
     dex  ; now X is eTitle::TopContinue
     @setFirstItem:
-    stx Zp_First_eTitle
+    stx Zp_Title_sState + sState::First_eTitle
     .assert eTitle::NUM_VALUES <= $80, error
     jmp _GameLoop
 .ENDPROC
@@ -417,7 +421,7 @@ _ExitEraseMenu:
     jsr Func_PlaySfxSecretUnlocked
     jsr Func_Window_Disable
     lda #eNewGame::Town
-    sta Zp_Cheat_eNewGame
+    sta Zp_Title_sState + sState::Cheat_eNewGame
 _GameLoop:
     jsr FuncC_Title_DrawCheatMenu
     jsr Func_ClearRestOfOamAndProcessFrame
@@ -426,19 +430,19 @@ _CheckForMenuInput:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Up
     beq @noUp
-    lda Zp_Cheat_eNewGame
+    lda Zp_Title_sState + sState::Cheat_eNewGame
     beq @noUp
-    dec Zp_Cheat_eNewGame
+    dec Zp_Title_sState + sState::Cheat_eNewGame
     jsr Func_PlaySfxMenuMove
     @noUp:
     ;; Check Down button.
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Down
     beq @noDown
-    lda Zp_Cheat_eNewGame
+    lda Zp_Title_sState + sState::Cheat_eNewGame
     cmp #eNewGame::NUM_VALUES - 1
     bge @noDown
-    inc Zp_Cheat_eNewGame
+    inc Zp_Title_sState + sState::Cheat_eNewGame
     jsr Func_PlaySfxMenuMove
     @noDown:
     ;; Check START button.
@@ -446,7 +450,7 @@ _CheckForMenuInput:
     and #bJoypad::Start
     beq _GameLoop
 _BeginNewGame:
-    lda Zp_Cheat_eNewGame  ; param: eNewGame value
+    lda Zp_Title_sState + sState::Cheat_eNewGame  ; param: eNewGame value
     fall MainC_Title_BeginGame
 .ENDPROC
 
@@ -532,7 +536,7 @@ _InitAttributeTables:
     jsr Func_FillLowerAttributeTable
 _InitMenu:
     ldx #eTitle::TopCredits
-    stx Zp_Last_eTitle
+    stx Zp_Title_sState + sState::Last_eTitle
     .assert eTitle::TopNewGame = eTitle::TopCredits - 1, error
     dex  ; now X is eTitle::TopNewGame
     lda Sram_MagicNumber_u8
@@ -541,12 +545,12 @@ _InitMenu:
     .assert eTitle::TopContinue = eTitle::TopNewGame - 1, error
     dex  ; now X is eTitle::TopContinue
     @setFirstItem:
-    stx Zp_First_eTitle
-    stx Zp_Current_eTitle
+    stx Zp_Title_sState + sState::First_eTitle
+    stx Zp_Title_sState + sState::Current_eTitle
     lda DataC_Title_MenuItemPosY_u8_arr, x
-    sta Zp_TitleMenuLinePosY_u8
+    sta Zp_Title_sState + sState::TitleMenuLinePosY_u8
     lda #0
-    sta Zp_CheatSequenceIndex_u8
+    sta Zp_Title_sState + sState::CheatSequenceIndex_u8
     ldx #.sizeof(DataC_Title_Letters_u8_arr) - 1
     @lettersLoop:
     sta Ram_TitleLetterOffset_i8_arr, x
@@ -588,11 +592,11 @@ _FadeIn:
 .PROC FuncC_Title_TickMenu
 _TickMenuLine:
     ;; Get the goal Y-position for the menu line.
-    ldx Zp_Current_eTitle
+    ldx Zp_Title_sState + sState::Current_eTitle
     lda DataC_Title_MenuItemPosY_u8_arr, x
     ;; Compute the delta from the current menu line Y-position to the goal
     ;; position, storing it in A.  If the delta is zero, we're done.
-    sub Zp_TitleMenuLinePosY_u8
+    sub Zp_Title_sState + sState::TitleMenuLinePosY_u8
     beq @done
     blt @goalLessThanCurr
     ;; If the delta is positive, then we need to move down.  Divide the delta
@@ -615,8 +619,8 @@ _TickMenuLine:
     .endrepeat
     ;; Add A to the current scroll-Y position.
     @moveByA:
-    add Zp_TitleMenuLinePosY_u8
-    sta Zp_TitleMenuLinePosY_u8
+    add Zp_Title_sState + sState::TitleMenuLinePosY_u8
+    sta Zp_Title_sState + sState::TitleMenuLinePosY_u8
     @done:
 _TickMenuItems:
     ;; To slow things down, only move menu item letters once every four frames.
@@ -642,7 +646,7 @@ _TickMenuItems:
     sta T5  ; num letters remaining
     ldx DataC_Title_MenuItemOffset_u8_arr, y
 _Loop:
-    cpy Zp_Current_eTitle
+    cpy Zp_Title_sState + sState::Current_eTitle
     beq @active
     @inactive:
     lda #0  ; goal offset (signed)
@@ -677,16 +681,16 @@ _Loop:
 ;;; Draws objects and sets up IRQ for the title screen menu.
 .PROC FuncC_Title_DrawMenu
 _SetUpIrq:
-    lda Zp_TitleMenuLinePosY_u8
+    lda Zp_Title_sState + sState::TitleMenuLinePosY_u8
     sta Zp_Buffered_sIrq + sIrq::Latch_u8
     ldax #Int_TitleMenuIrq
     stax Zp_Buffered_sIrq + sIrq::FirstIrq_int_ptr
 _DrawMenuWords:
-    ldx Zp_First_eTitle
+    ldx Zp_Title_sState + sState::First_eTitle
     @loop:
     jsr FuncC_Title_DrawMenuItem  ; preserves X
     inx
-    cpx Zp_Last_eTitle
+    cpx Zp_Title_sState + sState::Last_eTitle
     blt @loop
     beq @loop
     rts
@@ -740,7 +744,7 @@ _DrawArrows:
     lda #$01
     @noZigZag:
     sta T0  ; zig-zag offset
-    ldx Zp_Cheat_eNewGame
+    ldx Zp_Title_sState + sState::Cheat_eNewGame
     bne @drawTopArrow
     @noTopArrow:
     lda #$ff
@@ -784,7 +788,7 @@ _DrawArrows:
     eor #bObj::FlipH
     sta Ram_Oam_sObj_arr64 + .sizeof(sObj) * 1 + sObj::Flags_bObj, y
 _DrawMenuItem:
-    lda Zp_Cheat_eNewGame
+    lda Zp_Title_sState + sState::Cheat_eNewGame
     .assert eNewGame::NUM_VALUES * 8 < $100, error
     mul #8
     tax  ; index into DataC_Title_NewGameName_u8_arr8_arr

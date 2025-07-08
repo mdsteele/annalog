@@ -233,6 +233,9 @@ Zp_Current_sTileset: .tag sTileset
 ;;; state specific to that room.  These bytes are automatically zeroed just
 ;;; before a room is loaded, but can be further initialized by room
 ;;; Enter_func_ptr functions and/or machine Init_func_ptr functions.
+;;;
+;;; This memory also gets reused by some game modes that don't involve a room
+;;; being loaded (such as the title screen).
 .EXPORTZP Zp_RoomState
 Zp_RoomState: .res kRoomStateSize
 
