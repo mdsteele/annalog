@@ -86,7 +86,6 @@ kFirstRealFieldType = eField::Opcode
 .ENUM eDebug
     StartDebugger
     EraseProgram
-    ResetRoom
     Cancel
     NUM_VALUES
 .ENDENUM

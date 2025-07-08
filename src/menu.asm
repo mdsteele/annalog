@@ -447,11 +447,6 @@ _RedrawInstructions:
     jsr FuncA_Console_MoveMenuCursor
     clc  ; clear C to indicate that we should stay in the menu
     rts
-_InitEraseMenu:
-    jsr Func_PlaySfxMenuConfirm
-    jsr FuncA_Console_InitEraseMenu
-    clc  ; clear C to indicate that we should stay in the menu
-    rts
 _Confirm:
     ldy #sMenu::Type_eField
     lda (Zp_Current_sMenu_ptr), y
@@ -462,17 +457,16 @@ _Confirm:
     fall _ConfirmDebugMenu
 _ConfirmDebugMenu:
     ldx Zp_MenuItem_u8
+    .assert eDebug::StartDebugger = 0, error
+    beq _TryStartDebugger
     cpx #eDebug::Cancel
     beq _Cancel
-    cpx #eDebug::StartDebugger
-    beq _TryStartDebugger
-    cpx #eDebug::EraseProgram
-    beq _InitEraseMenu
-    fall _ResetAllMachines
-_ResetAllMachines:
+    fall _InitEraseMenu
+_InitEraseMenu:
     jsr Func_PlaySfxMenuConfirm
-    ;; TODO: implement this
-    jmp _ExitMenuAndContinueEditing
+    jsr FuncA_Console_InitEraseMenu
+    clc  ; clear C to indicate that we should stay in the menu
+    rts
 _ConfirmEraseMenu:
     lda Zp_MenuItem_u8  ; 0 for NO, 1 for YES
     beq _Cancel

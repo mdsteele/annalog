@@ -38,7 +38,7 @@
 ;;; +--------+
 ;;; | DEBUG  |
 ;;; | ERASE  |
-;;; | RESET  |
+;;; |        |
 ;;; |        |
 ;;; |        |
 ;;; |        |
@@ -49,15 +49,14 @@
     D_STRUCT sMenu
     d_byte Type_eField, eField::Debug
     d_byte WidthsMinusOne_u8_arr
-    .byte 7, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    .byte 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr Labels_u8_arr_ptr_arr
     D_ARRAY .enum, eDebug, kSizeofAddr
     d_addr StartDebugger, _LabelDebug
     d_addr EraseProgram,  _LabelErase
-    d_addr ResetRoom,     _LabelReset
     d_addr Cancel,        _LabelCancel
     D_END
-    .addr 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    .addr 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     d_addr OnUp_func_ptr,    _OnUp
     d_addr OnDown_func_ptr,  _OnDown
     d_addr OnLeft_func_ptr,  Func_Noop
@@ -65,7 +64,6 @@
     D_END
 _LabelDebug:  .byte " DEBUG  "
 _LabelErase:  .byte " ERASE  "
-_LabelReset:  .byte " RESET  "
 _LabelCancel: .byte " cancel "
 _OnUp:
     ldy Zp_MenuItem_u8
@@ -109,9 +107,6 @@ _Return:
     ldy Zp_ConsoleNumInstRows_u8
     dey
     sty Ram_MenuRows_u8_arr + eDebug::Cancel
-    ;; TODO: For now, hide the RESET option (until it is implemented):
-    lda #$ff
-    sta Ram_MenuRows_u8_arr + eDebug::ResetRoom
     rts
 .ENDPROC
 
