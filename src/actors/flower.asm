@@ -26,6 +26,8 @@
 .IMPORT FuncA_Actor_HarmAvatarIfCollision
 .IMPORT FuncA_Actor_IsAvatarWithinHorzDistance
 .IMPORT FuncA_Actor_IsAvatarWithinVertDistances
+.IMPORT FuncA_Actor_PlaySfxGrowingFlower
+.IMPORT FuncA_Actor_PlaySfxShrinkingFlower
 .IMPORT FuncA_Objects_DrawShapeTiles
 .IMPORT FuncA_Objects_SetShapePosToActorCenter
 .IMPORT Func_GetRandomByte
@@ -106,7 +108,7 @@ kBadFlowerAttackFrames = \
     jsr FuncA_Actor_IsAvatarWithinHorzDistance  ; preserves X, returns C
     bcc _Return  ; avatar is too far away horizontally
 _StartGrowing:
-    ;; TODO: play a sound for the flower growing
+    jsr FuncA_Actor_PlaySfxGrowingFlower  ; preserves X
     .assert eBadFlower::Growing = eBadFlower::Dormant + 1, error
     inc Ram_ActorState1_byte_arr, x  ; current eBadFlower mode
 _Return:
@@ -155,7 +157,7 @@ _StartAttacking:
     sta Ram_ActorState2_byte_arr, x  ; mode timer
     rts
 _StartShrinking:
-    ;; TODO: play a sound for the flower shrinking
+    jsr FuncA_Actor_PlaySfxShrinkingFlower  ; preserves X
     lda #eBadFlower::Shrinking
     sta Ram_ActorState1_byte_arr, x  ; current eBadFlower mode
     lda #kBadFlowerTransformFrames

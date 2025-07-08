@@ -22,6 +22,7 @@
 .INCLUDE "../macros.inc"
 .INCLUDE "../sound.inc"
 
+.IMPORT Func_PlaySfxOnNoiseChannel
 .IMPORT Func_PlaySfxOnPulse1Channel
 .IMPORTZP Zp_Next_sChanSfx_arr
 
@@ -55,6 +56,40 @@
     sfx_End
 .ENDPROC
 
+;;; SFX data for the "growing flower" sound effect.
+;;; @thread AUDIO
+.PROC Data_GrowingFlower_sSfx
+    sfx_SetEnvTimer bEnvelope::NoLength | 0, $0001
+    sfx_Wait 7
+    sfx_SetTimer $0003
+    sfx_Wait 7
+    sfx_SetTimer $0085
+    sfx_Wait 7
+    sfx_SetTimer $0087
+    sfx_Wait 7
+    sfx_SetTimer $0089
+    sfx_Wait 7
+    sfx_SetTimer $008b
+    sfx_Wait 7
+    sfx_End
+.ENDPROC
+
+;;; SFX data for the "shrinking flower" sound effect.
+;;; @thread AUDIO
+.PROC Data_ShrinkingFlower_sSfx
+    sfx_SetEnvTimer bEnvelope::NoLength | 0, $0089
+    sfx_Wait 7
+    sfx_SetTimer $0087
+    sfx_Wait 7
+    sfx_SetTimer $0085
+    sfx_Wait 7
+    sfx_SetTimer $0003
+    sfx_Wait 7
+    sfx_SetTimer $0001
+    sfx_Wait 7
+    sfx_End
+.ENDPROC
+
 ;;;=========================================================================;;;
 
 .SEGMENT "PRG8"
@@ -72,14 +107,34 @@
 
 ;;;=========================================================================;;;
 
+.SEGMENT "PRGA_Actor"
+
+;;; Starts playing the sound for when a flower baddie grows.
+;;; @preserve X, T0+
+.EXPORT FuncA_Actor_PlaySfxGrowingFlower
+.PROC FuncA_Actor_PlaySfxGrowingFlower
+    ldya #Data_GrowingFlower_sSfx
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
+.ENDPROC
+
+;;; Starts playing the sound for when a flower baddie shrinks.
+;;; @preserve X, T0+
+.EXPORT FuncA_Actor_PlaySfxShrinkingFlower
+.PROC FuncA_Actor_PlaySfxShrinkingFlower
+    ldya #Data_ShrinkingFlower_sSfx
+    jmp Func_PlaySfxOnNoiseChannel  ; preserves X and T0+
+.ENDPROC
+
+;;;=========================================================================;;;
+
 .SEGMENT "PRGA_Avatar"
 
 ;;; Starts playing the sound for when the player avatar picks up a flower.
-;;; @preserve T0+
+;;; @preserve X, T0+
 .EXPORT FuncA_Avatar_PlaySfxPickUpFlower
 .PROC FuncA_Avatar_PlaySfxPickUpFlower
     ldya #Data_PickUpFlower_sSfx
-    jmp Func_PlaySfxOnPulse1Channel  ; preserves T0+
+    jmp Func_PlaySfxOnPulse1Channel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;
