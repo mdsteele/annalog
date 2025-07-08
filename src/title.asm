@@ -109,9 +109,6 @@ kCheatMenuYPos = $b0
 ;;; which to draw the arrows.
 kCheatMenuArrowOffsetPx = 14
 
-;;; The BG tile ID used for drawing the title screen menu line.
-kTileIdBgTitleMenuLine = $a5
-
 ;;; The OBJ tile ID used for drawing the arrows for the New Game cheat code
 ;;; menu.
 kTileIdObjCheatMenuArrows = kTileIdObjArrowCursor & $7f
@@ -511,7 +508,7 @@ _DrawMenuLineBgTiles:
     ldax #Ppu_Nametable3_sName + sName::Tiles_u8_arr
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
-    lda #kTileIdBgTitleMenuLine
+    lda #kTileIdBgHorizontalRule
     .assert kTitleMenuLineGapTiles .mod 2 = 0, error
     ldx #(kScreenWidthTiles - kTitleMenuLineGapTiles) / 2
     @loop1:
@@ -524,7 +521,7 @@ _DrawMenuLineBgTiles:
     sta Hw_PpuData_rw
     dex
     bne @loop2
-    lda #kTileIdBgTitleMenuLine
+    lda #kTileIdBgHorizontalRule
     ldx #(kScreenWidthTiles - kTitleMenuLineGapTiles) / 2
     @loop3:
     sta Hw_PpuData_rw

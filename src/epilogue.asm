@@ -17,7 +17,10 @@
 ;;; with Annalog.  If not, see <http://www.gnu.org/licenses/>.              ;;;
 ;;;=========================================================================;;;
 
+.INCLUDE "actors/adult.inc"
+.INCLUDE "actors/child.inc"
 .INCLUDE "actors/orc.inc"
+.INCLUDE "actors/queen.inc"
 .INCLUDE "audio.inc"
 .INCLUDE "charmap.inc"
 .INCLUDE "death.inc"
@@ -69,10 +72,12 @@
 .IMPORT Ppu_ChrBgAnimB4
 .IMPORT Ppu_ChrBgBossCity
 .IMPORT Ppu_ChrBgFontUpper
+.IMPORT Ppu_ChrBgTitle
 .IMPORT Ppu_ChrObjBoss1
 .IMPORT Ppu_ChrObjBoss2
 .IMPORT Ppu_ChrObjBoss3
 .IMPORT Ppu_ChrObjMine
+.IMPORT Ppu_ChrObjParley
 .IMPORT Ppu_ChrObjPause
 .IMPORT Ppu_ChrObjShadow1
 .IMPORT Ram_ProgressTimer_u8_arr
@@ -90,6 +95,9 @@
 .IMPORTZP Zp_ShapePosY_i16
 
 ;;;=========================================================================;;;
+
+.CHARMAP $25, kTileIdBgFontPercent     ; '%'
+.CHARMAP $5f, kTileIdBgHorizontalRule  ; '_'
 
 ;;; For this file only, remap capital letters to CHR0C instead of CHR04, so
 ;;; that CHR04 can be used for animated terrain without needing to use IRQs to
@@ -254,15 +262,17 @@ Ppu_Boss6CoreAttrs = Ppu_Nametable0_sName + sName::Attrs_u8_arr64 + \
 ;;;=========================================================================;;;
 
 ;;; The tile row in the upper nametable for each of the post-game stats.
-kStatsCompletionRow = 13
-kStatsDeathsRow = 15
-kStatsTimeRow = 17
+kStatsTopRow = 11
+kStatsPercentRow = kStatsTopRow + 4
+kStatsDeathsRow = kStatsTopRow + 6
+kStatsTimeRow = kStatsTopRow + 8
+kStatsEndRow = kStatsTopRow + 12
 
 ;;; The PPU addresses for the start (left) of the BG tiles for each of the
 ;;; post-game stat numbers.
 .LINECONT +
-Ppu_StatsCompletionStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
-    kScreenWidthTiles * kStatsCompletionRow + 20
+Ppu_StatsPercentStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
+    kScreenWidthTiles * kStatsPercentRow + 20
 Ppu_StatsDeathsStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
     kScreenWidthTiles * kStatsDeathsRow + 18
 Ppu_StatsTimeStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
@@ -273,7 +283,7 @@ Ppu_StatsTimeStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 
 ;;; Particular scenes that can play within an epilogue sequence.  Some scenes
 ;;; only appear in one of the epilogues, while others are shared.
-.ENUM eEpilogueScene
+.ENUM eEpiScene
     Title
     Credit1
     Boss1
@@ -308,6 +318,8 @@ Ppu_StatsTimeStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
     ;; drawing the terrain (if any).  This can be used to help visually center
     ;; the terrain on screen.
     TerrainOffset_u8        .byte
+    ;; The value to set Zp_PpuScrollY_u8 to when displaying this scene.
+    ScreenScrollY_u8        .byte
     ;; An additional set of PPU transfer entries to apply when initializing the
     ;; scene, after drawing the terrain (if any).
     Transfer_sXfer_ptr      .addr
@@ -329,11 +341,12 @@ Ppu_StatsTimeStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
 ;;; The epilogue sequence that's currently playing.
 Zp_Current_eEpilogue: .res 1
 
-;;; The zero-based index into the current epilogue's sequence of scenes.
-Zp_EpilogueSceneIndex_u8: .res 1
+;;; The epilogue scene that's currently active.
+Zp_Current_eEpiScene: .res 1
 
 ;;; Use the same storage space as Zp_Current_sRoom for storing data for the
-;;; current epilogue scene (since we don't need room data during the epilogue).
+;;; current epilogue scene's data (since we don't need room data during the
+;;; epilogue).
 .ASSERT .sizeof(sEpiScene) <= .sizeof(sRoom), error
 Zp_Current_sEpiScene := Zp_Current_sRoom
 
@@ -360,7 +373,7 @@ Zp_Current_sEpiScene := Zp_Current_sRoom
 .PROC MainC_Title_Epilogue
     stx Zp_Current_eEpilogue
     lda #0
-    sta Zp_EpilogueSceneIndex_u8
+    sta Zp_Current_eEpiScene
 _EnableAudio:
     lda #bAudio::Enable
     sta Zp_Next_sAudioCtrl + sAudioCtrl::Next_bAudio
@@ -388,9 +401,9 @@ _NextScene:
     sta Zp_Render_bPpuMask
     jsr Func_ProcessFrame
     ;; Advance to the next scene.
-    inc Zp_EpilogueSceneIndex_u8
-    lda Zp_EpilogueSceneIndex_u8
-    cmp #kEpilogueNumScenes
+    inc Zp_Current_eEpiScene
+    lda Zp_Current_eEpiScene
+    cmp #eEpiScene::NUM_VALUES
     blt _SceneLoop
     fall MainC_Title_TheEnd
 .ENDPROC
@@ -444,9 +457,9 @@ _DrawPercentCompletion:
     pha  ; percentage 1's digit
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
-    lda #>Ppu_StatsCompletionStart
+    lda #>Ppu_StatsPercentStart
     sta Hw_PpuAddr_w2
-    lda #<Ppu_StatsCompletionStart
+    lda #<Ppu_StatsPercentStart
     sta Hw_PpuAddr_w2
     txa  ; percentage 100's digit
     add #'0'
@@ -472,18 +485,26 @@ _DrawNumDeaths:
     sta Hw_PpuData_rw
     dex
     bpl @loop
+_DrawObjects:
+    main_prga_bank FuncA_Objects_DrawShapeTiles
+    jsr FuncC_Title_DrawEpilogueStatsScreen
+    jsr Func_ClearRestOfOam
 _FadeIn:
+    lda #<.bank(Ppu_ChrBgFontUpper)
+    sta Zp_Chr04Bank_u8
+    main_chr08_bank Ppu_ChrBgTitle
     main_chr0c_bank Ppu_ChrBgFontUpper
+    main_chr18_bank Ppu_ChrObjParley
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask
-    lda #0
+    lda #<-4
     sta Zp_PpuScrollX_u8
+    lda #0
     sta Zp_PpuScrollY_u8
     jsr Func_Window_Disable
-    jsr Func_ClearRestOfOam
     jsr Func_FadeInFromBlackToNormal
 _GameLoop:
-    jsr Func_ClearRestOfOamAndProcessFrame
+    jsr Func_ProcessFrame
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start
     beq _GameLoop
@@ -491,12 +512,14 @@ _FadeOut:
     jsr Func_FadeOutToBlackSlowly
     jmp MainC_Title_Menu
 _Init_sXfer:
-    d_xfer_text_row 8, "- ANNALOG -"
-    d_xfer_text_row kStatsCompletionRow, "Completion: xxx%"
+    d_xfer_text_row kStatsTopRow, "___________ ANNALOG ____________"
+    d_xfer_text_row kStatsPercentRow, "Completion: xxx%"
     .assert kNumDeathDigits = 3, error
     d_xfer_text_row kStatsDeathsRow, "Deaths: xxx"
     d_xfer_text_row kStatsTimeRow, "Time: HHH;MM;SS"
-    d_xfer_text_row 22, "- PRESS START -"
+    d_xfer_text_row kStatsEndRow, "_________ PRESS START __________"
+    d_xfer_attr_upper $10, 8, $50
+    d_xfer_attr_upper $28, 8, $50
     d_xfer_terminator
 .ENDPROC
 
@@ -561,6 +584,7 @@ _Finish:
     d_addr Terrain_sTileset_ptr, DataA_Room_Garden_sTileset
     d_addr TerrainData_ptr, 0
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 4
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgFontUpper)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPause)
@@ -577,6 +601,7 @@ _Transfer_sXfer:
     d_addr Terrain_sTileset_ptr, DataA_Room_Garden_sTileset
     d_addr TerrainData_ptr, _TerrainData
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimA0) + 1
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss1)
@@ -679,6 +704,7 @@ _Draw_sShapeTile_arr:
     d_addr Terrain_sTileset_ptr, DataA_Room_Temple_sTileset
     d_addr TerrainData_ptr, _TerrainData
     d_byte TerrainOffset_u8, 1
+    d_byte ScreenScrollY_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimB4) + 2
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
@@ -766,6 +792,7 @@ _Draw_sShapeTile_arr:
     d_addr Terrain_sTileset_ptr, DataA_Room_Crypt_sTileset
     d_addr TerrainData_ptr, _TerrainData
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimB0) + 1
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss1)
@@ -810,6 +837,7 @@ _Draw_sShapeTile_arr:
     d_addr Terrain_sTileset_ptr, DataA_Room_Lava_sTileset
     d_addr TerrainData_ptr, _TerrainData
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimB0) + 3
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
@@ -868,6 +896,7 @@ _Draw_sShapeTile_arr:
     d_addr Terrain_sTileset_ptr, DataA_Room_Mine_sTileset
     d_addr TerrainData_ptr, _TerrainData
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimB4) + 2
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjMine)
@@ -929,6 +958,7 @@ _Draw_sShapeTile_arr:
     d_addr Terrain_sTileset_ptr, DataA_Room_Building_sTileset
     d_addr TerrainData_ptr, _TerrainData
     d_byte TerrainOffset_u8, 1
+    d_byte ScreenScrollY_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgBossCity)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss2)
@@ -970,6 +1000,7 @@ _Transfer_sXfer:
     d_addr Terrain_sTileset_ptr, DataA_Room_Shadow_sTileset
     d_addr TerrainData_ptr, _TerrainData
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimA0) + 1
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjShadow1)
@@ -1014,6 +1045,7 @@ _Draw_sShapeTile_arr:
     d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr TerrainData_ptr, _TerrainData
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgAnimA0) + 1
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjBoss3)
@@ -1082,6 +1114,7 @@ _Draw_sShapeTile_arr:
     d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr TerrainData_ptr, 0
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 4
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgFontUpper)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPause)
@@ -1099,16 +1132,17 @@ _Transfer_sXfer:
     d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr TerrainData_ptr, 0
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgFontUpper)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPause)
     d_addr Draw_sShapeTile_arr_ptr, 0
     D_END
 _Transfer_sXfer:
-    d_xfer_text_row 14, "MUSIC"
-    d_xfer_text_row 16, "Jon Moran"
-    d_xfer_text_row 17, "Matthew Steele"
-    d_xfer_attr_upper $1b, 2, $50
+    d_xfer_text_row 13, "MUSIC"
+    d_xfer_text_row 15, "Jon Moran"
+    d_xfer_text_row 16, "Matthew Steele"
+    d_xfer_attr_upper $1b, 2, $05
     d_xfer_terminator
 .ENDPROC
 
@@ -1117,6 +1151,7 @@ _Transfer_sXfer:
     d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr TerrainData_ptr, 0
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 4
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgFontUpper)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPause)
@@ -1134,19 +1169,20 @@ _Transfer_sXfer:
     d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr TerrainData_ptr, 0
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 4
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgFontUpper)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPause)
     d_addr Draw_sShapeTile_arr_ptr, 0
     D_END
 _Transfer_sXfer:
-    d_xfer_text_row 14, "BETA FEEDBACK"
-    d_xfer_text_row 16, "Cam Tenny"
-    d_xfer_text_row 17, "Costas Akrivoulis"
-    d_xfer_text_row 18, "Christopher DuBois"
-    d_xfer_text_row 19, "David Couzelis"
-    d_xfer_text_row 20, "Eric Chang"
-    d_xfer_attr_upper $1a, 4, $50
+    d_xfer_text_row 12, "BETA FEEDBACK"
+    d_xfer_text_row 14, "Cam Tenny"
+    d_xfer_text_row 15, "Costas Akrivoulis"
+    d_xfer_text_row 16, "Christopher DuBois"
+    d_xfer_text_row 17, "David Couzelis"
+    d_xfer_text_row 18, "Eric Chang"
+    d_xfer_attr_upper $1a, 4, $05
     d_xfer_terminator
 .ENDPROC
 
@@ -1155,18 +1191,19 @@ _Transfer_sXfer:
     d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr TerrainData_ptr, 0
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgFontUpper)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPause)
     d_addr Draw_sShapeTile_arr_ptr, 0
     D_END
 _Transfer_sXfer:
-    d_xfer_text_row 14, "BETA FEEDBACK"
-    d_xfer_text_row 16, "Gus Prevas"
-    d_xfer_text_row 17, "Jon Moran"
-    d_xfer_text_row 18, "verylowsodium"
-    d_xfer_text_row 19, "walkingeye"
-    d_xfer_attr_upper $1a, 4, $50
+    d_xfer_text_row 12, "BETA FEEDBACK"
+    d_xfer_text_row 14, "Gus Prevas"
+    d_xfer_text_row 15, "Jon Moran"
+    d_xfer_text_row 16, "verylowsodium"
+    d_xfer_text_row 17, "walkingeye"
+    d_xfer_attr_upper $1a, 4, $05
     d_xfer_terminator
 .ENDPROC
 
@@ -1175,6 +1212,7 @@ _Transfer_sXfer:
     d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr TerrainData_ptr, 0
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 4
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgFontUpper)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPause)
@@ -1182,7 +1220,7 @@ _Transfer_sXfer:
     D_END
 _Transfer_sXfer:
     d_xfer_text_row 14, "MANUAL DESIGN"
-    d_xfer_text_row 16, "TODO"
+    d_xfer_text_row 16, "Barbara Steele"
     d_xfer_attr_upper $1a, 4, $50
     d_xfer_terminator
 .ENDPROC
@@ -1192,6 +1230,7 @@ _Transfer_sXfer:
     d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr TerrainData_ptr, 0
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 4
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgFontUpper)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPause)
@@ -1209,16 +1248,17 @@ _Transfer_sXfer:
     d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr TerrainData_ptr, 0
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgFontUpper)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPause)
     d_addr Draw_sShapeTile_arr_ptr, 0
     D_END
 _Transfer_sXfer:
-    d_xfer_text_row 14, "SPECIAL THANKS"
-    d_xfer_text_row 16, "Holly and Emily"
-    d_xfer_text_row 17, "NesDev.org"
-    d_xfer_attr_upper $1a, 4, $50
+    d_xfer_text_row 13, "SPECIAL THANKS"
+    d_xfer_text_row 15, "Holly and Emily"
+    d_xfer_text_row 16, "NesDev.org"
+    d_xfer_attr_upper $1a, 4, $05
     d_xfer_terminator
 .ENDPROC
 
@@ -1227,6 +1267,7 @@ _Transfer_sXfer:
     d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr TerrainData_ptr, 0
     d_byte TerrainOffset_u8, 0
+    d_byte ScreenScrollY_u8, 4
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgFontUpper)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPause)
@@ -1241,7 +1282,7 @@ _Transfer_sXfer:
 ;;; Zp_Current_sTileset.
 ;;; @prereq PRGA_Room is loaded.
 .PROC FuncC_Title_LoadEpilogueScene
-    jsr FuncC_Title_GetEpilogueScene  ; returns Y
+    ldy Zp_Current_eEpiScene
     ldx _SceneTable_sEpiScene_ptr_0_arr, y
     lda _SceneTable_sEpiScene_ptr_1_arr, y
     stax T1T0  ; sEpiScene ptr
@@ -1266,7 +1307,7 @@ _CopyTileset:
 .REPEAT 2, table
     D_TABLE_LO table, _SceneTable_sEpiScene_ptr_0_arr
     D_TABLE_HI table, _SceneTable_sEpiScene_ptr_1_arr
-    D_TABLE .enum, eEpilogueScene
+    D_TABLE .enum, eEpiScene
     d_entry table, Title,      DataC_Title_Title_sEpiScene
     d_entry table, Credit1,    DataC_Title_Credit1_sEpiScene
     d_entry table, Boss1,      DataC_Title_Boss1_sEpiScene
@@ -1300,9 +1341,10 @@ _CopyTileset:
     main_chr18 Zp_Current_sEpiScene + sEpiScene::Chr18Bank_u8
     lda #bPpuMask::BgMain | bPpuMask::ObjMain
     sta Zp_Render_bPpuMask
+    lda Zp_Current_sEpiScene + sEpiScene::ScreenScrollY_u8
+    sta Zp_PpuScrollY_u8
     lda #0
     sta Zp_PpuScrollX_u8
-    sta Zp_PpuScrollY_u8
     sta Zp_FrameCounter_u8
     jsr Func_Window_Disable
 _ClearUpperNametable:
@@ -1414,51 +1456,194 @@ _DrawObjects:
     rts
 .ENDPROC
 
-;;; Returns the eEpilogueScene value for the current epilogue scene.
-;;; @prereq Zp_Current_eEpilogue and Zp_EpilogueSceneIndex_u8 are initialized.
-;;; @return Y The eEpilogueScene value for the current epilogue scene.
-;;; @preserve X, T2+
-.PROC FuncC_Title_GetEpilogueScene
-    ldy Zp_Current_eEpilogue
-    lda _Scenes_eEpilogueScene_arr_ptr_0_arr, y
-    sta T0
-    lda _Scenes_eEpilogueScene_arr_ptr_1_arr, y
-    sta T1
-    ldy Zp_EpilogueSceneIndex_u8
-    lda (T1T0), y
-    tay
-    rts
+;;; Draws any objects needed for the epilogue stats scene.
+;;; @prereq PRGA_Objects is loaded.
+.PROC FuncC_Title_DrawEpilogueStatsScreen
+    ;; Set the initial shape position to the top center of the stats text.
+    lda #kScreenWidthPx / 2
+    sta Zp_ShapePosX_i16 + 0
+    lda #kTileHeightPx * kStatsTopRow
+    sta Zp_ShapePosY_i16 + 0
+    lda #0
+    sta Zp_ShapePosX_i16 + 1
+    sta Zp_ShapePosY_i16 + 1
+    ;; Draw shapes based on which ending the player reached.
+    ldx Zp_Current_eEpilogue
+    lda _Draw_sShapeTile_arr_ptr_0_arr, x  ; sShapeTile arr ptr (lo)
+    ldy _Draw_sShapeTile_arr_ptr_1_arr, x  ; sShapeTile arr ptr (hi)
+    jmp FuncA_Objects_DrawShapeTiles
 .REPEAT 2, table
-    D_TABLE_LO table, _Scenes_eEpilogueScene_arr_ptr_0_arr
-    D_TABLE_HI table, _Scenes_eEpilogueScene_arr_ptr_1_arr
+    D_TABLE_LO table, _Draw_sShapeTile_arr_ptr_0_arr
+    D_TABLE_HI table, _Draw_sShapeTile_arr_ptr_1_arr
     D_TABLE .enum, eEpilogue
-    d_entry table, AlexSearches, _AlexSearches_eEpilogueScene_arr
-    d_entry table, HumansAscend, _HumansAscend_eEpilogueScene_arr
-    d_entry table, OrcsAscend,   _OrcsAscend_eEpilogueScene_arr
+    d_entry table, AlexSearches, _AlexSearches_sShapeTile_arr
+    d_entry table, HumansAscend, _HumansAscend_sShapeTile_arr
+    d_entry table, OrcsAscend,   _OrcsAscend_sShapeTile_arr
     D_END
 .ENDREPEAT
-_AlexSearches_eEpilogueScene_arr:  ; TODO
-_HumansAscend_eEpilogueScene_arr:  ; TODO
-_OrcsAscend_eEpilogueScene_arr:
-:   .byte eEpilogueScene::Title
-    .byte eEpilogueScene::Credit1
-    .byte eEpilogueScene::Boss1
-    .byte eEpilogueScene::Credit2
-    .byte eEpilogueScene::Boss2
-    .byte eEpilogueScene::Credit3
-    .byte eEpilogueScene::Boss3
-    .byte eEpilogueScene::Credit4
-    .byte eEpilogueScene::Boss4
-    .byte eEpilogueScene::Credit5
-    .byte eEpilogueScene::Boss5
-    .byte eEpilogueScene::Credit6
-    .byte eEpilogueScene::Boss6
-    .byte eEpilogueScene::Credit7
-    .byte eEpilogueScene::Boss7
-    .byte eEpilogueScene::Credit8
-    .byte eEpilogueScene::Boss8
-    .byte eEpilogueScene::Dedication
-    .assert * - :- = kEpilogueNumScenes, error
+_AlexSearches_sShapeTile_arr:
+    ;; Queen Eirene:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$40
+    d_byte DeltaY_i8, <-$28
+    d_byte Flags_bObj, kPaletteObjMermaidQueenHead
+    d_byte Tile_u8, kTileIdObjEireneParleyFirst + 0
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjMermaidQueenHead
+    d_byte Tile_u8, kTileIdObjEireneParleyFirst + 1
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $08
+    d_byte DeltaY_i8, <-$08
+    d_byte Flags_bObj, kPaletteObjMermaidQueenHead
+    d_byte Tile_u8, kTileIdObjEireneParleyFirst + 2
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjMermaidQueenHead
+    d_byte Tile_u8, kTileIdObjEireneParleyFirst + 3
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$08
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjMermaidQueenBody
+    d_byte Tile_u8, kTileIdObjEireneParleyFirst + 4
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjMermaidQueenBody
+    d_byte Tile_u8, kTileIdObjEireneParleyFirst + 5
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $08
+    d_byte DeltaY_i8, <-$08
+    d_byte Flags_bObj, kPaletteObjMermaidQueenBody
+    d_byte Tile_u8, kTileIdObjEireneParleyFirst + 6
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjMermaidQueenBody
+    d_byte Tile_u8, kTileIdObjEireneParleyFirst + 7
+    D_END
+    ;; Adult Alex:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $70
+    d_byte DeltaY_i8, <-$10
+    d_byte Flags_bObj, kPaletteObjChild | bObj::FlipH
+    d_byte Tile_u8, kTileIdObjAdultAlexFirst + 0
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjChild | bObj::FlipH
+    d_byte Tile_u8, kTileIdObjAdultAlexFirst + 1
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjChild | bObj::FlipH
+    d_byte Tile_u8, kTileIdObjAdultAlexFirst + 2
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$08
+    d_byte DeltaY_i8, <-$10
+    d_byte Flags_bObj, kPaletteObjChild | bObj::FlipH
+    d_byte Tile_u8, kTileIdObjAdultAlexFirst + 3
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjChild | bObj::FlipH
+    d_byte Tile_u8, kTileIdObjAdultAlexFirst + 4
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjChild | bObj::FlipH | bObj::Final
+    d_byte Tile_u8, kTileIdObjAdultAlexFirst + 5
+    D_END
+_HumansAscend_sShapeTile_arr:
+    ;; Child Alex:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$08
+    d_byte DeltaY_i8, <-$18
+    d_byte Flags_bObj, kPaletteObjChild
+    d_byte Tile_u8, kTileIdObjChildStandFirst + $0a
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $08
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjChild
+    d_byte Tile_u8, kTileIdObjChildStandFirst + $0b
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$08
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjChild
+    d_byte Tile_u8, kTileIdObjChildStandFirst + $1a
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $08
+    d_byte DeltaY_i8, 0
+    d_byte Flags_bObj, kPaletteObjChild | bObj::Final
+    d_byte Tile_u8, kTileIdObjChildStandFirst + $1b
+    D_END
+_OrcsAscend_sShapeTile_arr:
+    ;; Chief Gronta:
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$08
+    d_byte DeltaY_i8, <-$28
+    d_byte Flags_bObj, kPaletteObjGrontaHead
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $04
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjGrontaHead
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $05
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $08
+    d_byte DeltaY_i8, <-$08
+    d_byte Flags_bObj, kPaletteObjGrontaHead
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $06
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjGrontaHead
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $07
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, <-$08
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjOrc
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $0c
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjOrc
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $0d
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, $08
+    d_byte DeltaY_i8, <-$08
+    d_byte Flags_bObj, kPaletteObjOrc
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $0e
+    D_END
+    D_STRUCT sShapeTile
+    d_byte DeltaX_i8, 0
+    d_byte DeltaY_i8, $08
+    d_byte Flags_bObj, kPaletteObjOrc | bObj::Final
+    d_byte Tile_u8, kTileIdObjOrcGrontaStandingFirst + $0f
+    D_END
 .ENDPROC
 
 ;;;=========================================================================;;;

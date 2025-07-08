@@ -90,9 +90,9 @@ kFirstFloatingNpcAdult = eNpcAdult::GhostJerome
 kFirst2x4NpcAdult = eNpcAdult::CorraSwimmingUp1
 
 ;;; The first tile IDs for various human adults.
-kTileIdObjAdultAlexFirst          = $92
+kTileIdObjAdultAlexFirst          = $c0
 kTileIdObjAdultAnnaFirst          = $80
-kTileIdObjAdultBorisFirst         = $b0
+kTileIdObjAdultBorisFirst         = $92
 kTileIdObjAdultElderFirst         = $c4
 kTileIdObjAdultGhostFirst         = $e4
 kTileIdObjAdultJeromeFirst        = $98

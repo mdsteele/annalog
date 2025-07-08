@@ -133,6 +133,7 @@ _FadeIn:
     .byte $c0 | kNumCreditsCols
     .byte $c7, "- ANNALOG -", $c8
     .byte $c0 | kNumCreditsCols
+    .assert kTileIdBgFontCopyrightFirst = $ae, error
     .byte " ", $ae, $af, "2025 Matthew D. Steele "
     .byte "  https://mdsteele.games/ "
     .byte $c0 | kNumCreditsCols

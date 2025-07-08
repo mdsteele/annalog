@@ -21,6 +21,7 @@
 kTileIdBgFontLowerFirst     = $20
 kTileIdBgFontUpperFirst     = $40
 kTileIdBgFontCopyrightFirst = $ae
+kTileIdBgFontPercent        = $ad
 
 .CHARMAP $20, $00  ; ' '
 .CHARMAP $60, $40  ; '`'
@@ -32,7 +33,6 @@ kTileIdBgFontCopyrightFirst = $ae
 .CHARMAP $2c, $45  ; ','
 .CHARMAP $27, $46  ; "'"
 .CHARMAP $2f, $47  ; '/'
-.CHARMAP $25, $7b  ; '%'
 .CHARMAP $2b, $4e  ; '+'
 .CHARMAP $2d, $4f  ; '-'
 .CHARMAP $3c, $4a  ; '<'
@@ -107,6 +107,8 @@ kTileIdBgCmpGe = $4d
 .CHARMAP $78, $37  ; 'x'
 .CHARMAP $79, $38  ; 'y'
 .CHARMAP $7a, $39  ; 'z'
+
+kTileIdBgHorizontalRule = $7b
 
 kTileIdBgArrowUp    = $7c
 kTileIdBgArrowRight = $7d

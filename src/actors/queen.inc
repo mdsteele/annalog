@@ -35,4 +35,8 @@
 ;;; The first tile ID for mermaid queen NPCs.
 kTileIdObjMermaidQueenFirst = $b0
 
+;;; OBJ palette numbers to use for drawing queen NPC actors.
+kPaletteObjMermaidQueenBody = 0
+kPaletteObjMermaidQueenHead = 1
+
 ;;;=========================================================================;;;

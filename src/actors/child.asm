@@ -35,11 +35,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The OBJ palette number to use for drawing child NPC actors.
-kPaletteObjChild = 1
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRGA_Room"
 
 ;;; Initializes a child NPC actor.

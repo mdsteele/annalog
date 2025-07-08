@@ -1125,6 +1125,7 @@ _chr_begin:
     chr_inc "title2"
     chr_inc "title3"
     chr_res $08
+    chr_inc "font_percent",   kTileIdBgFontPercent
     chr_inc "font_copyright", kTileIdBgFontCopyrightFirst
     chr_res $10
     END_CHR_BANK
@@ -1378,9 +1379,10 @@ _chr_begin:
 .PROC Ppu_ChrObjFinale2
     CHR2_BANK $80
     chr_inc "adult_anna",  kTileIdObjAdultAnnaFirst
-    chr_inc "adult_alex",  kTileIdObjAdultAlexFirst
     chr_inc "adult_boris", kTileIdObjAdultBorisFirst
-    chr_res $38
+    chr_res $16
+    chr_inc "adult_alex",  kTileIdObjAdultAlexFirst
+    chr_res $22
     END_CHR_BANK
 .ENDPROC
 
@@ -1492,7 +1494,8 @@ _chr_begin:
     chr_inc "orc_gronta_parley",   kTileIdObjOrcGrontaParleyFirst
     chr_inc "orc_gronta_standing", kTileIdObjOrcGrontaStandingFirst
     chr_inc "orc_gronta_running",  kTileIdObjOrcGrontaRunningFirst
-    chr_res $20
+    chr_inc "adult_alex",          kTileIdObjAdultAlexFirst
+    chr_res $02
     chr_inc "child_stand",         kTileIdObjChildStandFirst
     END_CHR_BANK
 .ENDPROC

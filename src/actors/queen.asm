@@ -30,12 +30,6 @@
 
 ;;;=========================================================================;;;
 
-;;; OBJ palette numbers to use for drawing queen NPC actors.
-kPaletteObjMermaidQueenBody = 0
-kPaletteObjMermaidQueenHead = 1
-
-;;;=========================================================================;;;
-
 .SEGMENT "PRGA_Objects"
 
 ;;; Draws a mermaid queen NPC actor.

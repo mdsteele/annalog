@@ -73,4 +73,7 @@ kTileIdObjChildSleepFirst = $9a
 kTileIdObjChildStandFirst = $e0
 kTileIdObjChildSwimFirst  = $d8
 
+;;; The OBJ palette number to use for drawing child NPC actors.
+kPaletteObjChild = 1
+
 ;;;=========================================================================;;;

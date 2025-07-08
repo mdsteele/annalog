@@ -308,7 +308,7 @@ $(OBJDIR)/chr.o: src/chr.asm $(INC_FILES) $(TILE_CHR_FILES)
 $(OBJDIR)/credits.o: src/credits.asm $(INC_FILES) $(VERSION_FILE)
 	$(compile-asm)
 
-$(OBJDIR)/epilogue.o: src/epilogue.asm $(EPILOGUE_EPI_FILES)
+$(OBJDIR)/epilogue.o: src/epilogue.asm $(INC_FILES) $(EPILOGUE_EPI_FILES)
 	$(compile-asm)
 
 $(OBJDIR)/inst.o: src/inst.asm $(INC_FILES) $(INST_DM_FILES)
