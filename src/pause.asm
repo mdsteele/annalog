@@ -147,14 +147,7 @@ _GameLoop:
 _CheckForOpenPapersWindow:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Down
-    beq @done
-    ;; Only open the papers window if the player avatar isn't still in the Town
-    ;; area at the start of the game.
-    lda Zp_Current_sRoom + sRoom::Flags_bRoom
-    and #bRoom::AreaMask
-    cmp #eArea::Town
     bne MainA_Pause_ScrollPapersUp
-    @done:
 _CheckForUnpause:
     lda Zp_P1ButtonsPressed_bJoypad
     and #bJoypad::Start | bJoypad::BButton
@@ -347,8 +340,20 @@ _BeginLowerNametable:
     ldy #kScreenWidthTiles  ; param: num blank tiles to draw
     jsr FuncA_Pause_DirectDrawBlankTiles
     jsr FuncA_Pause_DirectDrawWindowTopBorder
+_CheckIfInTown:
+    ;; If the player avatar is still in the Town area at the start of the game,
+    ;; don't draw the text about papers in the area.
+    lda Zp_Current_sRoom + sRoom::Flags_bRoom
+    and #bRoom::AreaMask
+    cmp #eArea::Town
+    bne @notInTown
+    @inTown:
+    jsr FuncA_Pause_DirectDrawWindowBlankLine
+    jmp _DrawCollectedPapers
+    @notInTown:
+    sta T2  ; current eArea
 _DrawAreaPaperLabel:
-    jsr FuncA_Pause_DirectDrawWindowLineSide
+    jsr FuncA_Pause_DirectDrawWindowLineSide  ; preserves T0+
     ldx #0
     stx T0  ; num papers found in area
     stx T1  ; total num papers in area
@@ -359,9 +364,6 @@ _DrawAreaPaperLabel:
     cpx #.sizeof(DataA_Pause_AreaPaperLabel_u8_arr)
     blt @loop
 _CountPapers:
-    lda Zp_Current_sRoom + sRoom::Flags_bRoom
-    and #bRoom::AreaMask
-    sta T2  ; current eArea
     ldx #kNumPaperFlags - 1
     @loop:
     lda DataA_Pause_PaperLocation_eArea_arr, x
@@ -742,12 +744,6 @@ _Return:
     lda Zp_WindowTop_u8
     cmp #kScreenHeightPx
     blt @done
-    ;; Don't draw the arrow cursor if the player avatar is still in the Town
-    ;; area at the start of the game.
-    lda Zp_Current_sRoom + sRoom::Flags_bRoom
-    and #bRoom::AreaMask
-    cmp #eArea::Town
-    beq @done
     ;; Draw the arrow cursor.
     lda #2  ; param: num objects
     jsr Func_AllocObjects  ; returns Y
