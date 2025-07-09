@@ -135,11 +135,11 @@ _FadeIn:
     .byte $c0 | kNumCreditsCols
     .assert kTileIdBgFontCopyrightFirst = $ae, error
     .byte " ", $ae, $af, "2025 Matthew D. Steele "
-    .byte "  https://mdsteele.games/ "
+    .byte $c2, "https://mdsteele.games/ "
     .byte $c0 | kNumCreditsCols
     .byte $c7, "PUBLISHED BY:", $c6
-    .byte $ca, "<TBD>", $cb
-    .byte $ca, "<URL>", $cb
+    .byte $c6, "The Retro Room", $c6
+    .byte $c3, "TheRetroRoomGames.com", $c2
     .byte $c0 | kNumCreditsCols
     .byte $ca, "MUSIC:", $ca
     .byte $c8, "Jon Moran", $c9

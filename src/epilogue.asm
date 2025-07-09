@@ -1238,7 +1238,7 @@ _Transfer_sXfer:
     D_END
 _Transfer_sXfer:
     d_xfer_text_row 14, "PUBLISHING"
-    d_xfer_text_row 16, "TODO"
+    d_xfer_text_row 16, "The Retro Room"
     d_xfer_attr_upper $1a, 4, $50
     d_xfer_terminator
 .ENDPROC
