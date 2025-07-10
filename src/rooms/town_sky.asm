@@ -82,6 +82,7 @@
 .IMPORT Ram_PpuTransfer_arr
 .IMPORTZP Zp_AvatarPosY_i16
 .IMPORTZP Zp_AvatarPose_eAvatar
+.IMPORTZP Zp_FrameCounter_u8
 .IMPORTZP Zp_Next_eCutscene
 .IMPORTZP Zp_PpuScrollX_u8
 .IMPORTZP Zp_PpuScrollY_u8
@@ -598,8 +599,10 @@ _PlayInnerRumblingSound:
     .linecont +
     act_WaitFrames 60
     ;; TODO: play a sound for Jerome's hologram appearing
-    act_RepeatFunc kBlockHeightPx * kJeromeRevealSlowdown, \
+    act_RepeatFunc 10 * kJeromeRevealSlowdown, \
                    FuncA_Cutscene_TownSkyRevealJerome
+    act_CallFunc FuncA_Cutscene_TownSkyFinishRevealingJerome
+    act_WaitFrames 90
     act_RunDialog eDialog::TownSkyFinaleReactivate4
     act_WaitFrames 60
     act_JumpToMain MainA_Cutscene_StartNextFinaleStep
@@ -611,8 +614,10 @@ _PlayInnerRumblingSound:
     .linecont +
     act_WaitFrames 60
     ;; TODO: play a sound for Jerome's hologram appearing
-    act_RepeatFunc kBlockHeightPx * kJeromeRevealSlowdown, \
+    act_RepeatFunc 10 * kJeromeRevealSlowdown, \
                    FuncA_Cutscene_TownSkyRevealJerome
+    act_CallFunc FuncA_Cutscene_TownSkyFinishRevealingJerome
+    act_WaitFrames 90
     act_RunDialog eDialog::TownSkyFinaleGaveRemote6
     act_WaitFrames 60
     act_ForkStart 0, DataA_Cutscene_TownSkyFinaleMaybeThisTime_sCutscene
@@ -690,12 +695,25 @@ _PlayInnerRumblingSound:
 ;;; Called repeatedly via act_RepeatFunc to reveal Jerome's hologram.
 ;;; @param X The repeat counter.
 .PROC FuncA_Cutscene_TownSkyRevealJerome
+    ;; Hold Zp_FrameCounter_u8 at zero to prevent Jerome's ghost from bobbing
+    ;; up and down in the air while still being revealed.
+    lda #0
+    sta Zp_FrameCounter_u8
+    ;; Reveal one vertical pixel every kJeromeRevealSlowdown frames.
     txa  ; repeat counter
     mod #kJeromeRevealSlowdown
     bne @done
     dec Ram_ActorPosY_i16_0_arr + kUpperSquareActorIndex
     inc Ram_ActorPosY_i16_0_arr + kLowerSquareActorIndex
     @done:
+    rts
+.ENDPROC
+
+;;; Called via act_CallFunc to finish revealing Jerome's hologram.
+.PROC FuncA_Cutscene_TownSkyFinishRevealingJerome
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr + kUpperSquareActorIndex
+    sta Ram_ActorType_eActor_arr + kLowerSquareActorIndex
     rts
 .ENDPROC
 
