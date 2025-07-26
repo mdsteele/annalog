@@ -231,7 +231,8 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Temple_Foyer_EnterRoom
-    ;; Clear the music flag.
+    ;; Clear the music flag, which tells the Temple music to transition from
+    ;; "stately" to "upbeat".
     lda #bMusic::UsesFlag | 0
     sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
     ;; Remove the upgrade if it's already been collected.

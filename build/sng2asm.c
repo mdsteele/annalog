@@ -137,7 +137,6 @@ static char *read_quoted_string(void) {
   int num_chars = 0;
   char buffer[MAX_QUOTED_STRING_CHARS + 1];
   while (read_char() != '"') {
-    if (input.last_char == '\n') ERROR("unterminated quoted string\n");
     if (num_chars >= MAX_QUOTED_STRING_CHARS) {
       ERROR("quoted string is too long\n");
     }
@@ -769,7 +768,9 @@ static void read_song_spec(sng_song_t *song) {
       if (ch == '\0') ERROR("incomplete '@' in song spec\n");
       if (ch < 'a' || ch > 'z') ERROR("invalid '@' label '%c'\n", ch);
       ++num_opcodes;
-    } else if (ch != ' ') ERROR("unexpected '%c' in song spec\n", ch);
+    } else if (ch != ' ' && ch != '\n') {
+      ERROR("unexpected '%c' in song spec\n", ch);
+    }
   }
   ++num_opcodes;  // add one for the implicit STOP/JUMP at the end
   // Compile the spec into an array of sng_opcode_t structs.  We'll validate

@@ -18,9 +18,11 @@
 ;;;=========================================================================;;;
 
 .INCLUDE "../actor.inc"
+.INCLUDE "../audio.inc"
 .INCLUDE "../device.inc"
 .INCLUDE "../flag.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../music.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../room.inc"
 
@@ -29,6 +31,7 @@
 .IMPORT Data_Empty_sPlatform_arr
 .IMPORT Func_Noop
 .IMPORT Ppu_ChrObjTemple
+.IMPORTZP Zp_Next_sAudioCtrl
 
 ;;;=========================================================================;;;
 
@@ -55,7 +58,7 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, Data_Empty_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, Func_Noop
+    d_addr Enter_func_ptr, FuncC_Temple_Entry_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
     d_addr Tick_func_ptr, Func_Noop
     d_addr Draw_func_ptr, Func_Noop
@@ -86,6 +89,14 @@ _Passages_sPassage_arr:
     d_byte SpawnAdjust_byte, $2d
     D_END
     .assert * - :- <= kMaxPassages * .sizeof(sPassage), error
+.ENDPROC
+
+.PROC FuncC_Temple_Entry_EnterRoom
+    ;; Set the music flag, which tells the Temple music to transition from
+    ;; "upbeat" to "stately".
+    lda #bMusic::UsesFlag | bMusic::FlagMask
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
+    rts
 .ENDPROC
 
 ;;;=========================================================================;;;

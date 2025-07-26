@@ -34,7 +34,7 @@
 .IMPORT DataC_Prison_Prison_sMusic
 .IMPORT DataC_Sewer_Sewer_sMusic
 .IMPORT DataC_Shadow_Shadow_sMusic
-.IMPORT DataC_Temple_TemplePlaceholder_sMusic
+.IMPORT DataC_Temple_Temple_sMusic
 .IMPORT DataC_Title_Epilogue_sMusic
 .IMPORT DataC_Title_Title_sMusic
 .IMPORT DataC_Town_Attack_sMusic
@@ -74,7 +74,7 @@
     d_entry table, Sewer,    DataC_Sewer_Sewer_sMusic
     d_entry table, Shadow,   DataC_Shadow_Shadow_sMusic
     d_entry table, Suspense, Data_Suspense_sMusic
-    d_entry table, Temple,   DataC_Temple_TemplePlaceholder_sMusic
+    d_entry table, Temple,   DataC_Temple_Temple_sMusic
     d_entry table, Title,    DataC_Title_Title_sMusic
     d_entry table, Town,     DataC_Town_Town_sMusic
     d_entry table, Upgrade,  Data_Upgrade_sMusic

@@ -19,6 +19,7 @@
 
 .INCLUDE "../actor.inc"
 .INCLUDE "../actors/child.inc"
+.INCLUDE "../audio.inc"
 .INCLUDE "../avatar.inc"
 .INCLUDE "../charmap.inc"
 .INCLUDE "../cpu.inc"
@@ -29,6 +30,7 @@
 .INCLUDE "../machine.inc"
 .INCLUDE "../machines/carriage.inc"
 .INCLUDE "../macros.inc"
+.INCLUDE "../music.inc"
 .INCLUDE "../oam.inc"
 .INCLUDE "../platform.inc"
 .INCLUDE "../ppu.inc"
@@ -63,6 +65,7 @@
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_PlatformType_ePlatform_arr
 .IMPORT Ram_ProgressFlags_arr
+.IMPORTZP Zp_Next_sAudioCtrl
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
@@ -418,6 +421,10 @@ _Passages_sPassage_arr:
 .ENDPROC
 
 .PROC FuncC_Temple_Nave_EnterRoom
+    ;; Clear the music flag, which tells the Temple music to transition from
+    ;; "stately" to "upbeat".
+    lda #bMusic::UsesFlag | 0
+    sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
 _Crate:
     ;; Once Anna visits the crypt, remove Alex and leave a crate behind.
     flag_bit Ram_ProgressFlags_arr, eFlag::CryptLandingDroppedIn

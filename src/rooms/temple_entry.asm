@@ -70,9 +70,6 @@
 
 ;;;=========================================================================;;;
 
-;;; The index of the passage on the western side of the room.
-kWesternPassageIndex = 0
-
 ;;; The actor index for the mermaid guard in this room.
 kGuardActorIndex = 0
 ;;; The talk devices indices for the mermaid guard in this room.
@@ -141,9 +138,9 @@ _Ext_sRoomExt:
     d_addr Actors_sActor_arr_ptr, _Actors_sActor_arr
     d_addr Devices_sDevice_arr_ptr, _Devices_sDevice_arr
     d_addr Passages_sPassage_arr_ptr, _Passages_sPassage_arr
-    d_addr Enter_func_ptr, FuncA_Room_TempleEntry_EnterRoom
+    d_addr Enter_func_ptr, FuncC_Temple_Entry_EnterRoom
     d_addr FadeIn_func_ptr, Func_Noop
-    d_addr Tick_func_ptr, FuncA_Room_TempleEntry_TickRoom
+    d_addr Tick_func_ptr, FuncC_Temple_Entry_TickRoom
     d_addr Draw_func_ptr, FuncC_Temple_Entry_DrawRoom
     D_END
 _TerrainData:
@@ -249,8 +246,7 @@ _Devices_sDevice_arr:
     .assert * - :- <= kMaxDevices * .sizeof(sDevice), error
     .byte eDevice::None
 _Passages_sPassage_arr:
-:   .assert * - :- = kWesternPassageIndex * .sizeof(sPassage), error
-    D_STRUCT sPassage
+:   D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Western | 0
     d_byte Destination_eRoom, eRoom::TempleFoyer
     d_byte SpawnBlock_u8, 6
@@ -272,18 +268,12 @@ _Passages_sPassage_arr:
     jmp FuncC_Temple_DrawColumnPlatform
 .ENDPROC
 
-;;;=========================================================================;;;
-
-.SEGMENT "PRGA_Room"
-
-;;; @param A The bSpawn value for where the avatar is entering the room.
-.PROC FuncA_Room_TempleEntry_EnterRoom
-    ;; Set the music flag, unless entering this room from the temple foyer.
-    cmp #bSpawn::Passage | kWesternPassageIndex
-    beq @done
+;;; Enter function for the TempleEntry room.
+.PROC FuncC_Temple_Entry_EnterRoom
+    ;; Set the music flag, which tells the Temple music to transition from
+    ;; "upbeat" to "stately".
     lda #bMusic::UsesFlag | bMusic::FlagMask
     sta Zp_Next_sAudioCtrl + sAudioCtrl::MusicFlag_bMusic
-    @done:
 _MaybeRemoveCorra:
     flag_bit Ram_ProgressFlags_arr, eFlag::BreakerCrypt
     beq @removeCorra
@@ -323,7 +313,9 @@ _MaybeRaiseColumn:
     rts
 .ENDPROC
 
-.PROC FuncA_Room_TempleEntry_TickRoom
+;;; Tick function for the TempleEntry room.
+;;; @prereq PRGA_Room is loaded.
+.PROC FuncC_Temple_Entry_TickRoom
 _StartCutscene:
     ;; If Corra isn't here, or if Anna has already talked to Corra, don't start
     ;; the cutscene.
