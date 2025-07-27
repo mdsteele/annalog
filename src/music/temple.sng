@@ -1,19 +1,20 @@
 @PRGC_Temple
 
 !SONG Temple "
-  aA?1aB?1aC?1a | dD?1a
-  E?1dE?1dFG?1dH?1dJ?1d
-  E?1dE?1dFG?1dH?1dJ?1d L"
+  aA?1a B?1a C?1a | dD?1a
+  E?1d E?1d F?1d G?1d H?1d I?1d J?1d K?1d
+  E?1d E?1d F?1d G?1d H?1d I?1d J?1d K?1d L"
 
 =tempo q32
 =key 1b  % D minor
 
 !INST 1L PulseEcho    $2a d1/8  % long echo
-!INST 2L PulseEcho    $2a d1/8  % long echo
 !INST 1S PulseEcho    $0a d1/8  % short echo
-!INST 2S PulseEcho    $0a d1/8  % short echo
 !INST 1P PulsePluck   $08 d1/4
-!INST 2C Staccato     $05 d1/2
+!INST 2C Staccato     $08 d3/4
+!INST 2F PulseGong    $06 d3/4
+!INST 2G PulseGong    $07 d3/4
+!INST 2H PulseGong    $09 d3/4
 !INST 2V PulseVibrato $03 d1/2
 !INST TV TriangleVibrato
 !INST ND Staccato     $06       % drum
@@ -46,13 +47,13 @@ N| x3q ' x7q :7 ' x3q ' x7s x2 x3 x2 |
 
 !PART E
 
-1| iP d4q ' de ds es+ ' +s es ee ' ee es e |
- | f4q ' fe fs gs+ ' +s gs ge ' ge ae |
- | d4q ' de ds a3s+ ' +s as ae ' ae as a |
- | c4q ' ce cs ds+ ' +s ds de ' ce ce |
-2| iL d5q |
-T| p(iV d3q ' a2e. d3s+ ' +s a2s d3e ' a2q       |
- |      c3q ' g2e. c3s+ ' +s g2s c3e ' g2q)ET :2 |
+1| iP d4q ' de ds es+  ' +s es ee ' ee es e |
+ |    f4q ' fe fs gs+  ' +s gs ge ' ge ae   |
+ |    d4q ' de ds a3s+ ' +s as ae ' ae as a |
+ |    c4q ' ce cs ds+  ' +s ds de ' ce ce   |
+2| iH d5w |
+T| iV d3q ' a2e. d3s+ ' +s a2s d3e ' a2q    |
+ |    c3q ' g2e. c3s+ ' +s g2s c3e ' g2q :2 |
 N=:CN
 
 !PART F
@@ -77,29 +78,39 @@ N=:FN
  | p(   c4e d    ' de ds fs+ ' +s ds de ' fe de   )H3 |
  | pH1                                                |
  | p(   g4e. ds+ ' +e ge     ' aq       ' a       )H5 |
- | pH1 | pH3 | pH1 | pH5 |
 2| p(iV rq ' d5q)HD :6 | p(rq ' c5q)HC :2 |
- | pHD ' p(rq ' d5e f5e)IF |
+T=:ET
+N=:EN
+
+!PART I
+
+1=:H1
+2| pHD ' p(rq ' d5e f5e)IF |
  | pHD '   rq ' c5e a4e    |
  | pHD ' pIF               |
  | pHC :2                  |
-T| pET :4  |
-N| pNC :16 |
+T=:HT
+N=:HN
 
 !PART J
 
-1| iP d5e a4 ' a as as+ ' +s as ae ' ae d5s d |
- |    d5e a4 ' a as gs+ ' +s gs ge ' aq       |
- |    d5e a4 ' a as as+ ' +s as ae ' ae as a  |
- |    c5e a4 ' a as gs+ ' +s gs ge ' aq       |
- |    d5e a4 ' a as as+ ' +s as ae   ' ae  as  a |
- |    d5e a4 ' a as as+ ' +s d5e a4s ' d5e a4s a |
- |    d5e a4 ' a as as+ ' +s as ae   ' ae  as  a |
- |    g4s g g g ' ge gs as+ ' +s as ae ' ge fe |
-2| p(iV d6h. rq)JD :3                | p(ch. rq)JC |
- | pJD | d6q. re de. rs de. rs | pJD | pJC         |
-T=:HT
-N=:HN
+1|   iP d5e   a4  ' ae as as+ ' +s as ae   ' ae  d5s d    |
+ |      d5e   a4  ' ae as gs+ ' +s gs ge   ' aq           |
+ | p(iP d5e   a4  ' ae as as+ ' +s as ae   ' ae  as  a)JA |
+ |      c5e   a4  ' ae as gs+ ' +s gs ge   ' aq           |
+2| p(iG d6w)JD :3 | p(cw)JC |
+T=:ET
+N=:EN
+
+!PART K
+
+1|  pJA                                                 |
+ |    d5e   a4  ' ae as as+ ' +s d5e a4s ' d5e a4s a    |
+ |  pJA                                                 |
+ |    g4s g g g ' ge gs as+ ' +s as ae   ' ge  fe       |
+2| pJD | d6h dq dq | pJD | pJC |
+T=:JT
+N=:JN
 
 !PART L
 
@@ -111,14 +122,14 @@ N=:HN
  | pLB |
  | pLC |
  | d4q :4 |
-2| iV rq ' a5q ' rq ' gq  |
- |    rq ' b5q ' rq ' c6q |
- |    rq ' a5q ' rq ' gq  |
- |    rq ' f5q ' rq ' gq  |
- |    rq ' a5q   ' rq '    ge    e   |
- |    rq ' b5q   ' rq '    c6e   a5  |
- |    rq ' f5e a ' rq '    ge    e   |
- |   d5q ' f5q   ' aq ' iC d6s d d d |
+2| iF rq ' a5q+    ' +q ' gq+        | +q '
+         ' b5q+    ' +q ' c6q+       | +q '
+         ' a5q+    ' +q ' gq+        | +q '
+         ' f5q+    ' +q ' gq+        | +q '
+         ' a5q+    ' +q ' ge    ee+  | +q '
+         ' b5q+    ' +q ' c6e   a5e+ | +q '
+         ' f5e ae+ ' +q ' ge    e    |
+ |   d5q ' f5q     ' aq ' iC d6s d d d |
 T| p(iV d3q ' a3q ' c3q ' g3q)LT    |
  | p(   b2q ' f3q ' c3q ' g3q)LU    |
  | pLT                              |
@@ -127,4 +138,4 @@ T| p(iV d3q ' a3q ' c3q ' g3q)LT    |
  | pLU                              |
  | pLU                              |
  |      d3q ' c3q ' f3q ' e3q       |
-N=:HN
+N| pNC :16 |

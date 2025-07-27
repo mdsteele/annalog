@@ -36,8 +36,9 @@
 #define MAX_NOTES_PER_PHRASE 1000
 #define MAX_PARTS_PER_SONG NUM_LETTERS
 #define MAX_ITEMS_PER_CHAIN 1000
+#define MAX_OPCODES 60
 #define MAX_PHRASES_PER_FILE 128
-#define MAX_QUOTED_STRING_CHARS 80
+#define MAX_QUOTED_STRING_CHARS 120
 #define MAX_REPEAT_COUNT 127
 #define MIN_REPEAT_COUNT 2
 #define MAX_REST_FRAMES 63
@@ -261,7 +262,7 @@ typedef struct {
 
 typedef struct {
   enum { OP_STOP, OP_JUMP, OP_SETF, OP_BFEQ, OP_PLAY } kind;
-  signed char delta;   // for JUMP and BFEQ
+  unsigned char dest;  // for JUMP and BFEQ
   unsigned char flag;  // for SETF and BFEQ
   char part;           // for PLAY
 } sng_opcode_t;
@@ -773,6 +774,7 @@ static void read_song_spec(sng_song_t *song) {
     }
   }
   ++num_opcodes;  // add one for the implicit STOP/JUMP at the end
+  if (num_opcodes > MAX_OPCODES) ERROR("too many opcodes in song spec\n");
   // Compile the spec into an array of sng_opcode_t structs.  We'll validate
   // the part names once the rest of the song definition is finished.
   song->num_opcodes = num_opcodes;
@@ -788,28 +790,25 @@ static void read_song_spec(sng_song_t *song) {
     } else if (ch == '?') {
       int flag = (*++ptr - '0') & 1;
       char label = *++ptr;
-      int index = label - 'a';
-      if (label_table[index] < 0) ERROR("no such label: '%c'\n", label);
-      int delta = label_table[index] - pc;
-      if (delta == 0) ERROR("illegal BFEQ destination\n");
-      if (delta > 31 || delta < -32) ERROR("BFEQ destination out of range\n");
+      int dest = label_table[label - 'a'];
+      if (dest < 0) ERROR("no such label: '%c'\n", label);
       song->opcodes[pc++] = (sng_opcode_t){
         .kind = OP_BFEQ,
         .flag = flag,
-        .delta = delta,
+        .dest = dest,
       };
     } else if (ch == '@') {
       char label = *++ptr;
-      int index = label - 'a';
-      if (label_table[index] < 0) ERROR("no such label: '%c'\n", label);
-      int delta = label_table[index] - pc;
-      if (delta > 31 || delta < -32) ERROR("JUMP destination out of range\n");
-      song->opcodes[pc++] = (sng_opcode_t){ .kind = OP_JUMP, .delta = delta };
+      int dest = label_table[label - 'a'];
+      if (dest < 0) ERROR("no such label: '%c'\n", label);
+      song->opcodes[pc++] = (sng_opcode_t){ .kind = OP_JUMP, .dest = dest };
     }
   }
-  if (loop_point >= 0 && loop_point < pc) {
-    int delta = loop_point - pc;
-    song->opcodes[pc++] = (sng_opcode_t){ .kind = OP_JUMP, .delta = delta };
+  if (loop_point >= 0) {
+    song->opcodes[pc++] = (sng_opcode_t){
+      .kind = OP_JUMP,
+      .dest = loop_point,
+    };
   } else song->opcodes[pc++] = (sng_opcode_t){ .kind = OP_STOP };
   assert(pc == song->num_opcodes);
   free(spec);
@@ -1259,20 +1258,20 @@ static int write_opcode(const sng_song_t *song, const sng_opcode_t *opcode) {
       break;
     case OP_JUMP:
       fprintf(stdout, "    .byte $%02x  ; JUMP %d\n",
-              0x3f & opcode->delta, opcode->delta);
+              0x40 | (0x3f & opcode->dest), opcode->dest);
       break;
     case OP_SETF:
       fprintf(stdout, "    .byte $%02x  ; SETF %d\n",
-              0x80 | (opcode->flag << 6), opcode->flag);
+              0x80 | (opcode->flag << 6) | 0x3f, opcode->flag);
       break;
     case OP_BFEQ:
       fprintf(stdout, "    .byte $%02x  ; BFEQ %d, %d\n",
-              0x80 | (opcode->flag << 6) | (0x3f & opcode->delta),
-              opcode->flag, opcode->delta);
+              0x80 | (opcode->flag << 6) | (0x3f & opcode->dest),
+              opcode->flag, opcode->dest);
       break;
     case OP_PLAY: {
       int part_index = song->part_index_for_letter[opcode->part - 'A'];
-      fprintf(stdout, "    .byte $%02x  ; PLAY %d (%c)\n", 0x40 | part_index,
+      fprintf(stdout, "    .byte $%02x  ; PLAY %d (%c)\n", 0x20 | part_index,
               part_index, opcode->part);
     } break;
   }

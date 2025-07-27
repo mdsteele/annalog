@@ -24,6 +24,7 @@
     NoiseSnare
     PulseBasic
     PulseEcho
+    PulseGong
     PulsePiano
     PulsePluck
     PulseVibrato

@@ -116,21 +116,20 @@
 ;;;   * STOP [%00000000].  Ends the song.  Func_AudioUpdate won't play any more
 ;;;     music until a new song is started (but note that it's still not safe to
 ;;;     switch PRGC banks until audio is actually disabled).
-;;;   * JUMP [%00xxxxxx].  Jumps forward/backward by %xxxxxx opcodes from this
-;;;     one (signed).  For example, a JUMP value of 2 would skip the next
-;;;     opcode, and proceed to the one after.
-;;;   * SETF [%1y000000].  Sets the music flag bit to %y (then proceeds to the
-;;;     next opcode).
-;;;   * BFEQ [%1yxxxxxx].  If the music flag bit is equal to %y, jumps
-;;;     forward/backward by %xxxxxx opcodes from this one (signed).  Otherwise,
-;;;     does nothing (and proceeds to the next opcode).
-;;;   * PLAY [%010xxxxx].  Starts playing part number %xxxxx (0-31).  The next
+;;;   * PLAY [%001xxxxx].  Starts playing part number %xxxxx (0-31).  The next
 ;;;     opcode will be executed once that part has finished playing.
+;;;   * JUMP [%01xxxxxx].  Jumps to the opcode at index %xxxxxx (0-62).
+;;;   * SETF [%1y111111].  Sets the music flag bit to %y (then proceeds to the
+;;;     next opcode).
+;;;   * BFEQ [%1yxxxxxx].  If the music flag bit is equal to %y, jumps to the
+;;;     opcode at index %xxxxxx (0-62).  Otherwise, does nothing (and proceeds
+;;;     to the next opcode).
 .SCOPE bMusic
     UsesFlag = %10000000  ; set for flag-related opcodes
     FlagMask = %01000000  ; mask for flag value
-    IsPlay   = %01000000  ; on non-flag opcodes, this bit is set only for PLAY
-    JumpMask = %00111111  ; mask for signed jump offset on relevant opcodes
+    IsJump   = %01000000  ; on non-flag opcodes, this is set only for JUMP
+    DestMask = %00111111  ; mask for destination index on relevant opcodes
+    IsPlay   = %00100000  ; on non-flag/jump opcodes, this is set only for PLAY
     PlayMask = %00011111  ; mask for part number on PLAY opcode
 .ENDSCOPE
 

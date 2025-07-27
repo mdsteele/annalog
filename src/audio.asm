@@ -322,51 +322,42 @@ _ContinueCurrentPart:
     jsr Func_AudioContinuePart
     bit Zp_MusicMadeProgress_bool
     bpl _ExecNextOpcode
+_Return:
     rts
 _IncOpcodeIndexAndContinue:
     inc Zp_MusicOpcodeIndex_u8
 _ExecNextOpcode:
     ldy Zp_MusicOpcodeIndex_u8
     lda (Zp_Current_sMusic + sMusic::Opcodes_bMusic_arr_ptr), y
+    beq _Return  ; STOP opcode
     tay  ; opcode
     .assert bMusic::UsesFlag = bProc::Negative, error
     bmi _OpcodeFlag
-    and #bMusic::IsPlay
-    bne _OpcodePlay
-_OpcodeJumpOrStop:
+    and #bMusic::IsJump
+    beq _OpcodePlay
+_OpcodeJump:
     tya  ; opcode
-    and #bMusic::JumpMask
-    bne _PerformJump
-    rts
+    and #bMusic::DestMask
 _PerformJump:
-    tax  ; nonzero 6-bit signed jump offset
-    and #%00100000
-    beq @positive
-    txa  ; negative 6-bit signed jump offset
-    ora #%11000000
-    bmi @jump  ; unconditional
-    @positive:
-    txa  ; positive 6-bit signed jump offset
-    @jump:
-    add Zp_MusicOpcodeIndex_u8
     sta Zp_MusicOpcodeIndex_u8
     jmp _ExecNextOpcode
 _OpcodeFlag:
-    and #bMusic::JumpMask
+    and #bMusic::DestMask
+    cmp #bMusic::DestMask
     beq _OpcodeSetf
 _OpcodeBfeq:
-    tax  ; nonzero 6-bit signed jump offset
+    tax  ; 6-bit jump destination
     tya  ; opcode
     and #bMusic::FlagMask
     eor Zp_MusicFlag_bMusic
     bne _IncOpcodeIndexAndContinue
-    txa  ; nonzero 6-bit signed jump offset
-    bne _PerformJump  ; unconditional
+    txa  ; 6-bit jump destination
+    bpl _PerformJump  ; unconditional
 _OpcodeSetf:
     tya  ; opcode
     and #bMusic::FlagMask
     sta Zp_MusicFlag_bMusic
-    .assert bMusic::FlagMask & bProc::Negative = 0, error
+    .assert bMusic::FlagMask < $80, error
     bpl _IncOpcodeIndexAndContinue  ; unconditional
 _OpcodePlay:
     ;; Increment the opcode index, so that when this part finishes we'll move

@@ -78,12 +78,12 @@ Data_Music_sMusic_ptr_1_arr: .byte >Data_Test_sMusic
     d_addr Phrases_sPhrase_ptr_arr_ptr, _Phrases_sPhrase_ptr_arr
     D_END
 _Opcodes_bMusic_arr:
-    .byte bMusic::JumpMask & 2  ; JUMP +2
-    .byte bMusic::UsesFlag | bMusic::FlagMask  ; SETF 1
-    .byte bMusic::IsPlay | 0  ; PLAY 0
-    .byte bMusic::IsPlay | 1  ; PLAY 1
-    .byte bMusic::UsesFlag | (bMusic::JumpMask & -3)  ; BFEQ 0, -3
-    .byte $00  ; STOP
+    .byte bMusic::IsJump | 2                                     ; JUMP 2
+    .byte bMusic::UsesFlag | bMusic::FlagMask | bMusic::DestMask ; SETF 1
+    .byte bMusic::IsPlay | 0                                     ; PLAY 0
+    .byte bMusic::IsPlay | 1                                     ; PLAY 1
+    .byte bMusic::UsesFlag | 1                                   ; BFEQ 0, 1
+    .byte 0                                                      ; STOP
 _Parts_sPart_arr:
     ;; Part 0:
     D_STRUCT sPart

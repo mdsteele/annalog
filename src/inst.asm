@@ -54,6 +54,7 @@
     d_entry table, NoiseSnare,      Func_InstrumentNoiseSnare
     d_entry table, PulseBasic,      Func_InstrumentPulseBasic
     d_entry table, PulseEcho,       Func_InstrumentPulseEcho
+    d_entry table, PulseGong,       Func_InstrumentPulseGong
     d_entry table, PulsePiano,      Func_InstrumentPulsePiano
     d_entry table, PulsePluck,      Func_InstrumentPulsePluck
     d_entry table, PulseVibrato,    Func_InstrumentPulseVibrato
@@ -197,19 +198,7 @@ _Decay:
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_InstrumentPulsePiano
-_Vibrato:
-    lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
-    mod #4
-    tay
-    lda Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
-    add Data_SlightVibratoDelta_i16_0_arr4, y
-    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
-    ;; Note that we intentionally *don't* carry the addition over into TimerHi
-    ;; here, because for pulse channels, writing to the TimerHi register resets
-    ;; the pulse phase, which adds an undesirable clicking noise (see
-    ;; https://www.nesdev.org/wiki/APU).  As long as we avoid using this
-    ;; instrument for pitches right next to a TimerLo carry boundary, then
-    ;; TimerHi wouldn't change anyway, and everything will sound fine.
+    jsr Func_ApplySlightPulseVibrato  ; preserves X
 _Envelope:
     lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
     and #bEnvelope::VolMask
@@ -276,6 +265,27 @@ _Envelope:
     rts
 .ENDPROC
 
+;;; An instrument for the pulse channels that starts at full volume, then
+;;; immediately starts fading otu slowly, all with slight vibrato.  The bottom
+;;; four bits of the instrument param specify the maximum volume, while the top
+;;; two bits specify the pulse duty.
+;;; @thread AUDIO
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @return A The duty/envelope byte to use.
+;;; @preserve X
+.PROC Func_InstrumentPulseGong
+    jsr Func_ApplySlightPulseVibrato  ; preserves X
+_Envelope:
+    lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    div #8
+    sta Zp_AudioTmp_byte  ; decay by
+    lda Ram_Audio_sChanCtrl_arr + sChanCtrl::InstParam_byte, x
+    and #bEnvelope::VolMask
+    sub Zp_AudioTmp_byte  ; decay by
+    blt Func_InstrumentSilent  ; preserves X
+    jmp Func_CombineVolumeWithDuty  ; preserves X
+.ENDPROC
+
 ;;; An instrument that ramps up volume slowly, then decays slowly near the end
 ;;; of the note, all with deep vibrato.  The bottom four bits of the instrument
 ;;; param specify the maximum volume.  The top two bits of the instrument param
@@ -289,7 +299,6 @@ _Envelope:
 ;;; @return A The duty/envelope byte to use.
 ;;; @preserve X
 .PROC Func_InstrumentPulseViolin
-_Vibrato:
     lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
     mod #8
     tay
@@ -365,6 +374,26 @@ _Vibrato:
     sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerHi_wo, x
 _Envelope:
     lda #$ff
+    rts
+.ENDPROC
+
+;;; Applies slight vibrato for a pulse channel instrument.
+;;; @thread AUDIO
+;;; @param X The channel number (0-4) times four (so, 0, 4, 8, 12, or 16).
+;;; @preserve X
+.PROC Func_ApplySlightPulseVibrato
+    lda Ram_Audio_sChanNote_arr + sChanNote::ElapsedFrames_u8, x
+    mod #4
+    tay
+    lda Ram_Audio_sChanNote_arr + sChanNote::TimerLo_byte, x
+    add Data_SlightVibratoDelta_i16_0_arr4, y
+    sta Hw_Channels_sChanRegs_arr5 + sChanRegs::TimerLo_wo, x
+    ;; Note that we intentionally *don't* carry the addition over into TimerHi
+    ;; here, because for pulse channels, writing to the TimerHi register resets
+    ;; the pulse phase, which adds an undesirable clicking noise (see
+    ;; https://www.nesdev.org/wiki/APU).  As long as we avoid using this
+    ;; instrument for pitches right next to a TimerLo carry boundary, then
+    ;; TimerHi wouldn't change anyway, and everything will sound fine.
     rts
 .ENDPROC
 
