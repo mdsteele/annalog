@@ -106,6 +106,10 @@ _Initialize:
 ;;; bits.
 .PROC DataA_Dialog_SfxDialogTextParam2_bSfxDialog_arr
     D_ARRAY .enum, ePortrait
+    d_byte AdultAlexHand,      bSfxDialog::TypePulse14 | (5 << 3) | $2
+    d_byte AdultAlexHappy,     bSfxDialog::TypePulse14 | (5 << 3) | $2
+    d_byte AdultAlexSad,       bSfxDialog::TypePulse14 | (5 << 3) | $2
+    d_byte AdultAlexShout,     bSfxDialog::TypePulse14 | (5 << 3) | $2
     d_byte AdultBoris,         bSfxDialog::TypePulse14 | (6 << 3) | $2
     d_byte AdultElder,         bSfxDialog::TypePulse14 | (6 << 3) | $2
     d_byte AdultJerome,        bSfxDialog::TypePulse14 | (6 << 3) | $2
@@ -147,6 +151,10 @@ _Initialize:
 ;;; stores the pulse/noise TimerLo value.
 .PROC DataA_Dialog_SfxDialogTextParam1_u8_arr
     D_ARRAY .enum, ePortrait
+    d_byte AdultAlexHand,      $60
+    d_byte AdultAlexHappy,     $60
+    d_byte AdultAlexSad,       $60
+    d_byte AdultAlexShout,     $60
     d_byte AdultBoris,         $b0
     d_byte AdultElder,         $c0
     d_byte AdultJerome,        $c0

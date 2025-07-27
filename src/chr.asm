@@ -862,8 +862,8 @@ _chr_begin:
 
 .PROC Ppu_ChrBgPortrait0B
     CHR1_BANK $c0
-    .assert .bank(*) = kChrBankPortraitNoraRest, error
-    chr_inc "portrait_nora_rest", kTileIdBgPortraitNoraFirst
+    .assert .bank(*) = kChrBankPortraitAlex2Rest, error
+    chr_inc "portrait_alex2_rest", kTileIdBgPortraitAlexFirst
     .assert .bank(*) = kChrBankPortraitBrunoRest, error
     chr_inc "portrait_bruno_rest", kTileIdBgPortraitBrunoFirst
     .assert .bank(*) = kChrBankDiagramSemaphoreKey, error
@@ -879,8 +879,8 @@ _chr_begin:
 
 .PROC Ppu_ChrBgPortrait0C
     CHR1_BANK $c0
-    .assert .bank(*) = kChrBankPortraitNoraTalk, error
-    chr_inc "portrait_nora_talk", kTileIdBgPortraitNoraFirst
+    .assert .bank(*) = kChrBankPortraitAlex2Talk, error
+    chr_inc "portrait_alex2_talk", kTileIdBgPortraitAlexFirst
     .assert .bank(*) = kChrBankPortraitBrunoTalk, error
     chr_inc "portrait_bruno_talk", kTileIdBgPortraitBrunoFirst
     .assert .bank(*) = kChrBankDiagramLauncherDown, error
@@ -1017,7 +1017,8 @@ _chr_begin:
     CHR1_BANK $c0
     .assert .bank(*) = kChrBankPortraitBorisRest, error
     chr_inc "portrait_boris_rest", kTileIdBgPortraitBorisFirst
-    chr_res $10
+    .assert .bank(*) = kChrBankPortraitNoraRest, error
+    chr_inc "portrait_nora_rest", kTileIdBgPortraitNoraFirst
     .assert .bank(*) = kChrBankDiagramMultiplexerPlatform, error
     chr_inc "diagram_multiplexer_platform", \
             kTileIdBgDiagramMultiplexerPlatformFirst
@@ -1036,10 +1037,39 @@ _chr_begin:
     CHR1_BANK $c0
     .assert .bank(*) = kChrBankPortraitBorisTalk, error
     chr_inc "portrait_boris_talk", kTileIdBgPortraitBorisFirst
-    chr_res $10
+    .assert .bank(*) = kChrBankPortraitNoraTalk, error
+    chr_inc "portrait_nora_talk", kTileIdBgPortraitNoraFirst
     .assert .bank(*) = kChrBankDiagramLaser, error
     chr_inc "diagram_laser", kTileIdBgDiagramLaserFirst
     chr_res $10
+    END_CHR_BANK
+    .linecont -
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait16"
+
+.PROC Ppu_ChrBgPortrait16
+    .linecont +
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitAlex3Rest, error
+    chr_inc "portrait_alex3_rest", kTileIdBgPortraitAlexFirst
+    chr_res $30
+    END_CHR_BANK
+    .linecont -
+.ENDPROC
+
+;;;=========================================================================;;;
+
+.SEGMENT "CHR_BgPortrait17"
+
+.PROC Ppu_ChrBgPortrait17
+    .linecont +
+    CHR1_BANK $c0
+    .assert .bank(*) = kChrBankPortraitAlex3Talk, error
+    chr_inc "portrait_alex3_talk", kTileIdBgPortraitAlexFirst
+    chr_res $30
     END_CHR_BANK
     .linecont -
 .ENDPROC

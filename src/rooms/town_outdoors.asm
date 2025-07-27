@@ -832,15 +832,23 @@ _SetFace:
 
 .EXPORT DataA_Dialog_TownOutdoorsFinaleYearsLater1_sDialog
 .PROC DataA_Dialog_TownOutdoorsFinaleYearsLater1_sDialog
-    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part1_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part2_u8_arr
+    .linecont +
+    dlg_Text AdultAlexHappy, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater1_Part1_u8_arr
+    dlg_Text AdultAlexHappy, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater1_Part2_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexFaceLeft
-    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part3_u8_arr
+    dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexStand
+    dlg_Text AdultAlexHappy, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater1_Part3_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexFaceRight
-    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part4_u8_arr
+    dlg_Text AdultAlexSad, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater1_Part4_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexSad
-    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater1_Part5_u8_arr
+    dlg_Text AdultAlexSad, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater1_Part5_u8_arr
     dlg_Done
+    .linecont -
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownOutdoorsFinaleYearsLater2_sDialog
@@ -851,7 +859,7 @@ _SetFace:
              DataA_Text2_TownOutdoorsFinaleYearsLater2_Part1_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexStand
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexFaceLeft
-    dlg_Text ChildAlexShout, \
+    dlg_Text AdultAlexShout, \
              DataA_Text2_TownOutdoorsFinaleYearsLater2_Part2_u8_arr
     dlg_Done
     .linecont -
@@ -859,14 +867,18 @@ _SetFace:
 
 .EXPORT DataA_Dialog_TownOutdoorsFinaleYearsLater3_sDialog
 .PROC DataA_Dialog_TownOutdoorsFinaleYearsLater3_sDialog
+    .linecont +
     .assert kTileIdBgPortraitBorisFirst = kTileIdBgPortraitAlexFirst, error
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater3_Part1_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexSad
-    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater3_Part2_u8_arr
+    dlg_Text AdultAlexSad, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater3_Part2_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexStand
-    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater3_Part3_u8_arr
+    dlg_Text AdultAlexHappy, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater3_Part3_u8_arr
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater3_Part4_u8_arr
     dlg_Done
+    .linecont -
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownOutdoorsFinaleYearsLater4_sDialog
@@ -877,26 +889,31 @@ _SetFace:
     dlg_Call FuncA_Dialog_TownOutdoors_MakeBorisGive
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part2_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexTake
-    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part3_u8_arr
-    dlg_Text ChildAlexHand, \
+    dlg_Text AdultAlexHappy, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater4_Part3_u8_arr
+    dlg_Text AdultAlexHand, \
              DataA_Text2_TownOutdoorsFinaleYearsLater4_Part4_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeBorisStand
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part5_u8_arr
     dlg_Text AdultBoris, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part6_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexStand
-    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part7_u8_arr
+    dlg_Text AdultAlexHappy, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater4_Part7_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexFaceRight
-    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part8_u8_arr
-    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part9_u8_arr
+    dlg_Text AdultAlexHappy, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater4_Part8_u8_arr
+    dlg_Text AdultAlexHappy, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater4_Part9_u8_arr
     dlg_Call FuncA_Dialog_TownOutdoors_MakeAlexFaceLeft
-    dlg_Text ChildAlex, DataA_Text2_TownOutdoorsFinaleYearsLater4_Part10_u8_arr
+    dlg_Text AdultAlexHappy, \
+             DataA_Text2_TownOutdoorsFinaleYearsLater4_Part10_u8_arr
     dlg_Done
     .linecont -
 .ENDPROC
 
 .EXPORT DataA_Dialog_TownOutdoorsFinaleYearsLater5_sDialog
 .PROC DataA_Dialog_TownOutdoorsFinaleYearsLater5_sDialog
-    dlg_Text ChildAlex, DataA_Text2_MaybeThisTimeWillBeDifferent_u8_arr
+    dlg_Text AdultAlexHappy, DataA_Text2_MaybeThisTimeWillBeDifferent_u8_arr
     dlg_Done
 .ENDPROC
 

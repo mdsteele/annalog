@@ -30,6 +30,10 @@
 .EXPORT DataA_Dialog_PortraitRestBank_u8_arr
 .PROC DataA_Dialog_PortraitRestBank_u8_arr
     D_ARRAY .enum, ePortrait
+    d_byte AdultAlexHand,      kChrBankPortraitAlexHand
+    d_byte AdultAlexHappy,     kChrBankPortraitAlex3Rest
+    d_byte AdultAlexSad,       kChrBankPortraitAlex2Rest
+    d_byte AdultAlexShout,     kChrBankPortraitAlex3Talk
     d_byte AdultBoris,         kChrBankPortraitBorisRest
     d_byte AdultElder,         kChrBankPortraitElderRest
     d_byte AdultJerome,        kChrBankPortraitJeromeRest
@@ -72,6 +76,10 @@
 .EXPORT DataA_Dialog_PortraitAnimBank_u8_arr
 .PROC DataA_Dialog_PortraitAnimBank_u8_arr
     D_ARRAY .enum, ePortrait
+    d_byte AdultAlexHand,      kChrBankPortraitAlexHand
+    d_byte AdultAlexHappy,     kChrBankPortraitAlex3Talk
+    d_byte AdultAlexSad,       kChrBankPortraitAlex2Talk
+    d_byte AdultAlexShout,     kChrBankPortraitAlex3Rest
     d_byte AdultBoris,         kChrBankPortraitBorisTalk
     d_byte AdultElder,         kChrBankPortraitElderTalk
     d_byte AdultJerome,        kChrBankPortraitJeromeTalk
@@ -113,6 +121,10 @@
 .EXPORT DataA_Dialog_PortraitFirstTileId_u8_arr
 .PROC DataA_Dialog_PortraitFirstTileId_u8_arr
     D_ARRAY .enum, ePortrait
+    d_byte AdultAlexHand,      kTileIdBgPortraitAlexFirst
+    d_byte AdultAlexHappy,     kTileIdBgPortraitAlexFirst
+    d_byte AdultAlexSad,       kTileIdBgPortraitAlexFirst
+    d_byte AdultAlexShout,     kTileIdBgPortraitAlexFirst
     d_byte AdultBoris,         kTileIdBgPortraitBorisFirst
     d_byte AdultElder,         kTileIdBgPortraitElderFirst
     d_byte AdultJerome,        kTileIdBgPortraitJeromeFirst

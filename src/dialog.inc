@@ -70,6 +70,10 @@ kDialogTextYesNo   = $ff
 ;;; Animated dialog portraits for various NPCs and devices.
 .ENUM ePortrait
     ;; @begin SORTED
+    AdultAlexHand
+    AdultAlexHappy
+    AdultAlexSad
+    AdultAlexShout
     AdultBoris
     AdultElder
     AdultJerome
