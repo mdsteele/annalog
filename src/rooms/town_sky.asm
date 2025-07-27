@@ -63,6 +63,7 @@
 .IMPORT Func_FindActorWithType
 .IMPORT Func_MovePlatformVert
 .IMPORT Func_Noop
+.IMPORT Func_PlaySfxConsoleTurnOn
 .IMPORT Func_SetAndTransferFade
 .IMPORT Func_ShakeRoom
 .IMPORT Func_Window_Disable
@@ -598,7 +599,6 @@ _PlayInnerRumblingSound:
 .PROC DataA_Cutscene_TownSkyFinaleReactivate4_sCutscene
     .linecont +
     act_WaitFrames 60
-    ;; TODO: play a sound for Jerome's hologram appearing
     act_RepeatFunc 10 * kJeromeRevealSlowdown, \
                    FuncA_Cutscene_TownSkyRevealJerome
     act_CallFunc FuncA_Cutscene_TownSkyFinishRevealingJerome
@@ -613,7 +613,6 @@ _PlayInnerRumblingSound:
 .PROC DataA_Cutscene_TownSkyFinaleGaveRemote6_sCutscene
     .linecont +
     act_WaitFrames 60
-    ;; TODO: play a sound for Jerome's hologram appearing
     act_RepeatFunc 10 * kJeromeRevealSlowdown, \
                    FuncA_Cutscene_TownSkyRevealJerome
     act_CallFunc FuncA_Cutscene_TownSkyFinishRevealingJerome
@@ -714,7 +713,7 @@ _PlayInnerRumblingSound:
     lda #eActor::None
     sta Ram_ActorType_eActor_arr + kUpperSquareActorIndex
     sta Ram_ActorType_eActor_arr + kLowerSquareActorIndex
-    rts
+    jmp Func_PlaySfxConsoleTurnOn
 .ENDPROC
 
 ;;;=========================================================================;;;
