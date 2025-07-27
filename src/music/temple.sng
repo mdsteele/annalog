@@ -1,7 +1,7 @@
 @PRGC_Temple
 
 !SONG Temple "
-  aA?1a B?1a C?1a | dD?1a
+  aA?1a B?1a C?1a | dD?0y X@a yY
   E?1d E?1d F?1d G?1d H?1d I?1d J?1d K?1d
   E?1d E?1d F?1d G?1d H?1d I?1d J?1d K?1d L"
 
@@ -22,7 +22,7 @@
 !PART A
 
 1| p(iL d4q ave a^e+q gq)1A | p(d4w)1B |
- | p1A | b4h.. iS gs a |
+ | p1A | p(b4h.. iS gs a)1C |
 T| p(iV d3h avh | c^h gvh)TA :2 |
 
 !PART B
@@ -40,10 +40,21 @@ N| p(x3s x2 x3 x2 ' x7e x3)NC :8 |
 
 !PART D
 
-1| p1A | p1B |
- | p1A | b4h c5h |
-T=:BT
-N| x3q ' x7q :7 ' x3q ' x7s x2 x3 x2 |
+1| p1A | p1B | p1A |
+T| pTA | d3h avh |
+N| p(x3q ' x7q)DN :6 |
+
+!PART X
+
+1| p1C |
+T| iV c3h gvh |
+N| pDN :2 |
+
+!PART Y
+
+1| b4h c5h |
+T=:XT
+N| pDN ' x3q ' x7s x2 x3 x2 |
 
 !PART E
 
