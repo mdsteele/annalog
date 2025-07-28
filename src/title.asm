@@ -19,6 +19,7 @@
 
 .INCLUDE "audio.inc"
 .INCLUDE "charmap.inc"
+.INCLUDE "cpu.inc"
 .INCLUDE "flag.inc"
 .INCLUDE "irq.inc"
 .INCLUDE "joypad.inc"
@@ -137,6 +138,10 @@ Ppu_TitleAreYouSureStart = Ppu_Nametable0_sName + sName::Tiles_u8_arr + \
     NewDelete
     NUM_VALUES
 .ENDENUM
+
+;;; eTitle values greater than or equal to this only appear on the erase-game
+;;; confirmation menu.
+kFirstEraseMenuItem = eTitle::NewCancel
 
 ;;;=========================================================================;;;
 
@@ -327,9 +332,17 @@ _CheckForMenuInput:
     inc Zp_Title_sState + sState::Current_eTitle
     jsr Func_PlaySfxMenuMove
     @noDown:
-    ;; Check START button.
+    ;; Check B button.
+    bit Zp_P1ButtonsPressed_bJoypad
+    .assert bJoypad::BButton = bProc::Overflow, error
+    bvc @noBButton
+    lda Zp_Title_sState + sState::First_eTitle
+    cmp #kFirstEraseMenuItem
+    bge _MenuItemCancel
+    @noBButton:
+    ;; Check START and A buttons.
     lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Start
+    and #bJoypad::Start | bJoypad::AButton
     beq _GameLoop
 _HandleMenuItem:
     ldy Zp_Title_sState + sState::Current_eTitle
@@ -442,9 +455,9 @@ _CheckForMenuInput:
     inc Zp_Title_sState + sState::Cheat_eNewGame
     jsr Func_PlaySfxMenuMove
     @noDown:
-    ;; Check START button.
+    ;; Check START and A buttons.
     lda Zp_P1ButtonsPressed_bJoypad
-    and #bJoypad::Start
+    and #bJoypad::Start | bJoypad::AButton
     beq _GameLoop
 _BeginNewGame:
     lda Zp_Title_sState + sState::Cheat_eNewGame  ; param: eNewGame value
