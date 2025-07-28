@@ -2,13 +2,13 @@
 
 !DPCM B Data_SampleBongo_arr193 193
 
-!SONG Mermaid "I|A"
+!SONG Mermaid "I|AABC"
 
 =tempo q32
 =key 3#  % f# minor
 
 !INST 1A PulseVibrato $07 d1/2
-!INST 2A PulsePiano   $08 d1/4
+!INST 2P PulsePluck   $08 d1/8
 !INST TV TriangleVibrato
 !INST ND Staccato     $08       % drum
 !INST DE Constant     $4c       % bongo drum
@@ -16,14 +16,41 @@
 
 !PART I
 
-D| iF sB3e sB3s sB3t sB3t sB3e sB3e |
+N| iD x8q                 ' x1e  x8e  |
+D| iF sB3e sB3s sB3t sB3t ' sB3e sB3e |
 
 !PART A
 
-1| iA f3q. c4q. f3e g3 | a3q. e4e+h          |
- | d4e b3 ' c4 a3 ' b3 g3 ' d4 b3 | c4e a3 ' b3 g3 ' a3 f3 ' g3 fN3 |
- | f3q. c3q.   f3e  g3 | a3q. e3e+h          |
- | a3q. e3q c3e e3  a3 | g3q. fN3q c3e a3 g3 |
+1| iA f3q.        c4q.       ' f3e g3 | a3q.        e4e+ ' +h             |
+ |    d4e b3 ' c4 a3 ' b3 g3 ' d4  b3 | c4e a3 ' b3 g3   ' a3 f3 ' g3 fN3 |
+ | p(iA f3q. c3q.   f3e  g3 | a3q. e3e+h         )1B |
+ | p(   a3q. e3q c3e e3  a3 | g3q. fN3q c3e a3 g3)1C |
 T| iV f2w e d e f e a fN |
-N| iD x1q :32 |
+N| iD x1q x3q :16 |
 D| iE sB3s sB3s sB4e iF sB3q :16 |
+
+!PART B
+
+1| p(iA a3q. f3q ce ae ge | a3q. f3q c3e a3e b3e    |
+ |      c4q. a3q ee ae c4 | b3q. e4q.    a3e g3e)1A |
+ | p1B | p1C |
+2| iP rq ' f4q+ ' +q ' fq+ | +q ' eq+ ' +q ' eq+ | +q '
+         ' d4q+ ' +q ' dq+ | +q ' eq  ' aq ' gq+ | +q '
+         ' f4q+ ' +q ' fq+ | +q ' eq+ ' +q ' eq+ | +q '
+         ' a4q+ ' +q ' aq+ | +q ' fNq ' gq ' fNq |
+T=:AT
+N=:AN
+D=:AD
+
+!PART C
+
+1| p1A |
+ | p1B |
+ | a3q. e3q. a3q | g3q. bq. gq |
+2| iP rq ' f4s fe.+ ' +q ' fs fe.+ | +q  ' es  ee.+ ' +q      ' es  ee.+ | +q '
+         ' d4s de.+ ' +q ' ds de.+ | +q  ' es  ee.  ' as ae.  ' gs  ge.+ | +q '
+         ' f4s fe.+ ' +q ' fs fe.+ | +q  ' es  ee.+ ' +q      ' es  ee.+ | +q '
+         ' a4s ae.  ' aq ' ge. fNs | fNs ge.+ ' +e. fNs  ' fNs ge. ' fNq |
+T=:BT
+N=:BN
+D=:BD
