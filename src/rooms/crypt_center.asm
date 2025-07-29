@@ -37,8 +37,8 @@
 .EXPORT DataC_Crypt_Center_sRoom
 .PROC DataC_Crypt_Center_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $10
-    d_word MaxScrollX_u16, $0010
+    d_byte MinScrollX_u8, $00
+    d_word MaxScrollX_u16, $0000
     d_byte Flags_bRoom, eArea::Crypt
     d_byte MinimapStartRow_u8, 10
     d_byte MinimapStartCol_u8, 1

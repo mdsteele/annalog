@@ -106,6 +106,8 @@ MAX_SCROLL_X_RE = re.compile(r'^ *d_word +MaxScrollX_u16,.*\$([0-9a-fA-F]+)')
 ROOM_FLAGS_RE = re.compile(r'^ *d_byte +Flags_bRoom, *(.*)eArea::([A-Za-z]+)$')
 START_ROW_RE = re.compile(r'^ *d_byte +MinimapStartRow_u8, *([0-9]+)')
 START_COL_RE = re.compile(r'^ *d_byte +MinimapStartCol_u8, *([0-9]+)')
+TERRAIN_TILESET_RE = re.compile(
+    r'^ *d_addr +Terrain_sTileset_ptr, *DataA_Room_([A-Za-z]+)_sTileset')
 
 DEVICE_TYPE_RE = re.compile(
     r'^ *d_byte +Type_eDevice, *eDevice::([A-Za-z0-9]+)')
@@ -118,6 +120,8 @@ PASSAGE_EXIT_RE = re.compile(
     r'\| *([0-9]+)( *\| *bPassage::Secondary)?')
 PASSAGE_DEST_RE = re.compile(
     r'^ *d_byte Destination_eRoom, *eRoom::(([A-Z][a-z]+)[A-Za-z0-9]+)')
+PASSAGE_SPAWN_RE = re.compile(
+    r'^ *d_byte SpawnBlock_u8, *([0-9]+)')
 
 #=============================================================================#
 
@@ -224,6 +228,7 @@ def load_room(filepath, prgc_name):
     cells = frozenset((row, col)
                       for row in range(start_row, start_row + height)
                       for col in range(start_col, start_col + width))
+    tileset = scan_for_match(file, TERRAIN_TILESET_RE).group(1)
     # Load the passage data for this room.
     devices = []
     doors = []
@@ -260,6 +265,7 @@ def load_room(filepath, prgc_name):
         elif struct_type == 'sPassage':
             exit_match = read_match_line(file, PASSAGE_EXIT_RE)
             dest_match = read_match_line(file, PASSAGE_DEST_RE)
+            spawn_block = read_int_line(file, PASSAGE_SPAWN_RE)
             side = exit_match.group(1)
             screen = int(exit_match.group(2))
             secondary = bool(exit_match.group(3))
@@ -279,14 +285,18 @@ def load_room(filepath, prgc_name):
                 'cell': cell,
                 'dest_room': dest_match.group(1),
                 'dest_area': dest_match.group(2),
+                'spawn_block': spawn_block,
             })
     return {
         'area': area_name,
         'cells': cells,
         'devices': devices,
         'doors': doors,
+        'is_tall': is_tall,
+        'max_scroll_x': max_scroll_x,
         'papers': papers,
         'passages': passages,
+        'tileset': tileset,
     }
 
 def load_rooms(areas):
@@ -345,6 +355,69 @@ def load_markers():
             'room': room,
         })
     return markers
+
+def load_tilesets():
+    tileset_proc_re = re.compile(r'^\.PROC DataA_Room_([A-Za-z]+)_sTileset$')
+    first_solid_re = re.compile(
+        r'^ *d_byte +FirstSolidTerrainType_u8,.*\$([0-9a-fA-F]+)')
+    file = open('src/tileset.asm')
+    tilesets = {}
+    while True:
+        match = try_scan_for_match(file, tileset_proc_re)
+        if not match: break
+        name = match.group(1)
+        match = scan_for_match(file, D_STRUCT_RE)
+        assert match.group(1) == 'sTileset'
+        first_solid = scan_for_int(file, first_solid_re, 16)
+        tilesets[name] = {
+            'first_solid': first_solid,
+        }
+    return tilesets
+
+def load_all_terrain(areas):
+    filename_re = re.compile(r'^([a-z]+)_([a-z0-9]+)\.bg$')
+    all_terrain = {}
+    for area in areas.values():
+        for room_name in area['rooms']:
+            filepaths = []
+            for (dirpath, dirnames, filenames) in os.walk('src/rooms'):
+                for filename in filenames:
+                    match = filename_re.match(filename)
+                    if not match: continue
+                    terrain_name = (match.group(1).capitalize() +
+                                    match.group(2).capitalize())
+                    if terrain_name.startswith(room_name):
+                        filepaths.append(os.path.join(dirpath, filename))
+            room_terrain = []
+            for filepath in sorted(filepaths):
+                room_terrain.extend(load_terrain(filepath))
+            all_terrain[room_name] = room_terrain
+    return all_terrain
+
+def load_terrain(filepath):
+    file = open(filepath)
+    match = read_match_line(file, re.compile(r'^@BG 0 0 0 ([0-9]+)x([0-9]+)$'))
+    cols = int(match.group(1))
+    rows = int(match.group(2))
+    tileset_re = re.compile(r'^(>[a-z]+_([0-9]+))?$')
+    tilesets = []
+    while True:
+        match = read_match_line(file, tileset_re)
+        if not match.group(1): break
+        tilesets.append(int(match.group(2)))
+    terrain = [[0] * rows for col in range(cols)]
+    row = -1
+    while True:
+        row += 1
+        line = file.readline()
+        if not line: break
+        for col in range(0, len(line) // 2):
+            i = col * 2
+            if line[i] == ' ': continue
+            tileset_index = ord(line[i]) - ord('A')
+            tile_index = ord(line[i + 1]) - ord('A')
+            terrain[col][row] = tilesets[tileset_index] * 16 + tile_index
+    return terrain
 
 #=============================================================================#
 
@@ -623,6 +696,57 @@ def test_newgame_flags(newgame_flags, all_flags, papers):
         failed = True
     return failed
 
+def test_spawn_blocks(areas, tilesets, terrain):
+    failed = False
+    for area_name, area in areas.items():
+        for room_name, room in area['rooms'].items():
+            def is_solid(terrain_tile):
+                return terrain_tile >= tilesets[room['tileset']]['first_solid']
+            for passage in room['passages']:
+                side = passage['side']
+                if side == 'Western':
+                    kind = 'horz'
+                    spawn_block_cols = [0, 1]
+                elif side == 'Eastern':
+                    kind = 'horz'
+                    col = (room['max_scroll_x'] + 0x100) // 16
+                    spawn_block_cols = [col, col - 1]
+                elif side == 'Top':
+                    kind = 'vert'
+                    spawn_block_row = 0
+                elif side == 'Bottom':
+                    kind = 'vert'
+                    spawn_block_row = 23 if room['is_tall'] else 14
+                else: assert False, side
+                if kind == 'horz':
+                    row = passage['spawn_block']
+                    for col in spawn_block_cols:
+                        tile = terrain[room_name][col][row]
+                        if area_name == 'Mermaid' and tile == 0x1f:
+                            continue  # water terrain
+                        if is_solid(tile):
+                            print(f'SCENARIO: {side} passage in room'
+                                  f' {room_name} has spawn block {row}'
+                                  f' in solid terrain {tile} in column {col}')
+                            failed = True
+                        tile = terrain[room_name][col][row + 1]
+                        if not is_solid(tile):
+                            print(f'SCENARIO: {side} passage in room'
+                                  f' {room_name} has spawn block {row}'
+                                  f' over empty terrain {tile} in column '
+                                  f'{col}')
+                            failed = True
+                elif kind == 'vert':
+                    col = passage['spawn_block']
+                    tile = terrain[room_name][col][spawn_block_row]
+                    if is_solid(tile):
+                        print(f'SCENARIO: {side} passage in room {room_name}'
+                              f' has spawn block {row} in solid terrain'
+                              f' {tile}')
+                        failed = True
+                else: assert False, kind
+    return failed
+
 #=============================================================================#
 
 def run_tests():
@@ -644,6 +768,9 @@ def run_tests():
     all_flags = load_all_flags()
     newgame_flags = load_newgame_flags()
     failed |= test_newgame_flags(newgame_flags, all_flags, papers)
+    tilesets = load_tilesets()
+    terrain = load_all_terrain(areas)
+    failed |= test_spawn_blocks(areas, tilesets, terrain)
     return failed
 
 #=============================================================================#
