@@ -120,8 +120,9 @@ PASSAGE_EXIT_RE = re.compile(
     r'\| *([0-9]+)( *\| *bPassage::Secondary)?')
 PASSAGE_DEST_RE = re.compile(
     r'^ *d_byte Destination_eRoom, *eRoom::(([A-Z][a-z]+)[A-Za-z0-9]+)')
-PASSAGE_SPAWN_RE = re.compile(
-    r'^ *d_byte SpawnBlock_u8, *([0-9]+)')
+PASSAGE_SPAWN_RE = re.compile(r'^ *d_byte SpawnBlock_u8, *([0-9]+)')
+PASSAGE_ADJUST_RE = re.compile(
+    r'^ *d_byte SpawnAdjust_byte, *\$?([0-9a-fA-F]+)')
 
 #=============================================================================#
 
@@ -266,6 +267,7 @@ def load_room(filepath, prgc_name):
             exit_match = read_match_line(file, PASSAGE_EXIT_RE)
             dest_match = read_match_line(file, PASSAGE_DEST_RE)
             spawn_block = read_int_line(file, PASSAGE_SPAWN_RE)
+            spawn_adjust = read_int_line(file, PASSAGE_ADJUST_RE, 16)
             side = exit_match.group(1)
             screen = int(exit_match.group(2))
             secondary = bool(exit_match.group(3))
@@ -286,6 +288,7 @@ def load_room(filepath, prgc_name):
                 'dest_room': dest_match.group(1),
                 'dest_area': dest_match.group(2),
                 'spawn_block': spawn_block,
+                'spawn_adjust': spawn_adjust,
             })
     return {
         'area': area_name,
@@ -704,6 +707,9 @@ def test_spawn_blocks(areas, tilesets, terrain):
                 return terrain_tile >= tilesets[room['tileset']]['first_solid']
             for passage in room['passages']:
                 side = passage['side']
+                horz_adjust = passage['spawn_adjust'] >> 4
+                if horz_adjust >= 0x8: horz_adjust |= -16
+                vert_adjust = passage['spawn_adjust'] & 0x7
                 if side == 'Western':
                     kind = 'horz'
                     spawn_block_cols = [0, 1]
@@ -717,6 +723,7 @@ def test_spawn_blocks(areas, tilesets, terrain):
                 elif side == 'Bottom':
                     kind = 'vert'
                     spawn_block_row = 23 if room['is_tall'] else 14
+                    vert_adjust = -vert_adjust
                 else: assert False, side
                 if kind == 'horz':
                     row = passage['spawn_block']
@@ -726,24 +733,33 @@ def test_spawn_blocks(areas, tilesets, terrain):
                             continue  # water terrain
                         if is_solid(tile):
                             print(f'SCENARIO: {side} passage in room'
-                                  f' {room_name} has spawn block {row}'
-                                  f' in solid terrain {tile} in column {col}')
+                                  f' {room_name} has spawn block {row} in'
+                                  f' solid terrain ${tile:02x} in column'
+                                  f' {col}')
                             failed = True
                         tile = terrain[room_name][col][row + 1]
                         if not is_solid(tile):
                             print(f'SCENARIO: {side} passage in room'
                                   f' {room_name} has spawn block {row}'
-                                  f' over empty terrain {tile} in column '
+                                  f' over empty terrain ${tile:02x} in column '
                                   f'{col}')
                             failed = True
                 elif kind == 'vert':
-                    col = passage['spawn_block']
-                    tile = terrain[room_name][col][spawn_block_row]
+                    row = spawn_block_row + vert_adjust
+                    col = passage['spawn_block'] + horz_adjust // 2
+                    tile = terrain[room_name][col][row]
                     if is_solid(tile):
                         print(f'SCENARIO: {side} passage in room {room_name}'
-                              f' has spawn block {row} in solid terrain'
-                              f' {tile}')
+                              f' has adjusted spawn row={row} col={col} in'
+                              f' solid terrain ${tile:02x}')
                         failed = True
+                    if vert_adjust != 0:
+                        tile = terrain[room_name][col][row + 1]
+                        if not is_solid(tile):
+                            print(f'SCENARIO: {side} passage in room'
+                                  f' {room_name} has adjusted spawn row={row}'
+                                  f' col={col} over empty terrain ${tile:02x}')
+                            failed = True
                 else: assert False, kind
     return failed
 
