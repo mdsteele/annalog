@@ -518,12 +518,12 @@ _DrawTitleLogoBgTiles:
 _DrawMenuLineBgTiles:
     lda #kPpuCtrlFlagsHorz
     sta Hw_PpuCtrl_wo
-    ldax #Ppu_Nametable3_sName + sName::Tiles_u8_arr
+    ldax #Ppu_Nametable3_sName + sName::Tiles_u8_arr + 1
     sta Hw_PpuAddr_w2
     stx Hw_PpuAddr_w2
     lda #kTileIdBgHorizontalRule
     .assert kTitleMenuLineGapTiles .mod 2 = 0, error
-    ldx #(kScreenWidthTiles - kTitleMenuLineGapTiles) / 2
+    ldx #(kScreenWidthTiles - 2 - kTitleMenuLineGapTiles) / 2
     @loop1:
     sta Hw_PpuData_rw
     dex
@@ -535,7 +535,7 @@ _DrawMenuLineBgTiles:
     dex
     bne @loop2
     lda #kTileIdBgHorizontalRule
-    ldx #(kScreenWidthTiles - kTitleMenuLineGapTiles) / 2
+    ldx #(kScreenWidthTiles - 2 - kTitleMenuLineGapTiles) / 2
     @loop3:
     sta Hw_PpuData_rw
     dex

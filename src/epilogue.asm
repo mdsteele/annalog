@@ -1212,16 +1212,19 @@ _Transfer_sXfer:
     d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr TerrainData_ptr, 0
     d_byte TerrainOffset_u8, 0
-    d_byte ScreenScrollY_u8, 4
+    d_byte ScreenScrollY_u8, 0
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgFontUpper)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPause)
     d_addr Draw_sShapeTile_arr_ptr, 0
     D_END
 _Transfer_sXfer:
-    d_xfer_text_row 14, "MANUAL DESIGN"
-    d_xfer_text_row 16, "Barbara Steele"
-    d_xfer_attr_upper $1a, 4, $50
+    d_xfer_text_row 12, "MANUAL DESIGN/ART"
+    d_xfer_text_row 14, "Barbara Steele"
+    d_xfer_text_row 15, "Guy Steele"
+    d_xfer_text_row 16, "Holly Steele"
+    d_xfer_text_row 17, "Stephanie Steele"
+    d_xfer_attr_upper $19, 6, $05
     d_xfer_terminator
 .ENDPROC
 
@@ -1248,7 +1251,7 @@ _Transfer_sXfer:
     d_addr Terrain_sTileset_ptr, DataA_Room_Core_sTileset
     d_addr TerrainData_ptr, 0
     d_byte TerrainOffset_u8, 0
-    d_byte ScreenScrollY_u8, 0
+    d_byte ScreenScrollY_u8, 4
     d_addr Transfer_sXfer_ptr, _Transfer_sXfer
     d_byte Chr04Bank_u8, <.bank(Ppu_ChrBgFontUpper)
     d_byte Chr18Bank_u8, <.bank(Ppu_ChrObjPause)
@@ -1257,7 +1260,8 @@ _Transfer_sXfer:
 _Transfer_sXfer:
     d_xfer_text_row 13, "SPECIAL THANKS"
     d_xfer_text_row 15, "Holly and Emily"
-    d_xfer_text_row 16, "NesDev.org"
+    d_xfer_text_row 16, "ca65"
+    d_xfer_text_row 17, "NesDev.org"
     d_xfer_attr_upper $1a, 4, $05
     d_xfer_terminator
 .ENDPROC
