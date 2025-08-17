@@ -44,11 +44,11 @@
 .SEGMENT "PRGA_Machine"
 
 ;;; Starts playing the sound for when a minigun machine shoots a bullet.
-;;; @preserve T0+
+;;; @preserve X, T0+
 .EXPORT FuncA_Machine_PlaySfxShootBullet
 .PROC FuncA_Machine_PlaySfxShootBullet
     ldya #Data_ShootBullet_sSfx
-    jmp Func_PlaySfxOnPulse2Channel  ; preserves T0+
+    jmp Func_PlaySfxOnPulse2Channel  ; preserves X and T0+
 .ENDPROC
 
 ;;;=========================================================================;;;

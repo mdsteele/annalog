@@ -36,6 +36,7 @@
 .IMPORT FuncA_Objects_MoveShapeRightByA
 .IMPORT FuncA_Objects_SetShapePosToMachineTopLeft
 .IMPORT Func_FindEmptyActorSlot
+.IMPORT Func_PointHitsTerrain
 .IMPORT Func_SetActorCenterToPoint
 .IMPORT Ram_ActorState1_byte_arr
 .IMPORT Ram_ActorType_eActor_arr
@@ -152,18 +153,20 @@ _BulletVert:
     adc Ram_PlatformLeft_i16_1_arr, y
     sta Zp_PointY_i16 + 1
 _InitBullet:
-    jsr Func_SetActorCenterToPoint  ; preserves X, Y, and T0+
+    jsr FuncA_Machine_PlaySfxShootBullet  ; preserves X and T0+
+    jsr Func_PointHitsTerrain  ; preserves X and T0+, returns C
+    bcs @done  ; bullet is being shot point blank into solid terrain
+    jsr Func_SetActorCenterToPoint  ; preserves X and T0+
     lda T0  ; param: bullet direction
     jsr FuncA_Machine_InitActorProjBullet  ; preserves X
     ;; If debugging, replace the bullet with a smoke particle.
     lda Zp_ConsoleMachineIndex_u8
-    bmi @noDebug
+    bmi @done  ; not debugging
     lda #eActor::SmokeParticle
     sta Ram_ActorType_eActor_arr, x
     lda #0
     sta Ram_ActorState1_byte_arr, x  ; particle age in frames
-    @noDebug:
-    jsr FuncA_Machine_PlaySfxShootBullet
+    @done:
 _StartCooldown:
     ldx Zp_MachineIndex_u8
     inc Ram_MachineState1_byte_arr, x  ; shot counter

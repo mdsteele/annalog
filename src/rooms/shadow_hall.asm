@@ -47,7 +47,7 @@
 .IMPORT FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 .IMPORT FuncC_Shadow_DrawGlassPlatform
 .IMPORT FuncC_Shadow_PlaySfxAlarm
-.IMPORT Func_IsPointInPlatform
+.IMPORT Func_IsPointInAnySolidPlatform
 .IMPORT Func_MovePointDownByA
 .IMPORT Func_MovePointUpByA
 .IMPORT Func_Noop
@@ -213,6 +213,50 @@ _Platforms_sPlatform_arr:
     d_word Left_i16, kMinigunInitPlatformLeft
     d_word Top_i16,  kMinigunInitPlatformTop
     D_END
+    ;; Side spikes:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16,  $08
+    d_byte HeightPx_u8,  $10
+    d_word Left_i16,   $00a4
+    d_word Top_i16,    $0080
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16,  $08
+    d_byte HeightPx_u8,  $10
+    d_word Left_i16,   $00d4
+    d_word Top_i16,    $0050
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Harm
+    d_word WidthPx_u16,  $08
+    d_byte HeightPx_u8,  $10
+    d_word Left_i16,   $0104
+    d_word Top_i16,    $0080
+    D_END
+    ;; Backs of spikes:
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16,  $08
+    d_byte HeightPx_u8,  $10
+    d_word Left_i16,   $00a0
+    d_word Top_i16,    $0080
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16,  $08
+    d_byte HeightPx_u8,  $10
+    d_word Left_i16,   $00d8
+    d_word Top_i16,    $0050
+    D_END
+    D_STRUCT sPlatform
+    d_byte Type_ePlatform, ePlatform::Solid
+    d_word WidthPx_u16,  $08
+    d_byte HeightPx_u8,  $10
+    d_word Left_i16,   $0108
+    d_word Top_i16,    $0080
+    D_END
     ;; Acid:
     D_STRUCT sPlatform
     d_byte Type_ePlatform, ePlatform::Kill
@@ -241,6 +285,19 @@ _Devices_sDevice_arr:
     d_byte BlockRow_u8, 5
     d_byte BlockCol_u8, 14
     d_byte Target_byte, eFlag::PaperJerome02
+    D_END
+    ;; Placeholder devices for blocking minigun machine from passing spikes:
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Placeholder
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 10
+    d_byte Target_byte, 0  ; unused
+    D_END
+    D_STRUCT sDevice
+    d_byte Type_eDevice, eDevice::Placeholder
+    d_byte BlockRow_u8, 8
+    d_byte BlockCol_u8, 16
+    d_byte Target_byte, 0  ; unused
     D_END
     ;; Placeholder devices for blocking minigun machine from passing pipes:
     D_STRUCT sDevice
@@ -457,15 +514,26 @@ _BreakableGlass:
     lda #eActor::ProjBullet  ; param: projectile type
     jsr FuncA_Room_TurnProjectilesToSmokeIfConsoleOpen
 _CheckForBulletHits:
+    ;; Loop over all bullet actors in the room.
     ldx #kMaxActors - 1
     @loop:
     lda Ram_ActorType_eActor_arr, x
     cmp #eActor::ProjBullet
     bne @continue
-    ldy #kGlass1PlatformIndex  ; param: glass platform index
-    jsr FuncA_Room_ShadowHall_CheckForBulletHit  ; preserves X
-    ldy #kGlass2PlatformIndex  ; param: glass platform index
-    jsr FuncA_Room_ShadowHall_CheckForBulletHit  ; preserves X
+    ;; Check if this bullet is hitting a solid platform.
+    jsr Func_SetPointToActorCenter  ; preserves X
+    jsr Func_IsPointInAnySolidPlatform  ; preserves X, returns C and Y
+    bcc @continue  ; bullet is not hitting any solid platform
+    ;; Check if the bullet hit a glass platform.  If so, damage the glass.
+    cpy #kGlass1PlatformIndex
+    beq @hitGlass
+    cpy #kGlass2PlatformIndex
+    bne @expireBullet
+    @hitGlass:
+    jsr FuncA_Room_ShadowHall_HitGlassWithBullet  ; preserves X
+    @expireBullet:
+    lda #eActor::None
+    sta Ram_ActorType_eActor_arr, x
     @continue:
     dex
     bpl @loop
@@ -483,25 +551,14 @@ _BlinkBreakableGlass:
     rts
 .ENDPROC
 
-;;; Checks if the given bullet actor has hit the breakable glass in this room;
-;;; if so, handles the collision.
+;;; Handles the collision of a bullet with a breakable glass platform in the
+;;; ShadowHall room.
 ;;; @param X The bullet actor index.
 ;;; @param Y The glass platform index.
 ;;; @preserve X
-.PROC FuncA_Room_ShadowHall_CheckForBulletHit
-    ;; If the breakable glass is already destroyed, we're done.
-    lda Ram_PlatformType_ePlatform_arr, y
-    .assert ePlatform::None = 0, error
-    beq _Return
-    ;; If this bullet isn't hitting the glass, we're done.
-    jsr Func_SetPointToActorCenter  ; preserves X
-    jsr Func_IsPointInPlatform  ; preserves X and Y, returns C
-    bcc _Return
-    ;; Expire the bullet.
-    lda #eActor::None
-    sta Ram_ActorType_eActor_arr, x
-    ;; Hit the breakable glass.
+.PROC FuncA_Room_ShadowHall_HitGlassWithBullet
     stx T4  ; bullet actor index
+    ;; Hit the breakable glass.
     ldx Zp_RoomState + sState::BreakableGlassHits_u8_arr2, y
     inx
     stx Zp_RoomState + sState::BreakableGlassHits_u8_arr2, y
@@ -510,9 +567,8 @@ _BlinkBreakableGlass:
     bge _Broken
 _NotBroken:
     jsr FuncA_Room_PlaySfxCrack  ; preserves T0+
-_RestoreX:
+_Finish:
     ldx T4  ; bullet actor index
-_Return:
     rts
 _Broken:
     jsr Func_SetPointToPlatformCenter  ; preserves Y and T0+
@@ -538,7 +594,7 @@ _Broken:
     jsr Func_MovePointDownByA  ; preserves T0+
     lda #9  ; param: angle
     jsr FuncA_Room_SpawnParticleAtPoint  ; preserves T4+
-    jmp _RestoreX
+    jmp _Finish
 .ENDPROC
 
 ;;;=========================================================================;;;
