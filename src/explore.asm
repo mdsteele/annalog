@@ -194,10 +194,10 @@ _CheckButtons:
     jmp (T1T0)
     @continueExploring:
 _Tick:
-    jsr FuncM_ScrollTowardsAvatar
     jsr_prga FuncA_Actor_TickAllDevicesAndActors
     jsr_prga FuncA_Machine_ExecuteAll
     jsr_prga FuncA_Room_CallRoomTick
+    jsr FuncM_ScrollTowardsAvatar
     ;; Check if the player avatar is dead:
     lda Zp_AvatarHarmTimer_u8
     cmp #kAvatarHarmDeath
