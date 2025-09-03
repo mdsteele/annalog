@@ -196,13 +196,6 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Spike
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $08
-    d_word Left_i16,  $0140
-    d_word Top_i16,   $007a
-    D_END
-    D_STRUCT sPlatform
-    d_byte Type_ePlatform, ePlatform::Spike
-    d_word WidthPx_u16, $10
-    d_byte HeightPx_u8, $08
     d_word Left_i16,  $0180
     d_word Top_i16,   $005a
     D_END

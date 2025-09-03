@@ -33,6 +33,7 @@
 .INCLUDE "../ppu.inc"
 .INCLUDE "../program.inc"
 .INCLUDE "../room.inc"
+.INCLUDE "../spawn.inc"
 
 .IMPORT DataA_Room_Lava_sTileset
 .IMPORT FuncA_Machine_BlasterTick
@@ -72,10 +73,15 @@
 .IMPORT Ram_PlatformLeft_i16_0_arr
 .IMPORT Ram_PlatformTop_i16_0_arr
 .IMPORT Ram_ProgressFlags_arr
+.IMPORTZP Zp_AvatarPosX_i16
 .IMPORTZP Zp_PointY_i16
 .IMPORTZP Zp_RoomState
 
 ;;;=========================================================================;;;
+
+;;; The index of the passage on the upper east side of the room (in front of
+;;; crate #3).
+kUpperEastPassageIndex = 2
 
 ;;; The actor index for the hothead in this room.
 kHotheadActorIndex = 2
@@ -128,6 +134,9 @@ kChain3PlatformIndex = 5
 kCrate1MaxTop = $0061
 kCrate2MaxTop = $0101
 kCrate3MaxTop = $0061
+
+;;; The room pixel X-position for the right side of crate #3.
+kCrate3PlatformRight = $0100
 
 ;;;=========================================================================;;;
 
@@ -221,7 +230,7 @@ _Platforms_sPlatform_arr:
     d_byte Type_ePlatform, ePlatform::Solid
     d_word WidthPx_u16, $10
     d_byte HeightPx_u8, $10
-    d_word Left_i16,  $00f0
+    d_word Left_i16,  kCrate3PlatformRight - $10
     d_word Top_i16,   $0030
     D_END
     .assert * - :- = kChain1PlatformIndex * .sizeof(sPlatform), error
@@ -341,6 +350,7 @@ _Passages_sPassage_arr:
     d_byte SpawnBlock_u8, 15
     d_byte SpawnAdjust_byte, 0
     D_END
+    .assert * - :- = kUpperEastPassageIndex * .sizeof(sPassage), error
     D_STRUCT sPassage
     d_byte Exit_bPassage, ePassage::Eastern | 0
     d_byte Destination_eRoom, eRoom::LavaEast
@@ -510,7 +520,23 @@ _Blaster:
     D_END
 .ENDPROC
 
+;;; @param A The bSpawn value for where the avatar is entering the room.
 .PROC FuncA_Room_LavaCenter_EnterRoom
+    ;; If the player avatar spawns from the top-right passage (e.g. after a
+    ;; reset), ensure that the avatar isn't inside crate #3.
+    cmp #bSpawn::Passage | kUpperEastPassageIndex
+    bne @done
+    flag_bit Ram_ProgressFlags_arr, eFlag::LavaCenterChain3Broken
+    bne @done  ; crate has already fallen to the floor
+    lda Zp_AvatarPosX_i16 + 0
+    cmp #<(kCrate3PlatformRight + kAvatarBoundingBoxLeft)
+    lda Zp_AvatarPosX_i16 + 1
+    sbc #>(kCrate3PlatformRight + kAvatarBoundingBoxLeft)
+    bpl @done
+    ldax #kCrate3PlatformRight + kAvatarBoundingBoxLeft
+    stax Zp_AvatarPosX_i16
+    @done:
+_MoveCratesWithBrokenChainsToFloor:
     ldx #eCrate::NUM_VALUES - 1
     @loop:
     jsr FuncA_Room_LavaCenter_IsCrateFlagSet  ; preserves X, returns C
