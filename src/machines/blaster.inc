@@ -36,7 +36,8 @@ kBlasterMachineHeightPx = $10
 kChrBankDiagramBlaster = $11
 
 ;;; BG tile IDs for blaster machine diagrams.
-kTileIdBgDiagramBlasterFirst = $e0
+kTileIdBgDiagramBlasterMirrorFirst = $e0
+kTileIdBgDiagramBlasterPlainFirst  = $f0
 
 ;;; OBJ tile IDs used for drawing blaster machines.
 kTileIdObjBlasterFirst = $98

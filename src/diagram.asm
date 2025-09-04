@@ -82,7 +82,8 @@ kNoPowerWidthTiles = 19
 .PROC DataA_Console_DiagramBank_u8_arr
     D_ARRAY .enum, eDiagram
     d_byte AmmoRack,            kChrBankDiagramAmmoRack
-    d_byte Blaster,             kChrBankDiagramBlaster
+    d_byte BlasterMirror,       kChrBankDiagramBlaster
+    d_byte BlasterPlain,        kChrBankDiagramBlaster
     d_byte BoilerPlain,         kChrBankDiagramBoiler
     d_byte BoilerValve,         kChrBankDiagramBoiler
     d_byte BridgeLeft,          kChrBankDiagramBridgeLeft
@@ -127,7 +128,8 @@ kNoPowerWidthTiles = 19
 .PROC DataA_Console_DiagramFirstTileId_u8_arr
     D_ARRAY .enum, eDiagram
     d_byte AmmoRack,            kTileIdBgDiagramAmmoRackFirst
-    d_byte Blaster,             kTileIdBgDiagramBlasterFirst
+    d_byte BlasterMirror,       kTileIdBgDiagramBlasterMirrorFirst
+    d_byte BlasterPlain,        kTileIdBgDiagramBlasterPlainFirst
     d_byte BoilerPlain,         kTileIdBgDiagramBoilerPlainFirst
     d_byte BoilerValve,         kTileIdBgDiagramBoilerValveFirst
     d_byte BridgeLeft,          kTileIdBgDiagramBridgeLeftFirst

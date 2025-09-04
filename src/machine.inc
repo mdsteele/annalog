@@ -30,7 +30,8 @@ kMachineRegNameB = $61  ; 'B'
 .ENUM eDiagram
     ;; @begin SORTED
     AmmoRack
-    Blaster
+    BlasterMirror
+    BlasterPlain
     BoilerPlain
     BoilerValve
     BridgeLeft

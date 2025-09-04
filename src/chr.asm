@@ -968,9 +968,9 @@ _chr_begin:
     .assert .bank(*) = kChrBankPortraitElderRest, error
     chr_inc "portrait_elder_rest", kTileIdBgPortraitElderFirst
     .assert .bank(*) = kChrBankDiagramBlaster, error
-    chr_inc "diagram_blaster", kTileIdBgDiagramBlasterFirst
-    .assert .bank(*) = kChrBankDiagramDrums, error
-    chr_inc "diagram_drums", kTileIdBgDiagramDrumsFirst
+    chr_inc "diagram_blaster_mirror", kTileIdBgDiagramBlasterMirrorFirst
+    .assert .bank(*) = kChrBankDiagramBlaster, error
+    chr_inc "diagram_blaster_plain", kTileIdBgDiagramBlasterPlainFirst
     END_CHR_BANK
 .ENDPROC
 
@@ -1041,7 +1041,8 @@ _chr_begin:
     chr_inc "portrait_nora_talk", kTileIdBgPortraitNoraFirst
     .assert .bank(*) = kChrBankDiagramLaser, error
     chr_inc "diagram_laser", kTileIdBgDiagramLaserFirst
-    chr_res $10
+    .assert .bank(*) = kChrBankDiagramDrums, error
+    chr_inc "diagram_drums", kTileIdBgDiagramDrumsFirst
     END_CHR_BANK
     .linecont -
 .ENDPROC

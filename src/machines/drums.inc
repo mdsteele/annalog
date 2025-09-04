@@ -23,7 +23,7 @@
 ;;;   * State3: Unused.
 
 ;;; The CHR bank number containing the diagram for drums machines.
-kChrBankDiagramDrums = $11
+kChrBankDiagramDrums = $15
 
 ;;; BG tile IDs for drums machine diagrams.
 kTileIdBgDiagramDrumsFirst = $f0
