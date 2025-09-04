@@ -33,6 +33,8 @@
 .IMPORT FuncA_Objects_Draw1x1Shape
 .IMPORT FuncA_Objects_GetMachineLightTileId
 .IMPORT FuncA_Objects_SetShapePosToPlatformTopLeft
+.IMPORT FuncA_Room_PlaySfxMirrorAbsorb
+.IMPORT FuncA_Room_PlaySfxMirrorReflect
 .IMPORT Func_FindEmptyActorSlot
 .IMPORT Func_InitActorProjFireblast
 .IMPORT Func_InitActorSmokeParticleStationary
@@ -209,6 +211,7 @@ _Reflect:
     sta Ram_ActorState1_byte_arr, x  ; fireblast angle (in tau/256 units)
     sty T3  ; mirror platform index
     jsr Func_ReinitActorProjFireblastVelocity  ; preserves X and T3+
+    jsr FuncA_Room_PlaySfxMirrorReflect  ; preserves X and T0+
     ;; Snap the fireblast to the center of the mirror.
     ldy T3  ; param: mirror platform index
     jsr Func_SetPointToPlatformCenter  ; preserves X, Y, and T0+
@@ -221,6 +224,7 @@ _Reflect:
 _Remove:
     sty T0  ; mirror platform index
     jsr Func_InitActorSmokeParticleStationary  ; preserves X and T0+
+    jsr FuncA_Room_PlaySfxMirrorAbsorb  ; preserves X and T0+
     ldy T0  ; mirror platform index
 _Continue:
     dex
