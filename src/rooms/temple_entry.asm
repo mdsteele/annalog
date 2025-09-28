@@ -120,8 +120,8 @@ kTileIdObjColumnSide   = kTileIdObjColumnFirst + 1
 .EXPORT DataC_Temple_Entry_sRoom
 .PROC DataC_Temple_Entry_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, $08
-    d_word MaxScrollX_u16, $0008
+    d_byte MinScrollX_u8, $10
+    d_word MaxScrollX_u16, $0010
     d_byte Flags_bRoom, bRoom::Tall | eArea::Temple
     d_byte MinimapStartRow_u8, 7
     d_byte MinimapStartCol_u8, 5
