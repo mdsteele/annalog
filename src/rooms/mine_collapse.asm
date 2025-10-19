@@ -190,7 +190,7 @@ _Machines_sMachine_arr:
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveH | bMachine::WriteCD
     d_byte Status_eDiagram, eDiagram::Trolley
-    d_word ScrollGoalX_u16, $00
+    d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, "L", "R", "X", "D"
     d_byte MainPlatform_u8, kTrolleyPlatformIndex
@@ -209,7 +209,7 @@ _Machines_sMachine_arr:
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::MoveV | bMachine::Act | bMachine::WriteCD
     d_byte Status_eDiagram, eDiagram::Crane
-    d_word ScrollGoalX_u16, $00
+    d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $10
     d_byte RegNames_u8_arr4, "L", "R", "D", "Z"
     d_byte MainPlatform_u8, kCranePlatformIndex
