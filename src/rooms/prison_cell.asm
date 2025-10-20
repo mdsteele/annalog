@@ -213,8 +213,9 @@ kOrc2FlinchVelX = 400
 .EXPORT DataC_Prison_Cell_sRoom
 .PROC DataC_Prison_Cell_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8, kMinScrollX
-    d_word MaxScrollX_u16, kMinScrollX + $100
+    .assert kMinScrollX = $10, error
+    d_byte MinScrollX_u8, $10    ; Don't use kMinScrollX constant here, so that
+    d_word MaxScrollX_u16, $110  ; the scenario.py test script can parse it.
     d_byte Flags_bRoom, bRoom::Tall | eArea::Prison
     d_byte MinimapStartRow_u8, 2
     d_byte MinimapStartCol_u8, 5

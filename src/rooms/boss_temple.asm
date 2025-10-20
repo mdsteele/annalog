@@ -292,8 +292,9 @@ kBossBodyPlatformIndex = 3
 .EXPORT DataC_Boss_Temple_sRoom
 .PROC DataC_Boss_Temple_sRoom
     D_STRUCT sRoom
-    d_byte MinScrollX_u8,  kRoomScrollX
-    d_word MaxScrollX_u16, kRoomScrollX + $0
+    .assert kRoomScrollX = $08, error
+    d_byte MinScrollX_u8,  $08  ; Don't use kRoomScrollX constant here, so that
+    d_word MaxScrollX_u16, $08  ; the scenario.py test script can parse it.
     d_byte Flags_bRoom, bRoom::Unsafe | eArea::Temple
     d_byte MinimapStartRow_u8, 1
     d_byte MinimapStartCol_u8, 1

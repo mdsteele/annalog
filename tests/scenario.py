@@ -102,6 +102,7 @@ PAPER_AREA_RE = re.compile(
     r'; *room: *([A-Za-z0-9]+)')
 PAPER_TARGET_RE = re.compile(r'^ *d_byte +Target_byte, *eFlag::([A-Za-z0-9]+)')
 
+MIN_SCROLL_X_RE = re.compile(r'^ *d_byte +MinScrollX_u8,.*\$([0-9a-fA-F]+)')
 MAX_SCROLL_X_RE = re.compile(r'^ *d_word +MaxScrollX_u16,.*\$([0-9a-fA-F]+)')
 ROOM_FLAGS_RE = re.compile(r'^ *d_byte +Flags_bRoom, *(.*)eArea::([A-Za-z]+)$')
 START_ROW_RE = re.compile(r'^ *d_byte +MinimapStartRow_u8, *([0-9]+)')
@@ -114,6 +115,9 @@ DEVICE_TYPE_RE = re.compile(
 DEVICE_ROW_RE = re.compile(r'^ *d_byte +BlockRow_u8, *([0-9]+)')
 DEVICE_COL_RE = re.compile(r'^ *d_byte +BlockCol_u8, *([0-9]+)')
 DOOR_TARGET_RE = re.compile(r'^ *d_byte +Target_byte, *eRoom::([A-Za-z0-9]+)')
+
+SCROLL_GOAL_X_RE = re.compile(r'^ *d_word +ScrollGoalX_u16, *\$([0-9a-fA-F]+)')
+SCROLL_GOAL_Y_RE = re.compile(r'^ *d_byte +ScrollGoalY_u8, *\$([0-9a-fA-F]+)')
 
 PASSAGE_EXIT_RE = re.compile(
     r'^ *d_byte Exit_bPassage, *ePassage::([A-Za-z]+) *'
@@ -217,6 +221,7 @@ def load_papers():
 def load_room(filepath, prgc_name):
     file = open(filepath)
     # Determine the set of minimap cells that this room occupies.
+    min_scroll_x = scan_for_int(file, MIN_SCROLL_X_RE, 16)
     max_scroll_x = scan_for_int(file, MAX_SCROLL_X_RE, 16)
     room_flags_match = scan_for_match(file, ROOM_FLAGS_RE)
     is_tall = 'bRoom::Tall' in room_flags_match.group(1)
@@ -230,9 +235,10 @@ def load_room(filepath, prgc_name):
                       for row in range(start_row, start_row + height)
                       for col in range(start_col, start_col + width))
     tileset = scan_for_match(file, TERRAIN_TILESET_RE).group(1)
-    # Load the passage data for this room.
+    # Load the data for this room.
     devices = []
     doors = []
+    machines = []
     papers = []
     passages = []
     while True:
@@ -263,6 +269,13 @@ def load_room(filepath, prgc_name):
             elif device_type == 'Paper' or device_type == 'PaperBg':
                 paper_name = scan_for_match(file, PAPER_TARGET_RE).group(1)
                 papers.append(paper_name)
+        elif struct_type == 'sMachine':
+            scroll_goal_x = scan_for_int(file, SCROLL_GOAL_X_RE, 16)
+            scroll_goal_y = read_int_line(file, SCROLL_GOAL_Y_RE, 16)
+            machines.append({
+                'scroll_goal_x': scroll_goal_x,
+                'scroll_goal_y': scroll_goal_y,
+            })
         elif struct_type == 'sPassage':
             exit_match = read_match_line(file, PASSAGE_EXIT_RE)
             dest_match = read_match_line(file, PASSAGE_DEST_RE)
@@ -296,7 +309,9 @@ def load_room(filepath, prgc_name):
         'devices': devices,
         'doors': doors,
         'is_tall': is_tall,
+        'machines': machines,
         'max_scroll_x': max_scroll_x,
+        'min_scroll_x': min_scroll_x,
         'papers': papers,
         'passages': passages,
         'tileset': tileset,
@@ -551,6 +566,34 @@ def test_room_doors(areas):
                     failed = True
     return failed
 
+def test_room_machines(areas):
+    failed = False
+    for area_name, area in areas.items():
+        for room_name, room in area['rooms'].items():
+            min_scroll_x = room['min_scroll_x']
+            max_scroll_x = room['max_scroll_x']
+            max_scroll_y = 0xd0 if room['is_tall'] else 0x48
+            for index, machine in enumerate(room['machines']):
+                scroll_goal_x = machine['scroll_goal_x']
+                scroll_goal_y = machine['scroll_goal_y']
+                if scroll_goal_x < min_scroll_x:
+                    print(f'SCENARIO: machine {index} in {room_name} has'
+                          f' ScrollGoalX = ${scroll_goal_x:04x}, but'
+                          f' MinScrollX = ${min_scroll_x:02x}')
+                    failed = True
+                if scroll_goal_x > max_scroll_x:
+                    print(f'SCENARIO: machine {index} in {room_name} has'
+                          f' ScrollGoalX = ${scroll_goal_x:04x}, but'
+                          f' MaxScrollX = ${max_scroll_x:04x}')
+                    failed = True
+                if scroll_goal_y > max_scroll_y:
+                    height = 'tall' if room['is_tall'] else 'short'
+                    print(f'SCENARIO: machine {index} in {height} room'
+                          f' {room_name} has ScrollGoalY ='
+                          f' ${scroll_goal_y:02x}')
+                    failed = True
+    return failed
+
 def test_room_passages(areas):
     failed = False
     for area_name, area in areas.items():
@@ -776,6 +819,7 @@ def run_tests():
     failed |= test_room_cells(areas)
     failed |= test_room_devices(areas)
     failed |= test_room_doors(areas)
+    failed |= test_room_machines(areas)
     failed |= test_room_passages(areas)
     failed |= test_marker_rooms(areas, markers)
     failed |= test_flower_rooms(areas, markers)

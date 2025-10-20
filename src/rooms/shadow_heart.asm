@@ -138,7 +138,7 @@ _Machines_sMachine_arr:
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::Act | bMachine::WriteE
     d_byte Status_eDiagram, eDiagram::EmitterX
-    d_word ScrollGoalX_u16, $0
+    d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, 0, "X", 0
     d_byte MainPlatform_u8, kEmitterXPlatformIndex
@@ -157,7 +157,7 @@ _Machines_sMachine_arr:
     d_byte Breaker_eFlag, 0
     d_byte Flags_bMachine, bMachine::Act | bMachine::WriteF
     d_byte Status_eDiagram, eDiagram::EmitterY
-    d_word ScrollGoalX_u16, $0
+    d_word ScrollGoalX_u16, $10
     d_byte ScrollGoalY_u8, $0
     d_byte RegNames_u8_arr4, 0, 0, 0, "Y"
     d_byte MainPlatform_u8, kEmitterYPlatformIndex
