@@ -3,6 +3,10 @@
     src: url('PressStart2P.ttf') format('truetype');
 }
 
+a { color: #0c0; text-decoration: none; }
+a:active { color: #c00; }
+a:hover { text-decoration: underline; }
+
 body {
     background-color: #000;
     color: #fff;
