@@ -121,6 +121,12 @@ header > nav > a:active {
     }
 }
 
+.banner {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
 .story {
     font-style: italic;
 }
