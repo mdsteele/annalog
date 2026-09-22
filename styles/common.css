@@ -132,6 +132,11 @@ header > nav > a:active {
     font-style: italic;
 }
 
+li {
+    padding-bottom: 12px;
+    list-style-type: disc;
+}
+
 footer {
     clear: both;
     color: #545454;
